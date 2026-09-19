@@ -86,6 +86,11 @@ import com.yunx.app.R
 import com.yunx.app.data.prefs.SettingsRepository
 import com.yunx.app.ui.theme.AppThemeManager
 import com.yunx.app.ui.theme.SquircleShape
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import com.yunx.app.ui.components.BlurredBar
+import com.yunx.app.ui.components.blurBackdropSource
+import com.yunx.app.ui.components.rememberBlurBackdrop
+import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Icon
@@ -166,26 +171,47 @@ fun ThemeScreen(
         settingsRepo.appIconVariant = variant
     }
 
+    val scrollBehavior = MiuixScrollBehavior()
+    val backdrop = rememberBlurBackdrop()
+
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
-            TopAppBar(
-                title = "主题与外观",
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+            BlurredBar(
+                backdrop = backdrop,
+                scrollBehavior = scrollBehavior,
+            ) {
+                TopAppBar(
+                    title = "主题与外观",
+                    scrollBehavior = scrollBehavior,
+                    color = if (backdrop != null) Color.Transparent else MiuixTheme.colorScheme.surface,
+                    navigationIcon = {
+                        IconButton(onClick = onBack) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+                        }
                     }
-                }
-            )
+                )
+            }
         }
     ) { innerPadding ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp, vertical = 12.dp)
+                .background(MiuixTheme.colorScheme.surface)
+                .blurBackdropSource(backdrop)
         ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .nestedScroll(scrollBehavior.nestedScrollConnection)
+                    .verticalScroll(rememberScrollState())
+                    .padding(
+                        top = innerPadding.calculateTopPadding() + 8.dp,
+                        bottom = innerPadding.calculateBottomPadding() + 16.dp,
+                        start = 16.dp,
+                        end = 16.dp
+                    )
+            ) {
             // ---------- 外观模式 ----------
             SmallTitle(text = "外观模式")
             Card(
@@ -369,6 +395,7 @@ fun ThemeScreen(
                     )
                 }
             }
+        }
         }
     }
 

@@ -29,8 +29,10 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -86,6 +88,12 @@ import top.yukonga.miuix.kmp.basic.Surface
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.basic.TextField
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import com.yunx.app.ui.components.BlurredBar
+import com.yunx.app.ui.components.blurBackdropSource
+import com.yunx.app.ui.components.rememberBlurBackdrop
+import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.TopAppBar
 import top.yukonga.miuix.kmp.overlay.OverlayDialog
 import top.yukonga.miuix.kmp.theme.MiuixTheme
@@ -120,33 +128,54 @@ fun BookmarkScreen(
         if (cat == null) bookmarks else bookmarks.filter { it.category == cat }
     }
 
+    val scrollBehavior = MiuixScrollBehavior()
+    val backdrop = rememberBlurBackdrop()
+
     BackHandler { onBack() }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
-            TopAppBar(
-                title = "收藏网盘链接",
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+            BlurredBar(
+                backdrop = backdrop,
+                scrollBehavior = scrollBehavior,
+            ) {
+                TopAppBar(
+                    title = "收藏网盘链接",
+                    scrollBehavior = scrollBehavior,
+                    color = if (backdrop != null) Color.Transparent else MiuixTheme.colorScheme.surface,
+                    navigationIcon = {
+                        IconButton(onClick = onBack) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+                        }
+                    },
+                    actions = {
+                        IconButton(onClick = { showAddDialog = true }) {
+                            Icon(Icons.Outlined.Add, contentDescription = "添加收藏")
+                        }
                     }
-                },
-                actions = {
-                    IconButton(onClick = { showAddDialog = true }) {
-                        Icon(Icons.Outlined.Add, contentDescription = "添加收藏")
-                    }
-                }
-            )
+                )
+            }
         }
     ) { innerPadding ->
-        LazyColumn(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+                .background(MiuixTheme.colorScheme.surface)
+                .blurBackdropSource(backdrop)
         ) {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .nestedScroll(scrollBehavior.nestedScrollConnection),
+                contentPadding = PaddingValues(
+                    start = 16.dp,
+                    top = innerPadding.calculateTopPadding() + 8.dp,
+                    end = 16.dp,
+                    bottom = innerPadding.calculateBottomPadding() + 16.dp
+                ),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
             // 分类筛选：作为列表头部，随列表一起上下滚动
             item(key = "categories") {
                 CategoryFilterBar(
@@ -169,6 +198,7 @@ fun BookmarkScreen(
                     )
                 }
             }
+        }
         }
 
         // 添加收藏弹窗（Miuix OverlayDialog）

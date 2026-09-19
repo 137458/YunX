@@ -152,36 +152,37 @@ fun DownloadScreen(
         if (tasks.isEmpty()) {
             EmptyDownloadState(modifier = Modifier.align(Alignment.Center))
         } else {
-            Column(modifier = Modifier.fillMaxSize()) {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .nestedScroll(scrollBehavior.nestedScrollConnection),
+                contentPadding = PaddingValues(
+                    start = 16.dp + scaffoldPadding.calculateStartPadding(layoutDirection),
+                    top = 8.dp + scaffoldPadding.calculateTopPadding(),
+                    end = 16.dp + scaffoldPadding.calculateEndPadding(layoutDirection),
+                    bottom = 96.dp + scaffoldPadding.calculateBottomPadding()
+                ),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
                 // 批量操作栏：全部暂停 / 全部开始 / 删除全部
-                DownloadBatchBar(
-                    hasActive = tasks.any {
-                        it.status == DownloadTaskEntity.STATUS_DOWNLOADING ||
-                            it.status == DownloadTaskEntity.STATUS_PENDING
-                    },
-                    hasResumable = tasks.any {
-                        it.status == DownloadTaskEntity.STATUS_PAUSED ||
-                            it.status == DownloadTaskEntity.STATUS_FAILED
-                    },
-                    onPauseAll = { viewModel.pauseAll() },
-                    onResumeAll = { viewModel.resumeAll() },
-                    onDeleteAll = { showDeleteAllConfirm = true }
-                )
-                LazyColumn(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth()
-                        .nestedScroll(scrollBehavior.nestedScrollConnection),
-                    contentPadding = PaddingValues(
-                        start = 16.dp + scaffoldPadding.calculateStartPadding(layoutDirection),
-                        top = 8.dp + scaffoldPadding.calculateTopPadding(),
-                        end = 16.dp + scaffoldPadding.calculateEndPadding(layoutDirection),
-                        bottom = 96.dp + scaffoldPadding.calculateBottomPadding()
-                    ),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    // 根目录任务（无相对路径）单独显示
-                    val rootTasks = tasks.filter { !it.fileName.contains('/') }
+                item(key = "download_batch_bar") {
+                    DownloadBatchBar(
+                        hasActive = tasks.any {
+                            it.status == DownloadTaskEntity.STATUS_DOWNLOADING ||
+                                it.status == DownloadTaskEntity.STATUS_PENDING
+                        },
+                        hasResumable = tasks.any {
+                            it.status == DownloadTaskEntity.STATUS_PAUSED ||
+                                it.status == DownloadTaskEntity.STATUS_FAILED
+                        },
+                        onPauseAll = { viewModel.pauseAll() },
+                        onResumeAll = { viewModel.resumeAll() },
+                        onDeleteAll = { showDeleteAllConfirm = true }
+                    )
+                }
+
+                // 根目录任务（无相对路径）单独显示
+                val rootTasks = tasks.filter { !it.fileName.contains('/') }
                     // 文件夹下载任务：按「顶级目录」分组（整个文件夹归为一组，内部子文件夹不拆开）
                     val folderGroups = tasks.filter { it.fileName.contains('/') }
                         .groupBy { it.fileName.substringBefore('/') }
@@ -212,7 +213,6 @@ fun DownloadScreen(
                     }
                 }
             }
-        }
 
         // 悬浮添加下载任务按钮（Miuix 风格）
         FloatingActionButton(
@@ -349,7 +349,7 @@ private fun DownloadBatchBar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 2.dp),
+            .padding(vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         TextButton(

@@ -58,12 +58,14 @@ import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.ToolbarPosition
 import top.yukonga.miuix.kmp.basic.TopAppBar
 import top.yukonga.miuix.kmp.theme.MiuixTheme
+import androidx.compose.ui.graphics.Color
+import com.yunx.app.ui.components.BlurredBar
+import com.yunx.app.ui.components.blurBackdropSource
+import com.yunx.app.ui.components.rememberBlurBackdrop
 import com.yunx.app.ui.components.AppFloatingBottomBar
 import com.yunx.app.ui.components.AppStandardBottomBar
 import com.yunx.app.ui.components.liquid.BottomBarStyle
 import com.yunx.app.ui.theme.AppThemeManager
-import top.yukonga.miuix.kmp.blur.layerBackdrop
-import top.yukonga.miuix.kmp.blur.rememberLayerBackdrop
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -192,11 +194,7 @@ fun MainScreen() {
     val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
     // 底栏样式由「主题与外观」页写入，经 AppThemeManager 的内存态即时响应
     val bottomBarStyle = BottomBarStyle.fromPersisted(AppThemeManager.bottomBarStyle)
-    val surfaceColor = MiuixTheme.colorScheme.surface
-    val floatingBackdrop = rememberLayerBackdrop {
-        drawRect(surfaceColor)
-        drawContent()
-    }
+    val blurBackdrop = rememberBlurBackdrop()
     // 首次启动引导页（context 声明后检测）
     var showOnboarding by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
@@ -615,6 +613,7 @@ fun MainScreen() {
             title = currentTab.title,
             largeTitle = currentTab.title,
             scrollBehavior = scrollBehavior,
+            color = if (blurBackdrop != null) Color.Transparent else MiuixTheme.colorScheme.surface,
             actions = {
                 // 解析页标题右上角：收藏网盘链接入口
                 if (currentTab == MainTab.Resolve) {
@@ -709,7 +708,14 @@ fun MainScreen() {
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        topBar = { topBarContent() },
+        topBar = {
+            BlurredBar(
+                backdrop = blurBackdrop,
+                scrollBehavior = scrollBehavior,
+            ) {
+                topBarContent()
+            }
+        },
         bottomBar = {
             // 标准底栏档位：贴底固定的 Miuix NavigationBar
             if (!isLandscape && bottomBarStyle == BottomBarStyle.MiuixStandard) {
@@ -726,7 +732,7 @@ fun MainScreen() {
                 AppFloatingBottomBar(
                     currentTab = currentTab,
                     onTabSelected = { currentTab = it },
-                    backdrop = floatingBackdrop,
+                    backdrop = blurBackdrop,
                     style = bottomBarStyle
                 )
             }
@@ -750,23 +756,18 @@ fun MainScreen() {
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxHeight()
+                            .blurBackdropSource(blurBackdrop)
                     ) {
                         tabContent()
                     }
                 }
             } else {
                 // 竖屏：内容区占满全屏，内部列表消费 LocalScaffoldPadding 获得穿透滚动效果；
-                // 仅悬浮底栏档位需要挂载 backdrop 采样源（标准底栏不做背景采样，挂了纯属白开销）
+                // 挂载 blurBackdropSource 支持顶部 BlurredBar 与底部悬浮栏采样
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .then(
-                            if (bottomBarStyle.isFloating) {
-                                Modifier.layerBackdrop(floatingBackdrop)
-                            } else {
-                                Modifier
-                            }
-                        )
+                        .blurBackdropSource(blurBackdrop)
                 ) {
                     tabContent()
                 }

@@ -105,6 +105,7 @@ private val threadOptions = listOf(1, 2, 4, 8, 16, 32, 64, 128, 256, 512)
 private data class ThreadPlatform(val platform: String, val label: String)
 
 private val threadPlatforms = listOf(
+    ThreadPlatform(DownloadPlatform.GENERIC, "通用 / 手动添加"),
     ThreadPlatform(DownloadPlatform.QUARK, "夸克网盘"),
     ThreadPlatform(DownloadPlatform.UC, "UC 网盘"),
     ThreadPlatform(DownloadPlatform.XUNLEI, "迅雷网盘"),
@@ -244,13 +245,18 @@ fun SettingsScreen(
         }
     }
 
+    val scaffoldPadding = LocalScaffoldPadding.current
     Column(
         modifier = modifier
             .fillMaxSize()
             .nestedScroll(scrollBehavior.nestedScrollConnection)
             .verticalScroll(rememberScrollState())
-            .padding(LocalScaffoldPadding.current)
-            .padding(horizontal = 12.dp, vertical = 12.dp)
+            .padding(
+                top = scaffoldPadding.calculateTopPadding() + 8.dp,
+                bottom = scaffoldPadding.calculateBottomPadding() + 16.dp,
+                start = 12.dp,
+                end = 12.dp
+            )
     ) {
         // ---------- 分类 1: 下载 ----------
         SmallTitle(text = "下载")
@@ -337,7 +343,7 @@ fun SettingsScreen(
             )
             SwitchPreference(
                 checked = showSpeed,
-                onCheckedChange = {
+                onCheckedChange = { checked ->
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
                         ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) !=
                         PackageManager.PERMISSION_GRANTED
@@ -346,8 +352,8 @@ fun SettingsScreen(
                     } else if (!notificationsEnabled) {
                         openNotificationSettings(context)
                     } else {
-                        showSpeed = !showSpeed
-                        settingsRepo.notificationShowSpeed = showSpeed
+                        showSpeed = checked
+                        settingsRepo.notificationShowSpeed = checked
                     }
                 },
                 title = "通知栏下载进度",
