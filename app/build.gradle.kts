@@ -31,7 +31,7 @@ android {
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "com.yunx.app"
+        applicationId = "com.yunx.app.preview"
         minSdk = 24
         targetSdk = 34
         versionCode = 10
@@ -51,6 +51,10 @@ android {
 
     buildTypes {
         debug {
+            signingConfig = signingConfigs.getByName("debug")
+        }
+        release {
+            isMinifyEnabled = false
             signingConfig = signingConfigs.getByName("debug")
         }
     }
@@ -98,5 +102,6 @@ dependencies {
     implementation(libs.miuix.ui.android)
     implementation(libs.miuix.preference.android)
     implementation(libs.miuix.icons.android)
+    implementation("androidx.navigationevent:navigationevent-compose:1.1.1")
     implementation(libs.kotlinx.serialization.json)
 }

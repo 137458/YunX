@@ -18,32 +18,82 @@
 
 package com.yunx.app.ui.components
 
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.yunx.app.ui.components.liquid.FloatingBottomBar
+import com.yunx.app.ui.components.liquid.FloatingBottomBarDefaults
+import com.yunx.app.ui.components.liquid.FloatingBottomBarItem
+import com.yunx.app.ui.components.liquid.FloatingBottomBarMode
+import com.yunx.app.ui.components.liquid.LocalFloatingBottomBarContentColor
+import com.yunx.app.ui.components.liquid.isRuntimeShaderSupported
 import com.yunx.app.ui.navigation.MainTab
-import top.yukonga.miuix.kmp.basic.FloatingNavigationBar
-import top.yukonga.miuix.kmp.basic.FloatingNavigationBarItem
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /**
- * Miuix 原生悬浮胶囊导航栏 (FloatingNavigationBar)
+ * 生产级液态玻璃悬浮底栏 (AppFloatingBottomBar)。
+ * 融合 SDF 透镜折射、陀螺仪重力感应旋转高光、阻尼拖拽弹性手感与三态平滑降级。
  */
 @Composable
 fun AppFloatingBottomBar(
     currentTab: MainTab,
     onTabSelected: (MainTab) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    mode: FloatingBottomBarMode = if (isRuntimeShaderSupported()) FloatingBottomBarMode.LiquidGlass else FloatingBottomBarMode.Blur
 ) {
-    FloatingNavigationBar(
-        modifier = modifier
+    val tabs = remember { MainTab.entries }
+    val colors = FloatingBottomBarDefaults.colors(
+        containerColor = MiuixTheme.colorScheme.surfaceContainer,
+        indicatorColor = MiuixTheme.colorScheme.primary,
+        contentColor = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+        activeContentColor = MiuixTheme.colorScheme.primary
+    )
+
+    FloatingBottomBar(
+        selectedIndex = { currentTab.ordinal },
+        onSelected = { index -> onTabSelected(tabs[index.coerceIn(0, tabs.lastIndex)]) },
+        tabsCount = tabs.size,
+        modifier = modifier,
+        mode = mode,
+        colors = colors
     ) {
-        MainTab.entries.forEach { tab ->
-            FloatingNavigationBarItem(
-                selected = currentTab == tab,
+        tabs.forEach { tab ->
+            val isSelected = currentTab == tab
+            FloatingBottomBarItem(
                 onClick = { onTabSelected(tab) },
-                icon = if (currentTab == tab) tab.selectedIcon else tab.unselectedIcon,
-                label = tab.title
-            )
+                modifier = Modifier
+                    .defaultMinSize(minWidth = 72.dp)
+                    .semantics { selected = isSelected }
+            ) {
+                val itemColor = if (isSelected) colors.activeContentColor else LocalFloatingBottomBarContentColor.current
+                Icon(
+                    imageVector = if (isSelected) tab.selectedIcon else tab.unselectedIcon,
+                    contentDescription = null, // 外层 Tab 容器统一拥有无障碍 Role.Tab 与 title
+                    tint = itemColor,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = tab.title,
+                    fontSize = 11.sp,
+                    lineHeight = 14.sp,
+                    maxLines = 1,
+                    softWrap = false,
+                    overflow = TextOverflow.Visible,
+                    color = itemColor
+                )
+            }
         }
     }
 }
-

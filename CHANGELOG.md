@@ -3,6 +3,7 @@
 ## [未发布]
 
 ### 重构
+- 重构悬浮底栏为生产级物理液态玻璃 (Liquid Glass Floating Bottom Bar)，集成弹簧阻尼拖拽手感、流体速度形变、陀螺仪 3° 量化重力高光、触摸聚光点与三态平滑降级
 - 全面迁移 UI 组件体系至 Miuix (HyperOS Compose)，彻底清退废弃 Material 3 组件
 - 悬浮底栏切换为 Miuix 官方 FloatingNavigationBar 与 FloatingNavigationBarItem，清理手写伪三态逻辑
 - 抽离通用云盘文件浏览模板骨架 CloudDriveScaffold 与 CloudFileSheets，统一 6 大网盘列表与操作抽屉

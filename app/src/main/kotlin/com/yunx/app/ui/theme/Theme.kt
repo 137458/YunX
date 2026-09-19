@@ -23,9 +23,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.navigationevent.compose.LocalNavigationEventDispatcherOwner
+import androidx.navigationevent.compose.rememberNavigationEventDispatcherOwner
 import top.yukonga.miuix.kmp.theme.ColorSchemeMode
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.theme.ThemeController
@@ -74,63 +77,68 @@ fun ComposeEmptyActivityTheme(
 
     // 2. 将 MiuixTheme 作为唯一色彩根，并派生兼容 MaterialTheme
     MiuixTheme(controller = miuixController) {
-        val miuixColors = MiuixTheme.colorScheme
-        val md3Colors = remember(miuixColors, isDark) {
-            val primary = miuixColors.primary
-            val onPrimary = miuixColors.onPrimary
-            val surface = miuixColors.surface
-            val onSurface = miuixColors.onSurface
-            val background = miuixColors.background
-            val onBackground = miuixColors.onBackground
-            val surfaceVariant = miuixColors.surfaceVariant
-            val onSurfaceVariant = miuixColors.onSurfaceSecondary
-            val outline = miuixColors.dividerLine
-            val error = miuixColors.error
-            val onError = miuixColors.onError
+        val navOwner = rememberNavigationEventDispatcherOwner(parent = null)
+        CompositionLocalProvider(
+            LocalNavigationEventDispatcherOwner provides navOwner
+        ) {
+            val miuixColors = MiuixTheme.colorScheme
+            val md3Colors = remember(miuixColors, isDark) {
+                val primary = miuixColors.primary
+                val onPrimary = miuixColors.onPrimary
+                val surface = miuixColors.surface
+                val onSurface = miuixColors.onSurface
+                val background = miuixColors.background
+                val onBackground = miuixColors.onBackground
+                val surfaceVariant = miuixColors.surfaceVariant
+                val onSurfaceVariant = miuixColors.onSurfaceSecondary
+                val outline = miuixColors.dividerLine
+                val error = miuixColors.error
+                val onError = miuixColors.onError
 
-            if (isDark) {
-                darkColorScheme(
-                    primary = primary,
-                    onPrimary = onPrimary,
-                    primaryContainer = miuixColors.primaryContainer,
-                    onPrimaryContainer = miuixColors.onPrimaryContainer,
-                    secondary = primary,
-                    onSecondary = onPrimary,
-                    surface = surface,
-                    onSurface = onSurface,
-                    surfaceVariant = surfaceVariant,
-                    onSurfaceVariant = onSurfaceVariant,
-                    background = background,
-                    onBackground = onBackground,
-                    outline = outline,
-                    error = error,
-                    onError = onError
-                )
-            } else {
-                lightColorScheme(
-                    primary = primary,
-                    onPrimary = onPrimary,
-                    primaryContainer = miuixColors.primaryContainer,
-                    onPrimaryContainer = miuixColors.onPrimaryContainer,
-                    secondary = primary,
-                    onSecondary = onPrimary,
-                    surface = surface,
-                    onSurface = onSurface,
-                    surfaceVariant = surfaceVariant,
-                    onSurfaceVariant = onSurfaceVariant,
-                    background = background,
-                    onBackground = onBackground,
-                    outline = outline,
-                    error = error,
-                    onError = onError
-                )
+                if (isDark) {
+                    darkColorScheme(
+                        primary = primary,
+                        onPrimary = onPrimary,
+                        primaryContainer = miuixColors.primaryContainer,
+                        onPrimaryContainer = miuixColors.onPrimaryContainer,
+                        secondary = primary,
+                        onSecondary = onPrimary,
+                        surface = surface,
+                        onSurface = onSurface,
+                        surfaceVariant = surfaceVariant,
+                        onSurfaceVariant = onSurfaceVariant,
+                        background = background,
+                        onBackground = onBackground,
+                        outline = outline,
+                        error = error,
+                        onError = onError
+                    )
+                } else {
+                    lightColorScheme(
+                        primary = primary,
+                        onPrimary = onPrimary,
+                        primaryContainer = miuixColors.primaryContainer,
+                        onPrimaryContainer = miuixColors.onPrimaryContainer,
+                        secondary = primary,
+                        onSecondary = onPrimary,
+                        surface = surface,
+                        onSurface = onSurface,
+                        surfaceVariant = surfaceVariant,
+                        onSurfaceVariant = onSurfaceVariant,
+                        background = background,
+                        onBackground = onBackground,
+                        outline = outline,
+                        error = error,
+                        onError = onError
+                    )
+                }
             }
-        }
 
-        MaterialTheme(
-            colorScheme = md3Colors,
-            typography = Typography,
-            content = content
-        )
+            MaterialTheme(
+                colorScheme = md3Colors,
+                typography = Typography,
+                content = content
+            )
+        }
     }
 }
