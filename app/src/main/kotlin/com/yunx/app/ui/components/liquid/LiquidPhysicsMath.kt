@@ -75,4 +75,17 @@ object LiquidPhysicsMath {
     fun isTouchWithinBounds(touchX: Float, totalWidth: Float): Boolean {
         return touchX in 0f..totalWidth
     }
+
+    /**
+     * 计算交互聚光点的有效几何中心坐标，限制在底栏物理边界内。
+     */
+    fun calculateInteractiveHighlightCenter(
+        touchOffset: androidx.compose.ui.geometry.Offset,
+        containerWidth: Float,
+        containerHeight: Float
+    ): androidx.compose.ui.geometry.Offset {
+        val cx = touchOffset.x.coerceIn(0f, containerWidth.coerceAtLeast(0f))
+        val cy = touchOffset.y.coerceIn(0f, containerHeight.coerceAtLeast(0f))
+        return androidx.compose.ui.geometry.Offset(cx, cy)
+    }
 }

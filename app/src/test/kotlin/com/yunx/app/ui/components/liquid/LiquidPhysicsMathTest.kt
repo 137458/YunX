@@ -89,6 +89,36 @@ class LiquidPhysicsMathTest {
         assertFalse(LiquidPhysicsMath.isTouchWithinBounds(361f, totalWidth))
     }
 
+    @Test
+    fun calculateInteractiveHighlightCenter_clampsWithinBounds() {
+        val width = 300f
+        val height = 64f
+
+        val inside = LiquidPhysicsMath.calculateInteractiveHighlightCenter(
+            androidx.compose.ui.geometry.Offset(120f, 32f),
+            width,
+            height
+        )
+        assertEquals(120f, inside.x, 1e-4f)
+        assertEquals(32f, inside.y, 1e-4f)
+
+        val outMin = LiquidPhysicsMath.calculateInteractiveHighlightCenter(
+            androidx.compose.ui.geometry.Offset(-20f, -10f),
+            width,
+            height
+        )
+        assertEquals(0f, outMin.x, 1e-4f)
+        assertEquals(0f, outMin.y, 1e-4f)
+
+        val outMax = LiquidPhysicsMath.calculateInteractiveHighlightCenter(
+            androidx.compose.ui.geometry.Offset(350f, 90f),
+            width,
+            height
+        )
+        assertEquals(300f, outMax.x, 1e-4f)
+        assertEquals(64f, outMax.y, 1e-4f)
+    }
+
     private fun cosDeg(deg: Float): Float = kotlin.math.cos(deg * PI / 180.0).toFloat()
     private fun sinDeg(deg: Float): Float = kotlin.math.sin(deg * PI / 180.0).toFloat()
 }

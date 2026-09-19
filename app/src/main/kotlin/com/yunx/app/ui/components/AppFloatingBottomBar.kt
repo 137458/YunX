@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
@@ -39,17 +40,19 @@ import com.yunx.app.ui.components.liquid.isRuntimeShaderSupported
 import com.yunx.app.ui.navigation.MainTab
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.blur.Backdrop
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /**
  * 生产级液态玻璃悬浮底栏 (AppFloatingBottomBar)。
- * 融合 SDF 透镜折射、陀螺仪重力感应旋转高光、阻尼拖拽弹性手感与三态平滑降级。
+ * 融合 SDF 透镜折射、双重 Backdrop 采样、陀螺仪重力感应旋转高光、阻尼拖拽弹性手感与三态平滑降级。
  */
 @Composable
 fun AppFloatingBottomBar(
     currentTab: MainTab,
     onTabSelected: (MainTab) -> Unit,
     modifier: Modifier = Modifier,
+    backdrop: Backdrop? = null,
     mode: FloatingBottomBarMode = if (isRuntimeShaderSupported()) FloatingBottomBarMode.LiquidGlass else FloatingBottomBarMode.Blur
 ) {
     val tabs = remember { MainTab.entries }
@@ -65,6 +68,7 @@ fun AppFloatingBottomBar(
         onSelected = { index -> onTabSelected(tabs[index.coerceIn(0, tabs.lastIndex)]) },
         tabsCount = tabs.size,
         modifier = modifier,
+        backdrop = backdrop,
         mode = mode,
         colors = colors
     ) {
@@ -74,12 +78,20 @@ fun AppFloatingBottomBar(
                 onClick = { onTabSelected(tab) },
                 modifier = Modifier
                     .defaultMinSize(minWidth = 72.dp)
-                    .semantics { selected = isSelected }
+                    .semantics {
+                        selected = isSelected
+                        contentDescription = tab.title
+                    }
             ) {
-                val itemColor = if (isSelected) colors.activeContentColor else LocalFloatingBottomBarContentColor.current
+                val defaultContentColor = LocalFloatingBottomBarContentColor.current
+                val itemColor = if (backdrop == null && isSelected) {
+                    colors.activeContentColor
+                } else {
+                    defaultContentColor
+                }
                 Icon(
                     imageVector = if (isSelected) tab.selectedIcon else tab.unselectedIcon,
-                    contentDescription = null, // 外层 Tab 容器统一拥有无障碍 Role.Tab 与 title
+                    contentDescription = null, // 外层 Tab 容器统一拥有语义 contentDescription
                     tint = itemColor,
                     modifier = Modifier.size(24.dp)
                 )

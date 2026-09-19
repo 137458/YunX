@@ -59,6 +59,8 @@ import top.yukonga.miuix.kmp.basic.ToolbarPosition
 import top.yukonga.miuix.kmp.basic.TopAppBar
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import com.yunx.app.ui.components.AppFloatingBottomBar
+import top.yukonga.miuix.kmp.blur.layerBackdrop
+import top.yukonga.miuix.kmp.blur.rememberLayerBackdrop
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -184,6 +186,7 @@ fun MainScreen() {
     val scope = rememberCoroutineScope()
     // 横屏时使用侧边导航栏（NavigationRail），竖屏保持底部导航栏（NavigationBar）
     val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+    val floatingBackdrop = rememberLayerBackdrop()
     // 首次启动引导页（context 声明后检测）
     var showOnboarding by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
@@ -701,7 +704,8 @@ fun MainScreen() {
             if (!isLandscape) {
                 AppFloatingBottomBar(
                     currentTab = currentTab,
-                    onTabSelected = { currentTab = it }
+                    onTabSelected = { currentTab = it },
+                    backdrop = floatingBackdrop
                 )
             }
         },
@@ -729,9 +733,11 @@ fun MainScreen() {
                     }
                 }
             } else {
-                // 竖屏：内容区占满全屏，内部列表消费 LocalScaffoldPadding 获得穿透滚动效果
+                // 竖屏：内容区占满全屏，挂载 floatingBackdrop 采样源，内部列表消费 LocalScaffoldPadding 获得穿透滚动效果
                 Box(
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .layerBackdrop(floatingBackdrop)
                 ) {
                     tabContent()
                 }

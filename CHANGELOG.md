@@ -3,6 +3,10 @@
 ## [未发布]
 
 ### 重构
+- 接入 miuix-blur-android 官方模块，构建原生 Backdrop 背景模糊采样与 AGSL SDF 圆角矩形透镜折射、色散彩虹晕管线
+- 重构液态玻璃底栏为双重背景采样架构 (CombinedBackdrop)，实现离屏高亮 Tab 透镜折射穿透与三态平滑降级
+- 优化传感器生命周期管理，在应用后台自动注销重力监听；消除 Composition 阶段状态解包引发的高频重组风暴
+- 修复交互聚光点物理触控坐标映射与 Tab 无障碍语义适配
 - 重构悬浮底栏为生产级物理液态玻璃 (Liquid Glass Floating Bottom Bar)，集成弹簧阻尼拖拽手感、流体速度形变、陀螺仪 3° 量化重力高光、触摸聚光点与三态平滑降级
 - 全面迁移 UI 组件体系至 Miuix (HyperOS Compose)，彻底清退废弃 Material 3 组件
 - 悬浮底栏切换为 Miuix 官方 FloatingNavigationBar 与 FloatingNavigationBarItem，清理手写伪三态逻辑

@@ -100,6 +100,7 @@ dependencies {
 
     // Miuix (HyperOS Compose)
     implementation(libs.miuix.ui.android)
+    implementation(libs.miuix.blur.android)
     implementation(libs.miuix.preference.android)
     implementation(libs.miuix.icons.android)
     implementation("androidx.navigationevent:navigationevent-compose:1.1.1")

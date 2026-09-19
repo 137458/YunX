@@ -46,8 +46,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ShaderBrush
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import top.yukonga.miuix.kmp.blur.highlight.BloomStroke
+import top.yukonga.miuix.kmp.blur.highlight.Highlight
+import top.yukonga.miuix.kmp.blur.highlight.LightPosition
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -60,19 +66,23 @@ data class DeviceTilt(
 )
 
 /**
- * 监听设备重力/加速度计传感器，仅在底层维护原始矢量。
+ * 监听设备重力/加速度计传感器，生命周期感知（后台 ON_STOP 时自动注销，防止功耗泄漏）。
  */
 @Composable
 fun rememberDeviceTilt(): State<DeviceTilt> {
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
     val tiltState = remember { mutableStateOf(DeviceTilt()) }
-    DisposableEffect(context) {
+
+    DisposableEffect(context, lifecycleOwner) {
         val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as? SensorManager
         val sensor = sensorManager?.getDefaultSensor(Sensor.TYPE_GRAVITY)
             ?: sensorManager?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
         if (sensorManager == null || sensor == null) {
             return@DisposableEffect onDispose {}
         }
+
+        var isRegistered = false
         val listener = object : SensorEventListener {
             override fun onSensorChanged(event: SensorEvent?) {
                 event?.values?.let { v ->
@@ -87,9 +97,38 @@ fun rememberDeviceTilt(): State<DeviceTilt> {
             }
             override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
         }
-        sensorManager.registerListener(listener, sensor, SensorManager.SENSOR_DELAY_UI)
+
+        fun register() {
+            if (!isRegistered) {
+                sensorManager.registerListener(listener, sensor, SensorManager.SENSOR_DELAY_UI)
+                isRegistered = true
+            }
+        }
+
+        fun unregister() {
+            if (isRegistered) {
+                sensorManager.unregisterListener(listener)
+                isRegistered = false
+            }
+        }
+
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_START, Lifecycle.Event.ON_RESUME -> register()
+                Lifecycle.Event.ON_STOP, Lifecycle.Event.ON_PAUSE -> unregister()
+                Lifecycle.Event.ON_DESTROY -> unregister()
+                else -> {}
+            }
+        }
+
+        lifecycleOwner.lifecycle.addObserver(observer)
+        if (lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
+            register()
+        }
+
         onDispose {
-            sensorManager.unregisterListener(listener)
+            lifecycleOwner.lifecycle.removeObserver(observer)
+            unregister()
         }
     }
     return tiltState
@@ -111,51 +150,50 @@ fun rememberQuantizedGravityAngle(): State<Float> {
 }
 
 /**
- * 依据设备重力方向计算动态光照高光渐变 Brush。
+ * 依据量化重力角旋转的高光反射点配置（仅供 Draw 阶段 highlight 闭包延迟调用）。
  */
 @Composable
-fun rememberGravitySpecularBrush(
+fun rememberGravityRotatedHighlight(
+    base: Highlight = Highlight.Default,
     extraDegrees: Float = 0f,
-    baseColor: Color = Color.White.copy(alpha = 0.28f),
-    highlightAlpha: Float = 1f
-): State<Brush> {
+): State<Highlight> {
     val gravityAngle = rememberQuantizedGravityAngle()
-    return remember(gravityAngle, extraDegrees, baseColor, highlightAlpha) {
+    return remember(gravityAngle, base, extraDegrees) {
         derivedStateOf {
-            val rad = gravityAngle.value + (extraDegrees * PI / 180.0).toFloat()
-            val dx = cos(rad)
-            val dy = sin(rad)
-            // 归一化投影到 [0, 1] 范围的渐变起始/终止点
-            val start = Offset(0.5f - dx * 0.5f, 0.5f - dy * 0.5f)
-            val end = Offset(0.5f + dx * 0.5f, 0.5f + dy * 0.5f)
-            val effectiveColor = baseColor.copy(alpha = (baseColor.alpha * highlightAlpha).coerceIn(0f, 1f))
-            Brush.linearGradient(
-                colors = listOf(
-                    effectiveColor,
-                    Color.Transparent,
-                    effectiveColor.copy(alpha = effectiveColor.alpha * 0.4f)
-                ),
-                start = start,
-                end = end
-            )
+            val baseStyle = base.style as? BloomStroke
+            if (baseStyle == null) {
+                base
+            } else {
+                val basePrimary = baseStyle.primaryLight
+                val rad = gravityAngle.value + (extraDegrees * PI / 180.0).toFloat()
+                base.copy(
+                    style = baseStyle.copy(
+                        primaryLight = basePrimary.copy(
+                            position = LightPosition(
+                                x = 0.5f + cos(rad),
+                                y = 0.7f + sin(rad),
+                                z = basePrimary.position.z,
+                            ),
+                        ),
+                    ),
+                )
+            }
         }
     }
 }
 
 /**
  * 触摸聚光点交互控制器。
- * 在用户手指按下与滑动时产生动态聚光晕光斑。
+ * 在用户手指按下与滑动时，根据真实物理触控坐标产生动态聚光晕光斑。
  */
 internal class InteractiveHighlight(
     private val animationScope: CoroutineScope,
-    private val position: (size: Size, offset: Offset) -> Offset = { _, offset -> offset },
 ) {
     private val pressProgressAnimationSpec = spring(0.5f, 300f, 0.001f)
     private val positionAnimationSpec = spring(0.5f, 300f, Offset.VisibilityThreshold)
 
     private val pressProgressAnimation = Animatable(0f, 0.001f)
     private val positionAnimation = Animatable(Offset.Zero, Offset.VectorConverter, Offset.VisibilityThreshold)
-    private var startPosition = Offset.Zero
 
     private val spotShader: RuntimeShader? =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -170,12 +208,12 @@ internal class InteractiveHighlight(
                 color = Color.White.copy(alpha = 0.05f * progress),
                 blendMode = BlendMode.Plus,
             )
-            val pos = position(size, positionAnimation.value)
-            val radius = (size.minDimension * 1.2f).coerceAtLeast(1f)
-            val center = Offset(
-                x = pos.x.coerceIn(0f, size.width),
-                y = pos.y.coerceIn(0f, size.height),
+            val center = LiquidPhysicsMath.calculateInteractiveHighlightCenter(
+                touchOffset = positionAnimation.value,
+                containerWidth = size.width,
+                containerHeight = size.height
             )
+            val radius = (size.minDimension * 1.2f).coerceAtLeast(1f)
             val spotColor = Color.White.copy(alpha = 0.16f * progress)
             val shader = spotShader
             if (shader != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -206,10 +244,9 @@ internal class InteractiveHighlight(
     val gestureModifier: Modifier = Modifier.pointerInput(animationScope) {
         inspectDragGestures(
             onDragStart = { down ->
-                startPosition = down.position
                 animationScope.launch {
                     launch { pressProgressAnimation.animateTo(1f, pressProgressAnimationSpec) }
-                    launch { positionAnimation.snapTo(startPosition) }
+                    launch { positionAnimation.snapTo(down.position) }
                 }
             },
             onDragEnd = { release() },
@@ -222,7 +259,6 @@ internal class InteractiveHighlight(
     private fun release() {
         animationScope.launch {
             launch { pressProgressAnimation.animateTo(0f, pressProgressAnimationSpec) }
-            launch { positionAnimation.animateTo(startPosition, positionAnimationSpec) }
         }
     }
 }
