@@ -59,6 +59,9 @@ import top.yukonga.miuix.kmp.basic.ToolbarPosition
 import top.yukonga.miuix.kmp.basic.TopAppBar
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import com.yunx.app.ui.components.AppFloatingBottomBar
+import com.yunx.app.ui.components.AppStandardBottomBar
+import com.yunx.app.ui.components.liquid.BottomBarStyle
+import com.yunx.app.ui.theme.AppThemeManager
 import top.yukonga.miuix.kmp.blur.layerBackdrop
 import top.yukonga.miuix.kmp.blur.rememberLayerBackdrop
 import androidx.compose.runtime.Composable
@@ -159,7 +162,8 @@ import com.yunx.app.data.network.HttpClients
  * 主页框架（Miuix 架构）：
  * - 统一外层骨架为 Miuix Scaffold；
  * - 顶部大标题（TopAppBar），切换 Tab 时标题文字随 Tab 变化；
- * - 导航 Tab（解析 / 网盘 / 下载 / 设置）：竖屏为 Miuix 液态玻璃悬浮底栏（AppFloatingBottomBar），横屏切换为 Miuix 侧边导航栏（NavigationRail）；
+ * - 导航 Tab（解析 / 网盘 / 下载 / 设置）：竖屏按「主题与外观」页选择的底栏样式渲染
+ *   （液态玻璃悬浮 / 毛玻璃悬浮 / Miuix 标准底栏），横屏统一切换为 Miuix 侧边导航栏（NavigationRail）；
  * - 通过 SaveableStateHolder 保存各页面状态，切换 Tab 再切回来不会重置；
  * - 全屏覆盖层（关于页、主题页、登录页等）平滑过渡展示。
  */
@@ -184,8 +188,10 @@ fun MainScreen() {
 
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    // 横屏时使用侧边导航栏（NavigationRail），竖屏保持底部导航栏（NavigationBar）
+    // 横屏时使用侧边导航栏（NavigationRail），竖屏按用户选择的底栏样式渲染
     val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+    // 底栏样式由「主题与外观」页写入，经 AppThemeManager 的内存态即时响应
+    val bottomBarStyle = BottomBarStyle.fromPersisted(AppThemeManager.bottomBarStyle)
     val floatingBackdrop = rememberLayerBackdrop()
     // 首次启动引导页（context 声明后检测）
     var showOnboarding by remember { mutableStateOf(false) }
@@ -700,12 +706,24 @@ fun MainScreen() {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = { topBarContent() },
+        bottomBar = {
+            // 标准底栏档位：贴底固定的 Miuix NavigationBar
+            if (!isLandscape && bottomBarStyle == BottomBarStyle.MiuixStandard) {
+                AppStandardBottomBar(
+                    currentTab = currentTab,
+                    onTabSelected = { currentTab = it }
+                )
+            }
+        },
         floatingToolbar = {
-            if (!isLandscape) {
+            // 悬浮档位（液态玻璃 / 毛玻璃）：Scaffold 已按「导航栏 inset + FloatingToolbarSpacing」
+            // 把底栏抬到底边之上，这里不要再补 bottom padding
+            if (!isLandscape && bottomBarStyle.isFloating) {
                 AppFloatingBottomBar(
                     currentTab = currentTab,
                     onTabSelected = { currentTab = it },
-                    backdrop = floatingBackdrop
+                    backdrop = floatingBackdrop,
+                    style = bottomBarStyle
                 )
             }
         },
@@ -733,11 +751,18 @@ fun MainScreen() {
                     }
                 }
             } else {
-                // 竖屏：内容区占满全屏，挂载 floatingBackdrop 采样源，内部列表消费 LocalScaffoldPadding 获得穿透滚动效果
+                // 竖屏：内容区占满全屏，内部列表消费 LocalScaffoldPadding 获得穿透滚动效果；
+                // 仅悬浮底栏档位需要挂载 backdrop 采样源（标准底栏不做背景采样，挂了纯属白开销）
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .layerBackdrop(floatingBackdrop)
+                        .then(
+                            if (bottomBarStyle.isFloating) {
+                                Modifier.layerBackdrop(floatingBackdrop)
+                            } else {
+                                Modifier
+                            }
+                        )
                 ) {
                     tabContent()
                 }

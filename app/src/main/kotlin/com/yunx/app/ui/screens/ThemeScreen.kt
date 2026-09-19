@@ -115,10 +115,21 @@ private val presetColors = listOf(
     "天蓝" to 0xFF0288D1L,
 )
 
+/** 底部导航栏样式选项（顺序与 BottomBarStyle.ordinal 一一对应，不可调序） */
+private val bottomBarStyleOptions = listOf("液态玻璃", "毛玻璃", "标准")
+
+/** 各档位说明文案（与 bottomBarStyleOptions 同序） */
+private val bottomBarStyleHints = listOf(
+    "悬浮胶囊 + 透镜折射与色散光晕，随手机倾斜产生镜面高光；需 Android 13+，低版本自动降级为毛玻璃。",
+    "悬浮胶囊 + 背景高斯模糊，观感接近液态玻璃但不含折射，兼容全部机型。",
+    "Miuix 原生贴底导航栏，无背景采样与着色器开销，最省电。"
+)
+
 /**
  * 主题与外观设置页（Miuix 规范重构）：
  * - 外观模式：Squircle 胶囊单选（跟随系统 / 浅色 / 深色）
  * - 主题色：Miuix Card 分组，动态色彩开关（Android 12+）+ LazyRow 色圆选择 + 自定义调色盘（Miuix OverlayDialog + Slider）
+ * - 底部导航栏：液态玻璃 / 毛玻璃 / 标准三档切换
  * - 桌面图标：Miuix Card 分组，Squircle 预览
  * - 对接 AppThemeManager 内存与持久化状态
  */
@@ -280,6 +291,42 @@ fun ThemeScreen(
                             }
                         }
                     }
+                }
+            }
+
+            // ---------- 底部导航栏 ----------
+            SmallTitle(text = "底部导航栏")
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "选择底部导航栏样式",
+                        style = MiuixTheme.textStyles.body2,
+                        color = MiuixTheme.colorScheme.onSurfaceSecondary
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        bottomBarStyleOptions.forEachIndexed { index, label ->
+                            SmoothFilterChip(
+                                selected = AppThemeManager.bottomBarStyle == index,
+                                label = label,
+                                onClick = { AppThemeManager.setBottomBarStyle(context, index) },
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text(
+                        text = bottomBarStyleHints.getOrElse(AppThemeManager.bottomBarStyle) { "" },
+                        style = MiuixTheme.textStyles.body2,
+                        color = MiuixTheme.colorScheme.onSurfaceSecondary
+                    )
                 }
             }
 

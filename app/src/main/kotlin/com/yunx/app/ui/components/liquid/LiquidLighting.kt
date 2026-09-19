@@ -184,10 +184,13 @@ fun rememberGravityRotatedHighlight(
 
 /**
  * 触摸聚光点交互控制器。
- * 在用户手指按下与滑动时，根据真实物理触控坐标产生动态聚光晕光斑。
+ * 在用户手指按下与滑动时产生动态聚光光斑，光斑绘制在内容之下（玻璃表面打光，而非盖在图标上）。
+ *
+ * [position] 允许把光斑中心重定向到滑块几何位置而非原始触点，使光晕始终跟随液态滑块。
  */
 internal class InteractiveHighlight(
     private val animationScope: CoroutineScope,
+    private val position: (size: Size, offset: Offset) -> Offset = { _, offset -> offset },
 ) {
     private val pressProgressAnimationSpec = spring(0.5f, 300f, 0.001f)
     private val positionAnimationSpec = spring(0.5f, 300f, Offset.VisibilityThreshold)
@@ -195,26 +198,28 @@ internal class InteractiveHighlight(
     private val pressProgressAnimation = Animatable(0f, 0.001f)
     private val positionAnimation = Animatable(Offset.Zero, Offset.VectorConverter, Offset.VisibilityThreshold)
 
+    /** 手势起始触点：抬手时聚光点回落到起点，避免停在滑动终点的突兀感 */
+    private var startPosition = Offset.Zero
+
     private val spotShader: RuntimeShader? =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             runCatching { RuntimeShader(SPOT_SHADER) }.getOrNull()
         } else null
 
     val modifier: Modifier = Modifier.drawWithContent {
-        drawContent()
         val progress = pressProgressAnimation.value
         if (progress > 0f) {
             drawRect(
-                color = Color.White.copy(alpha = 0.05f * progress),
+                color = Color.White.copy(alpha = 0.06f * progress),
                 blendMode = BlendMode.Plus,
             )
             val center = LiquidPhysicsMath.calculateInteractiveHighlightCenter(
-                touchOffset = positionAnimation.value,
+                touchOffset = position(size, positionAnimation.value),
                 containerWidth = size.width,
                 containerHeight = size.height
             )
             val radius = (size.minDimension * 1.2f).coerceAtLeast(1f)
-            val spotColor = Color.White.copy(alpha = 0.16f * progress)
+            val spotColor = Color.White.copy(alpha = 0.12f * progress)
             val shader = spotShader
             if (shader != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 shader.setColorUniform("color", android.graphics.Color.valueOf(spotColor.red, spotColor.green, spotColor.blue, spotColor.alpha))
@@ -229,8 +234,8 @@ internal class InteractiveHighlight(
                     brush = Brush.radialGradient(
                         colorStops = arrayOf(
                             0.0f to spotColor,
-                            0.5f to spotColor.copy(alpha = spotColor.alpha * 0.5f),
-                            1.0f to Color.Transparent,
+                            0.5f to spotColor,
+                            1.0f to Color.White.copy(alpha = 0f),
                         ),
                         center = center,
                         radius = radius,
@@ -239,14 +244,17 @@ internal class InteractiveHighlight(
                 )
             }
         }
+        // 内容后绘：聚光点作为玻璃底材的打光，不被图标遮挡
+        drawContent()
     }
 
     val gestureModifier: Modifier = Modifier.pointerInput(animationScope) {
         inspectDragGestures(
             onDragStart = { down ->
+                startPosition = down.position
                 animationScope.launch {
                     launch { pressProgressAnimation.animateTo(1f, pressProgressAnimationSpec) }
-                    launch { positionAnimation.snapTo(down.position) }
+                    launch { positionAnimation.snapTo(startPosition) }
                 }
             },
             onDragEnd = { release() },
@@ -259,6 +267,7 @@ internal class InteractiveHighlight(
     private fun release() {
         animationScope.launch {
             launch { pressProgressAnimation.animateTo(0f, pressProgressAnimationSpec) }
+            launch { positionAnimation.animateTo(startPosition, positionAnimationSpec) }
         }
     }
 }
@@ -270,7 +279,7 @@ private const val SPOT_SHADER = """
 
     half4 main(float2 coord) {
         float dist = distance(coord, position);
-        float intensity = smoothstep(radius, radius * 0.4, dist);
+        float intensity = smoothstep(radius, radius * 0.5, dist);
         return color * intensity;
     }
 """

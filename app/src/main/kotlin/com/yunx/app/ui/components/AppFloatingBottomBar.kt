@@ -25,18 +25,19 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.yunx.app.ui.components.liquid.BottomBarStyle
 import com.yunx.app.ui.components.liquid.FloatingBottomBar
 import com.yunx.app.ui.components.liquid.FloatingBottomBarDefaults
 import com.yunx.app.ui.components.liquid.FloatingBottomBarItem
 import com.yunx.app.ui.components.liquid.FloatingBottomBarMode
 import com.yunx.app.ui.components.liquid.LocalFloatingBottomBarContentColor
-import com.yunx.app.ui.components.liquid.isRuntimeShaderSupported
 import com.yunx.app.ui.navigation.MainTab
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.Text
@@ -44,8 +45,9 @@ import top.yukonga.miuix.kmp.blur.Backdrop
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /**
- * 生产级液态玻璃悬浮底栏 (AppFloatingBottomBar)。
- * 融合 SDF 透镜折射、双重 Backdrop 采样、陀螺仪重力感应旋转高光、阻尼拖拽弹性手感与三态平滑降级。
+ * 悬浮式底部导航栏（液态玻璃 / 毛玻璃）。
+ *
+ * 具体渲染档位由 [style] 决定，运行时不支持时在 [FloatingBottomBar] 内部继续降级。
  */
 @Composable
 fun AppFloatingBottomBar(
@@ -53,7 +55,7 @@ fun AppFloatingBottomBar(
     onTabSelected: (MainTab) -> Unit,
     modifier: Modifier = Modifier,
     backdrop: Backdrop? = null,
-    mode: FloatingBottomBarMode = if (isRuntimeShaderSupported()) FloatingBottomBarMode.LiquidGlass else FloatingBottomBarMode.Blur
+    style: BottomBarStyle = BottomBarStyle.Default,
 ) {
     val tabs = remember { MainTab.entries }
     val colors = FloatingBottomBarDefaults.colors(
@@ -62,6 +64,7 @@ fun AppFloatingBottomBar(
         contentColor = MiuixTheme.colorScheme.onSurfaceVariantSummary,
         activeContentColor = MiuixTheme.colorScheme.primary
     )
+    val hapticFeedback = LocalHapticFeedback.current
 
     FloatingBottomBar(
         selectedIndex = { currentTab.ordinal },
@@ -69,30 +72,27 @@ fun AppFloatingBottomBar(
         tabsCount = tabs.size,
         modifier = modifier,
         backdrop = backdrop,
-        mode = mode,
+        mode = style.requestedFloatingMode ?: FloatingBottomBarMode.LiquidGlass,
         colors = colors
     ) {
         tabs.forEach { tab ->
-            val isSelected = currentTab == tab
             FloatingBottomBarItem(
-                onClick = { onTabSelected(tab) },
+                onClick = {
+                    hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                    onTabSelected(tab)
+                },
+                selected = currentTab == tab,
                 modifier = Modifier
                     .defaultMinSize(minWidth = 72.dp)
-                    .semantics {
-                        selected = isSelected
-                        contentDescription = tab.title
-                    }
+                    .semantics { contentDescription = tab.title }
             ) {
-                val defaultContentColor = LocalFloatingBottomBarContentColor.current
-                val itemColor = if (backdrop == null && isSelected) {
-                    colors.activeContentColor
-                } else {
-                    defaultContentColor
-                }
+                // 选中态配色由底栏图层注入：液态玻璃档位下由滑块折射透出，
+                // 降级档位下由滑块内的平移副本承载，槽位本身无需判断状态。
+                val contentColor = LocalFloatingBottomBarContentColor.current
                 Icon(
-                    imageVector = if (isSelected) tab.selectedIcon else tab.unselectedIcon,
+                    imageVector = if (currentTab == tab) tab.selectedIcon else tab.unselectedIcon,
                     contentDescription = null, // 外层 Tab 容器统一拥有语义 contentDescription
-                    tint = itemColor,
+                    tint = contentColor,
                     modifier = Modifier.size(24.dp)
                 )
                 Spacer(modifier = Modifier.height(2.dp))
@@ -103,7 +103,7 @@ fun AppFloatingBottomBar(
                     maxLines = 1,
                     softWrap = false,
                     overflow = TextOverflow.Visible,
-                    color = itemColor
+                    color = contentColor
                 )
             }
         }

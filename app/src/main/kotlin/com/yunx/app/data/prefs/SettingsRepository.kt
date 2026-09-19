@@ -135,6 +135,18 @@ class SettingsRepository(context: Context) {
             prefs.edit().putLong("theme_seed_color", value).apply()
         }
 
+    /**
+     * 底部导航栏样式：0=液态玻璃悬浮，1=毛玻璃悬浮，2=Miuix 标准底栏。
+     * 与 BottomBarStyle 的 ordinal 一一对应（UI 层用 BottomBarStyle.fromPersisted 解码兜底）。
+     */
+    var bottomBarStyle: Int
+        get() = prefs.getInt("bottom_bar_style", DEFAULT_BOTTOM_BAR_STYLE)
+        set(value) {
+            prefs.edit()
+                .putInt("bottom_bar_style", value.coerceIn(0, BOTTOM_BAR_STYLE_COUNT - 1))
+                .apply()
+        }
+
     companion object {
         const val DEFAULT_DOWNLOAD_THREADS = 32
         const val MAX_DOWNLOAD_THREADS = 512
@@ -144,5 +156,11 @@ class SettingsRepository(context: Context) {
 
         /** 默认主题种子色：Material Blue（与内置默认方案一致） */
         const val DEFAULT_SEED_COLOR = 0xFF415F91L
+
+        /** 底栏样式可选数量（液态玻璃 / 毛玻璃 / Miuix 标准底栏） */
+        const val BOTTOM_BAR_STYLE_COUNT = 3
+
+        /** 默认底栏样式：液态玻璃悬浮底栏 */
+        const val DEFAULT_BOTTOM_BAR_STYLE = 0
     }
 }

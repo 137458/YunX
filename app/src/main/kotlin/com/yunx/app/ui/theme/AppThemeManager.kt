@@ -44,6 +44,10 @@ object AppThemeManager {
     var seedColor by mutableStateOf(SettingsRepository.DEFAULT_SEED_COLOR)
         private set
 
+    /** 底部导航栏样式序号（对应 BottomBarStyle.ordinal） */
+    var bottomBarStyle by mutableStateOf(SettingsRepository.DEFAULT_BOTTOM_BAR_STYLE)
+        private set
+
     private var initialized = false
 
     /** 从持久化存储加载（幂等；首次调用有效） */
@@ -53,6 +57,7 @@ object AppThemeManager {
         darkMode = s.darkMode
         colorMode = s.themeColorMode
         seedColor = s.themeSeedColor
+        bottomBarStyle = s.bottomBarStyle
         initialized = true
     }
 
@@ -76,5 +81,12 @@ object AppThemeManager {
             themeSeedColor = argb
             themeColorMode = 2
         }
+    }
+
+    /** 设置底部导航栏样式并持久化 */
+    fun setBottomBarStyle(context: Context, value: Int) {
+        val coerced = value.coerceIn(0, SettingsRepository.BOTTOM_BAR_STYLE_COUNT - 1)
+        bottomBarStyle = coerced
+        SettingsRepository(context).bottomBarStyle = coerced
     }
 }
