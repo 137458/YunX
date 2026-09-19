@@ -39,7 +39,7 @@ import androidx.compose.material.icons.outlined.Phone
 import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
-import androidx.compose.material3.SnackbarHost
+import com.yunx.app.ui.AppSnackbarHost
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -113,7 +113,7 @@ fun XunleiLoginScreen(
     val snackbarHostState = rememberGlobalSnackbarHostState()
 
     Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        snackbarHost = { AppSnackbarHost(snackbarHostState, modifier = Modifier.padding(bottom = 16.dp)) },
         topBar = {
             TopAppBar(
                 title = "迅雷网盘登录",

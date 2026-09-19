@@ -44,7 +44,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Bookmarks
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.SnackbarHost
+import com.yunx.app.ui.AppSnackbarHost
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.unit.dp
 import top.yukonga.miuix.kmp.basic.Button
@@ -742,7 +742,15 @@ fun MainScreen() {
             }
         },
         floatingToolbarPosition = ToolbarPosition.BottomCenter,
-        snackbarHost = { SnackbarHost(snackbarHostState) }
+        snackbarHost = {
+            val floatingBarBottomPadding = if (!isLandscape && bottomBarStyle.isFloating) 88.dp else 16.dp
+            AppSnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = floatingBarBottomPadding)
+            )
+        }
     ) { innerPadding ->
         val layoutDirection = LocalLayoutDirection.current
         val floatingBarBottomPadding = if (!isLandscape && bottomBarStyle.isFloating) 80.dp else 0.dp

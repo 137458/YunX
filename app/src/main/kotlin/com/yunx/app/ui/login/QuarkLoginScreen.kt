@@ -35,7 +35,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.ContentPaste
-import androidx.compose.material3.SnackbarHost
+import com.yunx.app.ui.AppSnackbarHost
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -143,7 +143,7 @@ fun QuarkLoginScreen(
     val snackbarHostState = rememberGlobalSnackbarHostState()
 
     Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        snackbarHost = { AppSnackbarHost(snackbarHostState, modifier = Modifier.padding(bottom = 16.dp)) },
         topBar = {
             TopAppBar(
                 title = "夸克网盘登录",
