@@ -18,6 +18,8 @@
 
 package com.yunx.app.ui.theme
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.Path
@@ -25,6 +27,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
+import top.yukonga.miuix.kmp.squircle.LocalSquircleEnabled
 import top.yukonga.miuix.kmp.squircle.addSquircleRect
 
 /**
@@ -67,4 +70,14 @@ class SquircleShape(
     override fun toString(): String = "SquircleShape(corner=$corner, squircleEnabled=$squircleEnabled)"
 }
 
-fun SquircleShape(corner: Dp): SquircleShape = SquircleShape(corner, squircleEnabled = true)
+/**
+ * 响应全局 LocalSquircleEnabled 的 SquircleShape 记忆工厂
+ */
+@Composable
+fun rememberSquircleShape(corner: Dp): SquircleShape {
+    val enabled = LocalSquircleEnabled.current
+    return remember(corner, enabled) {
+        SquircleShape(corner = corner, squircleEnabled = enabled)
+    }
+}
+

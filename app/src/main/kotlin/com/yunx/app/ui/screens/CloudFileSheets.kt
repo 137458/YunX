@@ -26,7 +26,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -44,27 +43,13 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.CheckCircle
-import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.DriveFileMove
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Share
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -78,22 +63,30 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.yunx.app.data.network.model.ShareFile
 import com.yunx.app.ui.SnackbarController
+import com.yunx.app.ui.components.BreadcrumbBar
+import com.yunx.app.ui.components.BreadcrumbItem
 import com.yunx.app.ui.resolve.BackToParentItem
-import com.yunx.app.ui.resolve.CrumbBar
 import com.yunx.app.ui.resolve.ShareFileRow
+import com.yunx.app.ui.theme.SquircleShape
 import com.yunx.app.ui.viewmodel.QuarkCloudUiState
 import com.yunx.app.ui.viewmodel.QuarkCloudViewModel
-import top.yukonga.miuix.kmp.basic.ButtonDefaults as MiuixButtonDefaults
-import top.yukonga.miuix.kmp.basic.Card as MiuixCard
-import top.yukonga.miuix.kmp.basic.Text as MiuixText
-import top.yukonga.miuix.kmp.basic.TextButton as MiuixTextButton
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.ButtonDefaults
+import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.InfiniteProgressIndicator
+import top.yukonga.miuix.kmp.basic.Surface
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.basic.TextButton
+import top.yukonga.miuix.kmp.basic.TextField
 import top.yukonga.miuix.kmp.overlay.OverlayBottomSheet
-import top.yukonga.miuix.kmp.overlay.OverlayDialog
 import top.yukonga.miuix.kmp.theme.MiuixTheme
+import top.yukonga.miuix.kmp.window.WindowDialog
 
 /** 文件操作菜单类型（FileActionSheet 内切换） */
 private enum class ActionStep { MENU, MOVE, SHARE, RENAME, DELETE }
@@ -110,7 +103,6 @@ private val expireOptions = listOf(
  * 夸克云盘文件操作抽屉（Miuix OverlayBottomSheet）：更多按钮 → 操作菜单（下载/分享/移动/重命名/删除），
  * 内部按步骤切换：移动选目录 / 分享设置 / 重命名输入 / 删除确认。
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FileActionSheet(
     file: ShareFile,
@@ -118,7 +110,6 @@ fun FileActionSheet(
     onDismiss: () -> Unit
 ) {
     var step by remember { mutableStateOf(ActionStep.MENU) }
-    // 移动目标浏览用独立状态（moveUiState），不影响主列表
     val moveState by viewModel.moveUiState.collectAsState()
     val operating = viewModel.isOperating
 
@@ -187,7 +178,7 @@ fun FileActionSheet(
         }
     }
 
-    // 分享创建成功：展示链接与提取码（可复制）
+    // 分享创建成功：展示链接与提取码（可复制，WindowDialog 避免抽屉内 Overlay 嵌套冲突）
     viewModel.shareResult?.let { info ->
         ShareResultDialog(
             info = info,
@@ -212,18 +203,18 @@ private fun ActionMenu(
             .fillMaxWidth()
             .padding(start = 24.dp, end = 24.dp, top = 4.dp, bottom = 32.dp)
     ) {
-        // 标题
         Row(verticalAlignment = Alignment.CenterVertically) {
             Surface(
                 modifier = Modifier.size(40.dp),
-                shape = MaterialTheme.shapes.large,
-                color = MaterialTheme.colorScheme.primaryContainer
+                shape = SquircleShape(12.dp),
+                color = MiuixTheme.colorScheme.primary.copy(alpha = 0.12f)
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Icon(
                         imageVector = if (file.isdir) Icons.Outlined.Folder else Icons.Outlined.Download,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        tint = MiuixTheme.colorScheme.primary,
+                        modifier = Modifier.size(22.dp)
                     )
                 }
             }
@@ -231,103 +222,66 @@ private fun ActionMenu(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = file.fname,
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MiuixTheme.textStyles.title4,
                     fontWeight = FontWeight.Medium,
-                    maxLines = 1
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
                 Text(
                     text = if (file.isdir) "文件夹" else "文件",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    style = MiuixTheme.textStyles.footnote1,
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                 )
             }
         }
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // 操作项
         if (!file.isdir) {
-            ActionItem(
+            CloudActionItem(
                 icon = Icons.Outlined.Download,
                 title = "下载",
                 desc = "使用内置下载功能保存到本机",
-                tint = MaterialTheme.colorScheme.primary,
+                tint = MiuixTheme.colorScheme.primary,
                 onClick = onDownload
             )
         } else if (onDownloadFolder != null) {
-            ActionItem(
+            CloudActionItem(
                 icon = Icons.Outlined.Download,
                 title = "下载文件夹",
                 desc = "递归下载整个文件夹，保持目录结构",
-                tint = MaterialTheme.colorScheme.primary,
+                tint = MiuixTheme.colorScheme.primary,
                 onClick = onDownloadFolder
             )
         }
-        ActionItem(
+        CloudActionItem(
             icon = Icons.Outlined.Share,
             title = "分享",
             desc = "生成分享链接（可设提取码/有效期）",
-            tint = MaterialTheme.colorScheme.primary,
+            tint = MiuixTheme.colorScheme.primary,
             onClick = onShare
         )
-        ActionItem(
+        CloudActionItem(
             icon = Icons.Outlined.DriveFileMove,
             title = "移动到",
             desc = "移动到网盘的其他目录",
-            tint = MaterialTheme.colorScheme.primary,
+            tint = MiuixTheme.colorScheme.primary,
             onClick = onMove
         )
-        ActionItem(
+        CloudActionItem(
             icon = Icons.Outlined.Edit,
             title = "重命名",
             desc = "修改文件名",
-            tint = MaterialTheme.colorScheme.primary,
+            tint = MiuixTheme.colorScheme.primary,
             onClick = onRename
         )
-        ActionItem(
+        CloudActionItem(
             icon = Icons.Outlined.Delete,
             title = "删除",
             desc = "移入回收站",
-            tint = MaterialTheme.colorScheme.error,
+            tint = MiuixTheme.colorScheme.error,
             onClick = onDelete
         )
-    }
-}
-
-/** 操作项行 */
-@Composable
-private fun ActionItem(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    title: String,
-    desc: String,
-    tint: androidx.compose.ui.graphics.Color,
-    onClick: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(vertical = 10.dp, horizontal = 4.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Surface(
-            modifier = Modifier.size(38.dp),
-            shape = MaterialTheme.shapes.large,
-            color = tint.copy(alpha = 0.12f)
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                Icon(imageVector = icon, contentDescription = null, tint = tint, modifier = Modifier.size(20.dp))
-            }
-        }
-        Spacer(modifier = Modifier.width(14.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(text = title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
-            Text(
-                text = desc,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
     }
 }
 
@@ -346,21 +300,28 @@ private fun MoveStep(
             .fillMaxWidth()
             .padding(start = 24.dp, end = 24.dp, top = 4.dp, bottom = 32.dp)
     ) {
-        StepHeader(title = "移动到", subtitle = file.fname, onBack = onBack)
+        CloudStepHeader(title = "移动到", subtitle = file.fname, onBack = onBack)
 
         Spacer(modifier = Modifier.height(8.dp))
-        CrumbBar(
-            rootTitle = "根目录",
-            pathNames = (moveState as? QuarkCloudUiState.Loaded)?.pathNames ?: emptyList(),
-            onNavigate = { viewModel.moveNavigateToLevel(it) }
+        val movePathNames = (moveState as? QuarkCloudUiState.Loaded)?.pathNames ?: emptyList()
+        val moveBreadcrumbs = remember(movePathNames) {
+            buildList {
+                add(BreadcrumbItem(path = "root", text = "根目录"))
+                movePathNames.forEachIndexed { index, name ->
+                    add(BreadcrumbItem(path = (index + 1).toString(), text = name))
+                }
+            }
+        }
+        BreadcrumbBar(
+            items = moveBreadcrumbs,
+            onItemClick = { viewModel.moveNavigateToLevel(it) },
+            modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(8.dp))
-        // 返回上一级：固定在目录区上方（不参与 AnimatedContent 过渡，避免与目录内容交叉叠加）
         if ((moveState as? QuarkCloudUiState.Loaded)?.pathNames?.isNotEmpty() == true) {
             BackToParentItem(onClick = { viewModel.moveBack() })
             Spacer(modifier = Modifier.height(4.dp))
         }
-        // 移动目录切换：淡入过渡
         AnimatedContent(
             targetState = moveState,
             transitionSpec = { fadeIn(tween(180)) togetherWith fadeOut(tween(140)) },
@@ -372,14 +333,20 @@ private fun MoveStep(
                         .fillMaxWidth()
                         .height(200.dp),
                     contentAlignment = Alignment.Center
-                ) { CircularProgressIndicator() }
+                ) { InfiniteProgressIndicator() }
 
                 is QuarkCloudUiState.Error -> Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(160.dp),
                     contentAlignment = Alignment.Center
-                ) { Text(s.message, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                ) {
+                    Text(
+                        text = s.message,
+                        style = MiuixTheme.textStyles.body2,
+                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary
+                    )
+                }
 
                 is QuarkCloudUiState.Loaded -> {
                     val dirs = s.files.filter { it.isdir }
@@ -391,9 +358,9 @@ private fun MoveStep(
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                "当前目录没有子文件夹，可直接移动到此处",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                text = "当前目录没有子文件夹，可直接移动到此处",
+                                style = MiuixTheme.textStyles.body2,
+                                color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                                 textAlign = TextAlign.Center
                             )
                         }
@@ -424,14 +391,20 @@ private fun MoveStep(
             enabled = !operating,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(50.dp)
+                .height(50.dp),
+            colors = ButtonDefaults.buttonColorsPrimary()
         ) {
             if (operating) {
-                CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                InfiniteProgressIndicator(modifier = Modifier.size(20.dp))
             } else {
-                Icon(Icons.Outlined.DriveFileMove, contentDescription = null, modifier = Modifier.size(18.dp))
+                Icon(
+                    imageVector = Icons.Outlined.DriveFileMove,
+                    contentDescription = null,
+                    tint = MiuixTheme.colorScheme.onPrimary,
+                    modifier = Modifier.size(18.dp)
+                )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("移动到此处（$dirName）")
+                Text("移动到此处（$dirName）", style = MiuixTheme.textStyles.button)
             }
         }
     }
@@ -454,52 +427,49 @@ private fun ShareStep(
             .fillMaxWidth()
             .padding(start = 24.dp, end = 24.dp, top = 4.dp, bottom = 32.dp)
     ) {
-        StepHeader(title = "分享文件", subtitle = file.fname, onBack = onBack)
+        CloudStepHeader(title = "分享文件", subtitle = file.fname, onBack = onBack)
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text("提取码", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Spacer(modifier = Modifier.height(6.dp))
+        Text("提取码", style = MiuixTheme.textStyles.headline2, color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
+        Spacer(modifier = Modifier.height(8.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            FilterChip(
+            CloudSelectChip(
                 selected = !withPassword,
-                onClick = { withPassword = false },
-                label = { Text("无提取码") },
-                colors = FilterChipDefaults.filterChipColors()
+                label = "无提取码",
+                onClick = { withPassword = false }
             )
-            FilterChip(
+            CloudSelectChip(
                 selected = withPassword,
+                label = "设置提取码",
                 onClick = {
                     withPassword = true
                     if (passcode.isBlank()) passcode = randomPasscode()
-                },
-                label = { Text("设置提取码") },
-                colors = FilterChipDefaults.filterChipColors()
+                }
             )
         }
         if (withPassword) {
-            Spacer(modifier = Modifier.height(8.dp))
-            OutlinedTextField(
+            Spacer(modifier = Modifier.height(10.dp))
+            TextField(
                 value = passcode,
                 onValueChange = { passcode = it.take(4).filter { c -> c.isLetterOrDigit() } },
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("4 位提取码") },
-                singleLine = true,
-                shape = MaterialTheme.shapes.large
+                label = "4 位提取码",
+                useLabelAsPlaceholder = true,
+                singleLine = true
             )
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text("有效期", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Spacer(modifier = Modifier.height(6.dp))
+        Text("有效期", style = MiuixTheme.textStyles.headline2, color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
+        Spacer(modifier = Modifier.height(8.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             expireOptions.forEach { (name, value) ->
-                FilterChip(
+                CloudSelectChip(
                     selected = expiredType == value,
-                    onClick = { expiredType = value },
-                    label = { Text(name) },
-                    colors = FilterChipDefaults.filterChipColors()
+                    label = name,
+                    onClick = { expiredType = value }
                 )
             }
         }
@@ -517,14 +487,20 @@ private fun ShareStep(
             enabled = !operating && (!withPassword || passcode.length == 4),
             modifier = Modifier
                 .fillMaxWidth()
-                .height(50.dp)
+                .height(50.dp),
+            colors = ButtonDefaults.buttonColorsPrimary()
         ) {
             if (operating) {
-                CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                InfiniteProgressIndicator(modifier = Modifier.size(20.dp))
             } else {
-                Icon(Icons.Outlined.Share, contentDescription = null, modifier = Modifier.size(18.dp))
+                Icon(
+                    imageVector = Icons.Outlined.Share,
+                    contentDescription = null,
+                    tint = MiuixTheme.colorScheme.onPrimary,
+                    modifier = Modifier.size(18.dp)
+                )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("创建分享")
+                Text("创建分享", style = MiuixTheme.textStyles.button)
             }
         }
     }
@@ -545,15 +521,15 @@ private fun RenameStep(
             .fillMaxWidth()
             .padding(start = 24.dp, end = 24.dp, top = 4.dp, bottom = 32.dp)
     ) {
-        StepHeader(title = "重命名", subtitle = file.fname, onBack = onBack)
+        CloudStepHeader(title = "重命名", subtitle = file.fname, onBack = onBack)
         Spacer(modifier = Modifier.height(16.dp))
-        OutlinedTextField(
+        TextField(
             value = name,
             onValueChange = { name = it },
             modifier = Modifier.fillMaxWidth(),
-            label = { Text("新文件名") },
-            singleLine = true,
-            shape = MaterialTheme.shapes.large
+            label = "新文件名",
+            useLabelAsPlaceholder = true,
+            singleLine = true
         )
         Spacer(modifier = Modifier.height(20.dp))
         Button(
@@ -568,14 +544,15 @@ private fun RenameStep(
             enabled = !operating && name.isNotBlank(),
             modifier = Modifier
                 .fillMaxWidth()
-                .height(50.dp)
+                .height(50.dp),
+            colors = ButtonDefaults.buttonColorsPrimary()
         ) {
-            Text("确认重命名")
+            Text("确认重命名", style = MiuixTheme.textStyles.button)
         }
     }
 }
 
-/** 删除确认（Miuix OverlayDialog） */
+/** 删除确认（WindowDialog，彻底解决抽屉内嵌套 Overlay 冲突） */
 @Composable
 private fun DeleteStep(
     file: ShareFile,
@@ -584,13 +561,13 @@ private fun DeleteStep(
     onBack: () -> Unit,
     onDone: () -> Unit
 ) {
-    OverlayDialog(
+    WindowDialog(
         show = true,
         onDismissRequest = { if (!operating) onBack() },
         title = "删除文件"
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
-            MiuixText(
+            Text(
                 text = "确定要删除「${file.fname}」吗？删除后将移入回收站。",
                 style = MiuixTheme.textStyles.body1,
                 modifier = Modifier.padding(bottom = 16.dp)
@@ -599,38 +576,37 @@ private fun DeleteStep(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                MiuixTextButton(
+                TextButton(
                     text = "取消",
                     onClick = onBack,
                     modifier = Modifier.weight(1f)
                 )
-                top.yukonga.miuix.kmp.basic.Button(
+                Button(
                     onClick = {
                         viewModel.deleteFile()
                         onDone()
                     },
                     enabled = !operating,
                     modifier = Modifier.weight(1f),
-                    colors = MiuixButtonDefaults.buttonColors(
+                    colors = ButtonDefaults.buttonColors(
                         color = MiuixTheme.colorScheme.error,
                         contentColor = MiuixTheme.colorScheme.onError
                     )
                 ) {
-                    MiuixText("删除", style = MiuixTheme.textStyles.button)
+                    Text("删除", style = MiuixTheme.textStyles.button)
                 }
             }
         }
     }
 }
 
-/** 分享结果（Miuix OverlayDialog）：链接 + 提取码 + 复制 */
+/** 分享结果（WindowDialog）：链接 + 提取码 + 复制 */
 @Composable
 internal fun ShareResultDialog(
     info: com.yunx.app.data.network.model.ShareInfo,
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
-    // 拼接分享文案（按平台区分：139 / 123 / UC / 迅雷 / 百度 / 夸克）
     val platformName = when {
         info.shareUrl.contains("139.com") -> "139网盘"
         info.shareUrl.contains("123pan") || info.shareUrl.contains("123865") -> "123云盘"
@@ -646,7 +622,7 @@ internal fun ShareResultDialog(
             append("\n提取码：${info.passcode}")
         }
     }
-    OverlayDialog(
+    WindowDialog(
         show = true,
         onDismissRequest = onDismiss,
         title = "分享成功"
@@ -657,11 +633,11 @@ internal fun ShareResultDialog(
                 .heightIn(max = 420.dp)
                 .verticalScroll(rememberScrollState())
         ) {
-            MiuixCard(
+            Card(
                 modifier = Modifier.fillMaxWidth(),
                 insideMargin = PaddingValues(12.dp)
             ) {
-                MiuixText(
+                Text(
                     text = shareText,
                     style = MiuixTheme.textStyles.body2.copy(
                         fontFamily = FontFamily.Monospace
@@ -670,7 +646,7 @@ internal fun ShareResultDialog(
                 )
             }
             Spacer(modifier = Modifier.height(12.dp))
-            MiuixText(
+            Text(
                 text = "有效期：" + expireLabel(info.expiredType),
                 style = MiuixTheme.textStyles.body2,
                 color = MiuixTheme.colorScheme.onSurfaceVariantSummary
@@ -681,7 +657,7 @@ internal fun ShareResultDialog(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                MiuixTextButton(
+                TextButton(
                     text = "复制全部",
                     onClick = {
                         val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
@@ -690,41 +666,14 @@ internal fun ShareResultDialog(
                     },
                     modifier = Modifier.weight(1f)
                 )
-                top.yukonga.miuix.kmp.basic.Button(
+                Button(
                     onClick = onDismiss,
                     modifier = Modifier.weight(1f),
-                    colors = MiuixButtonDefaults.buttonColorsPrimary()
+                    colors = ButtonDefaults.buttonColorsPrimary()
                 ) {
-                    MiuixText("完成", style = MiuixTheme.textStyles.button)
+                    Text("完成", style = MiuixTheme.textStyles.button)
                 }
             }
-        }
-    }
-}
-
-/** 步骤头部：返回按钮 + 标题 */
-@Composable
-private fun StepHeader(title: String, subtitle: String, onBack: () -> Unit) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        IconButton(onClick = onBack) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "返回"
-            )
-        }
-        Spacer(modifier = Modifier.width(4.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Medium
-            )
-            Text(
-                text = subtitle,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1
-            )
         }
     }
 }
@@ -749,7 +698,6 @@ internal enum class BatchStep { MENU, SHARE, MOVE, DELETE }
  * 分享/移动/删除复用与单文件一致的表单与独立目录浏览。
  * @param initialStep 初始步骤（底部栏点击下载/删除直接执行，分享/移动传入对应步骤）
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun BatchActionSheet(
     viewModel: QuarkCloudViewModel,
@@ -813,7 +761,7 @@ internal fun BatchActionSheet(
         }
     }
 
-    // 分享创建成功：展示链接与提取码（保留弹窗以正常显示）
+    // 分享创建成功：展示链接与提取码（WindowDialog）
     viewModel.shareResult?.let { info ->
         ShareResultDialog(
             info = info,
@@ -836,18 +784,18 @@ private fun BatchMenu(
             .fillMaxWidth()
             .padding(start = 24.dp, end = 24.dp, top = 4.dp, bottom = 32.dp)
     ) {
-        // 标题
         Row(verticalAlignment = Alignment.CenterVertically) {
             Surface(
                 modifier = Modifier.size(40.dp),
-                shape = MaterialTheme.shapes.large,
-                color = MaterialTheme.colorScheme.primaryContainer
+                shape = SquircleShape(12.dp),
+                color = MiuixTheme.colorScheme.primary.copy(alpha = 0.12f)
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Icon(
                         imageVector = Icons.Outlined.CheckCircle,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        tint = MiuixTheme.colorScheme.primary,
+                        modifier = Modifier.size(22.dp)
                     )
                 }
             }
@@ -855,45 +803,45 @@ private fun BatchMenu(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = "批量操作",
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MiuixTheme.textStyles.title4,
                     fontWeight = FontWeight.Medium
                 )
                 Text(
                     text = "已选 $count 项",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    style = MiuixTheme.textStyles.footnote1,
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                 )
             }
         }
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        ActionItem(
+        CloudActionItem(
             icon = Icons.Outlined.Download,
             title = "下载",
             desc = "批量下载到本机",
-            tint = MaterialTheme.colorScheme.primary,
+            tint = MiuixTheme.colorScheme.primary,
             onClick = onDownload
         )
-        ActionItem(
+        CloudActionItem(
             icon = Icons.Outlined.Share,
             title = "分享",
             desc = "将选中项创建为一个分享链接",
-            tint = MaterialTheme.colorScheme.primary,
+            tint = MiuixTheme.colorScheme.primary,
             onClick = onShare
         )
-        ActionItem(
+        CloudActionItem(
             icon = Icons.Outlined.DriveFileMove,
             title = "移动到",
             desc = "批量移动到网盘的其他目录",
-            tint = MaterialTheme.colorScheme.primary,
+            tint = MiuixTheme.colorScheme.primary,
             onClick = onMove
         )
-        ActionItem(
+        CloudActionItem(
             icon = Icons.Outlined.Delete,
             title = "删除",
             desc = "批量移入回收站",
-            tint = MaterialTheme.colorScheme.error,
+            tint = MiuixTheme.colorScheme.error,
             onClick = onDelete
         )
     }
@@ -916,52 +864,49 @@ private fun BatchShareStep(
             .fillMaxWidth()
             .padding(start = 24.dp, end = 24.dp, top = 4.dp, bottom = 32.dp)
     ) {
-        StepHeader(title = "分享文件", subtitle = "已选 $count 项", onBack = onBack)
+        CloudStepHeader(title = "分享文件", subtitle = "已选 $count 项", onBack = onBack)
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text("提取码", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Spacer(modifier = Modifier.height(6.dp))
+        Text("提取码", style = MiuixTheme.textStyles.headline2, color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
+        Spacer(modifier = Modifier.height(8.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            FilterChip(
+            CloudSelectChip(
                 selected = !withPassword,
-                onClick = { withPassword = false },
-                label = { Text("无提取码") },
-                colors = FilterChipDefaults.filterChipColors()
+                label = "无提取码",
+                onClick = { withPassword = false }
             )
-            FilterChip(
+            CloudSelectChip(
                 selected = withPassword,
+                label = "设置提取码",
                 onClick = {
                     withPassword = true
                     if (passcode.isBlank()) passcode = randomPasscode()
-                },
-                label = { Text("设置提取码") },
-                colors = FilterChipDefaults.filterChipColors()
+                }
             )
         }
         if (withPassword) {
-            Spacer(modifier = Modifier.height(8.dp))
-            OutlinedTextField(
+            Spacer(modifier = Modifier.height(10.dp))
+            TextField(
                 value = passcode,
                 onValueChange = { passcode = it.take(4).filter { c -> c.isLetterOrDigit() } },
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("4 位提取码") },
-                singleLine = true,
-                shape = MaterialTheme.shapes.large
+                label = "4 位提取码",
+                useLabelAsPlaceholder = true,
+                singleLine = true
             )
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text("有效期", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Spacer(modifier = Modifier.height(6.dp))
+        Text("有效期", style = MiuixTheme.textStyles.headline2, color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
+        Spacer(modifier = Modifier.height(8.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             expireOptions.forEach { (name, value) ->
-                FilterChip(
+                CloudSelectChip(
                     selected = expiredType == value,
-                    onClick = { expiredType = value },
-                    label = { Text(name) },
-                    colors = FilterChipDefaults.filterChipColors()
+                    label = name,
+                    onClick = { expiredType = value }
                 )
             }
         }
@@ -979,14 +924,20 @@ private fun BatchShareStep(
             enabled = !operating && (!withPassword || passcode.length == 4),
             modifier = Modifier
                 .fillMaxWidth()
-                .height(50.dp)
+                .height(50.dp),
+            colors = ButtonDefaults.buttonColorsPrimary()
         ) {
             if (operating) {
-                CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                InfiniteProgressIndicator(modifier = Modifier.size(20.dp))
             } else {
-                Icon(Icons.Outlined.Share, contentDescription = null, modifier = Modifier.size(18.dp))
+                Icon(
+                    imageVector = Icons.Outlined.Share,
+                    contentDescription = null,
+                    tint = MiuixTheme.colorScheme.onPrimary,
+                    modifier = Modifier.size(18.dp)
+                )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("创建分享")
+                Text("创建分享", style = MiuixTheme.textStyles.button)
             }
         }
     }
@@ -1002,7 +953,6 @@ private fun BatchMoveStep(
     onBack: () -> Unit,
     onDone: () -> Unit
 ) {
-    // 首次进入该步骤：加载移动目标根目录（否则 moveUiState 停留在 Loading 一直转圈）
     LaunchedEffect(Unit) {
         viewModel.openMoveRoot()
     }
@@ -1011,21 +961,28 @@ private fun BatchMoveStep(
             .fillMaxWidth()
             .padding(start = 24.dp, end = 24.dp, top = 4.dp, bottom = 32.dp)
     ) {
-        StepHeader(title = "移动到", subtitle = "已选 $count 项", onBack = onBack)
+        CloudStepHeader(title = "移动到", subtitle = "已选 $count 项", onBack = onBack)
 
         Spacer(modifier = Modifier.height(8.dp))
-        CrumbBar(
-            rootTitle = "根目录",
-            pathNames = (moveState as? QuarkCloudUiState.Loaded)?.pathNames ?: emptyList(),
-            onNavigate = { viewModel.moveNavigateToLevel(it) }
+        val batchMovePathNames = (moveState as? QuarkCloudUiState.Loaded)?.pathNames ?: emptyList()
+        val batchMoveBreadcrumbs = remember(batchMovePathNames) {
+            buildList {
+                add(BreadcrumbItem(path = "root", text = "根目录"))
+                batchMovePathNames.forEachIndexed { index, name ->
+                    add(BreadcrumbItem(path = (index + 1).toString(), text = name))
+                }
+            }
+        }
+        BreadcrumbBar(
+            items = batchMoveBreadcrumbs,
+            onItemClick = { viewModel.moveNavigateToLevel(it) },
+            modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(8.dp))
-        // 返回上一级：固定在目录区上方（不参与 AnimatedContent 过渡，避免与目录内容交叉叠加）
         if ((moveState as? QuarkCloudUiState.Loaded)?.pathNames?.isNotEmpty() == true) {
             BackToParentItem(onClick = { viewModel.moveBack() })
             Spacer(modifier = Modifier.height(4.dp))
         }
-        // 移动目录切换：淡入过渡
         AnimatedContent(
             targetState = moveState,
             transitionSpec = { fadeIn(tween(180)) togetherWith fadeOut(tween(140)) },
@@ -1037,14 +994,20 @@ private fun BatchMoveStep(
                         .fillMaxWidth()
                         .height(200.dp),
                     contentAlignment = Alignment.Center
-                ) { CircularProgressIndicator() }
+                ) { InfiniteProgressIndicator() }
 
                 is QuarkCloudUiState.Error -> Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(160.dp),
                     contentAlignment = Alignment.Center
-                ) { Text(s.message, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                ) {
+                    Text(
+                        text = s.message,
+                        style = MiuixTheme.textStyles.body2,
+                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary
+                    )
+                }
 
                 is QuarkCloudUiState.Loaded -> {
                     val dirs = s.files.filter { it.isdir }
@@ -1056,9 +1019,9 @@ private fun BatchMoveStep(
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                "当前目录没有子文件夹，可直接移动到此处",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                text = "当前目录没有子文件夹，可直接移动到此处",
+                                style = MiuixTheme.textStyles.body2,
+                                color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                                 textAlign = TextAlign.Center
                             )
                         }
@@ -1089,20 +1052,26 @@ private fun BatchMoveStep(
             enabled = !operating,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(50.dp)
+                .height(50.dp),
+            colors = ButtonDefaults.buttonColorsPrimary()
         ) {
             if (operating) {
-                CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                InfiniteProgressIndicator(modifier = Modifier.size(20.dp))
             } else {
-                Icon(Icons.Outlined.DriveFileMove, contentDescription = null, modifier = Modifier.size(18.dp))
+                Icon(
+                    imageVector = Icons.Outlined.DriveFileMove,
+                    contentDescription = null,
+                    tint = MiuixTheme.colorScheme.onPrimary,
+                    modifier = Modifier.size(18.dp)
+                )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("移动到此处（$dirName）")
+                Text("移动到此处（$dirName）", style = MiuixTheme.textStyles.button)
             }
         }
     }
 }
 
-/** 批量删除确认（Miuix OverlayDialog） */
+/** 批量删除确认（WindowDialog） */
 @Composable
 private fun BatchDeleteStep(
     count: Int,
@@ -1111,13 +1080,13 @@ private fun BatchDeleteStep(
     onBack: () -> Unit,
     onDone: () -> Unit
 ) {
-    OverlayDialog(
+    WindowDialog(
         show = true,
         onDismissRequest = { if (!operating) onBack() },
         title = "删除文件"
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
-            MiuixText(
+            Text(
                 text = "确定要删除选中的 $count 项吗？删除后将移入回收站。",
                 style = MiuixTheme.textStyles.body1,
                 modifier = Modifier.padding(bottom = 16.dp)
@@ -1126,24 +1095,24 @@ private fun BatchDeleteStep(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                MiuixTextButton(
+                TextButton(
                     text = "取消",
                     onClick = onBack,
                     modifier = Modifier.weight(1f)
                 )
-                top.yukonga.miuix.kmp.basic.Button(
+                Button(
                     onClick = {
                         viewModel.deleteSelected()
                         onDone()
                     },
                     enabled = !operating,
                     modifier = Modifier.weight(1f),
-                    colors = MiuixButtonDefaults.buttonColors(
+                    colors = ButtonDefaults.buttonColors(
                         color = MiuixTheme.colorScheme.error,
                         contentColor = MiuixTheme.colorScheme.onError
                     )
                 ) {
-                    MiuixText("删除", style = MiuixTheme.textStyles.button)
+                    Text("删除", style = MiuixTheme.textStyles.button)
                 }
             }
         }

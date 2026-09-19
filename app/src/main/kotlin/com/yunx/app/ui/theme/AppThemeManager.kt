@@ -78,7 +78,3 @@ object AppThemeManager {
         }
     }
 }
-
-// 废弃旧名称兼容别名
-@Deprecated("Use AppThemeManager instead to avoid conflict with Miuix ThemeController")
-typealias ThemeController = AppThemeManager

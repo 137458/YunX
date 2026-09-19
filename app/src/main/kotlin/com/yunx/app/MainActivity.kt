@@ -29,9 +29,19 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.basic.TextButton
+import top.yukonga.miuix.kmp.theme.MiuixTheme
+import top.yukonga.miuix.kmp.window.WindowDialog
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -102,38 +112,54 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-/** 通知被禁用时的引导弹窗：跳系统应用通知设置页 */
+/** 通知被禁用时的引导弹窗：跳系统应用通知设置页（Miuix WindowDialog 规范） */
 @Composable
 private fun NotificationPermissionDialog(onDismiss: () -> Unit) {
     val context = LocalContext.current
-    AlertDialog(
+    WindowDialog(
+        show = true,
         onDismissRequest = onDismiss,
-        title = { Text("开启通知权限") },
-        text = {
-            Text("下载进度需要通知权限才能显示在通知栏。当前通知已被关闭，是否前往系统设置开启？")
-        },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    onDismiss()
-                    runCatching {
-                        context.startActivity(
-                            Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
-                                .putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
-                        )
-                    }.onFailure {
+        title = "开启通知权限"
+    ) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Text(
+                text = "下载进度需要通知权限才能显示在通知栏。当前通知已被关闭，是否前往系统设置开启？",
+                style = MiuixTheme.textStyles.body1,
+                color = MiuixTheme.colorScheme.onSurface,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                TextButton(
+                    text = "暂不",
+                    onClick = onDismiss,
+                    modifier = Modifier.weight(1f)
+                )
+                Button(
+                    onClick = {
+                        onDismiss()
                         runCatching {
                             context.startActivity(
-                                Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-                                    .setData(Uri.parse("package:${context.packageName}"))
+                                Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                                    .putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
                             )
+                        }.onFailure {
+                            runCatching {
+                                context.startActivity(
+                                    Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                                        .setData(Uri.parse("package:${context.packageName}"))
+                                )
+                            }
                         }
-                    }
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("去开启")
                 }
-            ) { Text("去开启") }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("暂不") }
+            }
         }
-    )
+    }
 }

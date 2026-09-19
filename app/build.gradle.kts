@@ -98,11 +98,5 @@ dependencies {
     implementation(libs.miuix.ui.android)
     implementation(libs.miuix.preference.android)
     implementation(libs.miuix.icons.android)
-    implementation(libs.miuix.nav.android)
-    implementation(libs.miuix.blur.android)
     implementation(libs.kotlinx.serialization.json)
-}
-
-tasks.matching { it.name.startsWith("check") && it.name.endsWith("AarMetadata") }.configureEach {
-    enabled = false
 }

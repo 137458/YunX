@@ -38,13 +38,17 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Bookmarks
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberTopAppBarState
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.unit.dp
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
+import top.yukonga.miuix.kmp.basic.ScrollBehavior
+import top.yukonga.miuix.kmp.basic.TextButton
+import top.yukonga.miuix.kmp.window.WindowDialog
+import com.yunx.app.ui.components.LocalScaffoldPadding
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.NavigationRail
@@ -585,10 +589,7 @@ fun MainScreen() {
     }
 
     // 折叠标题状态提升到本层：跨页面共享，页面切换时折叠/展开状态保持不变
-    // 用 exitUntilCollapsed（默认实现，含松手吸附）：滚动时标题先收起再滚内容；
-    // 向上滚动回顶部过程中标题保持收起，只有列表到达最顶部后继续下拉（overscroll）才重新展开
-    val topAppBarState = rememberTopAppBarState()
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(topAppBarState)
+    val scrollBehavior = MiuixScrollBehavior()
 
     // 全局 Snackbar 宿主（Material3，替换原 Toast 提示）
     val snackbarHostState = rememberGlobalSnackbarHostState()
@@ -600,6 +601,7 @@ fun MainScreen() {
         TopAppBar(
             title = currentTab.title,
             largeTitle = currentTab.title,
+            scrollBehavior = scrollBehavior,
             actions = {
                 // 解析页标题右上角：收藏网盘链接入口
                 if (currentTab == MainTab.Resolve) {
@@ -614,6 +616,7 @@ fun MainScreen() {
             }
         )
     }
+
     // Tab 内容区（竖屏 / 横屏共用）：每个页面独立保存状态，切换 Tab 再切回来不丢失；带 Material3 过渡动画（按 Tab 顺序决定方向）
     val tabContent: @Composable () -> Unit = {
         AnimatedContent(
@@ -705,36 +708,37 @@ fun MainScreen() {
         floatingToolbarPosition = ToolbarPosition.BottomCenter,
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { innerPadding ->
-        if (isLandscape) {
-            // 横屏：左侧侧边导航栏（NavigationRail）+ 右侧内容区
-            Row(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-            ) {
-                MainNavigationRail(
-                    currentTab = currentTab,
-                    onTabSelected = { currentTab = it }
-                )
-                Box(
+        CompositionLocalProvider(LocalScaffoldPadding provides innerPadding) {
+            if (isLandscape) {
+                // 横屏：左侧侧边导航栏（NavigationRail）+ 右侧内容区
+                Row(
                     modifier = Modifier
-                        .weight(1f)
-                        .fillMaxHeight()
+                        .fillMaxSize()
+                        .padding(innerPadding)
+                ) {
+                    MainNavigationRail(
+                        currentTab = currentTab,
+                        onTabSelected = { currentTab = it }
+                    )
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight()
+                    ) {
+                        tabContent()
+                    }
+                }
+            } else {
+                // 竖屏：内容区占满全屏，内部列表消费 LocalScaffoldPadding 获得穿透滚动效果
+                Box(
+                    modifier = Modifier.fillMaxSize()
                 ) {
                     tabContent()
                 }
             }
-        } else {
-            // 竖屏：内容区消费 innerPadding
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-            ) {
-                tabContent()
-            }
         }
     }
+
 
     // 关于云析：叠加覆盖层（淡入 + 轻微缩放过渡）
     AnimatedVisibility(
@@ -799,37 +803,51 @@ fun MainScreen() {
     }
     }
 
-    // 首次下载引导：加入「忽略电池优化」白名单（锁屏保持下载生效的前提）
+    // 首次下载引导：加入「忽略电池优化」白名单（锁屏保持下载生效的前提，Miuix WindowDialog 规范）
     if (showBatteryGuide) {
-        AlertDialog(
+        WindowDialog(
+            show = true,
             onDismissRequest = { showBatteryGuide = false },
-            title = { Text("保持后台下载") },
-            text = {
+            title = "保持后台下载"
+        ) {
+            Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
                     text = "「锁屏后保持下载」已开启，但应用尚未加入「忽略电池优化」白名单，息屏后可能被系统中断下载。是否前往系统设置？",
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MiuixTheme.textStyles.body1,
+                    color = MiuixTheme.colorScheme.onSurface,
+                    modifier = Modifier.padding(bottom = 16.dp)
                 )
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showBatteryGuide = false
-                        runCatching {
-                            context.startActivity(
-                                Intent(
-                                    Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
-                                    Uri.parse("package:${context.packageName}")
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    TextButton(
+                        text = "暂不",
+                        onClick = { showBatteryGuide = false },
+                        modifier = Modifier.weight(1f)
+                    )
+                    Button(
+                        onClick = {
+                            showBatteryGuide = false
+                            runCatching {
+                                context.startActivity(
+                                    Intent(
+                                        Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
+                                        Uri.parse("package:${context.packageName}")
+                                    )
                                 )
-                            )
-                        }
+                            }
+                        },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("前往设置")
                     }
-                ) { Text("前往设置") }
-            },
-            dismissButton = {
-                TextButton(onClick = { showBatteryGuide = false }) { Text("暂不") }
+                }
             }
-        )
+        }
     }
+
 
     // 发现新版本弹窗（覆盖在主页之上）
     pendingRelease?.let { release ->

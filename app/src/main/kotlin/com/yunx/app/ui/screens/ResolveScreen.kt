@@ -49,19 +49,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.Link
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -75,6 +62,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -82,6 +70,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.yunx.app.data.network.ShareLinkParser
 import com.yunx.app.data.network.SharePlatform
 import com.yunx.app.ui.SnackbarController
+import com.yunx.app.ui.components.LocalScaffoldPadding
 import com.yunx.app.ui.resolve.DownloadLinkDialog
 import com.yunx.app.ui.resolve.ShareDetailScreen
 import com.yunx.app.ui.viewmodel.BaiduCloudViewModel
@@ -92,14 +81,26 @@ import com.yunx.app.ui.viewmodel.ResolveUiState
 import com.yunx.app.ui.viewmodel.ResolveViewModel
 import com.yunx.app.ui.viewmodel.UCCoudViewModel
 import com.yunx.app.ui.viewmodel.XunleiCloudViewModel
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.ButtonDefaults
+import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.CardDefaults
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.InfiniteProgressIndicator
+import top.yukonga.miuix.kmp.basic.ScrollBehavior
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.basic.TextButton
+import top.yukonga.miuix.kmp.basic.TextField
+import top.yukonga.miuix.kmp.theme.MiuixTheme
+import top.yukonga.miuix.kmp.window.WindowDialog
 
 /**
  * 解析页：输入分享链接与提取码 → 解析 → 展示分享详情 → 获取下载直链。
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ResolveScreen(
-    scrollBehavior: TopAppBarScrollBehavior,
+    scrollBehavior: ScrollBehavior,
     viewModel: ResolveViewModel,
     /** 夸克云盘浏览 ViewModel（分享文件转存目录选择用） */
     quarkCloudViewModel: QuarkCloudViewModel,
@@ -212,18 +213,18 @@ fun ResolveScreen(
         ) { s ->
             when (s) {
                 is ResolveUiState.Detail -> ShareDetailScreen(
-            session = s.session,
-            files = s.files,
-            viewModel = viewModel,
-            quarkCloudViewModel = quarkCloudViewModel,
-            xunleiCloudViewModel = xunleiCloudViewModel,
-            baiduCloudViewModel = baiduCloudViewModel,
-            c139CloudViewModel = c139CloudViewModel,
-            ucCloudViewModel = ucCloudViewModel,
-            pan123CloudViewModel = pan123CloudViewModel,
-            scrollBehavior = scrollBehavior,
-            listState = detailListState,
-            scrollPositions = detailScrollPositions,
+                    session = s.session,
+                    files = s.files,
+                    viewModel = viewModel,
+                    quarkCloudViewModel = quarkCloudViewModel,
+                    xunleiCloudViewModel = xunleiCloudViewModel,
+                    baiduCloudViewModel = baiduCloudViewModel,
+                    c139CloudViewModel = c139CloudViewModel,
+                    ucCloudViewModel = ucCloudViewModel,
+                    pan123CloudViewModel = pan123CloudViewModel,
+                    scrollBehavior = scrollBehavior,
+                    listState = detailListState,
+                    scrollPositions = detailScrollPositions,
                     // 顶部左上角返回：退出文件页回到输入页（输入框内容保留）
                     onExit = { viewModel.backToInput() },
                     // 列表「返回上一级」：子目录回上级，根目录回输入页
@@ -268,7 +269,8 @@ fun ResolveScreen(
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(top = LocalScaffoldPadding.current.calculateTopPadding() + 16.dp)
+                .padding(horizontal = 16.dp)
         ) {
             animatedSuggestion?.let { suggestion ->
                 val parsed = ShareLinkParser.parse(suggestion)
@@ -290,26 +292,27 @@ fun ResolveScreen(
         }
     }
 
-    // 获取下载直链加载弹窗（转存/取链需要时间，避免无反馈）
-    if (viewModel.isFetchingDownloadLink) {
-        AlertDialog(
-            onDismissRequest = { },
-            confirmButton = { },
-            title = { Text("获取下载链接") },
-            text = {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(24.dp),
-                        strokeWidth = 2.dp
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text(
-                        text = "正在获取下载链接，请稍候…",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-            }
-        )
+    // 获取下载直链加载弹窗（转存/取链需要时间，避免无反馈，Miuix WindowDialog 规范）
+    WindowDialog(
+        show = viewModel.isFetchingDownloadLink,
+        onDismissRequest = { },
+        title = "获取下载链接"
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            InfiniteProgressIndicator(
+                modifier = Modifier.size(24.dp),
+                color = MiuixTheme.colorScheme.primary
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Text(
+                text = "正在获取下载链接，请稍候…",
+                style = MiuixTheme.textStyles.body1,
+                color = MiuixTheme.colorScheme.onSurface
+            )
+        }
     }
 
     // 下载直链弹窗
@@ -322,11 +325,10 @@ fun ResolveScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ResolveInputContent(
     viewModel: ResolveViewModel,
-    scrollBehavior: TopAppBarScrollBehavior,
+    scrollBehavior: ScrollBehavior,
     state: ResolveUiState,
     link: String,
     onLinkChange: (String) -> Unit,
@@ -336,54 +338,73 @@ private fun ResolveInputContent(
     onClearPwd: () -> Unit
 ) {
     val isLoading = state is ResolveUiState.Loading
+    val scaffoldPadding = LocalScaffoldPadding.current
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .nestedScroll(scrollBehavior.nestedScrollConnection)
             .verticalScroll(rememberScrollState())
-            .padding(16.dp),
+            .padding(
+                top = scaffoldPadding.calculateTopPadding() + 16.dp,
+                bottom = scaffoldPadding.calculateBottomPadding() + 16.dp,
+                start = 16.dp,
+                end = 16.dp
+            ),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
             text = "粘贴分享链接，一键解析分享内容",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            style = MiuixTheme.textStyles.body2,
+            color = MiuixTheme.colorScheme.onSurfaceVariantSummary
         )
 
-        OutlinedTextField(
+        TextField(
             value = link,
             onValueChange = onLinkChange,
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("例如：https://pan.quark.cn/s/xxxx") },
-            leadingIcon = { Icon(Icons.Outlined.Link, contentDescription = null) },
-            trailingIcon = {
-                if (link.isNotEmpty()) {
+            label = "例如：https://pan.quark.cn/s/xxxx",
+            useLabelAsPlaceholder = true,
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Outlined.Link,
+                    contentDescription = null,
+                    tint = MiuixTheme.colorScheme.onSurfaceVariantSummary
+                )
+            },
+            trailingIcon = if (link.isNotEmpty()) {
+                {
                     IconButton(onClick = onClearLink) {
-                        Icon(Icons.Filled.Close, contentDescription = "清空链接")
+                        Icon(
+                            imageVector = Icons.Filled.Close,
+                            contentDescription = "清空链接",
+                            tint = MiuixTheme.colorScheme.onSurfaceVariantSummary
+                        )
                     }
                 }
-            },
+            } else null,
             minLines = 3,
-            maxLines = 6,
-            shape = MaterialTheme.shapes.large
+            maxLines = 6
         )
 
-        OutlinedTextField(
+        TextField(
             value = pwd,
             onValueChange = onPwdChange,
             modifier = Modifier.fillMaxWidth(),
-            label = { Text("提取码（可选）") },
-            placeholder = { Text("自动识别或手动输入") },
-            trailingIcon = {
-                if (pwd.isNotEmpty()) {
+            label = "提取码（可选，自动识别或手动输入）",
+            useLabelAsPlaceholder = true,
+            trailingIcon = if (pwd.isNotEmpty()) {
+                {
                     IconButton(onClick = onClearPwd) {
-                        Icon(Icons.Filled.Close, contentDescription = "清空提取码")
+                        Icon(
+                            imageVector = Icons.Filled.Close,
+                            contentDescription = "清空提取码",
+                            tint = MiuixTheme.colorScheme.onSurfaceVariantSummary
+                        )
                     }
                 }
-            },
-            singleLine = true,
-            shape = MaterialTheme.shapes.large
+            } else null,
+            singleLine = true
         )
 
         Button(
@@ -391,25 +412,26 @@ private fun ResolveInputContent(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(48.dp),
-            enabled = link.isNotBlank() && !isLoading
+            enabled = link.isNotBlank() && !isLoading,
+            colors = ButtonDefaults.buttonColorsPrimary()
         ) {
             if (isLoading) {
-                CircularProgressIndicator(
+                InfiniteProgressIndicator(
                     modifier = Modifier.size(18.dp),
-                    strokeWidth = 2.dp
+                    color = MiuixTheme.colorScheme.onPrimary
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("解析中…")
+                Text("解析中…", style = MiuixTheme.textStyles.button)
             } else {
-                Text("开始解析")
+                Text("开始解析", style = MiuixTheme.textStyles.button)
             }
         }
 
         if (state is ResolveUiState.Error) {
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.errorContainer
+                colors = CardDefaults.defaultColors(
+                    color = MiuixTheme.colorScheme.errorContainer
                 )
             ) {
                 Row(
@@ -419,13 +441,13 @@ private fun ResolveInputContent(
                     Icon(
                         imageVector = Icons.Outlined.ErrorOutline,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onErrorContainer
+                        tint = MiuixTheme.colorScheme.onErrorContainer
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = state.message,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onErrorContainer
+                        style = MiuixTheme.textStyles.body2,
+                        color = MiuixTheme.colorScheme.onErrorContainer
                     )
                 }
             }
@@ -437,16 +459,21 @@ private fun ResolveInputContent(
 @Composable
 private fun LoadingContent() {
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(LocalScaffoldPadding.current),
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            CircularProgressIndicator(modifier = Modifier.size(28.dp), strokeWidth = 3.dp)
+            InfiniteProgressIndicator(
+                modifier = Modifier.size(28.dp),
+                color = MiuixTheme.colorScheme.primary
+            )
             Spacer(modifier = Modifier.height(12.dp))
             Text(
                 text = "加载中…",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                style = MiuixTheme.textStyles.body2,
+                color = MiuixTheme.colorScheme.onSurfaceVariantSummary
             )
         }
     }
@@ -482,9 +509,8 @@ private fun ClipboardSuggestCard(
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.large,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
+        colors = CardDefaults.defaultColors(
+            color = MiuixTheme.colorScheme.primaryContainer
         )
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
@@ -492,41 +518,40 @@ private fun ClipboardSuggestCard(
                 Icon(
                     imageVector = Icons.Outlined.Link,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer
+                    tint = MiuixTheme.colorScheme.onPrimaryContainer
                 )
                 Spacer(modifier = Modifier.width(10.dp))
                 Column {
                     Text(
                         text = "检测到 $platformName 分享链接",
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = androidx.compose.ui.text.font.FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                        style = MiuixTheme.textStyles.title4,
+                        fontWeight = FontWeight.Medium,
+                        color = MiuixTheme.colorScheme.onPrimaryContainer
                     )
                     Text(
                         text = "是否粘贴到解析框并开始解析？",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                        style = MiuixTheme.textStyles.body2,
+                        color = MiuixTheme.colorScheme.onPrimaryContainer
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.height(8.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                TextButton(onClick = onDismiss) {
-                    Text("忽略", color = MaterialTheme.colorScheme.onPrimaryContainer)
-                }
-                Spacer(modifier = Modifier.width(4.dp))
+                TextButton(
+                    text = "忽略",
+                    onClick = onDismiss,
+                    textStyle = MiuixTheme.textStyles.button.copy(color = MiuixTheme.colorScheme.onPrimaryContainer)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
                 Button(
                     onClick = onPaste,
-                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
-                    )
+                    colors = ButtonDefaults.buttonColorsPrimary()
                 ) {
-                    Text("粘贴并解析")
+                    Text("粘贴并解析", style = MiuixTheme.textStyles.button)
                 }
             }
         }

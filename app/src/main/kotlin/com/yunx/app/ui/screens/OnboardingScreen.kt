@@ -18,6 +18,8 @@
 
 package com.yunx.app.ui.screens
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -32,7 +34,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Code
@@ -43,13 +44,6 @@ import androidx.compose.material.icons.outlined.OpenInNew
 import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.outlined.Speed
 import androidx.compose.material.icons.outlined.Storage
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -63,13 +57,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import android.content.Intent
-import android.net.Uri
 import com.yunx.app.R
+import com.yunx.app.ui.theme.SquircleShape
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.CardDefaults
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.Surface
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /**
  * 首次启动引导页：介绍云析（免费）+ 功能特性 + 免责声明。
- * Material3 风格：渐变图标 + 功能列表 + 彩色免费卡 + 免责卡 + 底部主操作。
+ * Miuix 风格：渐变图标 + 功能列表 + 彩色免费卡 + 免责卡 + 底部主操作。
  */
 @Composable
 fun OnboardingScreen(
@@ -80,7 +80,7 @@ fun OnboardingScreen(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(MiuixTheme.colorScheme.background)
     ) {
         Column(
             modifier = Modifier
@@ -96,11 +96,11 @@ fun OnboardingScreen(
                     .background(
                         brush = Brush.linearGradient(
                             listOf(
-                                MaterialTheme.colorScheme.primary,
-                                MaterialTheme.colorScheme.tertiary
+                                MiuixTheme.colorScheme.primary,
+                                MiuixTheme.colorScheme.tertiaryContainer
                             )
                         ),
-                        shape = RoundedCornerShape(26.dp)
+                        shape = SquircleShape(26.dp)
                     ),
                 contentAlignment = Alignment.Center
             ) {
@@ -109,21 +109,22 @@ fun OnboardingScreen(
                     contentDescription = "云析图标",
                     modifier = Modifier
                         .size(96.dp)
-                        .clip(RoundedCornerShape(26.dp)),
+                        .clip(SquircleShape(26.dp)),
                     contentScale = ContentScale.Crop
                 )
             }
             Spacer(modifier = Modifier.height(18.dp))
             Text(
                 text = "云析",
-                style = MaterialTheme.typography.headlineLarge,
-                fontWeight = FontWeight.SemiBold
+                style = MiuixTheme.textStyles.headline1,
+                fontWeight = FontWeight.SemiBold,
+                color = MiuixTheme.colorScheme.onBackground
             )
             Spacer(modifier = Modifier.height(6.dp))
             Text(
                 text = "网盘分享链接解析与高速下载",
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                style = MiuixTheme.textStyles.body1,
+                color = MiuixTheme.colorScheme.onSurfaceSecondary
             )
 
             Spacer(modifier = Modifier.height(36.dp))
@@ -155,9 +156,8 @@ fun OnboardingScreen(
             // ---------- 免费卡 ----------
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = MaterialTheme.shapes.large,
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.tertiaryContainer
+                colors = CardDefaults.defaultColors(
+                    color = MiuixTheme.colorScheme.tertiaryContainer
                 )
             ) {
                 Row(
@@ -167,14 +167,14 @@ fun OnboardingScreen(
                     Surface(
                         modifier = Modifier.size(40.dp),
                         shape = CircleShape,
-                        color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.12f)
+                        color = MiuixTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.12f)
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
                                 imageVector = Icons.Outlined.Favorite,
                                 contentDescription = null,
                                 modifier = Modifier.size(20.dp),
-                                tint = MaterialTheme.colorScheme.onTertiaryContainer
+                                tint = MiuixTheme.colorScheme.onTertiaryContainer
                             )
                         }
                     }
@@ -182,14 +182,14 @@ fun OnboardingScreen(
                     Column {
                         Text(
                             text = "完全免费",
-                            style = MaterialTheme.typography.titleMedium,
+                            style = MiuixTheme.textStyles.title3,
                             fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onTertiaryContainer
+                            color = MiuixTheme.colorScheme.onTertiaryContainer
                         )
                         Text(
                             text = "无广告、无内购，所有功能永久免费",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onTertiaryContainer
+                            style = MiuixTheme.textStyles.footnote1,
+                            color = MiuixTheme.colorScheme.onTertiaryContainer
                         )
                     }
                 }
@@ -199,9 +199,8 @@ fun OnboardingScreen(
             // ---------- 免责声明 ----------
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = MaterialTheme.shapes.large,
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                colors = CardDefaults.defaultColors(
+                    color = MiuixTheme.colorScheme.surfaceContainer
                 )
             ) {
                 Row(
@@ -212,15 +211,15 @@ fun OnboardingScreen(
                         imageVector = Icons.Outlined.Shield,
                         contentDescription = null,
                         modifier = Modifier.size(20.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        tint = MiuixTheme.colorScheme.onSurfaceSecondary
                     )
                     Spacer(modifier = Modifier.width(10.dp))
                     Text(
                         text = "免责声明：本应用仅供个人学习与技术交流，请勿用于商业用途。" +
                             "下载内容版权归原作者所有，请于下载后 24 小时内删除。" +
                             "使用本应用产生的任何后果由使用者自行承担。",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MiuixTheme.textStyles.footnote1,
+                        color = MiuixTheme.colorScheme.onSurfaceSecondary,
                         lineHeight = 20.sp
                     )
                 }
@@ -238,7 +237,7 @@ fun OnboardingScreen(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth(),
-            color = MaterialTheme.colorScheme.background,
+            color = MiuixTheme.colorScheme.background,
             shadowElevation = 8.dp
         ) {
             Button(
@@ -248,7 +247,10 @@ fun OnboardingScreen(
                     .padding(horizontal = 24.dp, vertical = 16.dp)
                     .height(52.dp)
             ) {
-                Text("开始使用", style = MaterialTheme.typography.titleMedium)
+                Text(
+                    text = "开始使用",
+                    style = MiuixTheme.textStyles.title3
+                )
             }
         }
     }
@@ -270,14 +272,14 @@ private fun OnboardingFeature(
         Surface(
             modifier = Modifier.size(44.dp),
             shape = CircleShape,
-            color = MaterialTheme.colorScheme.primaryContainer
+            color = MiuixTheme.colorScheme.primaryContainer
         ) {
             Box(contentAlignment = Alignment.Center) {
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
                     modifier = Modifier.size(22.dp),
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer
+                    tint = MiuixTheme.colorScheme.onPrimaryContainer
                 )
             }
         }
@@ -285,14 +287,15 @@ private fun OnboardingFeature(
         Column {
             Text(
                 text = title,
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Medium
+                style = MiuixTheme.textStyles.title4,
+                fontWeight = FontWeight.Medium,
+                color = MiuixTheme.colorScheme.onSurface
             )
             Spacer(modifier = Modifier.height(2.dp))
             Text(
                 text = description,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MiuixTheme.textStyles.footnote1,
+                color = MiuixTheme.colorScheme.onSurfaceSecondary,
                 textAlign = TextAlign.Start
             )
         }
@@ -308,9 +311,8 @@ private fun GitHubCard(context: android.content.Context) {
             context.startActivity(intent)
         },
         modifier = Modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.large,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        colors = CardDefaults.defaultColors(
+            color = MiuixTheme.colorScheme.surfaceContainer
         )
     ) {
         Row(
@@ -320,14 +322,14 @@ private fun GitHubCard(context: android.content.Context) {
             Surface(
                 modifier = Modifier.size(40.dp),
                 shape = CircleShape,
-                color = MaterialTheme.colorScheme.primaryContainer
+                color = MiuixTheme.colorScheme.primaryContainer
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Icon(
                         imageVector = Icons.Outlined.Code,
                         contentDescription = null,
                         modifier = Modifier.size(20.dp),
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        tint = MiuixTheme.colorScheme.onPrimaryContainer
                     )
                 }
             }
@@ -335,20 +337,21 @@ private fun GitHubCard(context: android.content.Context) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = "开源仓库",
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Medium
+                    style = MiuixTheme.textStyles.title4,
+                    fontWeight = FontWeight.Medium,
+                    color = MiuixTheme.colorScheme.onSurface
                 )
                 Text(
                     text = "github.com/CYQawa/YunX",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    style = MiuixTheme.textStyles.footnote1,
+                    color = MiuixTheme.colorScheme.onSurfaceSecondary
                 )
             }
             Icon(
                 imageVector = Icons.Outlined.OpenInNew,
                 contentDescription = null,
                 modifier = Modifier.size(18.dp),
-                tint = MaterialTheme.colorScheme.outline
+                tint = MiuixTheme.colorScheme.outline
             )
         }
     }

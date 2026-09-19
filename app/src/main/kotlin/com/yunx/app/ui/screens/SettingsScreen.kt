@@ -48,8 +48,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ChevronRight
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.TopAppBarScrollBehavior
+import com.yunx.app.ui.components.LocalScaffoldPadding
+import top.yukonga.miuix.kmp.basic.ScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -134,10 +134,10 @@ private fun openNotificationSettings(context: Context) {
  * 设置页：下载策略 + 主题外观 + 检查更新 + 日志与网盘认证。
  * 基于 Miuix 规范重构：Card 分组包裹，miuix-preference 驱动，SliderPreference 内嵌策略控制。
  */
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SettingsScreen(
-    scrollBehavior: TopAppBarScrollBehavior,
+    scrollBehavior: ScrollBehavior,
     onThemeClick: () -> Unit,
     onAboutClick: () -> Unit,
     onSupportClick: () -> Unit,
@@ -249,6 +249,7 @@ fun SettingsScreen(
             .fillMaxSize()
             .nestedScroll(scrollBehavior.nestedScrollConnection)
             .verticalScroll(rememberScrollState())
+            .padding(LocalScaffoldPadding.current)
             .padding(horizontal = 12.dp, vertical = 12.dp)
     ) {
         // ---------- 分类 1: 下载 ----------

@@ -36,17 +36,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.FloatingActionButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -56,6 +49,11 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.yunx.app.ui.theme.SquircleShape
+import top.yukonga.miuix.kmp.basic.FloatingActionButton
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /**
  * 浮动操作菜单项：标签 + 图标 + 可选选中态。
@@ -68,7 +66,7 @@ data class FabMenuItem(
 )
 
 /**
- * 浮动操作菜单（云析原创实现，Material3 风格）：
+ * 浮动操作菜单（云析原创实现，Miuix 风格）：
  * - 右下角 FAB，点击展开/收起菜单，图标伴随旋转动画（＋ → ✕）；
  * - 菜单项从 FAB 上方滑入淡出，选中项高亮并带勾选标记；
  * - 展开时点击菜单外区域自动收起；
@@ -120,44 +118,57 @@ fun BoxScope.CustomFabMenu(
                 modifier = Modifier.padding(bottom = 10.dp)
             ) {
                 items.forEach { item ->
-                    ExtendedFloatingActionButton(
+                    FloatingActionButton(
                         onClick = {
                             item.onClick()
                             onCheckedChange(false)
                         },
-                        shape = RoundedCornerShape(16.dp),
-                        elevation = FloatingActionButtonDefaults.elevation(
-                            defaultElevation = if (item.isSelected) 0.dp else 3.dp,
-                            pressedElevation = if (item.isSelected) 0.dp else 6.dp
-                        ),
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                        icon = {
+                        shape = SquircleShape(16.dp),
+                        containerColor = if (item.isSelected) {
+                            MiuixTheme.colorScheme.primary
+                        } else {
+                            MiuixTheme.colorScheme.surfaceContainer
+                        },
+                        shadowElevation = if (item.isSelected) 4.dp else 2.dp,
+                        minWidth = 48.dp,
+                        minHeight = 44.dp
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
                             Icon(
                                 imageVector = item.icon,
                                 contentDescription = null,
-                                modifier = Modifier.size(20.dp)
-                            )
-                        },
-                        text = {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(
-                                    text = item.label,
-                                    style = MaterialTheme.typography.labelLarge,
-                                    fontWeight = if (item.isSelected) FontWeight.SemiBold else FontWeight.Normal
-                                )
-                                if (item.isSelected) {
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Icon(
-                                        imageVector = Icons.Filled.Check,
-                                        contentDescription = "已选择",
-                                        modifier = Modifier.size(16.dp),
-                                        tint = MaterialTheme.colorScheme.primary
-                                    )
+                                modifier = Modifier.size(20.dp),
+                                tint = if (item.isSelected) {
+                                    MiuixTheme.colorScheme.onPrimary
+                                } else {
+                                    MiuixTheme.colorScheme.onSurface
                                 }
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = item.label,
+                                style = MiuixTheme.textStyles.button,
+                                fontWeight = if (item.isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                                color = if (item.isSelected) {
+                                    MiuixTheme.colorScheme.onPrimary
+                                } else {
+                                    MiuixTheme.colorScheme.onSurface
+                                }
+                            )
+                            if (item.isSelected) {
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Icon(
+                                    imageVector = Icons.Filled.Check,
+                                    contentDescription = "已选择",
+                                    modifier = Modifier.size(16.dp),
+                                    tint = MiuixTheme.colorScheme.onPrimary
+                                )
                             }
                         }
-                    )
+                    }
                 }
             }
         }
@@ -167,13 +178,15 @@ fun BoxScope.CustomFabMenu(
             FloatingActionButton(
                 onClick = { onCheckedChange(!expanded) },
                 modifier = Modifier.size(52.dp),
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                shape = MaterialTheme.shapes.large
+                shape = SquircleShape(18.dp),
+                containerColor = MiuixTheme.colorScheme.primary,
+                minWidth = 52.dp,
+                minHeight = 52.dp
             ) {
                 Icon(
                     imageVector = if (expanded) Icons.Filled.Close else Icons.Filled.Add,
                     contentDescription = if (expanded) "关闭菜单" else "打开菜单",
+                    tint = MiuixTheme.colorScheme.onPrimary,
                     modifier = Modifier
                         .size(24.dp)
                         .graphicsLayer { rotationZ = fabRotation }

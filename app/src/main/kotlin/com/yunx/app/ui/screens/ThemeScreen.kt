@@ -462,7 +462,7 @@ private fun CustomColorButton(
     }
 }
 
-// ================= 调色盘 Dialog（Miuix OverlayDialog + Slider） =================
+// ================= 调色盘 Dialog（Miuix OverlayDialog + Miuix ColorPicker） =================
 
 @Composable
 private fun ColorPickerDialog(
@@ -470,11 +470,7 @@ private fun ColorPickerDialog(
     onDismiss: () -> Unit,
     onColorSelected: (Long) -> Unit
 ) {
-    val initialHsv = colorToHsv(Color(initialColor.toInt()))
-    var hue by remember { mutableFloatStateOf(initialHsv[0]) }
-    var saturation by remember { mutableFloatStateOf(initialHsv[1]) }
-    var value by remember { mutableFloatStateOf(initialHsv[2]) }
-    val currentColor = Color.hsv(hue, saturation, value)
+    var currentColor by remember { mutableStateOf(Color(initialColor.toInt())) }
     var hexInput by remember(currentColor) {
         mutableStateOf(colorToHex(currentColor).removePrefix("#"))
     }
@@ -509,11 +505,7 @@ private fun ColorPickerDialog(
                             hexInput = filtered
                             if (filtered.length == 6) {
                                 runCatching {
-                                    val color = hexToColor(filtered)
-                                    val hsv = colorToHsv(color)
-                                    hue = hsv[0]
-                                    saturation = hsv[1]
-                                    value = hsv[2]
+                                    currentColor = hexToColor(filtered)
                                 }
                             }
                         },
@@ -547,49 +539,12 @@ private fun ColorPickerDialog(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 饱和度/明度面板
-            SatValPanel(
-                hue = hue,
-                saturation = saturation,
-                value = value,
-                onValChange = { s, v ->
-                    saturation = s
-                    value = v
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(180.dp)
-                    .clip(SquircleShape(12.dp))
-                    .border(1.dp, MiuixTheme.colorScheme.dividerLine, SquircleShape(12.dp))
+            // Miuix 官方取色器组件（色相/饱和度/明度调节）
+            top.yukonga.miuix.kmp.basic.ColorPicker(
+                color = currentColor,
+                onColorChanged = { currentColor = it },
+                modifier = Modifier.fillMaxWidth()
             )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // 色相滑块（Miuix Slider）
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "色相",
-                    style = MiuixTheme.textStyles.body2,
-                    color = MiuixTheme.colorScheme.onSurfaceSecondary,
-                    modifier = Modifier.width(42.dp)
-                )
-                Slider(
-                    value = hue,
-                    onValueChange = { hue = it },
-                    valueRange = 0f..360f,
-                    modifier = Modifier.weight(1f)
-                )
-                Text(
-                    text = "${hue.toInt()}°",
-                    style = MiuixTheme.textStyles.body2,
-                    color = MiuixTheme.colorScheme.onSurface,
-                    modifier = Modifier.width(42.dp),
-                    textAlign = TextAlign.End
-                )
-            }
 
             Spacer(modifier = Modifier.height(20.dp))
 
@@ -613,60 +568,6 @@ private fun ColorPickerDialog(
     }
 }
 
-/** 饱和度/明度调色板（可拖拽/点击） */
-@Composable
-private fun SatValPanel(
-    hue: Float,
-    saturation: Float,
-    value: Float,
-    onValChange: (Float, Float) -> Unit,
-    modifier: Modifier
-) {
-    Box(modifier = modifier) {
-        Canvas(
-            modifier = Modifier
-                .matchParentSize()
-                .pointerInput(Unit) {
-                    detectTapGestures { offset ->
-                        onValChange(
-                            (offset.x / size.width).coerceIn(0f, 1f),
-                            1f - (offset.y / size.height).coerceIn(0f, 1f)
-                        )
-                    }
-                }
-                .pointerInput(Unit) {
-                    detectDragGestures { change, _ ->
-                        change.consume()
-                        onValChange(
-                            (change.position.x / size.width).coerceIn(0f, 1f),
-                            1f - (change.position.y / size.height).coerceIn(0f, 1f)
-                        )
-                    }
-                }
-        ) {
-            drawRect(color = Color.hsv(hue, 1f, 1f))
-            drawRect(brush = Brush.horizontalGradient(listOf(Color.White, Color.Transparent)))
-            drawRect(brush = Brush.verticalGradient(listOf(Color.Transparent, Color.Black)))
-
-            // 指示器（方形描边）
-            val x = saturation * size.width
-            val y = (1f - value) * size.height
-            val cursorSize = 14f
-            drawRect(
-                color = Color.Black.copy(alpha = 0.5f),
-                topLeft = Offset(x - cursorSize / 2, y - cursorSize / 2),
-                size = Size(cursorSize, cursorSize),
-                style = Stroke(3f)
-            )
-            drawRect(
-                color = Color.White,
-                topLeft = Offset(x - cursorSize / 2, y - cursorSize / 2),
-                size = Size(cursorSize, cursorSize),
-                style = Stroke(1.5f)
-            )
-        }
-    }
-}
 
 // ================= 桌面图标选项 =================
 
@@ -724,12 +625,6 @@ private fun AppIconOption(
             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
         )
     }
-}
-
-private fun colorToHsv(color: Color): FloatArray {
-    val hsv = FloatArray(3)
-    android.graphics.Color.colorToHSV(color.toArgb(), hsv)
-    return hsv
 }
 
 private fun colorToHex(color: Color): String {

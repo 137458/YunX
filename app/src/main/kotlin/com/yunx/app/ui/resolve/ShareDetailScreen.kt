@@ -18,10 +18,16 @@
 
 package com.yunx.app.ui.resolve
 
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -46,28 +52,13 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.ArrowUpward
 import androidx.compose.material.icons.outlined.BookmarkAdd
 import androidx.compose.material.icons.outlined.ChevronRight
+import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.FolderOpen
 import androidx.compose.material.icons.outlined.InsertDriveFile
-import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.SaveAlt
 import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import top.yukonga.miuix.kmp.basic.Card
-import top.yukonga.miuix.kmp.basic.CardDefaults
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -79,21 +70,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import com.yunx.app.data.db.BookmarkEntity
 import com.yunx.app.data.network.model.ShareFile
 import com.yunx.app.data.network.model.ShareSession
 import com.yunx.app.data.prefs.SettingsRepository
+import com.yunx.app.ui.components.LocalScaffoldPadding
 import com.yunx.app.ui.components.ScrollToTopButton
 import com.yunx.app.ui.items.MultiSelectAction
 import com.yunx.app.ui.items.MultiSelectBar
@@ -111,6 +97,21 @@ import com.yunx.app.ui.viewmodel.QuarkCloudViewModel
 import com.yunx.app.ui.viewmodel.ResolveViewModel
 import com.yunx.app.ui.viewmodel.UCCoudViewModel
 import com.yunx.app.ui.viewmodel.XunleiCloudViewModel
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.ButtonDefaults
+import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.CardDefaults
+import top.yukonga.miuix.kmp.basic.Checkbox
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.InfiniteProgressIndicator
+import top.yukonga.miuix.kmp.basic.ScrollBehavior
+import top.yukonga.miuix.kmp.basic.Surface
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.basic.TextButton
+import top.yukonga.miuix.kmp.basic.TextField
+import top.yukonga.miuix.kmp.theme.MiuixTheme
+import top.yukonga.miuix.kmp.window.WindowDialog
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -123,7 +124,6 @@ private const val BAIDU_LIMIT_BYTES = 300L * 1024 * 1024
 /**
  * 分享详情页：展示分享标题与文件列表，支持进入文件夹、点击文件获取下载直链。
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ShareDetailScreen(
     session: ShareSession,
@@ -141,7 +141,7 @@ fun ShareDetailScreen(
     ucCloudViewModel: UCCoudViewModel,
     /** 123 云盘浏览 ViewModel（123 分享转存目录选择用） */
     pan123CloudViewModel: Pan123CloudViewModel,
-    scrollBehavior: TopAppBarScrollBehavior,
+    scrollBehavior: ScrollBehavior,
     /** 文件列表滚动状态（由上层持有，跨目录切换保留） */
     listState: LazyListState,
     /** 各目录滚动位置记忆（key = 目录路径；由上层持有，跨目录切换保留） */
@@ -190,6 +190,7 @@ fun ShareDetailScreen(
         listState.scrollToItem(scrollPositions[currentDirKey] ?: 0)
     }
     // 多选模式：底部批量操作栏 + 处理中弹窗
+    val scaffoldPadding = LocalScaffoldPadding.current
     Box(modifier = modifier.fillMaxSize()) {
         LazyColumn(
             state = listState,
@@ -197,9 +198,11 @@ fun ShareDetailScreen(
                 .fillMaxSize()
                 .nestedScroll(scrollBehavior.nestedScrollConnection),
             contentPadding = PaddingValues(
-                        start = 16.dp, end = 16.dp, top = 16.dp,
-                        bottom = if (viewModel.multiSelectMode) 96.dp else 16.dp
-                    ),
+                start = 16.dp,
+                end = 16.dp,
+                top = 16.dp + scaffoldPadding.calculateTopPadding(),
+                bottom = (if (viewModel.multiSelectMode) 96.dp else 16.dp) + scaffoldPadding.calculateBottomPadding()
+            ),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             item {
@@ -208,47 +211,58 @@ fun ShareDetailScreen(
                         if (viewModel.multiSelectMode) {
                             // 多选模式：取消选择
                             IconButton(onClick = { viewModel.exitMultiSelect() }) {
-                                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "取消选择")
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = "取消选择",
+                                    tint = MiuixTheme.colorScheme.onSurface
+                                )
                             }
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     text = "已选 ${viewModel.selected.size} 项",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Medium
+                                    style = MiuixTheme.textStyles.title4,
+                                    fontWeight = FontWeight.Medium,
+                                    color = MiuixTheme.colorScheme.onSurface
                                 )
                                 Text(
                                     text = if (viewModel.selected.size == displayFiles.size) "已全选" else "点击选择更多文件",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    style = MiuixTheme.textStyles.body2,
+                                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                                 )
                             }
-                            TextButton(onClick = { viewModel.toggleSelectAll(displayFiles) }) {
-                                Text(if (viewModel.selected.size == displayFiles.size) "取消全选" else "全选")
-                            }
+                            TextButton(
+                                text = if (viewModel.selected.size == displayFiles.size) "取消全选" else "全选",
+                                onClick = { viewModel.toggleSelectAll(displayFiles) }
+                            )
                         } else {
                             IconButton(onClick = onExit) {
-                                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = "返回",
+                                    tint = MiuixTheme.colorScheme.onSurface
+                                )
                             }
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     text = session.title.ifBlank { "分享内容" },
-                                    style = MaterialTheme.typography.titleMedium,
+                                    style = MiuixTheme.textStyles.title4,
                                     fontWeight = FontWeight.Medium,
                                     maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis
+                                    overflow = TextOverflow.Ellipsis,
+                                    color = MiuixTheme.colorScheme.onSurface
                                 )
                                 Text(
                                     text = if (searchQuery.isBlank()) "共 ${files.size} 项"
                                     else "匹配 ${displayFiles.size} / ${files.size} 项",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    style = MiuixTheme.textStyles.body2,
+                                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                                 )
                             }
                             IconButton(onClick = { showAddBookmark = true }) {
                                 Icon(
                                     imageVector = Icons.Outlined.BookmarkAdd,
                                     contentDescription = "添加至收藏",
-                                    tint = MaterialTheme.colorScheme.primary
+                                    tint = MiuixTheme.colorScheme.primary
                                 )
                             }
                             IconButton(onClick = { showSearch = !showSearch }) {
@@ -256,9 +270,9 @@ fun ShareDetailScreen(
                                     imageVector = Icons.Outlined.Search,
                                     contentDescription = if (showSearch) "关闭搜索" else "搜索文件",
                                     tint = if (showSearch) {
-                                        MaterialTheme.colorScheme.primary
+                                        MiuixTheme.colorScheme.primary
                                     } else {
-                                        MaterialTheme.colorScheme.onSurfaceVariant
+                                        MiuixTheme.colorScheme.onSurfaceVariantSummary
                                     }
                                 )
                             }
@@ -283,21 +297,31 @@ fun ShareDetailScreen(
                     ) {
                         Column {
                             Spacer(modifier = Modifier.height(10.dp))
-                            OutlinedTextField(
+                            TextField(
                                 value = searchQuery,
                                 onValueChange = { searchQuery = it },
                                 modifier = Modifier.fillMaxWidth(),
-                                placeholder = { Text("搜索当前目录文件") },
-                                leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
-                                trailingIcon = {
-                                    if (searchQuery.isNotEmpty()) {
+                                label = "搜索当前目录文件",
+                                useLabelAsPlaceholder = true,
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Search,
+                                        contentDescription = null,
+                                        tint = MiuixTheme.colorScheme.onSurfaceVariantSummary
+                                    )
+                                },
+                                trailingIcon = if (searchQuery.isNotEmpty()) {
+                                    {
                                         IconButton(onClick = { searchQuery = "" }) {
-                                            Icon(Icons.Filled.Close, contentDescription = "清空搜索")
+                                            Icon(
+                                                imageVector = Icons.Filled.Close,
+                                                contentDescription = "清空搜索",
+                                                tint = MiuixTheme.colorScheme.onSurfaceVariantSummary
+                                            )
                                         }
                                     }
-                                },
-                                singleLine = true,
-                                shape = MaterialTheme.shapes.large
+                                } else null,
+                                singleLine = true
                             )
                         }
                     }
@@ -319,8 +343,8 @@ fun ShareDetailScreen(
                 item {
                     Text(
                         text = if (files.isEmpty()) "此目录为空" else "未找到匹配「${searchQuery.trim()}」的文件",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MiuixTheme.textStyles.body1,
+                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 32.dp),
@@ -379,13 +403,13 @@ fun ShareDetailScreen(
                     // 转存仅夸克分享支持
                     if (viewModel.canSave) {
                         add(
-                            MultiSelectAction("转存", Icons.Outlined.SaveAlt, MaterialTheme.colorScheme.primary) {
+                            MultiSelectAction("转存", Icons.Outlined.SaveAlt, MiuixTheme.colorScheme.primary) {
                                 viewModel.batchSaveToCloud()
                             }
                         )
                     }
                     add(
-                        MultiSelectAction("下载", Icons.Outlined.Download, MaterialTheme.colorScheme.primary) {
+                        MultiSelectAction("下载", Icons.Outlined.Download, MiuixTheme.colorScheme.primary) {
                             // 百度批量下载：选中项含 >300MB 文件时先弹限速提示
                             val hasBig = viewModel.selected.any { it.fsize > BAIDU_LIMIT_BYTES }
                             if (viewModel.isBaidu && !baiduLimitDismissed && hasBig) {
@@ -404,65 +428,102 @@ fun ShareDetailScreen(
     // 百度 >300MB 限速提示弹窗（解析页百度分享下载，可勾选不再显示）
     if (showBaiduLimitDialog) {
         var neverShow by remember { mutableStateOf(baiduLimitDismissed) }
-        AlertDialog(
+        WindowDialog(
+            show = showBaiduLimitDialog,
             onDismissRequest = { showBaiduLimitDialog = false },
-            title = { Text("下载大文件提示") },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text(
-                        text = "百度网盘非会员超过300MB会被限速，下载速度可能较慢。是否继续下载？",
-                        style = MaterialTheme.typography.bodyMedium
+            title = "下载大文件提示"
+        ) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(
+                    text = "百度网盘非会员超过300MB会被限速，下载速度可能较慢。是否继续下载？",
+                    style = MiuixTheme.textStyles.body1,
+                    color = MiuixTheme.colorScheme.onSurface
+                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.clickable { neverShow = !neverShow }
+                ) {
+                    Checkbox(
+                        state = ToggleableState(neverShow),
+                        onClick = { neverShow = !neverShow }
                     )
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Checkbox(checked = neverShow, onCheckedChange = { neverShow = it })
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("不再显示此提示", style = MaterialTheme.typography.bodyMedium)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "不再显示此提示",
+                        style = MiuixTheme.textStyles.body2,
+                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary
+                    )
+                }
+                Spacer(modifier = Modifier.height(4.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    TextButton(
+                        text = "取消",
+                        onClick = { showBaiduLimitDialog = false },
+                        modifier = Modifier.weight(1f)
+                    )
+                    Button(
+                        onClick = {
+                            showBaiduLimitDialog = false
+                            baiduSettings.baiduLimitHintDismissed = neverShow
+                            baiduLimitDismissed = neverShow
+                            pendingBaiduAction?.invoke()
+                            pendingBaiduAction = null
+                        },
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColorsPrimary()
+                    ) {
+                        Text("继续下载", style = MiuixTheme.textStyles.button)
                     }
                 }
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        showBaiduLimitDialog = false
-                        baiduSettings.baiduLimitHintDismissed = neverShow
-                        baiduLimitDismissed = neverShow
-                        pendingBaiduAction?.invoke()
-                        pendingBaiduAction = null
-                    }
-                ) { Text("继续下载") }
-            },
-            dismissButton = {
-                TextButton(onClick = { showBaiduLimitDialog = false }) { Text("取消") }
             }
-        )
+        }
     }
 
     // 批量处理中：加载弹窗（批量下载显示获取进度，如 "正在获取下载链接 2/5"；可中断）
     if (viewModel.isBatchWorking) {
-        AlertDialog(
+        WindowDialog(
+            show = viewModel.isBatchWorking,
             onDismissRequest = { },
-            confirmButton = { },
-            dismissButton = {
-                TextButton(onClick = { viewModel.cancelBatch() }) {
-                    Text("中断", color = MaterialTheme.colorScheme.error)
-                }
-            },
-            title = { Text("批量处理中") },
-            text = {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    CircularProgressIndicator(
+            title = "批量处理中"
+        ) {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                ) {
+                    InfiniteProgressIndicator(
                         modifier = Modifier.size(24.dp),
-                        strokeWidth = 2.dp
+                        color = MiuixTheme.colorScheme.primary
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
                         text = viewModel.batchProgress?.let { "正在获取下载链接 $it" }
                             ?: "正在批量处理，请稍候…",
-                        style = MaterialTheme.typography.bodyMedium
+                        style = MiuixTheme.textStyles.body1,
+                        color = MiuixTheme.colorScheme.onSurface
+                    )
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    TextButton(
+                        text = "中断",
+                        onClick = { viewModel.cancelBatch() },
+                        colors = ButtonDefaults.textButtonColors(
+                            color = MiuixTheme.colorScheme.error
+                        )
                     )
                 }
             }
-        )
+        }
     }
 
     // 添加至收藏弹窗（当前分享链接，支持自定义标题与分类）
@@ -532,13 +593,13 @@ internal fun BackToParentItem(onClick: () -> Unit) {
                 imageVector = Icons.Outlined.ArrowUpward,
                 contentDescription = null,
                 modifier = Modifier.size(20.dp),
-                tint = MaterialTheme.colorScheme.primary
+                tint = MiuixTheme.colorScheme.primary
             )
             Spacer(modifier = Modifier.width(10.dp))
             Text(
                 text = "返回上一级",
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.primary,
+                style = MiuixTheme.textStyles.body1,
+                color = MiuixTheme.colorScheme.primary,
                 fontWeight = FontWeight.Medium
             )
         }
@@ -578,8 +639,8 @@ internal fun CrumbBar(
                 // 可点击层级：点击回退到该目录
                 Text(
                     text = name,
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MiuixTheme.textStyles.body2,
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                     maxLines = 1,
                     modifier = Modifier
                         .clickable { onNavigate(i) }
@@ -589,7 +650,7 @@ internal fun CrumbBar(
                     imageVector = Icons.Outlined.ChevronRight,
                     contentDescription = null,
                     modifier = Modifier.size(16.dp),
-                    tint = MaterialTheme.colorScheme.outline
+                    tint = MiuixTheme.colorScheme.outline
                 )
             } else {
                 // 当前层：高亮 + 文件夹图标（不可点）
@@ -597,13 +658,13 @@ internal fun CrumbBar(
                     imageVector = Icons.Outlined.FolderOpen,
                     contentDescription = null,
                     modifier = Modifier.size(16.dp),
-                    tint = MaterialTheme.colorScheme.primary
+                    tint = MiuixTheme.colorScheme.primary
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = name,
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.primary,
+                    style = MiuixTheme.textStyles.body2,
+                    color = MiuixTheme.colorScheme.primary,
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1,
                     modifier = Modifier.padding(end = 4.dp)
@@ -637,7 +698,7 @@ internal fun ShareFileRow(
         onLongPress = onLongClick,
         colors = if (selected) {
             CardDefaults.defaultColors(
-                color = MaterialTheme.colorScheme.primaryContainer
+                color = MiuixTheme.colorScheme.primaryContainer
             )
         } else {
             CardDefaults.defaultColors()
@@ -652,9 +713,8 @@ internal fun ShareFileRow(
             // 多选模式：行首复选框（仅多选列表显示）
             if (showCheckbox) {
                 Checkbox(
-                    checked = selected,
-                    onCheckedChange = { onClick() },
-                    modifier = Modifier.size(36.dp)
+                    state = ToggleableState(selected),
+                    onClick = onClick
                 )
                 Spacer(modifier = Modifier.width(4.dp))
             }
@@ -662,9 +722,9 @@ internal fun ShareFileRow(
                 modifier = Modifier.size(40.dp),
                 shape = CircleShape,
                 color = if (file.isdir) {
-                    MaterialTheme.colorScheme.secondaryContainer
+                    MiuixTheme.colorScheme.secondaryContainer
                 } else {
-                    MaterialTheme.colorScheme.surfaceContainerHighest
+                    MiuixTheme.colorScheme.surfaceContainerHighest
                 }
             ) {
                 Box(contentAlignment = Alignment.Center) {
@@ -673,9 +733,9 @@ internal fun ShareFileRow(
                         contentDescription = null,
                         modifier = Modifier.size(20.dp),
                         tint = if (file.isdir) {
-                            MaterialTheme.colorScheme.onSecondaryContainer
+                            MiuixTheme.colorScheme.onSecondaryContainer
                         } else {
-                            MaterialTheme.colorScheme.onSurfaceVariant
+                            MiuixTheme.colorScheme.onSurfaceVariantSummary
                         }
                     )
                 }
@@ -685,7 +745,8 @@ internal fun ShareFileRow(
                 // 文件名过长时滚动播放显示
                 Text(
                     text = file.fname,
-                    style = MaterialTheme.typography.bodyLarge,
+                    style = MiuixTheme.textStyles.body1,
+                    color = if (selected) MiuixTheme.colorScheme.onPrimaryContainer else MiuixTheme.colorScheme.onSurface,
                     maxLines = 1,
                     modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE)
                 )
@@ -700,8 +761,8 @@ internal fun ShareFileRow(
                             append(time)
                         }
                     },
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MiuixTheme.textStyles.body2,
+                    color = if (selected) MiuixTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f) else MiuixTheme.colorScheme.onSurfaceVariantSummary,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -712,7 +773,7 @@ internal fun ShareFileRow(
                         imageVector = Icons.Outlined.SaveAlt,
                         contentDescription = "转存",
                         modifier = Modifier.size(18.dp),
-                        tint = MaterialTheme.colorScheme.primary
+                        tint = if (selected) MiuixTheme.colorScheme.onPrimaryContainer else MiuixTheme.colorScheme.primary
                     )
                 }
             }
@@ -722,14 +783,14 @@ internal fun ShareFileRow(
                         imageVector = Icons.Outlined.MoreVert,
                         contentDescription = "更多",
                         modifier = Modifier.size(18.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        tint = if (selected) MiuixTheme.colorScheme.onPrimaryContainer else MiuixTheme.colorScheme.onSurfaceVariantActions
                     )
                 }
             }
             Icon(
                 imageVector = Icons.Outlined.ChevronRight,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.outline
+                tint = if (selected) MiuixTheme.colorScheme.onPrimaryContainer else MiuixTheme.colorScheme.outline
             )
         }
     }

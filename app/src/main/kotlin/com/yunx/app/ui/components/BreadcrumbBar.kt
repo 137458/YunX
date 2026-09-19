@@ -1,4 +1,4 @@
-package top.yukonga.miuix.kmp.basic
+package com.yunx.app.ui.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.Indication
@@ -43,6 +43,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.basic.ArrowRight
 import top.yukonga.miuix.kmp.theme.MiuixTheme
