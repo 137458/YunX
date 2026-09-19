@@ -29,21 +29,21 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.KeyboardArrowUp
-import androidx.compose.material3.FloatingActionButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
+import top.yukonga.miuix.kmp.basic.FloatingActionButton
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /**
- * 返回顶部按钮（Material3 规范）：
+ * 返回顶部按钮（Miuix 规范）：
  * - 列表上滑离开顶部后，右下角淡入+缩放出现；
  * - 点击后平滑滚动回顶部；
  * - 回到顶部（第一个可见项为 0 且无偏移）后自动淡出。
@@ -54,7 +54,7 @@ internal fun ScrollToTopButton(
     listState: LazyListState,
     modifier: Modifier = Modifier
 ) {
-    val scope = rememberCoroutineScope()
+    val coroutineScope = rememberCoroutineScope()
     // 上滑离开顶部（首项不是 0，或首项有偏移）即显示
     val showButton by remember {
         derivedStateOf {
@@ -67,19 +67,14 @@ internal fun ScrollToTopButton(
         exit = fadeOut(tween(150)) + scaleOut(tween(150), targetScale = 0.8f),
         modifier = modifier
     ) {
-        SmallFloatingActionButton(
-            onClick = { scope.launch { listState.animateScrollToItem(0) } },
-            shape = CircleShape,
-            containerColor = MaterialTheme.colorScheme.secondaryContainer,
-            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-            elevation = FloatingActionButtonDefaults.elevation(
-                defaultElevation = 6.dp,
-                pressedElevation = 8.dp
-            )
+        FloatingActionButton(
+            onClick = { coroutineScope.launch { listState.animateScrollToItem(0) } },
+            modifier = Modifier.shadow(elevation = 4.dp, shape = CircleShape)
         ) {
             Icon(
                 imageVector = Icons.Outlined.KeyboardArrowUp,
                 contentDescription = "返回顶部",
+                tint = MiuixTheme.colorScheme.onPrimary,
                 modifier = Modifier.padding(bottom = 2.dp) // 视觉微调：箭头视觉居中
             )
         }

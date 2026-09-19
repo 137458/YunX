@@ -32,27 +32,29 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Bookmarks
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationRail
-import androidx.compose.material3.NavigationRailItem
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.NavigationRail
+import top.yukonga.miuix.kmp.basic.NavigationRailItem
+import top.yukonga.miuix.kmp.basic.Scaffold
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.basic.ToolbarPosition
+import top.yukonga.miuix.kmp.basic.TopAppBar
+import top.yukonga.miuix.kmp.theme.MiuixTheme
+import com.yunx.app.ui.components.AppFloatingBottomBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -148,11 +150,12 @@ import kotlinx.coroutines.withContext
 import com.yunx.app.data.network.HttpClients
 
 /**
- * 主页框架：
- * - 顶部可折叠大标题（LargeTopAppBar），切换 Tab 时标题文字随 Tab 变化，折叠状态不受影响；
- * - 导航 Tab（解析 / 网盘 / 下载 / 设置）：竖屏为底部导航栏（NavigationBar），横屏切换为侧边导航栏（NavigationRail）；
+ * 主页框架（Miuix 架构）：
+ * - 统一外层骨架为 Miuix Scaffold；
+ * - 顶部大标题（TopAppBar），切换 Tab 时标题文字随 Tab 变化；
+ * - 导航 Tab（解析 / 网盘 / 下载 / 设置）：竖屏为 Miuix 液态玻璃悬浮底栏（AppFloatingBottomBar），横屏切换为 Miuix 侧边导航栏（NavigationRail）；
  * - 通过 SaveableStateHolder 保存各页面状态，切换 Tab 再切回来不会重置；
- * - 夸克登录页全屏覆盖展示。
+ * - 全屏覆盖层（关于页、主题页、登录页等）平滑过渡展示。
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -592,29 +595,23 @@ fun MainScreen() {
 
     // 主框架与全屏覆盖层（关于页）放在同一 Box：覆盖层带过渡动画
     Box(modifier = Modifier.fillMaxSize()) {
-    // 顶部可折叠大标题（竖屏 / 横屏共用）
+    // 顶部大标题（竖屏 / 横屏共用）
     val topBarContent: @Composable () -> Unit = {
-        LargeTopAppBar(
-            title = {
-                Text(
-                    text = currentTab.title,
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.SemiBold
-                )
-            },
+        TopAppBar(
+            title = currentTab.title,
+            largeTitle = currentTab.title,
             actions = {
                 // 解析页标题右上角：收藏网盘链接入口
                 if (currentTab == MainTab.Resolve) {
                     IconButton(onClick = { showBookmarks = true }) {
-                        Icon(Icons.Outlined.Bookmarks, contentDescription = "收藏网盘链接")
+                        Icon(
+                            imageVector = Icons.Outlined.Bookmarks,
+                            contentDescription = "收藏网盘链接",
+                            tint = MiuixTheme.colorScheme.onSurfaceVariantActions
+                        )
                     }
                 }
-            },
-            scrollBehavior = scrollBehavior,
-            colors = TopAppBarDefaults.largeTopAppBarColors(
-                containerColor = MaterialTheme.colorScheme.surface,
-                scrolledContainerColor = MaterialTheme.colorScheme.surface
-            )
+            }
         )
     }
     // Tab 内容区（竖屏 / 横屏共用）：每个页面独立保存状态，切换 Tab 再切回来不丢失；带 Material3 过渡动画（按 Tab 顺序决定方向）
@@ -694,53 +691,41 @@ fun MainScreen() {
         }
     }
 
-    if (isLandscape) {
-        // 横屏：左侧侧边导航栏（NavigationRail）+ 右侧顶栏 & 内容
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                // 竖屏由 Scaffold 提供主题背景；横屏手动布局需显式设置，否则露出窗口默认白色
-                .background(MaterialTheme.colorScheme.background)
-        ) {
-            Row(modifier = Modifier.fillMaxSize()) {
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        topBar = { topBarContent() },
+        floatingToolbar = {
+            if (!isLandscape) {
+                AppFloatingBottomBar(
+                    currentTab = currentTab,
+                    onTabSelected = { currentTab = it }
+                )
+            }
+        },
+        floatingToolbarPosition = ToolbarPosition.BottomCenter,
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { innerPadding ->
+        if (isLandscape) {
+            // 横屏：左侧侧边导航栏（NavigationRail）+ 右侧内容区
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+            ) {
                 MainNavigationRail(
                     currentTab = currentTab,
                     onTabSelected = { currentTab = it }
                 )
-                Column(
+                Box(
                     modifier = Modifier
                         .weight(1f)
-                        .fillMaxSize()
+                        .fillMaxHeight()
                 ) {
-                    topBarContent()
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxWidth()
-                    ) {
-                        tabContent()
-                    }
+                    tabContent()
                 }
             }
-            // 全局 Snackbar（横屏无底部栏，悬浮底部居中）
-            SnackbarHost(
-                hostState = snackbarHostState,
-                modifier = Modifier.align(Alignment.BottomCenter)
-            )
-        }
-    } else {
-        // 竖屏：Scaffold + 底部导航栏
-        Scaffold(
-            modifier = Modifier.fillMaxSize(),
-            snackbarHost = { SnackbarHost(snackbarHostState) },
-            topBar = { topBarContent() },
-            bottomBar = {
-                MainBottomBar(
-                    currentTab = currentTab,
-                    onTabSelected = { currentTab = it }
-                )
-            }
-        ) { innerPadding ->
+        } else {
+            // 竖屏：内容区消费 innerPadding
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -894,51 +879,21 @@ fun MainScreen() {
 }
 
 /**
- * 底部导航栏（竖屏）：4 个主 Tab（解析 / 网盘 / 下载 / 设置）。
- */
-@Composable
-private fun MainBottomBar(
-    currentTab: MainTab,
-    onTabSelected: (MainTab) -> Unit
-) {
-    NavigationBar {
-        MainTab.values().forEach { tab ->
-            NavigationBarItem(
-                selected = currentTab == tab,
-                onClick = { onTabSelected(tab) },
-                icon = {
-                    Icon(
-                        imageVector = if (currentTab == tab) tab.selectedIcon else tab.unselectedIcon,
-                        contentDescription = tab.title
-                    )
-                },
-                label = { Text(tab.title) }
-            )
-        }
-    }
-}
-
-/**
- * 侧边导航栏（横屏）：同 4 个主 Tab，未选中项只显示图标，节省横向空间。
+ * 侧边导航栏（横屏）：4 个主 Tab，使用 Miuix NavigationRail 与 NavigationRailItem。
  */
 @Composable
 private fun MainNavigationRail(
     currentTab: MainTab,
-    onTabSelected: (MainTab) -> Unit
+    onTabSelected: (MainTab) -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    NavigationRail {
-        MainTab.values().forEach { tab ->
+    NavigationRail(modifier = modifier) {
+        MainTab.entries.forEach { tab ->
             NavigationRailItem(
                 selected = currentTab == tab,
                 onClick = { onTabSelected(tab) },
-                icon = {
-                    Icon(
-                        imageVector = if (currentTab == tab) tab.selectedIcon else tab.unselectedIcon,
-                        contentDescription = tab.title
-                    )
-                },
-                label = { Text(tab.title) },
-                alwaysShowLabel = currentTab == tab
+                icon = if (currentTab == tab) tab.selectedIcon else tab.unselectedIcon,
+                label = tab.title
             )
         }
     }

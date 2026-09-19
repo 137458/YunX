@@ -22,22 +22,33 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Logout
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
-import androidx.compose.ui.input.nestedscroll.NestedScrollSource
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -45,15 +56,22 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.yunx.app.data.db.UCAccountEntity
 import com.yunx.app.ui.SnackbarController
-import com.yunx.app.ui.rememberGlobalSnackbarHostState
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.ButtonDefaults
+import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.basic.TextButton
+import top.yukonga.miuix.kmp.overlay.OverlayBottomSheet
+import top.yukonga.miuix.kmp.overlay.OverlayDialog
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /**
- * 已登录 UC 账号的底部弹窗。
+ * 已登录 UC 账号的底部抽屉（Miuix OverlayBottomSheet）。
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UCAccountSheet(
     account: UCAccountEntity,
@@ -70,96 +88,157 @@ fun UCAccountSheet(
     val loginTime = remember(account.updatedAt) {
         SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(Date(account.updatedAt))
     }
-    // ModalBottomSheet 为独立窗口，需自带 Snackbar 宿主
-    val snackbarHostState = rememberGlobalSnackbarHostState()
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val scrollState = rememberScrollState()
-    val sheetNestedScroll = remember(scrollState) {
-        object : NestedScrollConnection {
-            override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset {
-                val dy = available.y
-                if (dy > 0 && scrollState.value >= scrollState.maxValue) return Offset(0f, dy)
-                return Offset.Zero
-            }
-        }
-    }
 
-    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState, containerColor = MaterialTheme.colorScheme.surface) {
+    val scrollState = rememberScrollState()
+
+    OverlayBottomSheet(
+        show = true,
+        onDismissRequest = {
+            showFullCookie = false
+            showLogoutConfirm = false
+            onDismiss()
+        }
+    ) {
         Column(
-            modifier = Modifier.fillMaxWidth()
-                .then(if (showFullCookie) Modifier.fillMaxHeight().verticalScroll(scrollState).nestedScroll(sheetNestedScroll) else Modifier)
+            modifier = Modifier
+                .fillMaxWidth()
+                .then(if (showFullCookie) Modifier.fillMaxHeight().verticalScroll(scrollState) else Modifier)
                 .padding(start = 24.dp, end = 24.dp, top = 4.dp, bottom = 32.dp)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Surface(modifier = Modifier.size(52.dp), shape = CircleShape, color = MaterialTheme.colorScheme.primaryContainer) {
+                Surface(
+                    modifier = Modifier.size(52.dp),
+                    shape = CircleShape,
+                    color = MiuixTheme.colorScheme.primaryVariant
+                ) {
                     Box(contentAlignment = Alignment.Center) {
-                        Text(account.nickname.take(1), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer)
+                        Text(
+                            account.nickname.take(1),
+                            style = MiuixTheme.textStyles.title3,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MiuixTheme.colorScheme.onPrimaryVariant
+                        )
                     }
                 }
                 Spacer(modifier = Modifier.width(16.dp))
                 Column {
-                    Text(account.nickname, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium)
+                    Text(account.nickname, style = MiuixTheme.textStyles.title4, fontWeight = FontWeight.Medium)
                     Spacer(modifier = Modifier.height(4.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(modifier = Modifier.size(8.dp).background(MaterialTheme.colorScheme.primary, CircleShape))
+                        Box(modifier = Modifier.size(8.dp).background(MiuixTheme.colorScheme.primary, CircleShape))
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text("UC网盘 · 已登录", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("UC网盘 · 已登录", style = MiuixTheme.textStyles.body2, color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
                     }
                 }
             }
             Spacer(modifier = Modifier.height(24.dp))
-            Text("登录信息", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text("登录信息", style = MiuixTheme.textStyles.body2, color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
             Spacer(modifier = Modifier.height(8.dp))
-            Card(modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large,
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)) {
+            Card(
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     InfoRow(label = "登录时间", value = loginTime)
                     Spacer(modifier = Modifier.height(12.dp))
-                    Text("Cookie", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("Cookie", style = MiuixTheme.textStyles.body2, color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text(displayCookie, style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace, fontSize = 11.sp, lineHeight = 15.sp),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(
+                        displayCookie,
+                        style = MiuixTheme.textStyles.body2.copy(fontFamily = FontFamily.Monospace, fontSize = 11.sp, lineHeight = 15.sp),
+                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary
+                    )
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                        if (cookieTruncated) TextButton(onClick = { showFullCookie = !showFullCookie }) { Text(if (showFullCookie) "收起" else "展开全部") }
-                        TextButton(onClick = {
-                            copyToClipboard(context, account.cookie)
-                            SnackbarController.show("Cookie 已复制")
-                        }) {
-                            Icon(Icons.Outlined.ContentCopy, contentDescription = null, modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(4.dp)); Text("复制")
+                        if (cookieTruncated) {
+                            TextButton(
+                                text = if (showFullCookie) "收起" else "展开全部",
+                                onClick = { showFullCookie = !showFullCookie }
+                            )
                         }
+                        TextButton(
+                            text = "复制",
+                            onClick = {
+                                copyToClipboard(context, account.cookie)
+                                SnackbarController.show("Cookie 已复制")
+                            }
+                        )
                     }
                 }
             }
             Spacer(modifier = Modifier.height(24.dp))
-            Button(onClick = { showLogoutConfirm = true }, modifier = Modifier.fillMaxWidth().height(48.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error, contentColor = MaterialTheme.colorScheme.onError)) {
-                Icon(Icons.Outlined.Logout, contentDescription = null, modifier = Modifier.size(18.dp))
-                Spacer(modifier = Modifier.width(8.dp)); Text("退出登录")
+            Button(
+                onClick = { showLogoutConfirm = true },
+                modifier = Modifier.fillMaxWidth().height(48.dp),
+                colors = ButtonDefaults.buttonColors(
+                    color = MiuixTheme.colorScheme.error,
+                    contentColor = MiuixTheme.colorScheme.onError
+                )
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Logout,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp),
+                    tint = MiuixTheme.colorScheme.onError
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("退出登录", style = MiuixTheme.textStyles.button)
             }
-
-            // 复制提示（ModalBottomSheet 为独立窗口，需自带 Snackbar 宿主）
-            SnackbarHost(hostState = snackbarHostState)
         }
     }
 
     if (showLogoutConfirm) {
-        AlertDialog(
+        OverlayDialog(
+            show = showLogoutConfirm,
             onDismissRequest = { showLogoutConfirm = false },
-            title = { Text("退出登录") },
-            text = { Text("确定要退出当前 UC 账号吗？退出后将清除本地 Cookie。") },
-            confirmButton = { TextButton(onClick = { showLogoutConfirm = false; onLogout() }) { Text("退出", color = MaterialTheme.colorScheme.error) } },
-            dismissButton = { TextButton(onClick = { showLogoutConfirm = false }) { Text("取消") } }
-        )
+            title = "退出登录"
+        ) {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = "确定要退出当前 UC 账号吗？退出后将清除本地 Cookie。",
+                    style = MiuixTheme.textStyles.body1,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    TextButton(
+                        text = "取消",
+                        onClick = { showLogoutConfirm = false },
+                        modifier = Modifier.weight(1f)
+                    )
+                    Button(
+                        onClick = {
+                            showLogoutConfirm = false
+                            onLogout()
+                        },
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(
+                            color = MiuixTheme.colorScheme.error,
+                            contentColor = MiuixTheme.colorScheme.onError
+                        )
+                    ) {
+                        Text("退出", style = MiuixTheme.textStyles.button)
+                    }
+                }
+            }
+        }
     }
 }
 
 @Composable
 private fun InfoRow(label: String, value: String) {
     Row(modifier = Modifier.fillMaxWidth()) {
-        Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.width(72.dp))
-        Text(value, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
+        Text(
+            text = label,
+            style = MiuixTheme.textStyles.body2,
+            color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+            modifier = Modifier.width(72.dp)
+        )
+        Text(
+            text = value,
+            style = MiuixTheme.textStyles.body1,
+            color = MiuixTheme.colorScheme.onSurface
+        )
     }
 }
 

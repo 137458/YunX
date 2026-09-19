@@ -66,7 +66,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarScrollBehavior
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import top.yukonga.miuix.kmp.basic.BreadcrumbBar
+import top.yukonga.miuix.kmp.basic.BreadcrumbItem
+import top.yukonga.miuix.kmp.basic.PullToRefresh
+import top.yukonga.miuix.kmp.basic.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -89,7 +92,6 @@ import com.yunx.app.ui.items.MultiSelectBar
 import com.yunx.app.ui.components.ScrollToTopButton
 import com.yunx.app.ui.resolve.DownloadLinkDialog
 import com.yunx.app.ui.resolve.BackToParentItem
-import com.yunx.app.ui.resolve.CrumbBar
 import com.yunx.app.ui.resolve.ShareFileRow
 import com.yunx.app.ui.viewmodel.QuarkCloudUiState
 import com.yunx.app.ui.viewmodel.QuarkCloudViewModel
@@ -215,7 +217,8 @@ fun CloudDriveScreen(
                 LaunchedEffect(loadedKey) {
                     listState.scrollToItem(scrollPositions[loadedKey] ?: 0)
                 }
-                PullToRefreshBox(
+                PullToRefresh(
+                    state = rememberPullToRefreshState(refreshThreshold = 64.dp),
                     isRefreshing = viewModel.refreshing,
                     onRefresh = { viewModel.refresh() },
                     modifier = Modifier.fillMaxSize()
@@ -289,13 +292,21 @@ fun CloudDriveScreen(
                     }
                     // 可点击面包屑（多选模式下隐藏）
                     if (!viewModel.multiSelectMode) {
-                        CrumbBar(
-                            rootTitle = "夸克网盘",
-                            pathNames = s.pathNames,
-                            onNavigate = { level ->
-                                scrollPositions[currentDirKey] = listState.firstVisibleItemIndex
-                                viewModel.navigateToLevel(level)
+                        val breadcrumbItems = remember(s.pathNames) {
+                            buildList {
+                                add(BreadcrumbItem(path = "root", text = "夸克网盘"))
+                                s.pathNames.forEachIndexed { index, name ->
+                                    add(BreadcrumbItem(path = (index + 1).toString(), text = name))
+                                }
                             }
+                        }
+                        BreadcrumbBar(
+                            items = breadcrumbItems,
+                            onItemClick = { index ->
+                                scrollPositions[currentDirKey] = listState.firstVisibleItemIndex
+                                viewModel.navigateToLevel(index)
+                            },
+                            modifier = Modifier.fillMaxWidth()
                         )
                     }
                     // 搜索框（点击放大镜展开；与面包屑保持间距 + 展开/收起动画）

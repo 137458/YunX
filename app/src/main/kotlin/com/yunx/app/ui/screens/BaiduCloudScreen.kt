@@ -63,7 +63,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -74,8 +73,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarScrollBehavior
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.rememberModalBottomSheetState
+import top.yukonga.miuix.kmp.basic.BreadcrumbBar
+import top.yukonga.miuix.kmp.basic.BreadcrumbItem
+import top.yukonga.miuix.kmp.basic.PullToRefresh
+import top.yukonga.miuix.kmp.basic.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -100,7 +102,6 @@ import com.yunx.app.ui.items.MultiSelectBar
 import com.yunx.app.ui.components.ScrollToTopButton
 import com.yunx.app.ui.resolve.DownloadLinkDialog
 import com.yunx.app.ui.resolve.BackToParentItem
-import com.yunx.app.ui.resolve.CrumbBar
 import com.yunx.app.ui.resolve.ShareFileRow
 import com.yunx.app.ui.viewmodel.BaiduCloudUiState
 import com.yunx.app.ui.viewmodel.BaiduCloudViewModel
@@ -239,12 +240,13 @@ fun BaiduCloudScreen(
                     LaunchedEffect(loadedKey) {
                         listState.scrollToItem(scrollPositions[loadedKey] ?: 0)
                     }
-                    PullToRefreshBox(
-                        isRefreshing = viewModel.refreshing,
-                        onRefresh = { viewModel.refresh() },
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        LazyColumn(
+                        PullToRefresh(
+                            state = rememberPullToRefreshState(refreshThreshold = 64.dp),
+                            isRefreshing = viewModel.refreshing,
+                            onRefresh = { viewModel.refresh() },
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            LazyColumn(
                             state = listState,
                             modifier = Modifier
                                 .fillMaxSize()
@@ -311,13 +313,21 @@ fun BaiduCloudScreen(
                                         }
                                     }
                                     if (!viewModel.multiSelectMode) {
-                                        CrumbBar(
-                                            rootTitle = "百度网盘",
-                                            pathNames = s.pathNames,
-                                            onNavigate = { level ->
-                                                scrollPositions[currentDirKey] = listState.firstVisibleItemIndex
-                                                viewModel.navigateToLevel(level)
+                                        val breadcrumbItems = remember(s.pathNames) {
+                                            buildList {
+                                                add(BreadcrumbItem(path = "root", text = "百度网盘"))
+                                                s.pathNames.forEachIndexed { index, name ->
+                                                    add(BreadcrumbItem(path = (index + 1).toString(), text = name))
+                                                }
                                             }
+                                        }
+                                        BreadcrumbBar(
+                                            items = breadcrumbItems,
+                                            onItemClick = { index ->
+                                                scrollPositions[currentDirKey] = listState.firstVisibleItemIndex
+                                                viewModel.navigateToLevel(index)
+                                            },
+                                            modifier = Modifier.fillMaxWidth()
                                         )
                                     }
                                     // 搜索框（点击放大镜展开；与面包屑保持间距 + 展开/收起动画）
@@ -654,8 +664,6 @@ private fun BaiduActionSheet(
                 }
             }
             Spacer(modifier = Modifier.height(12.dp))
-            HorizontalDivider()
-            Spacer(modifier = Modifier.height(8.dp))
             if (!file.isdir) {
                 BaiduActionItem(Icons.Outlined.Download, "下载", "使用内置下载功能保存到本机", MaterialTheme.colorScheme.primary, onDownload)
             } else if (onDownloadFolder != null) {
@@ -758,11 +766,19 @@ private fun BaiduMoveSheet(
                 .padding(start = 24.dp, end = 24.dp, top = 4.dp, bottom = 32.dp)
         ) {
             Text("移动到", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium)
-            Spacer(modifier = Modifier.height(8.dp))
-            CrumbBar(
-                rootTitle = "根目录",
-                pathNames = (moveState as? BaiduCloudUiState.Loaded)?.pathNames ?: emptyList(),
-                onNavigate = { viewModel.moveNavigateToLevel(it) }
+            val movePathNames = (moveState as? BaiduCloudUiState.Loaded)?.pathNames ?: emptyList()
+            val moveBreadcrumbs = remember(movePathNames) {
+                buildList {
+                    add(BreadcrumbItem(path = "root", text = "根目录"))
+                    movePathNames.forEachIndexed { index, name ->
+                        add(BreadcrumbItem(path = (index + 1).toString(), text = name))
+                    }
+                }
+            }
+            BreadcrumbBar(
+                items = moveBreadcrumbs,
+                onItemClick = { viewModel.moveNavigateToLevel(it) },
+                modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(8.dp))
             // 返回上一级：固定在目录区上方（不参与 AnimatedContent 过渡，避免与目录内容交叉叠加）

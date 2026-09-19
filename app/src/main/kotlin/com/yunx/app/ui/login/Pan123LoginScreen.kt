@@ -24,36 +24,18 @@ import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.compose.BackHandler
-import androidx.compose.material3.SnackbarHost
-import com.yunx.app.ui.SnackbarController
-import com.yunx.app.ui.rememberGlobalSnackbarHostState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.ContentPaste
-import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.SnackbarHost
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -67,11 +49,26 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.yunx.app.data.network.Pan123Constants
+import com.yunx.app.ui.SnackbarController
+import com.yunx.app.ui.rememberGlobalSnackbarHostState
 import com.yunx.app.ui.viewmodel.Pan123AccountViewModel
 import kotlin.coroutines.resume
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.ButtonDefaults
+import top.yukonga.miuix.kmp.basic.CircularProgressIndicator
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.LinearProgressIndicator
+import top.yukonga.miuix.kmp.basic.Scaffold
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.basic.TextButton
+import top.yukonga.miuix.kmp.basic.TextField
+import top.yukonga.miuix.kmp.basic.TopAppBar
+import top.yukonga.miuix.kmp.overlay.OverlayDialog
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /**
  * 123 云盘登录页（网页登录方案，与夸克/百度等一致）：
@@ -79,7 +76,6 @@ import kotlinx.coroutines.withTimeoutOrNull
  * - 登录成功后网页 SPA 会把 Bearer JWT 写入当前域 localStorage，键名 authorToken（旧账号密码登录的 data.token 同源同形）；
  * - 右上角「保存」/自动登录检测均从 localStorage 提取该值，经 user/info 接口校验后落库。
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Pan123LoginScreen(
     viewModel: Pan123AccountViewModel,
@@ -160,10 +156,13 @@ fun Pan123LoginScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text("123云盘登录", style = MaterialTheme.typography.titleLarge) },
+                title = "123云盘登录",
                 navigationIcon = {
                     IconButton(onClick = { if (!isSaving && !isSavingManual) onBack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "返回"
+                        )
                     }
                 },
                 actions = {
@@ -172,42 +171,40 @@ fun Pan123LoginScreen(
                         enabled = !isSaving && !isSavingManual
                     ) {
                         Icon(
-                            Icons.Outlined.ContentPaste,
+                            imageVector = Icons.Outlined.ContentPaste,
                             contentDescription = "手动输入 Token",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            tint = MiuixTheme.colorScheme.onSurfaceVariantActions
                         )
                     }
-                    TextButton(
-                        onClick = {
-                            scope.launch {
-                                isSaving = true
-                                // 提取网页 localStorage 的 authorToken 作为登录凭证
-                                val token = webView.readLocalStorageValue(Pan123Constants.LOCAL_STORAGE_TOKEN_KEY)
-                                val saved = if (token.isBlank()) false else viewModel.saveToken(token)
-                                isSaving = false
-                                if (saved) {
-                                    SnackbarController.show("登录成功")
-                                    onSaved()
-                                } else {
-                                    SnackbarController.show("未检测到登录态，请先完成登录")
+                    if (isSaving) {
+                        CircularProgressIndicator(
+                            modifier = Modifier
+                                .padding(horizontal = 12.dp)
+                                .size(20.dp),
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        TextButton(
+                            text = "保存",
+                            onClick = {
+                                scope.launch {
+                                    isSaving = true
+                                    // 提取网页 localStorage 的 authorToken 作为登录凭证
+                                    val token = webView.readLocalStorageValue(Pan123Constants.LOCAL_STORAGE_TOKEN_KEY)
+                                    val saved = if (token.isBlank()) false else viewModel.saveToken(token)
+                                    isSaving = false
+                                    if (saved) {
+                                        SnackbarController.show("登录成功")
+                                        onSaved()
+                                    } else {
+                                        SnackbarController.show("未检测到登录态，请先完成登录")
+                                    }
                                 }
-                            }
-                        },
-                        enabled = !isSaving && !isSavingManual
-                    ) {
-                        if (isSaving) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(18.dp),
-                                strokeWidth = 2.dp
-                            )
-                        } else {
-                            Text("保存")
-                        }
+                            },
+                            enabled = !isSavingManual
+                        )
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
+                }
             )
         }
     ) { innerPadding ->
@@ -224,103 +221,116 @@ fun Pan123LoginScreen(
                 LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
             }
         }
-    }
 
-    // 登录教程弹窗
-    if (showTutorial) {
-        AlertDialog(
-            onDismissRequest = { showTutorial = false },
-            icon = { Icon(Icons.Outlined.Info, contentDescription = null) },
-            title = { Text("登录教程") },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(
-                        text = "1. 在下方网页中登录 123 云盘账号（支持账号密码 / 短信验证码）",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Text(
-                        text = "2. 登录完成后将自动检测并登录，无需手动操作",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Text(
-                        text = "3. 若自动登录未触发，可点右上角「保存」手动提取（读取网页 localStorage 的 authorToken）",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Text(
-                        text = "4. 或点击「粘贴」图标，手动粘贴 Token",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Text(
-                        text = "5. Token 长期有效，失效后需重新登录",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = { showTutorial = false }) { Text("知道了") }
+        // 登录教程弹窗
+        OverlayDialog(
+            show = showTutorial,
+            title = "登录教程",
+            onDismissRequest = { showTutorial = false }
+        ) {
+            Column(
+                modifier = Modifier.padding(bottom = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = "1. 在下方网页中登录 123 云盘账号（支持账号密码 / 短信验证码）",
+                    style = MiuixTheme.textStyles.body1,
+                    color = MiuixTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = "2. 登录完成后将自动检测并登录，无需手动操作",
+                    style = MiuixTheme.textStyles.body1,
+                    color = MiuixTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = "3. 若自动登录未触发，可点右上角「保存」手动提取（读取网页 localStorage 的 authorToken）",
+                    style = MiuixTheme.textStyles.body1,
+                    color = MiuixTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = "4. 或点击「粘贴」图标，手动粘贴 Token",
+                    style = MiuixTheme.textStyles.body1,
+                    color = MiuixTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = "5. Token 长期有效，失效后需重新登录",
+                    style = MiuixTheme.textStyles.body2,
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary
+                )
             }
-        )
-    }
+            TextButton(
+                text = "知道了",
+                onClick = { showTutorial = false },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.textButtonColorsPrimary()
+            )
+        }
 
-    // 手动输入 Token 弹窗
-    if (showTokenDialog) {
-        AlertDialog(
-            onDismissRequest = { if (!isSavingManual) showTokenDialog = false },
-            title = { Text("手动输入 Token") },
-            text = {
-                Column {
-                    Text(
-                        text = "登录 123 云盘网页后，复制其 localStorage 中的 authorToken 值粘贴到这里（可用浏览器开发者工具查看）",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    OutlinedTextField(
-                        value = tokenInput,
-                        onValueChange = { tokenInput = it },
-                        modifier = Modifier.fillMaxWidth(),
-                        placeholder = { Text("粘贴 authorToken…") },
-                        minLines = 4,
-                        maxLines = 8
-                    )
-                }
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        scope.launch {
-                            isSavingManual = true
-                            val saved = viewModel.saveToken(tokenInput.trim())
-                            isSavingManual = false
-                            if (saved) {
-                                SnackbarController.show("登录成功")
-                                showTokenDialog = false
-                                onSaved()
-                            } else {
-                                SnackbarController.show("Token 无效，请检查是否为完整的 authorToken")
-                            }
-                        }
-                    },
-                    enabled = tokenInput.isNotBlank() && !isSavingManual
+        // 手动输入 Token 弹窗
+        OverlayDialog(
+            show = showTokenDialog,
+            title = "手动输入 Token",
+            onDismissRequest = { if (!isSavingManual) showTokenDialog = false }
+        ) {
+            Column {
+                Text(
+                    text = "登录 123 云盘网页后，复制其 localStorage 中的 authorToken 值粘贴到这里（可用浏览器开发者工具查看）",
+                    style = MiuixTheme.textStyles.body2,
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                    modifier = Modifier.padding(bottom = 12.dp)
+                )
+                TextField(
+                    value = tokenInput,
+                    onValueChange = { tokenInput = it },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp),
+                    label = "粘贴 authorToken…",
+                    useLabelAsPlaceholder = true,
+                    minLines = 4,
+                    maxLines = 8
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    if (isSavingManual) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(18.dp),
-                            strokeWidth = 2.dp
-                        )
-                    } else {
-                        Text("保存")
+                    TextButton(
+                        text = "取消",
+                        onClick = { if (!isSavingManual) showTokenDialog = false },
+                        modifier = Modifier.weight(1f),
+                        enabled = !isSavingManual
+                    )
+                    Button(
+                        onClick = {
+                            scope.launch {
+                                isSavingManual = true
+                                val saved = viewModel.saveToken(tokenInput.trim())
+                                isSavingManual = false
+                                if (saved) {
+                                    SnackbarController.show("登录成功")
+                                    showTokenDialog = false
+                                    onSaved()
+                                } else {
+                                    SnackbarController.show("Token 无效，请检查是否为完整的 authorToken")
+                                }
+                            }
+                        },
+                        modifier = Modifier.weight(1f),
+                        enabled = tokenInput.isNotBlank() && !isSavingManual,
+                        colors = ButtonDefaults.buttonColorsPrimary()
+                    ) {
+                        if (isSavingManual) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(18.dp),
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Text("保存")
+                        }
                     }
                 }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = { if (!isSavingManual) showTokenDialog = false },
-                    enabled = !isSavingManual
-                ) { Text("取消") }
             }
-        )
+        }
     }
 }
 

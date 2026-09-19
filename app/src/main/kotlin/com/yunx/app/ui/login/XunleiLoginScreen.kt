@@ -21,9 +21,14 @@ package com.yunx.app.ui.login
 import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.BackHandler
-import com.yunx.app.ui.SnackbarController
-import com.yunx.app.ui.rememberGlobalSnackbarHostState
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -34,23 +39,42 @@ import androidx.compose.material.icons.outlined.Phone
 import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import com.yunx.app.ui.SnackbarController
+import com.yunx.app.ui.rememberGlobalSnackbarHostState
 import com.yunx.app.ui.viewmodel.XunleiAccountViewModel
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.ButtonDefaults
+import top.yukonga.miuix.kmp.basic.CircularProgressIndicator
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.Scaffold
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.basic.TextButton
+import top.yukonga.miuix.kmp.basic.TextField
+import top.yukonga.miuix.kmp.basic.TopAppBar
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /**
  * 迅雷网盘登录页：账号+密码登录，触发风控时切换短信验证码流程。
  * 步骤：账号密码 →（需要时）发送短信 → 输入验证码 → 完成。
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun XunleiLoginScreen(
     viewModel: XunleiAccountViewModel,
@@ -92,13 +116,15 @@ fun XunleiLoginScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text("迅雷网盘登录", style = MaterialTheme.typography.titleLarge) },
+                title = "迅雷网盘登录",
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "返回"
+                        )
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
+                }
             )
         }
     ) { innerPadding ->
@@ -112,8 +138,9 @@ fun XunleiLoginScreen(
         ) {
             Text(
                 text = if (step?.needSms == true) "短信验证" else "登录迅雷网盘",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold
+                style = MiuixTheme.textStyles.title2,
+                fontWeight = FontWeight.SemiBold,
+                color = MiuixTheme.colorScheme.onBackground
             )
             Text(
                 text = if (step?.needSms == true) {
@@ -122,25 +149,24 @@ fun XunleiLoginScreen(
                 } else {
                     "使用迅雷账号登录，支持解析与下载分享文件"
                 },
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                style = MiuixTheme.textStyles.body2,
+                color = MiuixTheme.colorScheme.onSurfaceVariantSummary
             )
 
             if (step == null || !step.needSms) {
-                OutlinedTextField(
+                TextField(
                     value = username,
                     onValueChange = { username = it },
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text("手机号 / 邮箱") },
+                    label = "手机号 / 邮箱",
                     leadingIcon = { Icon(Icons.Outlined.Phone, contentDescription = null) },
-                    singleLine = true,
-                    shape = MaterialTheme.shapes.large
+                    singleLine = true
                 )
-                OutlinedTextField(
+                TextField(
                     value = password,
                     onValueChange = { password = it },
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text("密码") },
+                    label = "密码",
                     leadingIcon = { Icon(Icons.Outlined.Lock, contentDescription = null) },
                     trailingIcon = {
                         IconButton(onClick = { passwordVisible = !passwordVisible }) {
@@ -152,25 +178,53 @@ fun XunleiLoginScreen(
                     },
                     visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions(keyboardType = if (passwordVisible) KeyboardType.Text else KeyboardType.Password),
-                    singleLine = true,
-                    shape = MaterialTheme.shapes.large
+                    singleLine = true
                 )
+                if (error != null) {
+                    Text(
+                        text = error,
+                        color = MiuixTheme.colorScheme.error,
+                        style = MiuixTheme.textStyles.footnote1,
+                        modifier = Modifier.padding(start = 4.dp)
+                    )
+                }
                 Button(
-                    onClick = { viewModel.login(username, password) },
+                    onClick = {
+                        isSending = true
+                        viewModel.login(username, password)
+                        isSending = false
+                    },
                     modifier = Modifier.fillMaxWidth().height(48.dp),
-                    enabled = username.isNotBlank() && password.isNotBlank() && !isSending
-                ) { Text("登录") }
+                    enabled = username.isNotBlank() && password.isNotBlank() && !isSending,
+                    colors = ButtonDefaults.buttonColorsPrimary()
+                ) {
+                    if (isSending) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text("登录")
+                    }
+                }
             } else {
-                OutlinedTextField(
+                TextField(
                     value = smsCode,
                     onValueChange = { smsCode = it },
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text("短信验证码") },
+                    label = "短信验证码",
                     leadingIcon = { Icon(Icons.Outlined.Shield, contentDescription = null) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    singleLine = true,
-                    shape = MaterialTheme.shapes.large
+                    singleLine = true
                 )
+                if (error != null) {
+                    Text(
+                        text = error,
+                        color = MiuixTheme.colorScheme.error,
+                        style = MiuixTheme.textStyles.footnote1,
+                        modifier = Modifier.padding(start = 4.dp)
+                    )
+                }
                 Button(
                     onClick = {
                         isSending = true
@@ -181,54 +235,64 @@ fun XunleiLoginScreen(
                         isSending = false
                     },
                     modifier = Modifier.fillMaxWidth().height(48.dp),
-                    enabled = smsCode.isNotBlank()
-                ) { Text("验证并登录") }
+                    enabled = smsCode.isNotBlank() && !isSending,
+                    colors = ButtonDefaults.buttonColorsPrimary()
+                ) {
+                    if (isSending) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text("验证并登录")
+                    }
+                }
                 if (!smsSent) {
                     // 进入界面不会自动发送验证码：主按钮「发送验证码」提示用户主动获取
-                    FilledTonalButton(
+                    Button(
                         onClick = {
                             viewModel.sendSms(username)
                             SnackbarController.show("验证码已发送")
                         },
-                        modifier = Modifier.fillMaxWidth().height(48.dp)
-                    ) { Text("发送验证码") }
+                        modifier = Modifier.fillMaxWidth().height(48.dp),
+                        colors = ButtonDefaults.buttonColors()
+                    ) {
+                        Text("发送验证码")
+                    }
                 } else {
                     TextButton(
+                        text = "重新发送验证码",
                         onClick = {
                             viewModel.sendSms(username)
                             SnackbarController.show("验证码已发送")
                         },
                         modifier = Modifier.align(Alignment.CenterHorizontally)
-                    ) { Text("重新发送验证码") }
+                    )
                 }
                 Text(
                     text = "若始终收不到短信，请确认手机号正确，或稍后重试 / 切换网络",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MiuixTheme.textStyles.footnote2,
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                 )
 
                 // 短信发不出时的应用内验证兜底（应用内 WebView 承载验证页；核心验证仍走自有短信流）
                 if (step.reviewUrl.isNotBlank()) {
                     TextButton(
+                        text = "短信收不到？应用内验证",
                         onClick = {
                             // 用与登录请求一致的设备签名（deviceSign = div101.xxx）：
                             // 验证页会把 URL 里的 deviceid 原样当 devicesign 用，
                             // 必须与 v3/login 的 devicesign 字段一致，否则报"登录信息已过期"
                             onVerify(step.reviewUrl, com.yunx.app.data.network.XunleiDeviceFingerprint.deviceSign())
                         },
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                    ) {
-                        Text(
-                            text = "短信收不到？应用内验证",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
+                        modifier = Modifier.align(Alignment.CenterHorizontally),
+                        colors = ButtonDefaults.textButtonColorsPrimary()
+                    )
                     Text(
                         text = "应用内完成验证后，将自动重新登录",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MiuixTheme.textStyles.footnote2,
+                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                         modifier = Modifier.align(Alignment.CenterHorizontally)
                     )
                 }
@@ -237,6 +301,7 @@ fun XunleiLoginScreen(
             // 未设置密码：跳转迅雷官网设置（浏览器打开）
             Spacer(modifier = Modifier.height(8.dp))
             TextButton(
+                text = "未设置密码，点我前往设置",
                 onClick = {
                     runCatching {
                         context.startActivity(
@@ -247,14 +312,9 @@ fun XunleiLoginScreen(
                         )
                     }
                 },
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-            ) {
-                Text(
-                    text = "未设置密码，点我前往设置",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
+                modifier = Modifier.align(Alignment.CenterHorizontally),
+                colors = ButtonDefaults.textButtonColorsPrimary()
+            )
         }
     }
 }

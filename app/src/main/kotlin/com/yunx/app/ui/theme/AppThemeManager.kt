@@ -25,12 +25,12 @@ import androidx.compose.runtime.setValue
 import com.yunx.app.data.prefs.SettingsRepository
 
 /**
- * 主题控制器（单例）：
+ * 应用本地主题设置管理器（单例）：
  * - 内存中持有主题设置（mutableStateOf），修改后 Compose 自动重组、主题即时生效；
  * - 读写同时同步 SharedPreferences 持久化；
  * - 由 ComposeEmptyActivityTheme 初始化（幂等），确保任何入口（主界面/崩溃页）都能读到。
  */
-object ThemeController {
+object AppThemeManager {
 
     /** 深色模式：0=跟随系统，1=浅色，2=深色 */
     var darkMode by mutableStateOf(0)
@@ -78,3 +78,7 @@ object ThemeController {
         }
     }
 }
+
+// 废弃旧名称兼容别名
+@Deprecated("Use AppThemeManager instead to avoid conflict with Miuix ThemeController")
+typealias ThemeController = AppThemeManager

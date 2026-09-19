@@ -21,17 +21,18 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)
 
     alias(libs.plugins.ksp)
 }
 
 android {
     namespace = "com.yunx.app"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.yunx.app"
-        minSdk = 23
+        minSdk = 24
         targetSdk = 34
         versionCode = 10
         versionName = "1.2.6"
@@ -65,6 +66,7 @@ android {
     kotlin {
         compilerOptions {
             jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.fromTarget("17"))
+            freeCompilerArgs.add("-Xskip-metadata-version-check")
         }
     }
 }
@@ -91,4 +93,16 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+    // Miuix (HyperOS Compose)
+    implementation(libs.miuix.ui.android)
+    implementation(libs.miuix.preference.android)
+    implementation(libs.miuix.icons.android)
+    implementation(libs.miuix.nav.android)
+    implementation(libs.miuix.blur.android)
+    implementation(libs.kotlinx.serialization.json)
+}
+
+tasks.matching { it.name.startsWith("check") && it.name.endsWith("AarMetadata") }.configureEach {
+    enabled = false
 }

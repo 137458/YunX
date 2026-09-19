@@ -24,27 +24,20 @@ import android.content.Context
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Download
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
@@ -53,11 +46,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.yunx.app.data.network.model.DownloadLink
 import com.yunx.app.ui.SnackbarController
-import com.yunx.app.ui.rememberGlobalSnackbarHostState
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.ButtonDefaults
+import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.basic.TextButton
+import top.yukonga.miuix.kmp.overlay.OverlayDialog
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /**
- * 下载直链弹窗：展示文件名与直链（长按直链复制），支持「开始下载」（分片多线程下载）。
- * 点「关闭」或弹窗外（管壁）关闭 = 放弃下载，由上层清理临时转存。
+ * 下载直链弹窗（Miuix OverlayDialog）：展示文件名与直链（长按直链复制），支持「开始下载」（分片多线程下载）。
+ * 点「关闭」或弹窗外关闭 = 放弃下载，由上层清理临时转存。
  */
 @Composable
 fun DownloadLinkDialog(
@@ -67,89 +67,81 @@ fun DownloadLinkDialog(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    // Dialog 内提示宿主（AlertDialog 为独立窗口）
-    val snackbarHostState = rememberGlobalSnackbarHostState()
 
-    AlertDialog(
+    OverlayDialog(
+        show = true,
         onDismissRequest = onDismiss,
-        title = {
-            Text(
-                text = link.filename,
-                style = MaterialTheme.typography.titleMedium,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-        },
-        text = {
-            // 内容超高时（横屏/小屏）可滚动，避免按钮被挤出屏幕
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(max = 420.dp)
-                    .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Text(
-                    text = "下载直链已生成（有效期约 15-30 分钟）",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-                    )
-                ) {
-                    Text(
-                        text = link.downloadUrl,
-                        modifier = Modifier
-                            .padding(12.dp)
-                            .combinedClickable(
-                                onClick = {},
-                                onLongClick = {
-                                    copyToClipboard(context, link.downloadUrl)
-                                    SnackbarController.show("下载链接已复制")
-                                }
-                            ),
-                        style = MaterialTheme.typography.labelSmall.copy(
-                            fontFamily = FontFamily.Monospace,
-                            fontSize = 11.sp,
-                            lineHeight = 15.sp
-                        ),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 4,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-                Text(
-                    text = "点击「开始下载」将分片多线程下载并保存到 Download 目录",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                // Dialog 内提示（AlertDialog 为独立窗口，需自带 Snackbar 宿主）
-                SnackbarHost(hostState = snackbarHostState)
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = { onDownload() }
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.Download,
-                    contentDescription = null,
-                    modifier = Modifier.size(16.dp)
-                )
-                Spacer(modifier = Modifier.width(6.dp))
-                Text("开始下载")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("关闭")
-            }
-        },
+        title = link.filename,
         modifier = modifier
-    )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(max = 420.dp)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                text = "下载直链已生成（有效期约 15-30 分钟）",
+                style = MiuixTheme.textStyles.body2,
+                color = MiuixTheme.colorScheme.onSurfaceVariantSummary
+            )
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                insideMargin = PaddingValues(12.dp)
+            ) {
+                Text(
+                    text = link.downloadUrl,
+                    modifier = Modifier.combinedClickable(
+                        onClick = {},
+                        onLongClick = {
+                            copyToClipboard(context, link.downloadUrl)
+                            SnackbarController.show("下载链接已复制")
+                        }
+                    ),
+                    style = MiuixTheme.textStyles.body2.copy(
+                        fontFamily = FontFamily.Monospace,
+                        fontSize = 11.sp,
+                        lineHeight = 15.sp
+                    ),
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                    maxLines = 4,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+            Text(
+                text = "点击「开始下载」将分片多线程下载并保存到 Download 目录",
+                style = MiuixTheme.textStyles.body2,
+                color = MiuixTheme.colorScheme.onSurfaceVariantSummary
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                TextButton(
+                    text = "关闭",
+                    onClick = onDismiss,
+                    modifier = Modifier.weight(1f)
+                )
+                Button(
+                    onClick = onDownload,
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.buttonColorsPrimary()
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Download,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp),
+                        tint = MiuixTheme.colorScheme.onPrimary
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text("开始下载", style = MiuixTheme.textStyles.button)
+                }
+            }
+        }
+    }
 }
 
 private fun copyToClipboard(context: Context, text: String) {

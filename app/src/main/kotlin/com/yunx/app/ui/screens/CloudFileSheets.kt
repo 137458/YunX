@@ -30,6 +30,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -44,31 +45,26 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.DriveFileMove
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Share
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -86,12 +82,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.yunx.app.data.network.model.ShareFile
 import com.yunx.app.ui.SnackbarController
-import com.yunx.app.ui.rememberGlobalSnackbarHostState
 import com.yunx.app.ui.resolve.BackToParentItem
 import com.yunx.app.ui.resolve.CrumbBar
 import com.yunx.app.ui.resolve.ShareFileRow
 import com.yunx.app.ui.viewmodel.QuarkCloudUiState
 import com.yunx.app.ui.viewmodel.QuarkCloudViewModel
+import top.yukonga.miuix.kmp.basic.ButtonDefaults as MiuixButtonDefaults
+import top.yukonga.miuix.kmp.basic.Card as MiuixCard
+import top.yukonga.miuix.kmp.basic.Text as MiuixText
+import top.yukonga.miuix.kmp.basic.TextButton as MiuixTextButton
+import top.yukonga.miuix.kmp.overlay.OverlayBottomSheet
+import top.yukonga.miuix.kmp.overlay.OverlayDialog
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /** 文件操作菜单类型（FileActionSheet 内切换） */
 private enum class ActionStep { MENU, MOVE, SHARE, RENAME, DELETE }
@@ -105,7 +107,7 @@ private val expireOptions = listOf(
 )
 
 /**
- * 夸克云盘文件操作弹窗：更多按钮 → 操作菜单（下载/分享/移动/重命名/删除），
+ * 夸克云盘文件操作抽屉（Miuix OverlayBottomSheet）：更多按钮 → 操作菜单（下载/分享/移动/重命名/删除），
  * 内部按步骤切换：移动选目录 / 分享设置 / 重命名输入 / 删除确认。
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -120,25 +122,27 @@ fun FileActionSheet(
     val moveState by viewModel.moveUiState.collectAsState()
     val operating = viewModel.isOperating
 
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val closeSheet = {
+        if (!operating) {
+            step = ActionStep.MENU
+            onDismiss()
+        }
+    }
 
-    ModalBottomSheet(
-        onDismissRequest = {
-            if (!operating) onDismiss()
-        },
-        sheetState = sheetState,
-        containerColor = MaterialTheme.colorScheme.surface
+    OverlayBottomSheet(
+        show = true,
+        onDismissRequest = closeSheet
     ) {
         when (step) {
             ActionStep.MENU -> ActionMenu(
                 file = file,
                 onDownload = {
                     viewModel.downloadFile()
-                    onDismiss()
+                    closeSheet()
                 },
                 onDownloadFolder = {
                     viewModel.downloadFolder()
-                    onDismiss()
+                    closeSheet()
                 },
                 onShare = { step = ActionStep.SHARE },
                 onMove = {
@@ -155,7 +159,7 @@ fun FileActionSheet(
                 moveState = moveState,
                 operating = operating,
                 onBack = { step = ActionStep.MENU },
-                onDone = onDismiss
+                onDone = closeSheet
             )
 
             ActionStep.SHARE -> ShareStep(
@@ -170,7 +174,7 @@ fun FileActionSheet(
                 viewModel = viewModel,
                 operating = operating,
                 onBack = { step = ActionStep.MENU },
-                onDone = onDismiss
+                onDone = closeSheet
             )
 
             ActionStep.DELETE -> DeleteStep(
@@ -178,7 +182,7 @@ fun FileActionSheet(
                 viewModel = viewModel,
                 operating = operating,
                 onBack = { step = ActionStep.MENU },
-                onDone = onDismiss
+                onDone = closeSheet
             )
         }
     }
@@ -239,9 +243,7 @@ private fun ActionMenu(
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
-        HorizontalDivider()
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
         // 操作项
         if (!file.isdir) {
@@ -381,33 +383,33 @@ private fun MoveStep(
 
                 is QuarkCloudUiState.Loaded -> {
                     val dirs = s.files.filter { it.isdir }
-                if (dirs.isEmpty()) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(100.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            "当前目录没有子文件夹，可直接移动到此处",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                } else {
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(max = 260.dp),
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        items(dirs, key = { it.fid }) { dir ->
-                            ShareFileRow(file = dir, onClick = { viewModel.openMoveFolder(dir) })
+                    if (dirs.isEmpty()) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(100.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                "当前目录没有子文件夹，可直接移动到此处",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(max = 260.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            items(dirs, key = { it.fid }) { dir ->
+                                ShareFileRow(file = dir, onClick = { viewModel.openMoveFolder(dir) })
+                            }
                         }
                     }
                 }
-            }
             }
         }
 
@@ -511,7 +513,6 @@ private fun ShareStep(
                     passcode = passcode,
                     expiredType = expiredType
                 )
-                // 不在此关闭：保留弹窗，等 shareResult 弹出分享结果
             },
             enabled = !operating && (!withPassword || passcode.length == 4),
             modifier = Modifier
@@ -574,7 +575,7 @@ private fun RenameStep(
     }
 }
 
-/** 删除确认 */
+/** 删除确认（Miuix OverlayDialog） */
 @Composable
 private fun DeleteStep(
     file: ShareFile,
@@ -583,36 +584,52 @@ private fun DeleteStep(
     onBack: () -> Unit,
     onDone: () -> Unit
 ) {
-    AlertDialog(
+    OverlayDialog(
+        show = true,
         onDismissRequest = { if (!operating) onBack() },
-        title = { Text("删除文件") },
-        text = { Text("确定要删除「${file.fname}」吗？删除后将移入回收站。") },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    viewModel.deleteFile()
-                    onDone()
-                },
-                enabled = !operating
+        title = "删除文件"
+    ) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            MiuixText(
+                text = "确定要删除「${file.fname}」吗？删除后将移入回收站。",
+                style = MiuixTheme.textStyles.body1,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Text("删除", color = MaterialTheme.colorScheme.error)
+                MiuixTextButton(
+                    text = "取消",
+                    onClick = onBack,
+                    modifier = Modifier.weight(1f)
+                )
+                top.yukonga.miuix.kmp.basic.Button(
+                    onClick = {
+                        viewModel.deleteFile()
+                        onDone()
+                    },
+                    enabled = !operating,
+                    modifier = Modifier.weight(1f),
+                    colors = MiuixButtonDefaults.buttonColors(
+                        color = MiuixTheme.colorScheme.error,
+                        contentColor = MiuixTheme.colorScheme.onError
+                    )
+                ) {
+                    MiuixText("删除", style = MiuixTheme.textStyles.button)
+                }
             }
-        },
-        dismissButton = {
-            TextButton(onClick = onBack) { Text("取消") }
         }
-    )
+    }
 }
 
-/** 分享结果：链接 + 提取码 + 复制 */
+/** 分享结果（Miuix OverlayDialog）：链接 + 提取码 + 复制 */
 @Composable
 internal fun ShareResultDialog(
     info: com.yunx.app.data.network.model.ShareInfo,
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
-    // Dialog 内提示宿主（AlertDialog 为独立窗口）
-    val snackbarHostState = rememberGlobalSnackbarHostState()
     // 拼接分享文案（按平台区分：139 / 123 / UC / 迅雷 / 百度 / 夸克）
     val platformName = when {
         info.shareUrl.contains("139.com") -> "139网盘"
@@ -629,52 +646,60 @@ internal fun ShareResultDialog(
             append("\n提取码：${info.passcode}")
         }
     }
-    AlertDialog(
+    OverlayDialog(
+        show = true,
         onDismissRequest = onDismiss,
-        title = { Text("分享成功") },
-        text = {
-            // 横屏/小屏时内容超高可滚动，避免按钮被挤出屏幕
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(max = 420.dp)
-                    .verticalScroll(rememberScrollState())
+        title = "分享成功"
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(max = 420.dp)
+                .verticalScroll(rememberScrollState())
+        ) {
+            MiuixCard(
+                modifier = Modifier.fillMaxWidth(),
+                insideMargin = PaddingValues(12.dp)
             ) {
-                // 等宽展示分享文案，便于整段复制
-                Text(
+                MiuixText(
                     text = shareText,
-                    style = MaterialTheme.typography.bodyMedium.copy(
+                    style = MiuixTheme.textStyles.body2.copy(
                         fontFamily = FontFamily.Monospace
                     ),
                     lineHeight = 22.sp
                 )
-                Spacer(modifier = Modifier.height(12.dp))
-                Text(
-                    text = "有效期：" + expireLabel(info.expiredType),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                // Dialog 内提示（AlertDialog 为独立窗口，需自带 Snackbar 宿主）
-                SnackbarHost(hostState = snackbarHostState)
             }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                    cm.setPrimaryClip(ClipData.newPlainText("share_text", shareText))
-                    SnackbarController.show("分享文案已复制")
-                }
+            Spacer(modifier = Modifier.height(12.dp))
+            MiuixText(
+                text = "有效期：" + expireLabel(info.expiredType),
+                style = MiuixTheme.textStyles.body2,
+                color = MiuixTheme.colorScheme.onSurfaceVariantSummary
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(Icons.Outlined.ContentCopy, contentDescription = null, modifier = Modifier.size(16.dp))
-                Spacer(modifier = Modifier.width(4.dp))
-                Text("复制全部")
+                MiuixTextButton(
+                    text = "复制全部",
+                    onClick = {
+                        val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                        cm.setPrimaryClip(ClipData.newPlainText("share_text", shareText))
+                        SnackbarController.show("分享文案已复制")
+                    },
+                    modifier = Modifier.weight(1f)
+                )
+                top.yukonga.miuix.kmp.basic.Button(
+                    onClick = onDismiss,
+                    modifier = Modifier.weight(1f),
+                    colors = MiuixButtonDefaults.buttonColorsPrimary()
+                ) {
+                    MiuixText("完成", style = MiuixTheme.textStyles.button)
+                }
             }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("完成") }
         }
-    )
+    }
 }
 
 /** 步骤头部：返回按钮 + 标题 */
@@ -720,7 +745,7 @@ private fun expireLabel(type: Int): String = when (type) {
 internal enum class BatchStep { MENU, SHARE, MOVE, DELETE }
 
 /**
- * 批量操作弹窗（长按多选后）：下载 / 分享 / 移动 / 删除。
+ * 批量操作抽屉（Miuix OverlayBottomSheet）：下载 / 分享 / 移动 / 删除。
  * 分享/移动/删除复用与单文件一致的表单与独立目录浏览。
  * @param initialStep 初始步骤（底部栏点击下载/删除直接执行，分享/移动传入对应步骤）
  */
@@ -736,21 +761,23 @@ internal fun BatchActionSheet(
     val operating = viewModel.isOperating
     val count = viewModel.selected.size
 
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val closeSheet = {
+        if (!operating) {
+            step = initialStep
+            onDismiss()
+        }
+    }
 
-    ModalBottomSheet(
-        onDismissRequest = {
-            if (!operating) onDismiss()
-        },
-        sheetState = sheetState,
-        containerColor = MaterialTheme.colorScheme.surface
+    OverlayBottomSheet(
+        show = true,
+        onDismissRequest = closeSheet
     ) {
         when (step) {
             BatchStep.MENU -> BatchMenu(
                 count = count,
                 onDownload = {
                     viewModel.downloadSelected()
-                    onDismiss()
+                    closeSheet()
                 },
                 onShare = { step = BatchStep.SHARE },
                 onMove = {
@@ -773,7 +800,7 @@ internal fun BatchActionSheet(
                 moveState = moveState,
                 operating = operating,
                 onBack = { step = BatchStep.MENU },
-                onDone = onDismiss
+                onDone = closeSheet
             )
 
             BatchStep.DELETE -> BatchDeleteStep(
@@ -781,7 +808,7 @@ internal fun BatchActionSheet(
                 viewModel = viewModel,
                 operating = operating,
                 onBack = { step = BatchStep.MENU },
-                onDone = onDismiss
+                onDone = closeSheet
             )
         }
     }
@@ -839,9 +866,7 @@ private fun BatchMenu(
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
-        HorizontalDivider()
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
         ActionItem(
             icon = Icons.Outlined.Download,
@@ -950,7 +975,6 @@ private fun BatchShareStep(
                     passcode = passcode,
                     expiredType = expiredType
                 )
-                // 不关闭：等 shareResult 弹出分享结果
             },
             enabled = !operating && (!withPassword || passcode.length == 4),
             modifier = Modifier
@@ -1024,33 +1048,33 @@ private fun BatchMoveStep(
 
                 is QuarkCloudUiState.Loaded -> {
                     val dirs = s.files.filter { it.isdir }
-                if (dirs.isEmpty()) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(100.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            "当前目录没有子文件夹，可直接移动到此处",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                } else {
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(max = 260.dp),
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        items(dirs, key = { it.fid }) { dir ->
-                            ShareFileRow(file = dir, onClick = { viewModel.openMoveFolder(dir) })
+                    if (dirs.isEmpty()) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(100.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                "当前目录没有子文件夹，可直接移动到此处",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(max = 260.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            items(dirs, key = { it.fid }) { dir ->
+                                ShareFileRow(file = dir, onClick = { viewModel.openMoveFolder(dir) })
+                            }
                         }
                     }
                 }
-            }
             }
         }
 
@@ -1078,7 +1102,7 @@ private fun BatchMoveStep(
     }
 }
 
-/** 批量删除确认 */
+/** 批量删除确认（Miuix OverlayDialog） */
 @Composable
 private fun BatchDeleteStep(
     count: Int,
@@ -1087,23 +1111,41 @@ private fun BatchDeleteStep(
     onBack: () -> Unit,
     onDone: () -> Unit
 ) {
-    AlertDialog(
+    OverlayDialog(
+        show = true,
         onDismissRequest = { if (!operating) onBack() },
-        title = { Text("删除文件") },
-        text = { Text("确定要删除选中的 $count 项吗？删除后将移入回收站。") },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    viewModel.deleteSelected()
-                    onDone()
-                },
-                enabled = !operating
+        title = "删除文件"
+    ) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            MiuixText(
+                text = "确定要删除选中的 $count 项吗？删除后将移入回收站。",
+                style = MiuixTheme.textStyles.body1,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Text("删除", color = MaterialTheme.colorScheme.error)
+                MiuixTextButton(
+                    text = "取消",
+                    onClick = onBack,
+                    modifier = Modifier.weight(1f)
+                )
+                top.yukonga.miuix.kmp.basic.Button(
+                    onClick = {
+                        viewModel.deleteSelected()
+                        onDone()
+                    },
+                    enabled = !operating,
+                    modifier = Modifier.weight(1f),
+                    colors = MiuixButtonDefaults.buttonColors(
+                        color = MiuixTheme.colorScheme.error,
+                        contentColor = MiuixTheme.colorScheme.onError
+                    )
+                ) {
+                    MiuixText("删除", style = MiuixTheme.textStyles.button)
+                }
             }
-        },
-        dismissButton = {
-            TextButton(onClick = onBack) { Text("取消") }
         }
-    )
+    }
 }

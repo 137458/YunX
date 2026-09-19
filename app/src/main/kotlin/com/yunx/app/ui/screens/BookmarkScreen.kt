@@ -47,7 +47,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -57,23 +56,6 @@ import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Link
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -92,16 +74,29 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.yunx.app.data.db.BookmarkEntity
 import com.yunx.app.data.network.ShareLinkParser
-import com.yunx.app.ui.rememberGlobalSnackbarHostState
+import com.yunx.app.ui.SnackbarController
+import com.yunx.app.ui.theme.SquircleShape
 import com.yunx.app.ui.viewmodel.BookmarkViewModel
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.Scaffold
+import top.yukonga.miuix.kmp.basic.Surface
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.basic.TextButton
+import top.yukonga.miuix.kmp.basic.TextField
+import top.yukonga.miuix.kmp.basic.TopAppBar
+import top.yukonga.miuix.kmp.overlay.OverlayDialog
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /** 「自定义分类」虚拟选项标识（不参与持久化，仅用于弹窗交互） */
 private const val CUSTOM_CATEGORY = "__custom__"
 
 /**
  * 收藏网盘链接页：分类筛选 + 收藏列表，支持新增 / 解析 / 复制 / 修改分类 / 删除。
+ * Miuix 规范重构：Scaffold、TopAppBar、Card、TextField、Button、OverlayDialog 驱动。
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BookmarkScreen(
     viewModel: BookmarkViewModel,
@@ -113,9 +108,6 @@ fun BookmarkScreen(
     val bookmarks by viewModel.bookmarks.collectAsState()
     val categories by viewModel.categories.collectAsState()
     val context = LocalContext.current
-
-    // 独立全屏覆盖页：自带 Snackbar 宿主（覆盖层会遮挡主页 Scaffold 的 SnackbarHost）
-    val snackbarHostState = rememberGlobalSnackbarHostState()
 
     // null 表示「全部」
     var selectedCategory by rememberSaveable { mutableStateOf<String?>(null) }
@@ -132,10 +124,9 @@ fun BookmarkScreen(
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
-        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text("收藏网盘链接", style = MaterialTheme.typography.titleLarge) },
+                title = "收藏网盘链接",
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
@@ -145,10 +136,7 @@ fun BookmarkScreen(
                     IconButton(onClick = { showAddDialog = true }) {
                         Icon(Icons.Outlined.Add, contentDescription = "添加收藏")
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
+                }
             )
         }
     ) { innerPadding ->
@@ -157,7 +145,7 @@ fun BookmarkScreen(
                 .fillMaxSize()
                 .padding(innerPadding),
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             // 分类筛选：作为列表头部，随列表一起上下滚动
             item(key = "categories") {
@@ -182,11 +170,10 @@ fun BookmarkScreen(
                 }
             }
         }
-    }
 
-    // 添加收藏弹窗
-    if (showAddDialog) {
+        // 添加收藏弹窗（Miuix OverlayDialog）
         AddBookmarkDialog(
+            show = showAddDialog,
             categories = categories,
             onConfirm = { link, title, category, pwd ->
                 showAddDialog = false
@@ -201,49 +188,51 @@ fun BookmarkScreen(
             },
             onDismiss = { showAddDialog = false }
         )
-    }
 
-    // 修改分类弹窗
-    editingBookmark?.let { bookmark ->
-        EditCategoryDialog(
-            currentCategory = bookmark.category,
-            categories = categories,
-            onConfirm = { category ->
-                viewModel.updateCategory(bookmark.id, category)
-                editingBookmark = null
-            },
-            onDismiss = { editingBookmark = null }
-        )
-    }
+        // 修改分类弹窗（Miuix OverlayDialog）
+        editingBookmark?.let { bookmark ->
+            EditCategoryDialog(
+                show = true,
+                currentCategory = bookmark.category,
+                categories = categories,
+                onConfirm = { category ->
+                    viewModel.updateCategory(bookmark.id, category)
+                    editingBookmark = null
+                },
+                onDismiss = { editingBookmark = null }
+            )
+        }
 
-    // 长按操作菜单
-    menuBookmark?.let { bookmark ->
-        BookmarkMenuDialog(
-            bookmark = bookmark,
-            onResolve = {
-                menuBookmark = null
-                onResolve(bookmark.link, bookmark.pwd)
-            },
-            onCopy = {
-                menuBookmark = null
-                copyToClipboard(context, bookmark.link)
-                com.yunx.app.ui.SnackbarController.show("链接已复制")
-            },
-            onEditCategory = {
-                menuBookmark = null
-                editingBookmark = bookmark
-            },
-            onDelete = {
-                menuBookmark = null
-                viewModel.delete(bookmark.id)
-            },
-            onDismiss = { menuBookmark = null }
-        )
+        // 长按操作菜单（Miuix OverlayDialog）
+        menuBookmark?.let { bookmark ->
+            BookmarkMenuDialog(
+                show = true,
+                bookmark = bookmark,
+                onResolve = {
+                    menuBookmark = null
+                    onResolve(bookmark.link, bookmark.pwd)
+                },
+                onCopy = {
+                    menuBookmark = null
+                    copyToClipboard(context, bookmark.link)
+                    SnackbarController.show("链接已复制")
+                },
+                onEditCategory = {
+                    menuBookmark = null
+                    editingBookmark = bookmark
+                },
+                onDelete = {
+                    menuBookmark = null
+                    viewModel.delete(bookmark.id)
+                },
+                onDismiss = { menuBookmark = null }
+            )
+        }
     }
 }
 
 /** 分类筛选胶囊：全部 + 各分类 */
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun CategoryFilterBar(
     categories: List<String>,
@@ -255,18 +244,39 @@ private fun CategoryFilterBar(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        FilterChip(
+        CategoryChip(
             selected = selected == null,
-            onClick = { onSelect(null) },
-            label = { Text("全部") }
+            label = "全部",
+            onClick = { onSelect(null) }
         )
         categories.forEach { cat ->
-            FilterChip(
+            CategoryChip(
                 selected = selected == cat,
-                onClick = { onSelect(cat) },
-                label = { Text(cat) }
+                label = cat,
+                onClick = { onSelect(cat) }
             )
         }
+    }
+}
+
+@Composable
+private fun CategoryChip(
+    selected: Boolean,
+    label: String,
+    onClick: () -> Unit
+) {
+    Surface(
+        onClick = onClick,
+        shape = SquircleShape(10.dp),
+        color = if (selected) MiuixTheme.colorScheme.primary else MiuixTheme.colorScheme.surfaceVariant
+    ) {
+        Text(
+            text = label,
+            style = MiuixTheme.textStyles.footnote1,
+            color = if (selected) MiuixTheme.colorScheme.onPrimary else MiuixTheme.colorScheme.onSurface,
+            fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+        )
     }
 }
 
@@ -281,37 +291,33 @@ private fun BookmarkRow(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(MaterialTheme.shapes.large)
-            .combinedClickable(onClick = onClick, onLongClick = onLongClick),
-        shape = MaterialTheme.shapes.large,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-        )
+            .clip(SquircleShape(16.dp))
+            .combinedClickable(onClick = onClick, onLongClick = onLongClick)
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (bookmark.platform.isNotBlank()) {
                     Surface(
-                        shape = RoundedCornerShape(6.dp),
-                        color = MaterialTheme.colorScheme.primaryContainer
+                        shape = SquircleShape(6.dp),
+                        color = MiuixTheme.colorScheme.surfaceVariant
                     ) {
                         Text(
                             text = bookmarkPlatformLabel(bookmark.platform),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            style = MiuixTheme.textStyles.footnote1,
+                            color = MiuixTheme.colorScheme.primary,
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
                         )
                     }
                     Spacer(modifier = Modifier.width(8.dp))
                 }
                 Surface(
-                    shape = RoundedCornerShape(6.dp),
-                    color = MaterialTheme.colorScheme.secondaryContainer
+                    shape = SquircleShape(6.dp),
+                    color = MiuixTheme.colorScheme.surfaceVariant
                 ) {
                     Text(
                         text = bookmark.category,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer,
+                        style = MiuixTheme.textStyles.footnote1,
+                        color = MiuixTheme.colorScheme.onSurfaceSecondary,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
                     )
                 }
@@ -319,17 +325,17 @@ private fun BookmarkRow(
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = bookmark.title.ifBlank { bookmark.link },
-                style = MaterialTheme.typography.bodyLarge,
+                style = MiuixTheme.textStyles.subtitle,
                 fontWeight = FontWeight.Medium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
             if (bookmark.title.isNotBlank()) {
-                Spacer(modifier = Modifier.height(2.dp))
+                Spacer(modifier = Modifier.height(3.dp))
                 Text(
                     text = bookmark.link,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MiuixTheme.textStyles.body2,
+                    color = MiuixTheme.colorScheme.onSurfaceSecondary,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -351,19 +357,19 @@ private fun EmptyBookmark(onAdd: () -> Unit) {
             imageVector = Icons.Outlined.BookmarkBorder,
             contentDescription = null,
             modifier = Modifier.size(48.dp),
-            tint = MaterialTheme.colorScheme.outline
+            tint = MiuixTheme.colorScheme.dividerLine
         )
         Spacer(modifier = Modifier.height(12.dp))
         Text(
             text = "还没有收藏任何网盘链接",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            style = MiuixTheme.textStyles.body1,
+            color = MiuixTheme.colorScheme.onSurfaceSecondary
         )
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = "可在解析页点击「添加至收藏」，或点击右上角 + 手动添加",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.outline,
+            style = MiuixTheme.textStyles.footnote1,
+            color = MiuixTheme.colorScheme.onSurfaceSecondary,
             textAlign = TextAlign.Center
         )
         Spacer(modifier = Modifier.height(16.dp))
@@ -375,130 +381,126 @@ private fun EmptyBookmark(onAdd: () -> Unit) {
     }
 }
 
-/** 新增收藏弹窗：链接 + 标题 + 提取码 + 分类 */
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+/** 新增收藏弹窗（Miuix OverlayDialog） */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun AddBookmarkDialog(
+    show: Boolean,
     categories: List<String>,
     onConfirm: (link: String, title: String, category: String, pwd: String) -> Unit,
     onDismiss: () -> Unit
 ) {
-    var link by remember { mutableStateOf("") }
-    var title by remember { mutableStateOf("") }
-    var pwd by remember { mutableStateOf("") }
-    var selectedCategory by remember { mutableStateOf(BookmarkEntity.DEFAULT_CATEGORY) }
-    var customCategory by remember { mutableStateOf("") }
+    var link by remember(show) { mutableStateOf("") }
+    var title by remember(show) { mutableStateOf("") }
+    var pwd by remember(show) { mutableStateOf("") }
+    var selectedCategory by remember(show) { mutableStateOf(BookmarkEntity.DEFAULT_CATEGORY) }
+    var customCategory by remember(show) { mutableStateOf("") }
     val isCustom = selectedCategory == CUSTOM_CATEGORY
     val scrollState = rememberScrollState()
-    // 选中「自定义」后自动滚到底部，确保输入框可见（收藏弹窗内容较长，输入框默认在视口外）
+
     LaunchedEffect(isCustom) {
         if (isCustom) {
             kotlinx.coroutines.delay(300)
-            // 展开动画结束后滚动到底部（maxValue 稳定后）
-            kotlinx.coroutines.delay(120)
             scrollState.animateScrollTo(scrollState.maxValue)
         }
     }
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("添加收藏") },
-        text = {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(max = 420.dp)
-                    .verticalScroll(scrollState),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+    OverlayDialog(
+        show = show,
+        title = "添加收藏",
+        onDismissRequest = onDismiss
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .heightIn(max = 440.dp)
+                .verticalScroll(scrollState),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            TextField(
+                value = link,
+                onValueChange = { link = it },
+                label = "网盘链接",
+                modifier = Modifier.fillMaxWidth(),
+                minLines = 2
+            )
+            TextField(
+                value = title,
+                onValueChange = { title = it },
+                label = "标题（可选）",
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
+            TextField(
+                value = pwd,
+                onValueChange = { pwd = it },
+                label = "提取码（可选）",
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
+            Text(
+                text = "分类",
+                style = MiuixTheme.textStyles.subtitle,
+                color = MiuixTheme.colorScheme.primary
+            )
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                OutlinedTextField(
-                    value = link,
-                    onValueChange = { link = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text("网盘链接") },
-                    placeholder = { Text("粘贴分享链接") },
-                    leadingIcon = { Icon(Icons.Outlined.Link, contentDescription = null) },
-                    minLines = 2,
-                    maxLines = 4,
-                    shape = MaterialTheme.shapes.large
+                CategoryChip(
+                    selected = isCustom,
+                    label = "自定义",
+                    onClick = { selectedCategory = CUSTOM_CATEGORY }
                 )
-                OutlinedTextField(
-                    value = title,
-                    onValueChange = { title = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text("标题（可选）") },
-                    singleLine = true,
-                    shape = MaterialTheme.shapes.large
-                )
-                OutlinedTextField(
-                    value = pwd,
-                    onValueChange = { pwd = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text("提取码（可选）") },
-                    singleLine = true,
-                    shape = MaterialTheme.shapes.large
-                )
-                Text(
-                    text = "分类",
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    // 「自定义」置顶显示，方便直接新建分类（过滤分类里同名字项，避免出现两个"自定义"chip）
-                    FilterChip(
-                        selected = isCustom,
-                        onClick = { selectedCategory = CUSTOM_CATEGORY },
-                        label = { Text("自定义") }
-                    )
-                    categories.filter { it != CUSTOM_CATEGORY }.forEach { cat ->
-                        FilterChip(
-                            selected = selectedCategory == cat,
-                            onClick = { selectedCategory = cat },
-                            label = { Text(cat) }
-                        )
-                    }
-                }
-                // 选择「自定义」时才展开输入框（与解析页「添加至收藏」交互一致，带动画）
-                AnimatedVisibility(
-                    visible = isCustom,
-                    enter = expandVertically(tween(200)) + fadeIn(tween(200)),
-                    exit = shrinkVertically(tween(200)) + fadeOut(tween(150))
-                ) {
-                    OutlinedTextField(
-                        value = customCategory,
-                        onValueChange = { customCategory = it },
-                        modifier = Modifier.fillMaxWidth(),
-                        label = { Text("自定义分类") },
-                        singleLine = true,
-                        shape = MaterialTheme.shapes.large
+                categories.filter { it != CUSTOM_CATEGORY }.forEach { cat ->
+                    CategoryChip(
+                        selected = selectedCategory == cat,
+                        label = cat,
+                        onClick = { selectedCategory = cat }
                     )
                 }
             }
-        },
-        confirmButton = {
-            Button(
-                enabled = link.isNotBlank() && !(isCustom && customCategory.isBlank()),
-                onClick = {
-                    onConfirm(
-                        link.trim(),
-                        title.trim(),
-                        if (isCustom) customCategory.trim() else selectedCategory,
-                        pwd.trim()
-                    )
+            AnimatedVisibility(
+                visible = isCustom,
+                enter = expandVertically(tween(200)) + fadeIn(tween(200)),
+                exit = shrinkVertically(tween(200)) + fadeOut(tween(150))
+            ) {
+                TextField(
+                    value = customCategory,
+                    onValueChange = { customCategory = it },
+                    label = "自定义分类",
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                TextButton(text = "取消", onClick = onDismiss)
+                Spacer(modifier = Modifier.width(8.dp))
+                Button(
+                    enabled = link.isNotBlank() && !(isCustom && customCategory.isBlank()),
+                    onClick = {
+                        onConfirm(
+                            link.trim(),
+                            title.trim(),
+                            if (isCustom) customCategory.trim() else selectedCategory,
+                            pwd.trim()
+                        )
+                    }
+                ) {
+                    Text("收藏")
                 }
-            ) { Text("收藏") }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("取消") }
+            }
         }
-    )
+    }
 }
 
-/** 解析详情页「添加至收藏」弹窗：可自定义标题；分类选择含「自定义」选项，点击后展开输入框 */
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+/** 解析详情页「添加至收藏」弹窗（Miuix OverlayDialog） */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun AddToBookmarkDialog(
     title: String,
@@ -512,95 +514,99 @@ internal fun AddToBookmarkDialog(
     var customCategory by remember { mutableStateOf("") }
     val isCustom = selectedCategory == CUSTOM_CATEGORY
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("添加至收藏") },
-        text = {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(max = 420.dp)
-                    .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+    OverlayDialog(
+        show = true,
+        title = "添加至收藏",
+        onDismissRequest = onDismiss
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .heightIn(max = 440.dp)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            TextField(
+                value = titleInput,
+                onValueChange = { titleInput = it },
+                label = "标题（可选）",
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
+            Text(
+                text = "分类",
+                style = MiuixTheme.textStyles.subtitle,
+                color = MiuixTheme.colorScheme.primary
+            )
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                OutlinedTextField(
-                    value = titleInput,
-                    onValueChange = { titleInput = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text("标题（可选）") },
-                    singleLine = true,
-                    shape = MaterialTheme.shapes.large
+                CategoryChip(
+                    selected = isCustom,
+                    label = "自定义",
+                    onClick = { selectedCategory = CUSTOM_CATEGORY }
                 )
-                Text(
-                    text = "分类",
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    // 「自定义」置顶显示，方便直接新建分类（过滤分类里同名字项，避免出现两个"自定义"chip）
-                    FilterChip(
-                        selected = isCustom,
-                        onClick = { selectedCategory = CUSTOM_CATEGORY },
-                        label = { Text("自定义") }
-                    )
-                    categories.filter { it != CUSTOM_CATEGORY }.forEach { cat ->
-                        FilterChip(
-                            selected = selectedCategory == cat,
-                            onClick = { selectedCategory = cat },
-                            label = { Text(cat) }
-                        )
-                    }
-                }
-                AnimatedVisibility(
-                    visible = isCustom,
-                    enter = expandVertically(tween(200)) + fadeIn(tween(200)),
-                    exit = shrinkVertically(tween(200)) + fadeOut(tween(150))
-                ) {
-                    OutlinedTextField(
-                        value = customCategory,
-                        onValueChange = { customCategory = it },
-                        modifier = Modifier.fillMaxWidth(),
-                        label = { Text("自定义分类") },
-                        singleLine = true,
-                        shape = MaterialTheme.shapes.large
+                categories.filter { it != CUSTOM_CATEGORY }.forEach { cat ->
+                    CategoryChip(
+                        selected = selectedCategory == cat,
+                        label = cat,
+                        onClick = { selectedCategory = cat }
                     )
                 }
             }
-        },
-        confirmButton = {
-            Button(
-                enabled = !(isCustom && customCategory.isBlank()),
-                onClick = {
-                    onConfirm(
-                        titleInput.trim(),
-                        if (isCustom) customCategory.trim() else selectedCategory
-                    )
+            AnimatedVisibility(
+                visible = isCustom,
+                enter = expandVertically(tween(200)) + fadeIn(tween(200)),
+                exit = shrinkVertically(tween(200)) + fadeOut(tween(150))
+            ) {
+                TextField(
+                    value = customCategory,
+                    onValueChange = { customCategory = it },
+                    label = "自定义分类",
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                TextButton(text = "取消", onClick = onDismiss)
+                Spacer(modifier = Modifier.width(8.dp))
+                Button(
+                    enabled = !(isCustom && customCategory.isBlank()),
+                    onClick = {
+                        onConfirm(
+                            titleInput.trim(),
+                            if (isCustom) customCategory.trim() else selectedCategory
+                        )
+                    }
+                ) {
+                    Text("收藏")
                 }
-            ) { Text("收藏") }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("取消") }
+            }
         }
-    )
+    }
 }
 
-/** 修改分类弹窗 */
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+/** 修改分类弹窗（Miuix OverlayDialog） */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun EditCategoryDialog(
+    show: Boolean,
     currentCategory: String,
     categories: List<String>,
     onConfirm: (String) -> Unit,
     onDismiss: () -> Unit
 ) {
-    var selectedCategory by remember { mutableStateOf(currentCategory) }
-    var customCategory by remember { mutableStateOf("") }
+    var selectedCategory by remember(show) { mutableStateOf(currentCategory) }
+    var customCategory by remember(show) { mutableStateOf("") }
     val isCustom = selectedCategory == CUSTOM_CATEGORY
     val scrollState = rememberScrollState()
-    // 选中「自定义」后自动滚到底部，确保输入框可见
+
     LaunchedEffect(isCustom) {
         if (isCustom) {
             kotlinx.coroutines.delay(250)
@@ -608,70 +614,73 @@ private fun EditCategoryDialog(
         }
     }
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("修改分类") },
-        text = {
-            // 横屏/小屏时内容超高可滚动，避免按钮被挤出屏幕
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(max = 420.dp)
-                    .verticalScroll(scrollState),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+    OverlayDialog(
+        show = show,
+        title = "修改分类",
+        onDismissRequest = onDismiss
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .heightIn(max = 440.dp)
+                .verticalScroll(scrollState),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    // 「自定义」置顶显示，方便直接新建分类
-                    FilterChip(
-                        selected = isCustom,
-                        onClick = { selectedCategory = CUSTOM_CATEGORY },
-                        label = { Text("自定义") }
-                    )
-                    categories.forEach { cat ->
-                        FilterChip(
-                            selected = selectedCategory == cat,
-                            onClick = { selectedCategory = cat },
-                            label = { Text(cat) }
-                        )
-                    }
-                }
-                // 选择「自定义」时才展开输入框（与添加收藏弹窗交互一致，带动画）
-                AnimatedVisibility(
-                    visible = isCustom,
-                    enter = expandVertically(tween(200)) + fadeIn(tween(200)),
-                    exit = shrinkVertically(tween(200)) + fadeOut(tween(150))
-                ) {
-                    OutlinedTextField(
-                        value = customCategory,
-                        onValueChange = { customCategory = it },
-                        modifier = Modifier.fillMaxWidth(),
-                        label = { Text("自定义分类") },
-                        singleLine = true,
-                        shape = MaterialTheme.shapes.large
+                CategoryChip(
+                    selected = isCustom,
+                    label = "自定义",
+                    onClick = { selectedCategory = CUSTOM_CATEGORY }
+                )
+                categories.forEach { cat ->
+                    CategoryChip(
+                        selected = selectedCategory == cat,
+                        label = cat,
+                        onClick = { selectedCategory = cat }
                     )
                 }
             }
-        },
-        confirmButton = {
-            Button(
-                enabled = !(isCustom && customCategory.isBlank()),
-                onClick = {
-                    onConfirm(if (isCustom) customCategory.trim() else selectedCategory)
+            AnimatedVisibility(
+                visible = isCustom,
+                enter = expandVertically(tween(200)) + fadeIn(tween(200)),
+                exit = shrinkVertically(tween(200)) + fadeOut(tween(150))
+            ) {
+                TextField(
+                    value = customCategory,
+                    onValueChange = { customCategory = it },
+                    label = "自定义分类",
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                TextButton(text = "取消", onClick = onDismiss)
+                Spacer(modifier = Modifier.width(8.dp))
+                Button(
+                    enabled = !(isCustom && customCategory.isBlank()),
+                    onClick = {
+                        onConfirm(if (isCustom) customCategory.trim() else selectedCategory)
+                    }
+                ) {
+                    Text("确定")
                 }
-            ) { Text("确定") }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("取消") }
+            }
         }
-    )
+    }
 }
 
-/** 长按操作菜单 */
+/** 长按操作菜单（Miuix OverlayDialog） */
 @Composable
 private fun BookmarkMenuDialog(
+    show: Boolean,
     bookmark: BookmarkEntity,
     onResolve: () -> Unit,
     onCopy: () -> Unit,
@@ -679,49 +688,48 @@ private fun BookmarkMenuDialog(
     onDelete: () -> Unit,
     onDismiss: () -> Unit
 ) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(
-                text = bookmark.title.ifBlank { bookmark.link },
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+    OverlayDialog(
+        show = show,
+        title = bookmark.title.ifBlank { bookmark.link },
+        onDismissRequest = onDismiss
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+        ) {
+            TextButton(
+                text = "解析",
+                onClick = onResolve,
+                modifier = Modifier.fillMaxWidth()
             )
-        },
-        text = {
-            Column {
-                TextButton(onClick = onResolve, modifier = Modifier.fillMaxWidth()) {
-                    Icon(Icons.Outlined.Link, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("解析")
-                }
-                TextButton(onClick = onCopy, modifier = Modifier.fillMaxWidth()) {
-                    Icon(Icons.Outlined.ContentCopy, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("复制链接")
-                }
-                TextButton(onClick = onEditCategory, modifier = Modifier.fillMaxWidth()) {
-                    Icon(Icons.Outlined.Edit, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("修改分类")
-                }
-                TextButton(onClick = onDelete, modifier = Modifier.fillMaxWidth()) {
-                    Icon(
-                        Icons.Outlined.Delete,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp),
-                        tint = MaterialTheme.colorScheme.error
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("删除", color = MaterialTheme.colorScheme.error)
-                }
+            Spacer(modifier = Modifier.height(4.dp))
+            TextButton(
+                text = "复制链接",
+                onClick = onCopy,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            TextButton(
+                text = "修改分类",
+                onClick = onEditCategory,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            TextButton(
+                text = "删除",
+                onClick = onDelete,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                TextButton(text = "取消", onClick = onDismiss)
             }
-        },
-        confirmButton = {},
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("取消") }
         }
-    )
+    }
 }
 
 /** 平台枚举名 → 展示名 */

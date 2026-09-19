@@ -22,21 +22,12 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.widget.Toast
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Security
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -52,6 +43,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.yunx.app.util.TextCipher
 import kotlinx.coroutines.delay
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.ButtonDefaults
+import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.basic.TextButton
+import top.yukonga.miuix.kmp.extra.WindowDialog
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
 fun SafetyNoticeDialog() {
@@ -69,101 +67,88 @@ fun SafetyNoticeDialog() {
 
     if (!visible) return
 
-    AlertDialog(
+    WindowDialog(
+        show = visible,
         onDismissRequest = {
             if (seconds <= 0) {
                 visible = false
                 acknowledge(context)
             }
         },
-        icon = {
-            Surface(
-                modifier = Modifier.size(48.dp),
-                shape = MaterialTheme.shapes.large,
-                color = MaterialTheme.colorScheme.primaryContainer
+        title = TextCipher.dTitle,
+    ) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 12.dp),
+                horizontalArrangement = Arrangement.Center
             ) {
-                androidx.compose.foundation.layout.Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier.padding(4.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Security,
-                        contentDescription = null,
-                        modifier = Modifier.size(24.dp),
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                }
-            }
-        },
-        title = {
-            Column {
-                Text(
-                    text = TextCipher.dTitle,
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.SemiBold
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Surface(
-                    shape = MaterialTheme.shapes.small,
-                    color = MaterialTheme.colorScheme.secondaryContainer
+                top.yukonga.miuix.kmp.basic.Surface(
+                    shape = com.yunx.app.ui.theme.SquircleShape(6.dp),
+                    color = MiuixTheme.colorScheme.secondaryVariant
                 ) {
                     Text(
                         text = TextCipher.dOfficial,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer,
-                        fontWeight = FontWeight.Medium
+                        style = MiuixTheme.textStyles.body2,
+                        color = MiuixTheme.colorScheme.onSecondaryVariant,
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
                     )
                 }
             }
-        },
-        text = {
-            Column {
-                Text(
-                    text = TextCipher.dBody,
-                    style = MaterialTheme.typography.bodyMedium,
-                    lineHeight = 22.sp
-                )
-                Spacer(modifier = Modifier.height(10.dp))
-                Surface(
-                    shape = MaterialTheme.shapes.medium,
-                    color = MaterialTheme.colorScheme.surfaceContainerLow
-                ) {
-                    Text(
-                        text = TextCipher.dUrl,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 12.dp, vertical = 10.dp),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Medium
-                    )
-                }
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = {
-                    visible = false
-                    acknowledge(context)
-                },
-                enabled = seconds <= 0
+            Text(
+                text = TextCipher.dBody,
+                style = MiuixTheme.textStyles.body1,
+                lineHeight = 22.sp,
+                modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp)
+            )
+            top.yukonga.miuix.kmp.basic.Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp),
+                shape = com.yunx.app.ui.theme.SquircleShape(10.dp),
+                color = MiuixTheme.colorScheme.surfaceContainer
             ) {
                 Text(
-                    if (seconds > 0) {
-                        TextCipher.dCountdown.replace("%d", seconds.toString())
-                    } else {
-                        TextCipher.dBtn
-                    }
+                    text = TextCipher.dUrl,
+                    style = MiuixTheme.textStyles.body2,
+                    color = MiuixTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)
                 )
             }
-        },
-        dismissButton = {
-            TextButton(onClick = { copyUrl(context) }) {
-                Text(TextCipher.dCopy)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                TextButton(
+                    text = TextCipher.dCopy,
+                    onClick = { copyUrl(context) },
+                    modifier = Modifier.weight(1f)
+                )
+                Button(
+                    onClick = {
+                        visible = false
+                        acknowledge(context)
+                    },
+                    enabled = seconds <= 0,
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.buttonColorsPrimary()
+                ) {
+                    Text(
+                        text = if (seconds > 0) {
+                            TextCipher.dCountdown.replace("%d", seconds.toString())
+                        } else {
+                            TextCipher.dBtn
+                        },
+                        style = MiuixTheme.textStyles.button
+                    )
+                }
             }
         }
-    )
+    }
 }
 
 private fun isAcknowledged(context: Context): Boolean {

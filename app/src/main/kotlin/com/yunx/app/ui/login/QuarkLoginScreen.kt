@@ -24,36 +24,18 @@ import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.compose.BackHandler
-import androidx.compose.material3.SnackbarHost
-import com.yunx.app.ui.SnackbarController
-import com.yunx.app.ui.rememberGlobalSnackbarHostState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.ContentPaste
-import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.SnackbarHost
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -67,8 +49,23 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.yunx.app.data.network.QuarkConstants
+import com.yunx.app.ui.SnackbarController
+import com.yunx.app.ui.rememberGlobalSnackbarHostState
 import com.yunx.app.ui.viewmodel.QuarkAccountViewModel
 import kotlinx.coroutines.launch
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.ButtonDefaults
+import top.yukonga.miuix.kmp.basic.CircularProgressIndicator
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.LinearProgressIndicator
+import top.yukonga.miuix.kmp.basic.Scaffold
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.basic.TextButton
+import top.yukonga.miuix.kmp.basic.TextField
+import top.yukonga.miuix.kmp.basic.TopAppBar
+import top.yukonga.miuix.kmp.overlay.OverlayDialog
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /**
  * 夸克网盘登录页：
@@ -77,7 +74,6 @@ import kotlinx.coroutines.launch
  * - 自动登录检测：网页内登录完成后自动提取 Cookie 并登录（「保存」按钮保留作手动兜底）
  * - 进入页面时弹登录教程
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QuarkLoginScreen(
     viewModel: QuarkAccountViewModel,
@@ -150,10 +146,13 @@ fun QuarkLoginScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text("夸克网盘登录", style = MaterialTheme.typography.titleLarge) },
+                title = "夸克网盘登录",
                 navigationIcon = {
                     IconButton(onClick = { if (!isSaving && !isSavingManual) onBack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "返回"
+                        )
                     }
                 },
                 actions = {
@@ -163,43 +162,41 @@ fun QuarkLoginScreen(
                         enabled = !isSaving && !isSavingManual
                     ) {
                         Icon(
-                            Icons.Outlined.ContentPaste,
+                            imageVector = Icons.Outlined.ContentPaste,
                             contentDescription = "手动输入 Cookie",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            tint = MiuixTheme.colorScheme.onSurfaceVariantActions
                         )
                     }
-                    TextButton(
-                        onClick = {
-                            scope.launch {
-                                isSaving = true
-                                val cookie = CookieManager.getInstance()
-                                    .getCookie(QuarkConstants.COOKIE_DOMAIN)
-                                    .orEmpty()
-                                val saved = viewModel.saveQuarkAccount(cookie)
-                                isSaving = false
-                                if (saved) {
-                                    SnackbarController.show("登录成功")
-                                    onSaved()
-                                } else {
-                                    SnackbarController.show("未检测到登录态，请先完成登录")
+                    if (isSaving) {
+                        CircularProgressIndicator(
+                            modifier = Modifier
+                                .padding(horizontal = 12.dp)
+                                .size(20.dp),
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        TextButton(
+                            text = "保存",
+                            onClick = {
+                                scope.launch {
+                                    isSaving = true
+                                    val cookie = CookieManager.getInstance()
+                                        .getCookie(QuarkConstants.COOKIE_DOMAIN)
+                                        .orEmpty()
+                                    val saved = viewModel.saveQuarkAccount(cookie)
+                                    isSaving = false
+                                    if (saved) {
+                                        SnackbarController.show("登录成功")
+                                        onSaved()
+                                    } else {
+                                        SnackbarController.show("未检测到登录态，请先完成登录")
+                                    }
                                 }
-                            }
-                        },
-                        enabled = !isSaving && !isSavingManual
-                    ) {
-                        if (isSaving) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(18.dp),
-                                strokeWidth = 2.dp
-                            )
-                        } else {
-                            Text("保存")
-                        }
+                            },
+                            enabled = !isSavingManual
+                        )
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
+                }
             )
         }
     ) { innerPadding ->
@@ -216,98 +213,110 @@ fun QuarkLoginScreen(
                 LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
             }
         }
-    }
 
-    // 登录教程弹窗
-    if (showTutorial) {
-        AlertDialog(
-            onDismissRequest = { showTutorial = false },
-            icon = { Icon(Icons.Outlined.Info, contentDescription = null) },
-            title = { Text("登录教程") },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(
-                        text = "1. 在下方网页中登录夸克账号",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Text(
-                        text = "2. 登录完成后将自动检测登录；若未自动登录，点右上角「保存」",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Text(
-                        text = "3. 或点击「粘贴」图标，手动输入 Cookie（需含 __pus= 与 __puus=）",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Text(
-                        text = "4. Cookie 约 30 天有效，失效后需重新登录",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = { showTutorial = false }) { Text("知道了") }
+        // 登录教程弹窗
+        OverlayDialog(
+            show = showTutorial,
+            title = "登录教程",
+            onDismissRequest = { showTutorial = false }
+        ) {
+            Column(
+                modifier = Modifier.padding(bottom = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = "1. 在下方网页中登录夸克账号",
+                    style = MiuixTheme.textStyles.body1,
+                    color = MiuixTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = "2. 登录完成后将自动检测登录；若未自动登录，点右上角「保存」",
+                    style = MiuixTheme.textStyles.body1,
+                    color = MiuixTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = "3. 或点击「粘贴」图标，手动输入 Cookie（需含 __pus= 与 __puus=）",
+                    style = MiuixTheme.textStyles.body1,
+                    color = MiuixTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = "4. Cookie 约 30 天有效，失效后需重新登录",
+                    style = MiuixTheme.textStyles.body2,
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary
+                )
             }
-        )
-    }
+            TextButton(
+                text = "知道了",
+                onClick = { showTutorial = false },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.textButtonColorsPrimary()
+            )
+        }
 
-    // 手动输入 Cookie 弹窗
-    if (showCookieDialog) {
-        AlertDialog(
-            onDismissRequest = { if (!isSavingManual) showCookieDialog = false },
-            title = { Text("手动输入 Cookie") },
-            text = {
-                Column {
-                    Text(
-                        text = "从网页登录态复制完整的 Cookie（需包含 __pus= 与 __puus=）",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    OutlinedTextField(
-                        value = cookieInput,
-                        onValueChange = { cookieInput = it },
-                        modifier = Modifier.fillMaxWidth(),
-                        placeholder = { Text("粘贴 Cookie…") },
-                        minLines = 4,
-                        maxLines = 8
-                    )
-                }
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        scope.launch {
-                            isSavingManual = true
-                            val saved = viewModel.saveQuarkAccount(cookieInput.trim())
-                            isSavingManual = false
-                            if (saved) {
-                                SnackbarController.show("登录成功")
-                                showCookieDialog = false
-                                onSaved()
-                            } else {
-                                SnackbarController.show("Cookie 无效，请检查是否包含 __pus= 与 __puus=")
-                            }
-                        }
-                    },
-                    enabled = cookieInput.isNotBlank() && !isSavingManual
+        // 手动输入 Cookie 弹窗
+        OverlayDialog(
+            show = showCookieDialog,
+            title = "手动输入 Cookie",
+            onDismissRequest = { if (!isSavingManual) showCookieDialog = false }
+        ) {
+            Column {
+                Text(
+                    text = "从网页登录态复制完整的 Cookie（需包含 __pus= 与 __puus=）",
+                    style = MiuixTheme.textStyles.body2,
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                    modifier = Modifier.padding(bottom = 12.dp)
+                )
+                TextField(
+                    value = cookieInput,
+                    onValueChange = { cookieInput = it },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp),
+                    label = "粘贴 Cookie…",
+                    useLabelAsPlaceholder = true,
+                    minLines = 4,
+                    maxLines = 8
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    if (isSavingManual) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(18.dp),
-                            strokeWidth = 2.dp
-                        )
-                    } else {
-                        Text("保存")
+                    TextButton(
+                        text = "取消",
+                        onClick = { if (!isSavingManual) showCookieDialog = false },
+                        modifier = Modifier.weight(1f),
+                        enabled = !isSavingManual
+                    )
+                    Button(
+                        onClick = {
+                            scope.launch {
+                                isSavingManual = true
+                                val saved = viewModel.saveQuarkAccount(cookieInput.trim())
+                                isSavingManual = false
+                                if (saved) {
+                                    SnackbarController.show("登录成功")
+                                    showCookieDialog = false
+                                    onSaved()
+                                } else {
+                                    SnackbarController.show("Cookie 无效，请检查是否包含 __pus= 与 __puus=")
+                                }
+                            }
+                        },
+                        modifier = Modifier.weight(1f),
+                        enabled = cookieInput.isNotBlank() && !isSavingManual,
+                        colors = ButtonDefaults.buttonColorsPrimary()
+                    ) {
+                        if (isSavingManual) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(18.dp),
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Text("保存")
+                        }
                     }
                 }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = { if (!isSavingManual) showCookieDialog = false },
-                    enabled = !isSavingManual
-                ) { Text("取消") }
             }
-        )
+        }
     }
 }

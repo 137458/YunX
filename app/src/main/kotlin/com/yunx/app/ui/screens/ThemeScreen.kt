@@ -24,15 +24,8 @@ import android.os.Build
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
@@ -53,61 +46,35 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Palette
-import androidx.compose.material.icons.outlined.StarOutline
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -115,10 +82,24 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import com.yunx.app.R
 import com.yunx.app.data.prefs.SettingsRepository
-import com.yunx.app.ui.theme.ThemeController
+import com.yunx.app.ui.theme.AppThemeManager
+import com.yunx.app.ui.theme.SquircleShape
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.Scaffold
+import top.yukonga.miuix.kmp.basic.Slider
+import top.yukonga.miuix.kmp.basic.SmallTitle
+import top.yukonga.miuix.kmp.basic.Surface
+import top.yukonga.miuix.kmp.basic.Switch
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.basic.TextButton
+import top.yukonga.miuix.kmp.basic.TopAppBar
+import top.yukonga.miuix.kmp.overlay.OverlayDialog
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /** 预置主题色（Material 风格种子色） */
 private val presetColors = listOf(
@@ -135,11 +116,12 @@ private val presetColors = listOf(
 )
 
 /**
- * 主题与外观设置页（参考 WebIDE ThemeSettingsItem 风格）：
- * - 外观模式：FilterChip 胶囊单选（跟随系统 / 浅色 / 深色）
- * - 主题色：可折叠卡片，动态色彩开关（Android12+）+ LazyRow 色圆选择 + 自定义调色盘
+ * 主题与外观设置页（Miuix 规范重构）：
+ * - 外观模式：Squircle 胶囊单选（跟随系统 / 浅色 / 深色）
+ * - 主题色：Miuix Card 分组，动态色彩开关（Android 12+）+ LazyRow 色圆选择 + 自定义调色盘（Miuix OverlayDialog + Slider）
+ * - 桌面图标：Miuix Card 分组，Squircle 预览
+ * - 对接 AppThemeManager 内存与持久化状态
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ThemeScreen(
     onBack: () -> Unit,
@@ -148,33 +130,17 @@ fun ThemeScreen(
     val context = LocalContext.current
     BackHandler { onBack() }
     var showColorPicker by remember { mutableStateOf(false) }
-    // 主题色卡片默认展开
-    var expanded by rememberSaveable { mutableStateOf(true) }
-    val expandDuration = 200
 
-    // 单一动画源驱动折叠（Animatable 支持打断：快速连续点击时自动平滑过渡到新目标）：
-    // 高度 = contentHeightPx * progress，透明度 = progress，二者同步
-    val density = LocalDensity.current
-    var contentHeightPx by remember { mutableIntStateOf(0) }
-    val expandProgress = remember { Animatable(if (expanded) 1f else 0f) }
-    LaunchedEffect(expanded) {
-        expandProgress.animateTo(
-            targetValue = if (expanded) 1f else 0f,
-            animationSpec = tween(250, easing = FastOutSlowInEasing)
-        )
-    }
-
-    // Android12- 动态色不可用，视为默认蓝色
-    val effectiveColorMode = if (ThemeController.colorMode == 0 && Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+    // Android 12- 动态色不可用，视为默认蓝色
+    val effectiveColorMode = if (AppThemeManager.colorMode == 0 && Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
         1
     } else {
-        ThemeController.colorMode
+        AppThemeManager.colorMode
     }
 
     // ---------- 桌面图标动态切换 ----------
     val settingsRepo = remember { SettingsRepository(context) }
     var appIconVariant by remember { mutableStateOf(settingsRepo.appIconVariant) }
-    var iconExpanded by rememberSaveable { mutableStateOf(true) }
     val switchAppIcon: (Int) -> Unit = { variant ->
         val pm = context.packageManager
         val main = ComponentName(context, "com.yunx.app.MainActivity")
@@ -193,15 +159,12 @@ fun ThemeScreen(
         modifier = modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
-                title = { Text("主题与外观", style = MaterialTheme.typography.titleLarge) },
+                title = "主题与外观",
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
+                }
             )
         }
     ) { innerPadding ->
@@ -210,21 +173,20 @@ fun ThemeScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp, vertical = 16.dp)
+                .padding(horizontal = 16.dp, vertical = 12.dp)
         ) {
             // ---------- 外观模式 ----------
-            SectionLabel("外观模式")
+            SmallTitle(text = "外观模式")
             Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainer
-                )
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         text = "选择应用的明暗外观",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        style = MiuixTheme.textStyles.body2,
+                        color = MiuixTheme.colorScheme.onSurfaceSecondary
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                     Row(
@@ -234,9 +196,9 @@ fun ThemeScreen(
                         val modes = listOf("跟随系统", "浅色", "深色")
                         modes.forEachIndexed { index, label ->
                             SmoothFilterChip(
-                                selected = ThemeController.darkMode == index,
+                                selected = AppThemeManager.darkMode == index,
                                 label = label,
-                                onClick = { ThemeController.setDarkMode(context, index) },
+                                onClick = { AppThemeManager.setDarkMode(context, index) },
                                 modifier = Modifier.weight(1f)
                             )
                         }
@@ -244,267 +206,139 @@ fun ThemeScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // ---------- 主题色（可折叠卡片） ----------
+            // ---------- 主题色彩 ----------
+            SmallTitle(text = "主题颜色")
             Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainer
-                )
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp)
             ) {
-                Column {
-                    // Header：点击展开/收起
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { expanded = !expanded }
-                            .padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Palette,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = "主题色",
-                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-                            )
-                            AnimatedVisibility(
-                                visible = !expanded,
-                                enter = fadeIn(tween(200)) + expandVertically(tween(200), expandFrom = Alignment.Top),
-                                exit = fadeOut(tween(200)) + shrinkVertically(tween(200), shrinkTowards = Alignment.Top)
-                            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    // 动态色彩开关（仅 Android 12+）
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = when {
-                                        effectiveColorMode == 0 -> "动态色彩（跟随壁纸）"
-                                        effectiveColorMode == 2 -> "自定义颜色"
-                                        else -> "默认蓝色"
-                                    },
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.padding(top = 2.dp)
+                                    text = "动态色彩",
+                                    style = MiuixTheme.textStyles.subtitle,
+                                    color = MiuixTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = "从系统壁纸自动取色",
+                                    style = MiuixTheme.textStyles.body2,
+                                    color = MiuixTheme.colorScheme.onSurfaceSecondary
                                 )
                             }
+                            Switch(
+                                checked = AppThemeManager.colorMode == 0,
+                                onCheckedChange = { on ->
+                                    AppThemeManager.setColorMode(context, if (on) 0 else 1)
+                                }
+                            )
                         }
-                        val rotation by animateFloatAsState(
-                            targetValue = if (expanded) 180f else 0f,
-                            label = "arrow",
-                            animationSpec = tween(expandDuration)
-                        )
-                        Icon(
-                            imageVector = Icons.Filled.ExpandMore,
-                            contentDescription = null,
-                            modifier = Modifier.rotate(rotation)
-                        )
                     }
 
-                            // 展开内容：高度 + 透明度由 Animatable 同步驱动（可打断、不裁剪、无跳变）
-                            val animatedHeightDp = with(density) { (contentHeightPx * expandProgress.value).toDp() }
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .then(if (contentHeightPx > 0) Modifier.height(animatedHeightDp) else Modifier)
-                                    .clipToBounds()
+                    // 主题色选择（动态色彩开启时折叠）
+                    AnimatedVisibility(visible = effectiveColorMode != 0) {
+                        Column(modifier = Modifier.padding(top = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) 16.dp else 0.dp)) {
+                            Text(
+                                text = "推荐颜色",
+                                style = MiuixTheme.textStyles.body2,
+                                color = MiuixTheme.colorScheme.primary
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            LazyRow(
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                contentPadding = PaddingValues(top = 6.dp, bottom = 6.dp)
                             ) {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .wrapContentHeight(unbounded = true)
-                                        .onSizeChanged { contentHeightPx = it.height }
-                                        .graphicsLayer { alpha = expandProgress.value }
-                                ) {
-                        Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp)) {
-                            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-                            Spacer(modifier = Modifier.height(16.dp))
-
-                            // 动态色彩开关（仅 Android 12+）
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        Text("动态色彩", style = MaterialTheme.typography.bodyMedium)
-                                        Text(
-                                            "从系统壁纸自动取色",
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    }
-                                    Switch(
-                                        checked = ThemeController.colorMode == 0,
-                                        onCheckedChange = { on ->
-                                            ThemeController.setColorMode(context, if (on) 0 else 1)
-                                        }
+                                itemsIndexed(presetColors) { _, (name, color) ->
+                                    val isSelected = (effectiveColorMode == 1 && color == 0xFF415F91L) ||
+                                        (effectiveColorMode == 2 && AppThemeManager.seedColor == color)
+                                    ColorSelectionItem(
+                                        color = color,
+                                        name = name,
+                                        isSelected = isSelected,
+                                        onClick = { AppThemeManager.setSeedColor(context, color) }
                                     )
                                 }
-                                Spacer(modifier = Modifier.height(8.dp))
-                            }
-
-                            // 主题色选择（动态开启时隐藏）
-                            AnimatedVisibility(visible = effectiveColorMode != 0) {
-                                Column {
-                                    Text(
-                                        text = "主题颜色",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.primary
+                                item {
+                                    val isCustomSelected = effectiveColorMode == 2 &&
+                                        AppThemeManager.seedColor !in presetColors.map { it.second }
+                                    CustomColorButton(
+                                        isSelected = isCustomSelected,
+                                        customColor = AppThemeManager.seedColor,
+                                        onClick = {
+                                            AppThemeManager.setColorMode(context, 2)
+                                            showColorPicker = true
+                                        }
                                     )
-                                    LazyRow(
-                                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                                        contentPadding = PaddingValues(top = 10.dp, bottom = 8.dp)
-                                    ) {
-                                        itemsIndexed(presetColors) { _, (name, color) ->
-                                            // 默认蓝色模式只高亮蓝色；自定义模式高亮匹配种子色的那个
-                                            val isSelected = (effectiveColorMode == 1 && color == 0xFF415F91L) ||
-                                                (effectiveColorMode == 2 && ThemeController.seedColor == color)
-                                            ColorSelectionItem(
-                                                color = color,
-                                                name = name,
-                                                isSelected = isSelected,
-                                                onClick = { ThemeController.setSeedColor(context, color) }
-                                            )
-                                        }
-                                        item {
-                                            val isCustomSelected = effectiveColorMode == 2 &&
-                                                ThemeController.seedColor !in presetColors.map { it.second }
-                                            CustomColorButton(
-                                                isSelected = isCustomSelected,
-                                                customColor = ThemeController.seedColor,
-                                                onClick = {
-                                                    ThemeController.setColorMode(context, 2)
-                                                    showColorPicker = true
-                                                }
-                                            )
-                                        }
-                                    }
                                 }
                             }
                         }
                     }
                 }
             }
-        }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // ---------- 桌面图标（可折叠卡片） ----------
-            SectionLabel("桌面图标")
+            // ---------- 桌面图标 ----------
+            SmallTitle(text = "桌面图标")
             Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainer
-                )
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp)
             ) {
-                Column {
-                    // Header：点击展开/收起
+                Column(modifier = Modifier.padding(16.dp)) {
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { iconExpanded = !iconExpanded }
-                            .padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(24.dp)
                     ) {
-                        Icon(
-                            imageVector = Icons.Outlined.StarOutline,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = "桌面图标",
-                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-                            )
-                            // 与主题色卡片一致的副标题动画：展开时隐藏、收起时显示
-                            AnimatedVisibility(
-                                visible = !iconExpanded,
-                                enter = fadeIn(tween(200)) + expandVertically(tween(200), expandFrom = Alignment.Top),
-                                exit = fadeOut(tween(200)) + shrinkVertically(tween(200), shrinkTowards = Alignment.Top)
-                            ) {
-                                Text(
-                                    text = if (appIconVariant == 1) "新图标" else "经典图标",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.padding(top = 2.dp)
-                                )
+                        AppIconOption(
+                            iconRes = R.drawable.icon,
+                            name = "经典图标",
+                            isSelected = appIconVariant == 0,
+                            onClick = {
+                                appIconVariant = 0
+                                switchAppIcon(0)
                             }
-                        }
-                        val iconRotation by animateFloatAsState(
-                            targetValue = if (iconExpanded) 180f else 0f,
-                            label = "iconArrow",
-                            animationSpec = tween(200)
                         )
-                        Icon(
-                            imageVector = Icons.Filled.ExpandMore,
-                            contentDescription = null,
-                            modifier = Modifier.rotate(iconRotation)
+                        AppIconOption(
+                            iconRes = R.drawable.icon2,
+                            name = "新图标",
+                            isSelected = appIconVariant == 1,
+                            onClick = {
+                                appIconVariant = 1
+                                switchAppIcon(1)
+                            }
                         )
                     }
-                    AnimatedVisibility(
-                        visible = iconExpanded,
-                        enter = fadeIn(tween(200)) + expandVertically(tween(200), expandFrom = Alignment.Top),
-                        exit = fadeOut(tween(150)) + shrinkVertically(tween(150), shrinkTowards = Alignment.Top)
-                    ) {
-                        Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp)) {
-                            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(24.dp)
-                            ) {
-                                AppIconOption(
-                                    iconRes = R.drawable.icon,
-                                    name = "经典图标",
-                                    isSelected = appIconVariant == 0,
-                                    onClick = {
-                                        appIconVariant = 0
-                                        switchAppIcon(0)
-                                    }
-                                )
-                                AppIconOption(
-                                    iconRes = R.drawable.icon2,
-                                    name = "新图标",
-                                    isSelected = appIconVariant == 1,
-                                    onClick = {
-                                        appIconVariant = 1
-                                        switchAppIcon(1)
-                                    }
-                                )
-                            }
-                            Spacer(modifier = Modifier.height(10.dp))
-                            Text(
-                                text = "Android 12+ 立即生效；部分设备需回到桌面或重启启动器后查看。",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text(
+                        text = "Android 12+ 立即生效；部分设备需回到桌面或重启启动器后查看。",
+                        style = MiuixTheme.textStyles.body2,
+                        color = MiuixTheme.colorScheme.onSurfaceSecondary
+                    )
                 }
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 
-    // 自定义调色盘
+    // 自定义调色盘（Miuix OverlayDialog）
     if (showColorPicker) {
         ColorPickerDialog(
-            initialColor = ThemeController.seedColor,
+            initialColor = AppThemeManager.seedColor,
             onDismiss = { showColorPicker = false },
             onColorSelected = { color ->
-                ThemeController.setSeedColor(context, color)
+                AppThemeManager.setSeedColor(context, color)
                 showColorPicker = false
             }
         )
     }
 }
 
-/** FilterChip 胶囊单选（参考 WebIDE SmoothFilterChip：选中 secondaryContainer，未选中描边） */
+/** 胶囊单选按钮（SquircleShape 风格） */
 @Composable
 private fun SmoothFilterChip(
     selected: Boolean,
@@ -514,34 +348,33 @@ private fun SmoothFilterChip(
 ) {
     val duration = 200
     val containerColor by animateColorAsState(
-        targetValue = if (selected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface,
+        targetValue = if (selected) MiuixTheme.colorScheme.primary else MiuixTheme.colorScheme.surfaceVariant,
         animationSpec = tween(durationMillis = duration, easing = LinearEasing),
-        label = "container"
+        label = "chipContainer"
     )
     val contentColor by animateColorAsState(
-        targetValue = if (selected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface,
+        targetValue = if (selected) MiuixTheme.colorScheme.onPrimary else MiuixTheme.colorScheme.onSurface,
         animationSpec = tween(durationMillis = duration, easing = LinearEasing),
-        label = "content"
+        label = "chipContent"
     )
     Surface(
         onClick = onClick,
-        modifier = modifier.height(36.dp),
-        shape = CircleShape,
-        color = containerColor,
-        contentColor = contentColor,
-        border = if (!selected) BorderStroke(1.dp, MaterialTheme.colorScheme.outline) else null
+        modifier = modifier.height(38.dp),
+        shape = SquircleShape(12.dp),
+        color = containerColor
     ) {
         Box(contentAlignment = Alignment.Center) {
             Text(
                 text = label,
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium
+                style = MiuixTheme.textStyles.body2,
+                color = contentColor,
+                fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal
             )
         }
     }
 }
 
-/** 预置色圆点（色圆 + 名称，选中显示对勾） */
+/** 预置色圆点（Squircle 形状 + 名称，选中高亮并显示对勾） */
 @Composable
 private fun ColorSelectionItem(
     color: Long,
@@ -557,12 +390,12 @@ private fun ColorSelectionItem(
         Box(
             modifier = Modifier
                 .size(48.dp)
-                .clip(CircleShape)
+                .clip(SquircleShape(14.dp))
                 .background(Color(color.toInt()))
                 .border(
                     width = if (isSelected) 3.dp else 1.dp,
-                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
-                    shape = CircleShape
+                    color = if (isSelected) MiuixTheme.colorScheme.primary else MiuixTheme.colorScheme.dividerLine,
+                    shape = SquircleShape(14.dp)
                 )
                 .clickable(onClick = onClick),
             contentAlignment = Alignment.Center
@@ -576,16 +409,16 @@ private fun ColorSelectionItem(
                 )
             }
         }
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(6.dp))
         Text(
             text = name,
-            style = MaterialTheme.typography.labelSmall,
-            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+            style = MiuixTheme.textStyles.footnote1,
+            color = if (isSelected) MiuixTheme.colorScheme.primary else MiuixTheme.colorScheme.onSurfaceSecondary
         )
     }
 }
 
-/** 自定义颜色按钮（色圆 + 名称，圆内显示 Palette 图标） */
+/** 自定义颜色按钮（Squircle 形状 + 名称，显示 Palette 图标） */
 @Composable
 private fun CustomColorButton(
     isSelected: Boolean,
@@ -600,15 +433,15 @@ private fun CustomColorButton(
         Box(
             modifier = Modifier
                 .size(48.dp)
-                .clip(CircleShape)
+                .clip(SquircleShape(14.dp))
                 .background(
                     if (isSelected) Color(customColor.toInt())
-                    else MaterialTheme.colorScheme.surfaceContainerHighest
+                    else MiuixTheme.colorScheme.surfaceVariant
                 )
                 .border(
                     width = if (isSelected) 3.dp else 1.dp,
-                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
-                    shape = CircleShape
+                    color = if (isSelected) MiuixTheme.colorScheme.primary else MiuixTheme.colorScheme.dividerLine,
+                    shape = SquircleShape(14.dp)
                 )
                 .clickable(onClick = onClick),
             contentAlignment = Alignment.Center
@@ -616,20 +449,20 @@ private fun CustomColorButton(
             Icon(
                 imageVector = Icons.Outlined.Palette,
                 contentDescription = null,
-                tint = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+                tint = if (isSelected) Color.White else MiuixTheme.colorScheme.onSurfaceSecondary,
                 modifier = Modifier.size(22.dp)
             )
         }
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(6.dp))
         Text(
             text = "自定义",
-            style = MaterialTheme.typography.labelSmall,
-            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+            style = MiuixTheme.textStyles.footnote1,
+            color = if (isSelected) MiuixTheme.colorScheme.primary else MiuixTheme.colorScheme.onSurfaceSecondary
         )
     }
 }
 
-// ================= 调色盘 Dialog（参考 WebIDE ColorPickerDialog 精简版） =================
+// ================= 调色盘 Dialog（Miuix OverlayDialog + Slider） =================
 
 @Composable
 private fun ColorPickerDialog(
@@ -646,129 +479,141 @@ private fun ColorPickerDialog(
         mutableStateOf(colorToHex(currentColor).removePrefix("#"))
     }
 
-    Dialog(onDismissRequest = onDismiss) {
-        Card(
+    OverlayDialog(
+        show = true,
+        title = "自定义主题色",
+        onDismissRequest = onDismiss
+    ) {
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
-            shape = RoundedCornerShape(28.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainer
-            )
+                .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
-            Column(
-                modifier = Modifier
-                    .padding(24.dp)
-                    .fillMaxWidth()
+            // 顶部：HEX 输入 + 色块预览
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                // 顶部：HEX 输入 + 预览
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = "#",
-                            style = MaterialTheme.typography.headlineMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        BasicTextField(
-                            value = hexInput,
-                            onValueChange = { input ->
-                                val filtered = input.filter { it.isLetterOrDigit() }.take(6).uppercase()
-                                hexInput = filtered
-                                if (filtered.length == 6) {
-                                    runCatching {
-                                        val color = hexToColor(filtered)
-                                        val hsv = colorToHsv(color)
-                                        hue = hsv[0]
-                                        saturation = hsv[1]
-                                        value = hsv[2]
-                                    }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "#",
+                        style = MiuixTheme.textStyles.title1,
+                        color = MiuixTheme.colorScheme.onSurfaceSecondary
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    BasicTextField(
+                        value = hexInput,
+                        onValueChange = { input ->
+                            val filtered = input.filter { it.isLetterOrDigit() }.take(6).uppercase()
+                            hexInput = filtered
+                            if (filtered.length == 6) {
+                                runCatching {
+                                    val color = hexToColor(filtered)
+                                    val hsv = colorToHsv(color)
+                                    hue = hsv[0]
+                                    saturation = hsv[1]
+                                    value = hsv[2]
                                 }
-                            },
-                            textStyle = MaterialTheme.typography.headlineMedium.copy(
-                                color = MaterialTheme.colorScheme.onSurface,
-                                fontWeight = FontWeight.Bold,
-                                fontFamily = FontFamily.Monospace
-                            ),
-                            keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
-                                capitalization = KeyboardCapitalization.Characters,
-                                keyboardType = KeyboardType.Ascii
-                            ),
-                            cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                            modifier = Modifier.width(140.dp)
-                        )
-                    }
+                            }
+                        },
+                        textStyle = MiuixTheme.textStyles.title1.copy(
+                            color = MiuixTheme.colorScheme.onSurface,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = FontFamily.Monospace
+                        ),
+                        keyboardOptions = KeyboardOptions(
+                            capitalization = KeyboardCapitalization.Characters,
+                            keyboardType = KeyboardType.Ascii
+                        ),
+                        cursorBrush = SolidColor(MiuixTheme.colorScheme.primary),
+                        modifier = Modifier.width(130.dp)
+                    )
+                }
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(SquircleShape(10.dp))
+                        .background(MiuixTheme.colorScheme.surfaceVariant)
+                        .border(1.dp, MiuixTheme.colorScheme.dividerLine, SquircleShape(10.dp))
+                ) {
                     Box(
                         modifier = Modifier
-                            .size(56.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(MaterialTheme.colorScheme.surfaceVariant)
-                            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(8.dp))
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .matchParentSize()
-                                .background(currentColor)
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                // 颜色选择核心区：左侧 SatVal 方块 + 右侧色相条
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp)
-                ) {
-                    SatValPanel(
-                        hue = hue,
-                        saturation = saturation,
-                        value = value,
-                        onValChange = { s, v ->
-                            saturation = s
-                            value = v
-                        },
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxSize()
-                            .clip(RoundedCornerShape(8.dp))
-                            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(8.dp))
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    VerticalHueSlider(
-                        hue = hue,
-                        onHueChange = { hue = it },
-                        modifier = Modifier
-                            .width(24.dp)
-                            .fillMaxSize()
-                            .clip(RoundedCornerShape(8.dp))
-                            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(8.dp))
+                            .matchParentSize()
+                            .background(currentColor)
                     )
                 }
+            }
 
-                Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-                // 底部按钮
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
+            // 饱和度/明度面板
+            SatValPanel(
+                hue = hue,
+                saturation = saturation,
+                value = value,
+                onValChange = { s, v ->
+                    saturation = s
+                    value = v
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(180.dp)
+                    .clip(SquircleShape(12.dp))
+                    .border(1.dp, MiuixTheme.colorScheme.dividerLine, SquircleShape(12.dp))
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // 色相滑块（Miuix Slider）
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "色相",
+                    style = MiuixTheme.textStyles.body2,
+                    color = MiuixTheme.colorScheme.onSurfaceSecondary,
+                    modifier = Modifier.width(42.dp)
+                )
+                Slider(
+                    value = hue,
+                    onValueChange = { hue = it },
+                    valueRange = 0f..360f,
+                    modifier = Modifier.weight(1f)
+                )
+                Text(
+                    text = "${hue.toInt()}°",
+                    style = MiuixTheme.textStyles.body2,
+                    color = MiuixTheme.colorScheme.onSurface,
+                    modifier = Modifier.width(42.dp),
+                    textAlign = TextAlign.End
+                )
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // 底部操作按钮（Miuix Button & TextButton）
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                TextButton(
+                    text = "取消",
+                    onClick = onDismiss
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Button(
+                    onClick = { onColorSelected(currentColor.toArgb().toLong() and 0xFFFFFFFFL) }
                 ) {
-                    TextButton(onClick = onDismiss) { Text("取消") }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Button(onClick = { onColorSelected(currentColor.toArgb().toLong() and 0xFFFFFFFFL) }) {
-                        Text("应用")
-                    }
+                    Text("应用")
                 }
             }
         }
     }
 }
 
-/** 饱和度/明度大方块（可拖拽/点击） */
+/** 饱和度/明度调色板（可拖拽/点击） */
 @Composable
 private fun SatValPanel(
     hue: Float,
@@ -823,54 +668,9 @@ private fun SatValPanel(
     }
 }
 
-/** 竖向色相条（可拖拽/点击） */
-@Composable
-private fun VerticalHueSlider(
-    hue: Float,
-    onHueChange: (Float) -> Unit,
-    modifier: Modifier
-) {
-    Box(modifier = modifier) {
-        Canvas(
-            modifier = Modifier
-                .matchParentSize()
-                .pointerInput(Unit) {
-                    detectTapGestures { offset ->
-                        onHueChange((offset.y / size.height * 360f).coerceIn(0f, 360f))
-                    }
-                }
-                .pointerInput(Unit) {
-                    detectDragGestures { change, _ ->
-                        change.consume()
-                        onHueChange((change.position.y / size.height * 360f).coerceIn(0f, 360f))
-                    }
-                }
-        ) {
-            val colors = (0..360 step 10).map { Color.hsv(it.toFloat(), 1f, 1f) }
-            drawRect(brush = Brush.verticalGradient(colors = colors))
+// ================= 桌面图标选项 =================
 
-            // 指示器（横条）
-            val y = (hue / 360f) * size.height
-            val barHeight = 6f
-            drawRect(
-                color = Color.Black.copy(alpha = 0.5f),
-                topLeft = Offset(0f, y - barHeight / 2),
-                size = Size(size.width, barHeight),
-                style = Stroke(2f)
-            )
-            drawRect(
-                color = Color.White,
-                topLeft = Offset(0f, y - barHeight / 2),
-                size = Size(size.width, barHeight),
-                style = Stroke(1f)
-            )
-        }
-    }
-}
-
-// ================= 辅助 =================
-
-/** 桌面图标选项：图标预览 + 名称，选中高亮边框 + 角标对勾 */
+/** 桌面图标选项：Squircle 图标预览 + 名称，选中高亮边框 + 角标对勾 */
 @Composable
 private fun AppIconOption(
     iconRes: Int,
@@ -882,11 +682,11 @@ private fun AppIconOption(
         Box(
             modifier = Modifier
                 .size(72.dp)
-                .clip(RoundedCornerShape(18.dp))
+                .clip(SquircleShape(18.dp))
                 .border(
                     width = if (isSelected) 3.dp else 1.dp,
-                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
-                    shape = RoundedCornerShape(18.dp)
+                    color = if (isSelected) MiuixTheme.colorScheme.primary else MiuixTheme.colorScheme.dividerLine,
+                    shape = SquircleShape(18.dp)
                 )
                 .clickable(onClick = onClick),
             contentAlignment = Alignment.Center
@@ -896,7 +696,7 @@ private fun AppIconOption(
                 contentDescription = name,
                 modifier = Modifier
                     .size(64.dp)
-                    .clip(RoundedCornerShape(14.dp))
+                    .clip(SquircleShape(14.dp))
             )
             if (isSelected) {
                 // 右上角选中角标（对勾 + 主题色圆底）
@@ -904,13 +704,13 @@ private fun AppIconOption(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .size(20.dp)
-                        .background(MaterialTheme.colorScheme.primary, CircleShape),
+                        .background(MiuixTheme.colorScheme.primary, CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.Check,
                         contentDescription = "已选择",
-                        tint = MaterialTheme.colorScheme.onPrimary,
+                        tint = MiuixTheme.colorScheme.onPrimary,
                         modifier = Modifier.size(14.dp)
                     )
                 }
@@ -919,21 +719,11 @@ private fun AppIconOption(
         Spacer(modifier = Modifier.height(6.dp))
         Text(
             text = name,
-            style = MaterialTheme.typography.labelSmall,
-            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MiuixTheme.textStyles.footnote1,
+            color = if (isSelected) MiuixTheme.colorScheme.primary else MiuixTheme.colorScheme.onSurfaceSecondary,
             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
         )
     }
-}
-
-@Composable
-private fun SectionLabel(text: String) {
-    Text(
-        text = text,
-        style = MaterialTheme.typography.labelLarge,
-        color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(start = 4.dp, bottom = 8.dp)
-    )
 }
 
 private fun colorToHsv(color: Color): FloatArray {

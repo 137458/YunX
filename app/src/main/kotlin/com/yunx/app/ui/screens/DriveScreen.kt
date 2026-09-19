@@ -46,17 +46,19 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.MoreVert
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarScrollBehavior
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.LinearProgressIndicator
+import top.yukonga.miuix.kmp.basic.ProgressIndicatorDefaults
+import top.yukonga.miuix.kmp.basic.PullToRefresh
+import top.yukonga.miuix.kmp.basic.rememberPullToRefreshState
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -269,12 +271,14 @@ fun DriveScreen(
             onExit = { showPan123Cloud = false },
             onDownloadStarted = onDownloadStarted
         )
-            else -> PullToRefreshBox(
-                isRefreshing = isRefreshing,
-                onRefresh = { driveQuotaViewModel.loadAll() },
-                modifier = Modifier.fillMaxSize()
-            ) {
-                LazyColumn(
+            else -> {
+                PullToRefresh(
+                    state = rememberPullToRefreshState(refreshThreshold = 64.dp),
+                    isRefreshing = isRefreshing,
+                    onRefresh = { driveQuotaViewModel.loadAll() },
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    LazyColumn(
                 modifier = modifier
                     .fillMaxSize()
                     .nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -390,6 +394,7 @@ fun DriveScreen(
                 }
             }
             }
+            }
         }
     }
 
@@ -475,10 +480,6 @@ private fun DriveAccountCard(
     /** 已登录时右侧「三个点」更多按钮（打开账号弹窗）；null 则不显示 */
     onMoreClick: (() -> Unit)? = null
 ) {
-    val cardShape = MaterialTheme.shapes.large
-    val cardColors = CardDefaults.cardColors(
-        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-    )
     val content: @Composable () -> Unit = {
         DriveAccountCardContent(
             account = account,
@@ -490,16 +491,12 @@ private fun DriveAccountCard(
 
     if (onClick != null) {
         Card(
-            onClick = onClick,
             modifier = Modifier.fillMaxWidth(),
-            shape = cardShape,
-            colors = cardColors
+            onClick = onClick
         ) { content() }
     } else {
         Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = cardShape,
-            colors = cardColors
+            modifier = Modifier.fillMaxWidth()
         ) { content() }
     }
 }
@@ -604,12 +601,13 @@ private fun QuotaInlineBar(quota: QuotaInfo) {
         )
         Spacer(modifier = Modifier.height(4.dp))
         LinearProgressIndicator(
-            progress = { ratio },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(4.dp),
-            color = MaterialTheme.colorScheme.primary,
-            trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+            progress = ratio,
+            modifier = Modifier.fillMaxWidth(),
+            height = 4.dp,
+            colors = ProgressIndicatorDefaults.progressIndicatorColors(
+                foregroundColor = MiuixTheme.colorScheme.primary,
+                backgroundColor = MiuixTheme.colorScheme.surfaceContainerHighest
+            )
         )
     }
 }

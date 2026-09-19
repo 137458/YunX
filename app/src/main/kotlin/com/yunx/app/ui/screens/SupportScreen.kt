@@ -18,6 +18,7 @@
 
 package com.yunx.app.ui.screens
 
+import android.Manifest
 import android.content.ContentValues
 import android.content.Context
 import android.content.pm.PackageManager
@@ -26,7 +27,6 @@ import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
-import android.Manifest
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -44,26 +44,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.VolunteerActivism
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -73,6 +59,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -83,17 +70,26 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.yunx.app.R
 import com.yunx.app.ui.SnackbarController
+import com.yunx.app.ui.theme.SquircleShape
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.Scaffold
+import top.yukonga.miuix.kmp.basic.Surface
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.basic.TopAppBar
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 import java.io.File
 import java.io.FileOutputStream
 
 /**
  * 支持开发页：展示微信捐赠码（可保存到相册）。
- * Material3 风格：渐变头部 + 卡片展示二维码 + 感谢语 + 保存按钮。
+ * Miuix 规范重构：Scaffold、TopAppBar、Card、Text、Button 规范化构建。
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SupportScreen(
     onBack: () -> Unit,
@@ -101,7 +97,7 @@ fun SupportScreen(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    // 保存到相册成功状态（覆盖层内全局 Snackbar 可能被遮挡，用本地状态兜底反馈）
+    // 保存到相册成功状态
     var saved by remember { mutableStateOf(false) }
     // Android 9- 保存到公共 Pictures 需 WRITE_EXTERNAL_STORAGE 运行时授权
     var pendingPermission by remember { mutableStateOf<kotlinx.coroutines.CompletableDeferred<Boolean>?>(null) }
@@ -111,22 +107,18 @@ fun SupportScreen(
         pendingPermission?.complete(granted)
         pendingPermission = null
     }
-    // 系统返回键 → 返回设置页
     BackHandler { onBack() }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
-                title = { Text("支持开发", style = MaterialTheme.typography.titleLarge) },
+                title = "支持开发",
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
+                }
             )
         }
     ) { innerPadding ->
@@ -135,7 +127,7 @@ fun SupportScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp, vertical = 16.dp),
+                .padding(horizontal = 16.dp, vertical = 12.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -146,25 +138,25 @@ fun SupportScreen(
                     .background(
                         brush = Brush.linearGradient(
                             listOf(
-                                MaterialTheme.colorScheme.primary,
-                                MaterialTheme.colorScheme.tertiary
+                                MiuixTheme.colorScheme.primary,
+                                MiuixTheme.colorScheme.surfaceVariant
                             )
                         ),
-                        shape = RoundedCornerShape(24.dp)
+                        shape = SquircleShape(24.dp)
                     )
                     .padding(horizontal = 20.dp, vertical = 24.dp)
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Surface(
                         modifier = Modifier.size(48.dp),
-                        shape = CircleShape,
-                        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.25f)
+                        shape = SquircleShape(14.dp),
+                        color = MiuixTheme.colorScheme.surface.copy(alpha = 0.25f)
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
                                 imageVector = Icons.Outlined.VolunteerActivism,
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onPrimary,
+                                tint = MiuixTheme.colorScheme.onPrimary,
                                 modifier = Modifier.size(26.dp)
                             )
                         }
@@ -173,15 +165,15 @@ fun SupportScreen(
                     Column {
                         Text(
                             text = "支持开发",
-                            style = MaterialTheme.typography.titleLarge,
+                            style = MiuixTheme.textStyles.title1,
                             fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onPrimary
+                            color = MiuixTheme.colorScheme.onPrimary
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             text = "你的支持，是持续维护与更新的动力",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.85f)
+                            style = MiuixTheme.textStyles.body2,
+                            color = MiuixTheme.colorScheme.onPrimary.copy(alpha = 0.85f)
                         )
                     }
                 }
@@ -189,11 +181,7 @@ fun SupportScreen(
 
             // ---------- 微信捐赠码卡片 ----------
             Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = MaterialTheme.shapes.large,
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-                )
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Column(
                     modifier = Modifier
@@ -205,24 +193,23 @@ fun SupportScreen(
                         Icon(
                             imageVector = Icons.Outlined.Favorite,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
+                            tint = MiuixTheme.colorScheme.primary,
                             modifier = Modifier.size(18.dp)
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
                             text = "微信扫码捐赠",
-                            style = MaterialTheme.typography.titleMedium,
+                            style = MiuixTheme.textStyles.subtitle,
                             fontWeight = FontWeight.Medium
                         )
                     }
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // 二维码图片（白底圆角卡片内展示）
+                    // 二维码图片（SquircleShape 白底展示）
                     Surface(
                         modifier = Modifier.size(240.dp),
-                        shape = RoundedCornerShape(16.dp),
-                        color = MaterialTheme.colorScheme.surface,
-                        shadowElevation = 4.dp
+                        shape = SquircleShape(16.dp),
+                        color = Color.White
                     ) {
                         Image(
                             painter = painterResource(R.drawable.weixin),
@@ -237,20 +224,16 @@ fun SupportScreen(
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
                         text = "保存二维码到相册后，打开微信「扫一扫」即可捐赠",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MiuixTheme.textStyles.body2,
+                        color = MiuixTheme.colorScheme.onSurfaceSecondary,
                         textAlign = TextAlign.Center
                     )
                 }
             }
 
-            // ---------- 免责说明（委婉） ----------
+            // ---------- 捐赠说明 ----------
             Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = MaterialTheme.shapes.large,
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer
-                )
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Row(
                     modifier = Modifier
@@ -261,7 +244,7 @@ fun SupportScreen(
                     Icon(
                         imageVector = Icons.Outlined.VolunteerActivism,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                        tint = MiuixTheme.colorScheme.primary,
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.width(10.dp))
@@ -269,8 +252,8 @@ fun SupportScreen(
                         text = "云析完全免费开源，所有功能无需捐赠即可正常使用。" +
                             "如果你觉得它帮到了你，愿意的话可以扫码表达一下心意，" +
                             "你的支持会成为持续维护与更新的动力～",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer,
+                        style = MiuixTheme.textStyles.body2,
+                        color = MiuixTheme.colorScheme.onSurface,
                         lineHeight = 21.sp
                     )
                 }
@@ -279,9 +262,9 @@ fun SupportScreen(
             // ---------- 感谢语 ----------
             Text(
                 text = "感谢每一位支持者 ❤",
-                style = MaterialTheme.typography.bodyLarge,
+                style = MiuixTheme.textStyles.subtitle,
                 fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = MiuixTheme.colorScheme.onSurfaceSecondary,
                 textAlign = TextAlign.Center
             )
 
@@ -315,7 +298,7 @@ fun SupportScreen(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp)
+                    .height(48.dp)
             ) {
                 Icon(
                     imageVector = Icons.Outlined.Download,
@@ -325,12 +308,13 @@ fun SupportScreen(
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(if (saved) "已保存到相册" else "保存到相册")
             }
-            // 保存成功本地反馈（避免覆盖层遮挡全局 Snackbar 时无提示）
+
+            // 保存成功本地反馈
             if (saved) {
                 Text(
                     text = "✓ 二维码已保存到 相册/Pictures/YunX",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.primary,
+                    style = MiuixTheme.textStyles.footnote1,
+                    color = MiuixTheme.colorScheme.primary,
                     textAlign = TextAlign.Center
                 )
             }

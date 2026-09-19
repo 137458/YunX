@@ -23,8 +23,8 @@ import android.net.Uri
 import android.os.Handler
 import android.os.Looper
 import android.webkit.JavascriptInterface
-import android.webkit.WebResourceRequest
 import android.webkit.WebChromeClient
+import android.webkit.WebResourceRequest
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -35,16 +35,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -59,6 +50,11 @@ import androidx.compose.ui.viewinterop.AndroidView
 import com.yunx.app.data.network.XunleiConstants
 import com.yunx.app.ui.rememberGlobalSnackbarHostState
 import org.json.JSONObject
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.LinearProgressIndicator
+import top.yukonga.miuix.kmp.basic.Scaffold
+import top.yukonga.miuix.kmp.basic.TopAppBar
 
 private class XunleiJsBridge(
     private val onSuccess: (String) -> Unit,
@@ -85,7 +81,6 @@ private fun attachVerificationBridge(webView: WebView, bridge: XunleiJsBridge) {
  * 2) 页面用 parseQueryString(location.href) 从 URL 读 deviceid（不读 init 配置），
  *    必须把 deviceid 拼进 URL，否则点"获取验证码"报 deviceid不能为空。
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun XunleiVerifyWebViewScreen(
     verifyUrl: String,
@@ -178,13 +173,15 @@ fun XunleiVerifyWebViewScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text("迅雷安全验证", style = MaterialTheme.typography.titleLarge) },
+                title = "迅雷安全验证",
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "返回"
+                        )
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
+                }
             )
         }
     ) { innerPadding ->

@@ -270,31 +270,56 @@ fun ComposeEmptyActivityTheme(
     content: @Composable () -> Unit
 ) {
     val context = LocalContext.current
-    // 主题设置由 ThemeController 内存状态驱动（首次从 SharedPreferences 加载）
-    ThemeController.init(context)
+    // 主题设置由 AppThemeManager 内存状态驱动（首次从 SharedPreferences 加载）
+    AppThemeManager.init(context)
     // 深色模式：0=跟随系统，1=浅色，2=深色
-    val isDark = when (ThemeController.darkMode) {
+    val isDark = when (AppThemeManager.darkMode) {
         1 -> false
         2 -> true
         else -> darkTheme
     }
+
+    // 1. Miuix 调色板模式与控制器配置
+    val miuixMode = when (AppThemeManager.colorMode) {
+        0 -> when (AppThemeManager.darkMode) {
+            1 -> top.yukonga.miuix.kmp.theme.ColorSchemeMode.MonetLight
+            2 -> top.yukonga.miuix.kmp.theme.ColorSchemeMode.MonetDark
+            else -> top.yukonga.miuix.kmp.theme.ColorSchemeMode.MonetSystem
+        }
+        else -> when (AppThemeManager.darkMode) {
+            1 -> top.yukonga.miuix.kmp.theme.ColorSchemeMode.Light
+            2 -> top.yukonga.miuix.kmp.theme.ColorSchemeMode.Dark
+            else -> top.yukonga.miuix.kmp.theme.ColorSchemeMode.System
+        }
+    }
+    val miuixKeyColor = if (AppThemeManager.colorMode == 2) Color(AppThemeManager.seedColor) else null
+    val miuixController = remember(miuixMode, miuixKeyColor) {
+        top.yukonga.miuix.kmp.theme.ThemeController(
+            colorSchemeMode = miuixMode,
+            keyColor = miuixKeyColor
+        )
+    }
+
+    // 2. MD3 颜色方案兼容层
     val colorScheme = when {
         // 动态色彩：Android 12+ 从系统壁纸取色
-        ThemeController.colorMode == 0 && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+        AppThemeManager.colorMode == 0 && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             if (isDark) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
         // 自定义种子色（预选色 / 颜色卡自选）：基于种子色生成完整 Material3 方案
-        ThemeController.colorMode == 2 -> seedColorScheme(ThemeController.seedColor, isDark)
+        AppThemeManager.colorMode == 2 -> seedColorScheme(AppThemeManager.seedColor, isDark)
         // 默认蓝色（低版本动态色彩不可用时也回退到这里）
         isDark -> darkScheme
         else -> lightScheme
     }
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = Typography,
-        content = content
-    )
+    top.yukonga.miuix.kmp.theme.MiuixTheme(controller = miuixController) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = Typography,
+            content = content
+        )
+    }
 }
 
 /**

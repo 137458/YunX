@@ -74,20 +74,22 @@ import androidx.compose.material.icons.outlined.SystemUpdate
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarScrollBehavior
+import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.CardDefaults
+import top.yukonga.miuix.kmp.basic.LinearProgressIndicator
+import top.yukonga.miuix.kmp.basic.ProgressIndicatorDefaults
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -468,10 +470,7 @@ private fun FolderDownloadGroup(
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.large,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-        )
+        colors = CardDefaults.defaultColors()
     ) {
         Column {
             // 头部：点击展开/收起
@@ -552,14 +551,15 @@ private fun FolderDownloadGroup(
                     // 总体进度条（已完成时隐藏）
                     if (!done) {
                         LinearProgressIndicator(
-                            progress = { fraction },
+                            progress = fraction,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 14.dp)
-                                .height(4.dp)
-                                .clip(RoundedCornerShape(2.dp)),
-                            color = MaterialTheme.colorScheme.primary,
-                            trackColor = MaterialTheme.colorScheme.surfaceContainerHighest
+                                .padding(horizontal = 14.dp),
+                            height = 4.dp,
+                            colors = ProgressIndicatorDefaults.progressIndicatorColors(
+                                foregroundColor = MiuixTheme.colorScheme.primary,
+                                backgroundColor = MiuixTheme.colorScheme.surfaceContainerHighest
+                            )
                         )
                     }
                     // 子任务列表（紧凑行，含子文件夹内文件）
@@ -608,16 +608,13 @@ private fun DownloadSubTaskRow(
     // 长按任务行弹出操作菜单（复制直链 / 重新下载 / 删除）
     var showMenu by remember { mutableStateOf(false) }
 
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(14.dp))
-            .combinedClickable(
-                onClick = {},
-                onLongClick = { showMenu = true }
-            ),
-        shape = RoundedCornerShape(14.dp),
-        color = MaterialTheme.colorScheme.surfaceContainer
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        onClick = {},
+        onLongPress = { showMenu = true },
+        colors = CardDefaults.defaultColors(
+            color = MiuixTheme.colorScheme.surfaceContainer
+        )
     ) {
         Column(modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -707,18 +704,19 @@ private fun DownloadSubTaskRow(
                 exit = shrinkVertically(tween(200)) + fadeOut(tween(150))
             ) {
                 LinearProgressIndicator(
-                    progress = { fraction },
+                    progress = fraction,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 6.dp)
-                        .height(3.dp)
-                        .clip(RoundedCornerShape(1.5f)),
-                    color = if (task.status == DownloadTaskEntity.STATUS_FAILED) {
-                        MaterialTheme.colorScheme.error
-                    } else {
-                        MaterialTheme.colorScheme.primary
-                    },
-                    trackColor = MaterialTheme.colorScheme.surfaceContainerHighest
+                        .padding(top = 6.dp),
+                    height = 3.dp,
+                    colors = ProgressIndicatorDefaults.progressIndicatorColors(
+                        foregroundColor = if (task.status == DownloadTaskEntity.STATUS_FAILED) {
+                            MiuixTheme.colorScheme.error
+                        } else {
+                            MiuixTheme.colorScheme.primary
+                        },
+                        backgroundColor = MiuixTheme.colorScheme.surfaceContainerHighest
+                    )
                 )
             }
         }
@@ -791,17 +789,10 @@ private fun DownloadTaskCard(
     var showMenu by remember { mutableStateOf(false) }
 
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(MaterialTheme.shapes.large)
-            .combinedClickable(
-                onClick = {},
-                onLongClick = { showMenu = true }
-            ),
-        shape = MaterialTheme.shapes.large,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-        )
+        modifier = Modifier.fillMaxWidth(),
+        onClick = {},
+        onLongPress = { showMenu = true },
+        colors = CardDefaults.defaultColors()
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -897,13 +888,16 @@ private fun DownloadTaskCard(
                         Spacer(modifier = Modifier.height(6.dp))
                     }
                     LinearProgressIndicator(
-                        progress = { fraction },
+                        progress = fraction,
                         modifier = Modifier.fillMaxWidth(),
-                        color = when (task.status) {
-                            DownloadTaskEntity.STATUS_FAILED -> MaterialTheme.colorScheme.error
-                            else -> MaterialTheme.colorScheme.primary
-                        },
-                        trackColor = MaterialTheme.colorScheme.surfaceContainerHighest
+                        height = 6.dp,
+                        colors = ProgressIndicatorDefaults.progressIndicatorColors(
+                            foregroundColor = when (task.status) {
+                                DownloadTaskEntity.STATUS_FAILED -> MiuixTheme.colorScheme.error
+                                else -> MiuixTheme.colorScheme.primary
+                            },
+                            backgroundColor = MiuixTheme.colorScheme.surfaceContainerHighest
+                        )
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                 }

@@ -22,75 +22,171 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Download
+import androidx.compose.material.icons.outlined.DriveFileMove
+import androidx.compose.material.icons.outlined.SaveAlt
+import androidx.compose.material.icons.outlined.SelectAll
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import top.yukonga.miuix.kmp.basic.FloatingToolbar
+import top.yukonga.miuix.kmp.basic.FloatingToolbarDefaults
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /** 多选底部批量操作项 */
 internal data class MultiSelectAction(
     val label: String,
     val icon: ImageVector,
-    val tint: Color,
+    val tint: Color = Color.Unspecified,
     val onClick: () -> Unit
 )
 
-/** 多选模式底部批量操作栏（云盘页/解析页共用） */
+/**
+ * 多选模式悬浮胶囊工具栏（Miuix FloatingToolbar 架构）。
+ * 放置全选、下载、移动、删除（错误色）、转存等操作按钮。
+ */
 @Composable
 internal fun MultiSelectBar(
     count: Int,
-    actions: List<MultiSelectAction>
+    actions: List<MultiSelectAction>,
+    modifier: Modifier = Modifier
 ) {
-    Box(modifier = Modifier.fillMaxSize()) {
-        Surface(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth(),
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(bottom = 16.dp),
+        contentAlignment = Alignment.BottomCenter
+    ) {
+        FloatingToolbar(
+            modifier = Modifier.padding(horizontal = 16.dp),
+            color = MiuixTheme.colorScheme.surfaceContainer,
+            cornerRadius = FloatingToolbarDefaults.CornerRadius,
+            outSidePadding = PaddingValues(0.dp),
             shadowElevation = 8.dp
         ) {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 10.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly,
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 actions.forEach { action ->
+                    val isDelete = action.label == "删除"
+                    val itemTint = when {
+                        isDelete -> MiuixTheme.colorScheme.error
+                        action.tint != Color.Unspecified -> action.tint
+                        else -> MiuixTheme.colorScheme.primary
+                    }
+                    val textTint = if (isDelete) MiuixTheme.colorScheme.error else MiuixTheme.colorScheme.onSurfaceVariantActions
+
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier
+                            .clip(CircleShape)
                             .clickable(onClick = action.onClick)
-                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                            .padding(horizontal = 10.dp, vertical = 6.dp)
                     ) {
                         Icon(
                             imageVector = action.icon,
                             contentDescription = action.label,
-                            tint = action.tint,
-                            modifier = Modifier.size(22.dp)
+                            tint = itemTint,
+                            modifier = Modifier.size(20.dp)
                         )
                         Spacer(modifier = Modifier.height(2.dp))
                         Text(
                             text = action.label,
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            style = MiuixTheme.textStyles.footnote2,
+                            color = textTint
                         )
                     }
                 }
             }
         }
     }
+}
+
+/**
+ * 多选模式标准悬浮胶囊工具栏快捷重载：
+ * 预置全选、下载、移动、转存、删除（错误色）。
+ */
+@Composable
+internal fun MultiSelectBar(
+    count: Int,
+    onSelectAll: (() -> Unit)? = null,
+    isAllSelected: Boolean = false,
+    onDownload: (() -> Unit)? = null,
+    onMove: (() -> Unit)? = null,
+    onSave: (() -> Unit)? = null,
+    onDelete: (() -> Unit)? = null,
+    modifier: Modifier = Modifier
+) {
+    val actions = buildList {
+        if (onSelectAll != null) {
+            add(
+                MultiSelectAction(
+                    label = if (isAllSelected) "取消全选" else "全选",
+                    icon = if (isAllSelected) Icons.Outlined.CheckCircle else Icons.Outlined.SelectAll,
+                    tint = MiuixTheme.colorScheme.primary,
+                    onClick = onSelectAll
+                )
+            )
+        }
+        if (onDownload != null) {
+            add(
+                MultiSelectAction(
+                    label = "下载",
+                    icon = Icons.Outlined.Download,
+                    tint = MiuixTheme.colorScheme.primary,
+                    onClick = onDownload
+                )
+            )
+        }
+        if (onMove != null) {
+            add(
+                MultiSelectAction(
+                    label = "移动",
+                    icon = Icons.Outlined.DriveFileMove,
+                    tint = MiuixTheme.colorScheme.primary,
+                    onClick = onMove
+                )
+            )
+        }
+        if (onSave != null) {
+            add(
+                MultiSelectAction(
+                    label = "转存",
+                    icon = Icons.Outlined.SaveAlt,
+                    tint = MiuixTheme.colorScheme.primary,
+                    onClick = onSave
+                )
+            )
+        }
+        if (onDelete != null) {
+            add(
+                MultiSelectAction(
+                    label = "删除",
+                    icon = Icons.Outlined.Delete,
+                    tint = MiuixTheme.colorScheme.error,
+                    onClick = onDelete
+                )
+            )
+        }
+    }
+    MultiSelectBar(count = count, actions = actions, modifier = modifier)
 }
