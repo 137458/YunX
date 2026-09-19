@@ -83,6 +83,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastCoerceIn
 import androidx.compose.ui.util.fastRoundToInt
 import androidx.compose.ui.util.lerp
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import top.yukonga.miuix.kmp.blur.Backdrop
@@ -301,6 +303,7 @@ fun FloatingBottomBar(
 
     class DampedDragAnimationHolder {
         var instance: DampedDragAnimation? = null
+        var offsetJob: Job? = null
     }
 
     val holder = remember { DampedDragAnimationHolder() }
@@ -339,6 +342,7 @@ fun FloatingBottomBar(
                 val isSwitched = dropIndex != currentSelectedIndex()
 
                 animateToValue(dropIndex.toFloat())
+                holder.offsetJob?.cancel()
                 animationScope.launch {
                     offsetAnimation.animateTo(0f, spring(1f, 300f, 0.5f))
                 }
@@ -354,7 +358,8 @@ fun FloatingBottomBar(
                         (targetValue + dragAmount.x / tabWidthPx * if (isLtr) 1f else -1f)
                             .fastCoerceIn(0f, (tabsCount - 1).toFloat()),
                     )
-                    animationScope.launch {
+                    holder.offsetJob?.cancel()
+                    holder.offsetJob = animationScope.launch(start = CoroutineStart.UNDISPATCHED) {
                         offsetAnimation.snapTo(offsetAnimation.value + dragAmount.x)
                     }
                 }
@@ -484,10 +489,9 @@ fun FloatingBottomBar(
             )
         }
 
-        // ── 第 2 层：离屏高亮层（录制"选中配色 + 已折射底材"供滑块二次采样） ──
-        // 注意：这一层必须同样过一遍 drawBackdrop，否则滑块采到的是原始页面内容，
-        // 而不是"透过外壳玻璃看到的内容"，双重折射的层次感会丢失。
-        if (isLiquidGlassMode && combinedBackdrop != null && tabsBackdrop != null && backdrop != null) {
+        // ── 第 2 层：离屏高亮层（仅录制"选中配色 Tab 图标与文字"，供滑块二次采样） ──
+        // 移除多余的 drawBackdrop，避免与滑块的 CombinedBackdrop 发生双重模糊和底色二次叠加致暗
+        if (isLiquidGlassMode && combinedBackdrop != null && tabsBackdrop != null) {
             CompositionLocalProvider(
                 LocalFloatingBottomBarTabScale provides {
                     lerp(1f, 1.2f, dampedDragAnimation.pressProgress)
@@ -500,18 +504,6 @@ fun FloatingBottomBar(
                         .alpha(0f)
                         .layerBackdrop(tabsBackdrop)
                         .graphicsLayer { translationX = panelOffset }
-                        .drawBackdrop(
-                            backdrop = backdrop,
-                            shape = { pillShape },
-                            effects = {
-                                padding = maxOf(padding, lensPaddingPx)
-                                vibrancy()
-                                blur(blur4Px, blur4Px)
-                                lens(refractionHeight = lens24Px, refractionAmount = lens24Px)
-                            },
-                            onDrawSurface = { drawRect(containerColor) },
-                        )
-                        .then(interactiveHighlight?.modifier ?: Modifier)
                         .height(56.dp)
                         .padding(horizontal = 4.dp),
                     verticalAlignment = Alignment.CenterVertically,

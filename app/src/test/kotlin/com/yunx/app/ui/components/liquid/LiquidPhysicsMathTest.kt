@@ -119,6 +119,24 @@ class LiquidPhysicsMathTest {
         assertEquals(64f, outMax.y, 1e-4f)
     }
 
+    @Test
+    fun safeNormalize_whenZeroLength_returnsZeroPair() {
+        val (nx, ny) = LiquidPhysicsMath.safeNormalize(0f, 0f)
+        assertEquals(0f, nx, 1e-6f)
+        assertEquals(0f, ny, 1e-6f)
+
+        val (nxTiny, nyTiny) = LiquidPhysicsMath.safeNormalize(1e-6f, 1e-6f)
+        assertEquals(0f, nxTiny, 1e-6f)
+        assertEquals(0f, nyTiny, 1e-6f)
+    }
+
+    @Test
+    fun safeNormalize_whenNonZero_returnsNormalizedPair() {
+        val (nx, ny) = LiquidPhysicsMath.safeNormalize(3f, 4f)
+        assertEquals(0.6f, nx, 1e-4f)
+        assertEquals(0.8f, ny, 1e-4f)
+    }
+
     private fun cosDeg(deg: Float): Float = kotlin.math.cos(deg * PI / 180.0).toFloat()
     private fun sinDeg(deg: Float): Float = kotlin.math.sin(deg * PI / 180.0).toFloat()
 }

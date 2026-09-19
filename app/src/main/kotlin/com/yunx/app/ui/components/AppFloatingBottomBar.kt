@@ -25,8 +25,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
@@ -64,7 +62,6 @@ fun AppFloatingBottomBar(
         contentColor = MiuixTheme.colorScheme.onSurfaceVariantSummary,
         activeContentColor = MiuixTheme.colorScheme.primary
     )
-    val hapticFeedback = LocalHapticFeedback.current
 
     FloatingBottomBar(
         selectedIndex = { currentTab.ordinal },
@@ -77,10 +74,7 @@ fun AppFloatingBottomBar(
     ) {
         tabs.forEach { tab ->
             FloatingBottomBarItem(
-                onClick = {
-                    hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
-                    onTabSelected(tab)
-                },
+                onClick = { onTabSelected(tab) },
                 selected = currentTab == tab,
                 modifier = Modifier
                     .defaultMinSize(minWidth = 72.dp)

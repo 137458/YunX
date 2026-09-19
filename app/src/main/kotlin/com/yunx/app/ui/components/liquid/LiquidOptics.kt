@@ -161,6 +161,11 @@ private const val ROUNDED_RECT_REFRACTION_SHADER = """
         return 1.0 - sqrt(max(0.0, 1.0 - x * x));
     }
 
+    float2 safeNormalize(float2 v) {
+        float len = length(v);
+        return len > 0.0001 ? v / len : float2(0.0);
+    }
+
     half4 main(float2 coord) {
         float2 halfSize = size * 0.5;
         float2 centeredCoord = (coord + offset) - halfSize;
@@ -174,7 +179,7 @@ private const val ROUNDED_RECT_REFRACTION_SHADER = """
 
         float d = circleMap(1.0 - -sd / refractionHeight) * refractionAmount;
         float gradRadius = min(radius * 1.5, min(halfSize.x, halfSize.y));
-        float2 grad = normalize(gradSdRoundedRect(centeredCoord, halfSize, gradRadius) + depthEffect * normalize(centeredCoord));
+        float2 grad = safeNormalize(gradSdRoundedRect(centeredCoord, halfSize, gradRadius) + depthEffect * safeNormalize(centeredCoord));
 
         float2 refractedCoord = coord + d * grad;
         return content.eval(refractedCoord);
@@ -222,6 +227,11 @@ private const val ROUNDED_RECT_REFRACTION_WITH_DISPERSION_SHADER = """
         return 1.0 - sqrt(max(0.0, 1.0 - x * x));
     }
 
+    float2 safeNormalize(float2 v) {
+        float len = length(v);
+        return len > 0.0001 ? v / len : float2(0.0);
+    }
+
     half4 main(float2 coord) {
         float2 halfSize = size * 0.5;
         float2 centeredCoord = (coord + offset) - halfSize;
@@ -235,7 +245,7 @@ private const val ROUNDED_RECT_REFRACTION_WITH_DISPERSION_SHADER = """
 
         float d = circleMap(1.0 - -sd / refractionHeight) * refractionAmount;
         float gradRadius = min(radius * 1.5, min(halfSize.x, halfSize.y));
-        float2 grad = normalize(gradSdRoundedRect(centeredCoord, halfSize, gradRadius) + depthEffect * normalize(centeredCoord));
+        float2 grad = safeNormalize(gradSdRoundedRect(centeredCoord, halfSize, gradRadius) + depthEffect * safeNormalize(centeredCoord));
 
         float2 refractedCoord = coord + d * grad;
         float dispersionIntensity = chromaticAberration * ((centeredCoord.x * centeredCoord.y) / (halfSize.x * halfSize.y));

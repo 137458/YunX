@@ -88,4 +88,12 @@ object LiquidPhysicsMath {
         val cy = touchOffset.y.coerceIn(0f, containerHeight.coerceAtLeast(0f))
         return androidx.compose.ui.geometry.Offset(cx, cy)
     }
+
+    /**
+     * 安全归一化向量，防止长度接近零时除以零产生 NaN。
+     */
+    fun safeNormalize(x: Float, y: Float): Pair<Float, Float> {
+        val len = kotlin.math.sqrt(x * x + y * y)
+        return if (len > 0.0001f) Pair(x / len, y / len) else Pair(0f, 0f)
+    }
 }

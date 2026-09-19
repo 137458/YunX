@@ -135,10 +135,14 @@ internal class DampedDragAnimation(
         }
     }
 
+    private var updateJob: Job? = null
+
     fun updateValue(value: Float) {
         val target = value.coerceIn(valueRange)
-        animationScope.launch {
-            valueAnimation.animateTo(target, valueAnimationSpec) { updateVelocity() }
+        updateJob?.cancel()
+        updateJob = animationScope.launch(start = CoroutineStart.UNDISPATCHED) {
+            valueAnimation.snapTo(target)
+            updateVelocity()
         }
     }
 
