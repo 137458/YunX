@@ -149,13 +149,14 @@ internal fun CloudDriveScaffold(
             pullToRefreshState = rememberPullToRefreshState(),
             isRefreshing = isRefreshing,
             onRefresh = onRefresh,
+            contentPadding = scaffoldPadding,
+            topAppBarScrollBehavior = scrollBehavior,
             modifier = Modifier.fillMaxSize()
         ) {
             LazyColumn(
                 state = listState,
                 modifier = Modifier
-                    .fillMaxSize()
-                    .nestedScroll(scrollBehavior.nestedScrollConnection),
+                    .fillMaxSize(),
                 contentPadding = PaddingValues(
                     start = 16.dp + scaffoldPadding.calculateStartPadding(layoutDirection),
                     top = 16.dp + scaffoldPadding.calculateTopPadding(),

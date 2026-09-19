@@ -269,12 +269,13 @@ fun DriveScreen(
                     pullToRefreshState = rememberPullToRefreshState(),
                     isRefreshing = isRefreshing,
                     onRefresh = { driveQuotaViewModel.loadAll() },
+                    contentPadding = scaffoldPadding,
+                    topAppBarScrollBehavior = scrollBehavior,
                     modifier = Modifier.fillMaxSize()
                 ) {
                     LazyColumn(
                         modifier = modifier
-                            .fillMaxSize()
-                            .nestedScroll(scrollBehavior.nestedScrollConnection),
+                            .fillMaxSize(),
                         contentPadding = PaddingValues(
                             start = 16.dp + scaffoldPadding.calculateStartPadding(layoutDirection),
                             top = 16.dp + scaffoldPadding.calculateTopPadding(),

@@ -160,7 +160,7 @@ fun DownloadScreen(
                     start = 16.dp + scaffoldPadding.calculateStartPadding(layoutDirection),
                     top = 8.dp + scaffoldPadding.calculateTopPadding(),
                     end = 16.dp + scaffoldPadding.calculateEndPadding(layoutDirection),
-                    bottom = 96.dp + scaffoldPadding.calculateBottomPadding()
+                    bottom = 80.dp + scaffoldPadding.calculateBottomPadding()
                 ),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {

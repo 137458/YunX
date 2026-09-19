@@ -36,6 +36,10 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Bookmarks
 import androidx.compose.foundation.layout.Arrangement
@@ -740,7 +744,15 @@ fun MainScreen() {
         floatingToolbarPosition = ToolbarPosition.BottomCenter,
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { innerPadding ->
-        CompositionLocalProvider(LocalScaffoldPadding provides innerPadding) {
+        val layoutDirection = LocalLayoutDirection.current
+        val floatingBarBottomPadding = if (!isLandscape && bottomBarStyle.isFloating) 80.dp else 0.dp
+        val effectiveScaffoldPadding = PaddingValues(
+            start = innerPadding.calculateStartPadding(layoutDirection),
+            top = innerPadding.calculateTopPadding(),
+            end = innerPadding.calculateEndPadding(layoutDirection),
+            bottom = innerPadding.calculateBottomPadding() + floatingBarBottomPadding
+        )
+        CompositionLocalProvider(LocalScaffoldPadding provides effectiveScaffoldPadding) {
             if (isLandscape) {
                 // 横屏：左侧侧边导航栏（NavigationRail）+ 右侧内容区
                 Row(
