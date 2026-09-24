@@ -27,6 +27,8 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -54,6 +56,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -61,14 +64,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.yunx.app.data.network.model.ShareFile
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 import com.yunx.app.ui.components.BreadcrumbBar
+// CloudStepHeader / DrivePickerErrorPane 已下沉为 ui/drive 通用件；
+// 此处别名引入，保持同包调用点（CloudDriveScreen.kt）不变
+import com.yunx.app.ui.drive.CloudStepHeader as CloudStepHeader
+import com.yunx.app.ui.drive.DrivePickerErrorPane as DrivePickerErrorPane
 import com.yunx.app.ui.components.BreadcrumbItem
 import com.yunx.app.ui.components.LocalScaffoldPadding
 import com.yunx.app.ui.components.ScrollToTopButton
@@ -130,14 +139,23 @@ internal fun CloudDriveScaffold(
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var showSearch by rememberSaveable { mutableStateOf(false) }
 
-    val displayFiles = remember(files, searchQuery) {
+    // 搜索过滤放到 Default 调度器并做 120ms 防抖：云盘目录动辄上千条，
+    // 在组合期同步 filter 会让每次输入都掉帧。
+    val displayFiles by produceState(initialValue = files, files, searchQuery) {
         val q = searchQuery.trim()
-        if (q.isEmpty()) files else files.filter { it.fname.contains(q, ignoreCase = true) }
+        value = if (q.isEmpty()) {
+            files
+        } else {
+            delay(120)
+            withContext(Dispatchers.Default) { files.filter { it.fname.contains(q, ignoreCase = true) } }
+        }
     }
 
     val currentDirKey = remember(pathNames) { pathNames.joinToString("/") }
-    LaunchedEffect(currentDirKey) {
-        listState.scrollToItem(scrollPositions[currentDirKey] ?: 0)
+    LaunchedEffect(currentDirKey, displayFiles.size) {
+        // 索引必须钳制：开启搜索后列表项变少，历史保存的下标可能越界
+        val saved = scrollPositions[currentDirKey] ?: 0
+        listState.scrollToItem(saved.coerceIn(0, displayFiles.size.coerceAtLeast(0)))
     }
 
     val recordScroll = {
@@ -340,60 +358,9 @@ internal fun CloudDriveScaffold(
                 .align(Alignment.BottomCenter)
                 .padding(bottom = scaffoldPadding.calculateBottomPadding())
         ) {
-            MultiSelectBar(
-                count = selectedFiles.size,
-                actions = multiSelectActions
-            )
+            MultiSelectBar(actions = multiSelectActions)
         }
     }
-}
-
-/** 兼容旧命名的代理调用 */
-@Composable
-internal fun CloudDriveContent(
-    driveTitle: String,
-    files: List<ShareFile>,
-    pathNames: List<String>,
-    isRefreshing: Boolean,
-    onRefresh: () -> Unit,
-    multiSelectMode: Boolean,
-    selectedFiles: Set<ShareFile>,
-    scrollBehavior: ScrollBehavior,
-    onExit: () -> Unit,
-    onBackToParent: () -> Unit,
-    onNavigateToLevel: (Int) -> Unit,
-    onToggleSelectAll: (List<ShareFile>) -> Unit,
-    onExitMultiSelect: () -> Unit,
-    onFileClick: (ShareFile) -> Unit,
-    onFileMoreClick: ((ShareFile) -> Unit)? = null,
-    onFileLongClick: ((ShareFile) -> Unit)? = null,
-    multiSelectActions: List<MultiSelectAction>,
-    listState: LazyListState = rememberLazyListState(),
-    scrollPositions: MutableMap<String, Int> = remember { mutableStateMapOf() },
-    modifier: Modifier = Modifier
-) {
-    CloudDriveScaffold(
-        driveTitle = driveTitle,
-        files = files,
-        pathNames = pathNames,
-        isRefreshing = isRefreshing,
-        onRefresh = onRefresh,
-        multiSelectMode = multiSelectMode,
-        selectedFiles = selectedFiles,
-        scrollBehavior = scrollBehavior,
-        onExit = onExit,
-        onBackToParent = onBackToParent,
-        onNavigateToLevel = onNavigateToLevel,
-        onToggleSelectAll = onToggleSelectAll,
-        onExitMultiSelect = onExitMultiSelect,
-        onFileClick = onFileClick,
-        onFileMoreClick = onFileMoreClick,
-        onFileLongClick = onFileLongClick,
-        multiSelectActions = multiSelectActions,
-        listState = listState,
-        scrollPositions = scrollPositions,
-        modifier = modifier
-    )
 }
 
 /** 错误重试视图（全屏居中，消费 LocalScaffoldPadding） */
@@ -413,13 +380,19 @@ fun CloudDriveErrorView(
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(horizontal = 32.dp)
+            modifier = Modifier
+                .padding(horizontal = 32.dp)
+                // 错误文案直接来自异常 message，可能含 URL/JSON 而极长：
+                // 限行 + 省略号，并允许滚动，避免撑破屏幕或顶出可视区。
+                .verticalScroll(rememberScrollState())
         ) {
             Text(
                 text = message,
                 style = MiuixTheme.textStyles.body2,
                 color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                maxLines = 8,
+                overflow = TextOverflow.Ellipsis
             )
             Spacer(modifier = Modifier.height(16.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -512,47 +485,6 @@ fun CloudDriveDeleteDialog(
                 ) {
                     Text("删除", style = MiuixTheme.textStyles.button)
                 }
-            }
-        }
-    }
-}
-
-/** 通用后台处理中弹窗（WindowDialog，带 InfiniteProgressIndicator 与中断按钮） */
-@Composable
-fun CloudDriveOperatingDialog(
-    show: Boolean,
-    progressText: String? = null,
-    onCancel: () -> Unit
-) {
-    if (!show) return
-    WindowDialog(
-        show = show,
-        onDismissRequest = { },
-        title = "处理中"
-    ) {
-        Column(modifier = Modifier.fillMaxWidth()) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(bottom = 16.dp)
-            ) {
-                InfiniteProgressIndicator(modifier = Modifier.size(24.dp))
-                Spacer(modifier = Modifier.width(12.dp))
-                Text(
-                    text = progressText ?: "正在处理，请稍候…",
-                    style = MiuixTheme.textStyles.body1
-                )
-            }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End
-            ) {
-                TextButton(
-                    text = "中断",
-                    onClick = onCancel,
-                    colors = ButtonDefaults.textButtonColors(
-                        color = MiuixTheme.colorScheme.error
-                    )
-                )
             }
         }
     }
@@ -652,35 +584,6 @@ fun CloudActionItem(
                 text = desc,
                 style = MiuixTheme.textStyles.footnote1,
                 color = MiuixTheme.colorScheme.onSurfaceVariantSummary
-            )
-        }
-    }
-}
-
-/** 步骤头部：返回按钮 + 标题 + 副标题 */
-@Composable
-fun CloudStepHeader(title: String, subtitle: String, onBack: () -> Unit) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        IconButton(onClick = onBack) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "返回",
-                tint = MiuixTheme.colorScheme.onSurface
-            )
-        }
-        Spacer(modifier = Modifier.width(4.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = title,
-                style = MiuixTheme.textStyles.title4,
-                fontWeight = FontWeight.Medium
-            )
-            Text(
-                text = subtitle,
-                style = MiuixTheme.textStyles.footnote1,
-                color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
             )
         }
     }

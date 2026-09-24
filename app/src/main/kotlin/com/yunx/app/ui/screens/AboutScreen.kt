@@ -270,9 +270,10 @@ fun AboutScreen(
             )
             Spacer(modifier = Modifier.height(6.dp))
             Text(
-                text = "云析 v$versionName · Made with ❤ and deepseek",
+                text = "云析 v$versionName · Made with DeepSeek",
                 style = MiuixTheme.textStyles.footnote1,
-                color = MiuixTheme.colorScheme.dividerLine,
+                // dividerLine 是分隔线专用色，深色下几乎不可见，正文必须用次级内容色
+                color = MiuixTheme.colorScheme.onSurfaceSecondary,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 12.dp),

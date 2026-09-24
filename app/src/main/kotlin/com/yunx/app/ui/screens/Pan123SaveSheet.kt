@@ -18,55 +18,19 @@
 
 package com.yunx.app.ui.screens
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Folder
-import androidx.compose.material.icons.outlined.SaveAlt
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import com.yunx.app.ui.SnackbarController
-import com.yunx.app.ui.resolve.BackToParentItem
-import com.yunx.app.ui.resolve.CrumbBar
-import com.yunx.app.ui.resolve.ShareFileRow
+import com.yunx.app.ui.drive.CloudDriveUiState
+import com.yunx.app.ui.drive.CloudPickerSheet
 import com.yunx.app.ui.viewmodel.Pan123CloudUiState
 import com.yunx.app.ui.viewmodel.Pan123CloudViewModel
 import com.yunx.app.ui.viewmodel.ResolveViewModel
-import top.yukonga.miuix.kmp.basic.Button
-import top.yukonga.miuix.kmp.basic.ButtonDefaults
-import top.yukonga.miuix.kmp.basic.Icon
-import top.yukonga.miuix.kmp.basic.Text
-import top.yukonga.miuix.kmp.basic.TextButton
-import top.yukonga.miuix.kmp.overlay.OverlayBottomSheet
-import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /**
- * 123云盘转存底部抽屉（Miuix OverlayBottomSheet）：浏览 123 个人网盘目录，确认后转存到当前目录。
+ * 转存到 123 云盘转存底部抽屉：浏览目标网盘目录，确认后把当前解析出的内容转存到该目录。
  */
 @Composable
 fun Pan123SaveSheet(
@@ -75,180 +39,38 @@ fun Pan123SaveSheet(
     onDismiss: () -> Unit
 ) {
     val cloudState by cloudViewModel.uiState.collectAsState()
-    val saving = resolveViewModel.isSaving
-    val message = resolveViewModel.saveMessage
 
-    LaunchedEffect(Unit) {
-        cloudViewModel.loadRoot()
-    }
+    // 打开抽屉时回到根目录
+    LaunchedEffect(Unit) { cloudViewModel.loadRoot() }
 
     // 转存结果提示（由外层 Scaffold 统一托管）
-    LaunchedEffect(message) {
-        if (message != null) {
-            SnackbarController.show(message)
+    LaunchedEffect(resolveViewModel.saveMessage) {
+        resolveViewModel.saveMessage?.let {
+            SnackbarController.show(it)
             resolveViewModel.consumeSaveMessage()
         }
     }
 
-    OverlayBottomSheet(
-        show = true,
-        onDismissRequest = onDismiss
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 24.dp, end = 24.dp, top = 4.dp, bottom = 32.dp)
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Surface(
-                    modifier = Modifier.size(40.dp),
-                    shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
-                    color = MiuixTheme.colorScheme.primaryVariant
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            imageVector = Icons.Outlined.SaveAlt,
-                            contentDescription = null,
-                            tint = MiuixTheme.colorScheme.onPrimaryVariant
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.width(12.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "转存到 123 云盘",
-                        style = MiuixTheme.textStyles.title4,
-                        fontWeight = FontWeight.Medium
-                    )
-                    Text(
-                        text = resolveViewModel.saveTarget?.fname ?: "",
-                        style = MiuixTheme.textStyles.body2,
-                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
-                        maxLines = 1
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            CrumbBar(
-                rootTitle = "根目录",
-                pathNames = (cloudState as? Pan123CloudUiState.Loaded)?.pathNames ?: emptyList(),
-                onNavigate = { cloudViewModel.navigateToLevel(it) }
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // 返回上一级：固定在目录区上方
-            if ((cloudState as? Pan123CloudUiState.Loaded)?.pathNames?.isNotEmpty() == true) {
-                BackToParentItem(onClick = { cloudViewModel.back() })
-                Spacer(modifier = Modifier.height(4.dp))
-            }
-
-            // 目录切换：淡入过渡
-            AnimatedContent(
-                targetState = cloudState,
-                transitionSpec = { fadeIn(tween(180)) togetherWith fadeOut(tween(140)) },
-                label = "pan123SaveState"
-            ) { s ->
-                when (s) {
-                    is Pan123CloudUiState.Loading -> Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator(color = MiuixTheme.colorScheme.primary)
-                    }
-
-                    is Pan123CloudUiState.Error -> Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(
-                                text = s.message,
-                                style = MiuixTheme.textStyles.body2,
-                                color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
-                                textAlign = TextAlign.Center
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            TextButton(
-                                text = "重试",
-                                onClick = { cloudViewModel.loadRoot() }
-                            )
-                        }
-                    }
-
-                    is Pan123CloudUiState.Loaded -> {
-                        val dirs = s.files.filter { it.isdir }
-                        if (dirs.isEmpty()) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(120.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = "当前目录没有子文件夹，可直接转存到此目录",
-                                    style = MiuixTheme.textStyles.body2,
-                                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
-                                    textAlign = TextAlign.Center
-                                )
-                            }
-                        } else {
-                            LazyColumn(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .heightIn(max = 280.dp),
-                                verticalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                items(dirs, key = { it.fid }) { dir ->
-                                    ShareFileRow(
-                                        file = dir,
-                                        onClick = { cloudViewModel.openFolder(dir) }
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            val currentDirName =
-                (cloudState as? Pan123CloudUiState.Loaded)?.pathNames?.lastOrNull() ?: "根目录"
-            Button(
-                onClick = {
-                    val to = (cloudState as? Pan123CloudUiState.Loaded)?.dirId ?: "0"
-                    resolveViewModel.saveToCloud(to)
-                },
-                enabled = !saving,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp),
-                colors = ButtonDefaults.buttonColorsPrimary()
-            ) {
-                if (saving) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(20.dp),
-                        strokeWidth = 2.dp,
-                        color = MiuixTheme.colorScheme.onPrimary
-                    )
-                } else {
-                    Icon(
-                        imageVector = Icons.Outlined.Folder,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp),
-                        tint = MiuixTheme.colorScheme.onPrimary
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("转存到此目录（$currentDirName）", style = MiuixTheme.textStyles.button)
-                }
-            }
-        }
-    }
+    CloudPickerSheet(
+        title = "转存到 123 云盘",
+        targetName = resolveViewModel.saveTarget?.fname ?: "",
+        state = cloudState.toDrivePickerState(),
+        onDismiss = onDismiss,
+        onNavigateToLevel = { cloudViewModel.navigateToLevel(it) },
+        onBack = { cloudViewModel.back() },
+        onOpenFolder = { cloudViewModel.openFolder(it) },
+        onRetry = { cloudViewModel.loadRoot() },
+        saving = resolveViewModel.isSaving,
+        onConfirm = { resolveViewModel.saveToCloud(cloudState.currentDir()) },
+        contentLabel = "pan123SaveState"
+    )
 }
+
+private fun Pan123CloudUiState.toDrivePickerState(): CloudDriveUiState = when (this) {
+    is Pan123CloudUiState.Loading -> CloudDriveUiState.Loading
+    is Pan123CloudUiState.Error -> CloudDriveUiState.Error(message)
+    is Pan123CloudUiState.Loaded -> CloudDriveUiState.Loaded(files, pathNames, dirId)
+}
+
+private fun Pan123CloudUiState.currentDir(): String =
+    (this as? Pan123CloudUiState.Loaded)?.dirId ?: "0"

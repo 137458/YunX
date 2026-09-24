@@ -22,12 +22,9 @@ import android.Manifest
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Build
 import android.os.Environment
-import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -89,14 +86,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
-import androidx.core.content.FileProvider
 import com.yunx.app.data.db.DownloadTaskEntity
 import com.yunx.app.data.download.DownloadStats
 import com.yunx.app.ui.SnackbarController
 import com.yunx.app.ui.components.LocalScaffoldPadding
 import com.yunx.app.ui.theme.SquircleShape
+import com.yunx.app.ui.util.installApk
+import com.yunx.app.ui.util.openSavedFile
 import com.yunx.app.ui.viewmodel.DownloadViewModel
-import java.io.File
+import java.util.Locale
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Card
@@ -129,6 +127,12 @@ fun DownloadScreen(
     val layoutDirection = LocalLayoutDirection.current
     val tasks by viewModel.tasks.collectAsState()
     val stats by viewModel.stats.collectAsState()
+    // 任务分组只随任务列表变化重算。LazyListScope 内不能调用 remember，
+    // 而速度统计每 250ms 刷新一次——放在列表 lambda 里会让每次重组都全量 filter + groupBy。
+    val rootTasks = remember(tasks) { tasks.filter { !it.fileName.contains('/') } }
+    val folderGroups = remember(tasks) {
+        tasks.filter { it.fileName.contains('/') }.groupBy { it.fileName.substringBefore('/') }
+    }
     var showAddDialog by remember { mutableStateOf(false) }
     var pendingDelete by remember { mutableStateOf<DownloadTaskEntity?>(null) }
     var showDeleteAllConfirm by remember { mutableStateOf(false) }
@@ -181,13 +185,8 @@ fun DownloadScreen(
                     )
                 }
 
-                // 根目录任务（无相对路径）单独显示
-                val rootTasks = tasks.filter { !it.fileName.contains('/') }
-                    // 文件夹下载任务：按「顶级目录」分组（整个文件夹归为一组，内部子文件夹不拆开）
-                    val folderGroups = tasks.filter { it.fileName.contains('/') }
-                        .groupBy { it.fileName.substringBefore('/') }
-
-                    items(rootTasks, key = { it.id }) { task ->
+                // 根目录任务（无相对路径）单独显示；文件夹任务按「顶级目录」分组（整个文件夹归为一组）
+                items(rootTasks, key = { it.id }, contentType = { "download_task" }) { task ->
                         DownloadTaskCard(
                             task = task,
                             stats = stats[task.id],
@@ -199,7 +198,7 @@ fun DownloadScreen(
                     }
 
                     folderGroups.forEach { (folder, groupTasks) ->
-                        item(key = "folder_$folder") {
+                        item(key = "folder_$folder", contentType = "download_folder") {
                             FolderDownloadGroup(
                                 folder = folder,
                                 tasks = groupTasks,
@@ -565,7 +564,12 @@ private fun FolderDownloadGroup(
                     }
                 ) {
                     Text(
-                        text = if (done) "已完成" else "${(fraction * 100).toInt()}%",
+                        text = when {
+                            done -> "已完成"
+                            // 分组内存在大小未知的任务时不报假的 0%
+                            totalSize <= 0 -> "进行中"
+                            else -> "${(fraction * 100).toInt()}%"
+                        },
                         style = MiuixTheme.textStyles.footnote1,
                         fontWeight = FontWeight.SemiBold,
                         color = if (done) {
@@ -591,8 +595,8 @@ private fun FolderDownloadGroup(
                 exit = fadeOut(tween(150)) + shrinkVertically(tween(150), shrinkTowards = Alignment.Top)
             ) {
                 Column {
-                    // 总体进度条（已完成时隐藏）
-                    if (!done) {
+                    // 总体进度条（已完成或大小未知时隐藏，避免显示 0% 的假进度）
+                    if (!done && totalSize > 0) {
                         LinearProgressIndicator(
                             progress = fraction,
                             modifier = Modifier
@@ -651,9 +655,9 @@ private fun DownloadSubTaskRow(
     // 长按任务行弹出操作菜单（复制直链 / 重新下载 / 删除）
     var showMenu by remember { mutableStateOf(false) }
 
+    // 只保留长按手势：原先的 onClick = {} 会让卡片被读屏当成"按钮"却没有任何动作。
     Card(
         modifier = Modifier.fillMaxWidth(),
-        onClick = {},
         onLongPress = { showMenu = true },
         colors = CardDefaults.defaultColors(
             color = MiuixTheme.colorScheme.surfaceContainer
@@ -704,19 +708,19 @@ private fun DownloadSubTaskRow(
                 // 主操作（暂停/继续/重试/打开）
                 when (task.status) {
                     DownloadTaskEntity.STATUS_DOWNLOADING,
-                    DownloadTaskEntity.STATUS_PENDING -> IconButton(onClick = onPause, modifier = Modifier.size(32.dp)) {
+                    DownloadTaskEntity.STATUS_PENDING -> IconButton(onClick = onPause, modifier = Modifier.size(48.dp)) {
                         Icon(
                             Icons.Outlined.Pause, contentDescription = "暂停",
                             tint = MiuixTheme.colorScheme.primary, modifier = Modifier.size(18.dp)
                         )
                     }
-                    DownloadTaskEntity.STATUS_PAUSED -> IconButton(onClick = onResume, modifier = Modifier.size(32.dp)) {
+                    DownloadTaskEntity.STATUS_PAUSED -> IconButton(onClick = onResume, modifier = Modifier.size(48.dp)) {
                         Icon(
                             Icons.Outlined.PlayArrow, contentDescription = "继续",
                             tint = MiuixTheme.colorScheme.primary, modifier = Modifier.size(18.dp)
                         )
                     }
-                    DownloadTaskEntity.STATUS_FAILED -> IconButton(onClick = onResume, modifier = Modifier.size(32.dp)) {
+                    DownloadTaskEntity.STATUS_FAILED -> IconButton(onClick = onResume, modifier = Modifier.size(48.dp)) {
                         Icon(
                             Icons.Outlined.Refresh, contentDescription = "重试",
                             tint = MiuixTheme.colorScheme.error, modifier = Modifier.size(18.dp)
@@ -724,7 +728,7 @@ private fun DownloadSubTaskRow(
                     }
                     DownloadTaskEntity.STATUS_COMPLETED -> IconButton(
                         onClick = { openSavedFile(context, task.savePath) },
-                        modifier = Modifier.size(32.dp)
+                        modifier = Modifier.size(48.dp)
                     ) {
                         Icon(
                             Icons.Outlined.OpenInNew, contentDescription = "打开",
@@ -732,17 +736,17 @@ private fun DownloadSubTaskRow(
                         )
                     }
                 }
-                // 删除
-                IconButton(onClick = onRemove, modifier = Modifier.size(32.dp)) {
+                // 删除（命中区 48dp：Miuix IconButton 不会自动扩展触摸目标）
+                IconButton(onClick = onRemove, modifier = Modifier.size(48.dp)) {
                     Icon(
                         Icons.Outlined.Delete, contentDescription = "删除",
                         tint = MiuixTheme.colorScheme.error, modifier = Modifier.size(18.dp)
                     )
                 }
             }
-            // 细进度条（完成态折叠，带过渡动画）
+            // 细进度条（完成态或大小未知时折叠，带过渡动画）
             AnimatedVisibility(
-                visible = task.status != DownloadTaskEntity.STATUS_COMPLETED,
+                visible = task.status != DownloadTaskEntity.STATUS_COMPLETED && task.totalSize > 0,
                 enter = expandVertically(tween(200)) + fadeIn(tween(200)),
                 exit = shrinkVertically(tween(200)) + fadeOut(tween(150))
             ) {
@@ -833,9 +837,9 @@ private fun DownloadTaskCard(
     // 长按任务卡弹出操作菜单（复制直链 / 重新下载 / 删除）
     var showMenu by remember { mutableStateOf(false) }
 
+    // 只保留长按手势：原先的 onClick = {} 会让卡片被读屏当成"按钮"却没有任何动作。
     Card(
         modifier = Modifier.fillMaxWidth(),
-        onClick = {},
         onLongPress = { showMenu = true },
         colors = CardDefaults.defaultColors()
     ) {
@@ -886,7 +890,7 @@ private fun DownloadTaskCard(
                     DownloadTaskEntity.STATUS_COMPLETED -> Row {
                         // APK 文件：额外显示「安装」按钮
                         if (task.fileName.endsWith(".apk", true)) {
-                            IconButton(onClick = { installApk(context, task.savePath, task.fileName) }) {
+                            IconButton(onClick = { installApk(context, task.savePath) }) {
                                 Icon(
                                     imageVector = Icons.Outlined.SystemUpdate,
                                     contentDescription = "安装",
@@ -932,19 +936,22 @@ private fun DownloadTaskCard(
                         )
                         Spacer(modifier = Modifier.height(6.dp))
                     }
-                    LinearProgressIndicator(
-                        progress = fraction,
-                        modifier = Modifier.fillMaxWidth(),
-                        height = 6.dp,
-                        colors = ProgressIndicatorDefaults.progressIndicatorColors(
-                            foregroundColor = when (task.status) {
-                                DownloadTaskEntity.STATUS_FAILED -> MiuixTheme.colorScheme.error
-                                else -> MiuixTheme.colorScheme.primary
-                            },
-                            backgroundColor = MiuixTheme.colorScheme.surfaceContainerHighest
+                    // 大小未知（服务器未返回 Content-Length）时不画 0% 的假进度条
+                    if (task.totalSize > 0) {
+                        LinearProgressIndicator(
+                            progress = fraction,
+                            modifier = Modifier.fillMaxWidth(),
+                            height = 6.dp,
+                            colors = ProgressIndicatorDefaults.progressIndicatorColors(
+                                foregroundColor = when (task.status) {
+                                    DownloadTaskEntity.STATUS_FAILED -> MiuixTheme.colorScheme.error
+                                    else -> MiuixTheme.colorScheme.primary
+                                },
+                                backgroundColor = MiuixTheme.colorScheme.surfaceContainerHighest
+                            )
                         )
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
                 }
             }
 
@@ -1044,7 +1051,11 @@ private fun taskStatusLine(task: DownloadTaskEntity): String {
 }
 
 private fun progressText(task: DownloadTaskEntity): String {
-    if (task.totalSize <= 0) return ""
+    // 服务器未返回 Content-Length 时 totalSize 为 0：进度条没有意义，
+    // 但必须给出"大小未知"文案，否则底部只剩一个删除按钮，用户以为卡死。
+    if (task.totalSize <= 0) {
+        return if (task.downloadedSize > 0) "已下载 " + formatSize(task.downloadedSize) + "（大小未知）" else "大小未知"
+    }
     // 显示值钳制到 total（防恢复竞态残留导致显示超总大小）
     val shown = minOf(task.downloadedSize, task.totalSize)
     val percent = (shown * 100 / task.totalSize).toInt().coerceIn(0, 100)
@@ -1060,7 +1071,7 @@ private fun formatSize(bytes: Long): String {
         value /= 1024
         i++
     }
-    return String.format("%.1f %s", value, units[i])
+    return String.format(Locale.US, "%.1f %s", value, units[i])
 }
 
 private fun formatSpeed(bytesPerSec: Long): String {
@@ -1072,7 +1083,7 @@ private fun formatSpeed(bytesPerSec: Long): String {
         value /= 1024
         i++
     }
-    return String.format("%.1f %s", value, units[i])
+    return String.format(Locale.US, "%.1f %s", value, units[i])
 }
 
 private fun formatRemain(millis: Long): String {
@@ -1082,62 +1093,6 @@ private fun formatRemain(millis: Long): String {
         sec < 60 -> "${sec}秒"
         sec < 3600 -> "${sec / 60}分${sec % 60}秒"
         else -> "${sec / 3600}时${(sec % 3600) / 60}分"
-    }
-}
-
-private fun openSavedFile(context: android.content.Context, savePath: String) {
-    if (savePath.isBlank()) return
-    val uri = if (savePath.startsWith("content://")) {
-        Uri.parse(savePath)
-    } else {
-        // Android 7.0+ 禁止暴露 file:// URI，必须经 FileProvider 转 content://
-        FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", File(savePath))
-    }
-    val intent = Intent(Intent.ACTION_VIEW).apply {
-        setDataAndType(uri, "*/*")
-        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-    }
-    runCatching {
-        context.startActivity(Intent.createChooser(intent, "打开文件"))
-    }.onFailure {
-        SnackbarController.show("无法打开该文件")
-    }
-}
-
-/** 安装 APK：检查「安装未知来源应用」权限（Android 8+），ACTION_VIEW 调起系统安装器 */
-private fun installApk(context: android.content.Context, savePath: String, fileName: String) {
-    if (savePath.isBlank()) {
-        SnackbarController.show("文件不存在")
-        return
-    }
-    // Android 8+：需先授予「安装未知来源应用」
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
-        !context.packageManager.canRequestPackageInstalls()
-    ) {
-        SnackbarController.show("请先允许安装未知来源应用")
-        val intent = Intent(
-            Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
-            Uri.parse("package:${context.packageName}")
-        )
-        runCatching { context.startActivity(intent) }.onFailure {
-            SnackbarController.show("无法打开设置")
-        }
-        return
-    }
-    val uri = if (savePath.startsWith("content://")) {
-        Uri.parse(savePath)
-    } else {
-        // Android 7.0+ 禁止暴露 file:// URI，必须经 FileProvider 转 content://
-        FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", File(savePath))
-    }
-    val intent = Intent(Intent.ACTION_VIEW).apply {
-        setDataAndType(uri, "application/vnd.android.package-archive")
-        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-    }
-    runCatching {
-        context.startActivity(Intent.createChooser(intent, "安装应用"))
-    }.onFailure {
-        SnackbarController.show("无法打开安装器")
     }
 }
 

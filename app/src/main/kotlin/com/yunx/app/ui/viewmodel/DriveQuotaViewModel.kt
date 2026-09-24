@@ -76,24 +76,38 @@ class DriveQuotaViewModel(
     /** 是否加载中 */
     val loading = MutableStateFlow(false)
 
+    /**
+     * 空间信息加载失败汇总（null = 全部成功或尚未加载）。
+     * 失败时卡片只是没有进度条，用户无法区分「未登录」与「请求失败」，需要显式提示与重试入口。
+     */
+    private val _quotaError = MutableStateFlow<String?>(null)
+    val quotaError: StateFlow<String?> = _quotaError.asStateFlow()
+
     /** 并发加载全部已登录平台的空间（各平台独立请求，互不阻塞；未登录平台自动跳过） */
     fun loadAll() {
         if (loading.value) return // 防止下拉刷新与进入页面初始化重复触发
         loading.value = true
+        _quotaError.value = null
         viewModelScope.launch {
+            // 所有子协程都跑在主调度器上，串行访问该列表是安全的
+            val failed = mutableListOf<String>()
             coroutineScope {
                 // 夸克
                 launch {
                     val qc = quarkCookie()
                     if (qc != null) {
-                        _quarkQuota.value = runCatching { quarkApi.getQuota(qc) }.getOrNull()
+                        runCatching { quarkApi.getQuota(qc) }
+                            .onSuccess { _quarkQuota.value = it }
+                            .onFailure { failed += "夸克" }
                     }
                 }
                 // UC
                 launch {
                     val uc = ucCookie()
                     if (uc != null) {
-                        _ucQuota.value = runCatching { ucApi.getQuota(uc) }.getOrNull()
+                        runCatching { ucApi.getQuota(uc) }
+                            .onSuccess { _ucQuota.value = it }
+                            .onFailure { failed += "UC" }
                     }
                 }
                 // 迅雷
@@ -102,31 +116,42 @@ class DriveQuotaViewModel(
                     if (xl != null) {
                         val deviceId = xunleiDeviceId() ?: ""
                         val captcha = xunleiCaptcha() ?: ""
-                        _xunleiQuota.value = runCatching { xunleiApi.getQuota(xl, deviceId, captcha) }.getOrNull()
+                        runCatching { xunleiApi.getQuota(xl, deviceId, captcha) }
+                            .onSuccess { _xunleiQuota.value = it }
+                            .onFailure { failed += "迅雷" }
                     }
                 }
                 // 百度
                 launch {
                     val bd = baiduCookie()
                     if (bd != null) {
-                        _baiduQuota.value = runCatching { baiduApi.getQuota(bd) }.getOrNull()
+                        runCatching { baiduApi.getQuota(bd) }
+                            .onSuccess { _baiduQuota.value = it }
+                            .onFailure { failed += "百度" }
                     }
                 }
                 // 139
                 launch {
                     val c139 = c139Cookie()
                     if (c139 != null) {
-                        _c139Quota.value = runCatching { c139Api.getQuota(c139) }.getOrNull()
+                        runCatching { c139Api.getQuota(c139) }
+                            .onSuccess { _c139Quota.value = it }
+                            .onFailure { failed += "139" }
                     }
                 }
                 // 123
                 launch {
                     val p123 = pan123Token()
                     if (p123 != null) {
-                        _pan123Quota.value = runCatching { pan123Api.getQuota(p123) }.getOrNull()
+                        runCatching { pan123Api.getQuota(p123) }
+                            .onSuccess { _pan123Quota.value = it }
+                            .onFailure { failed += "123" }
                     }
                 }
             }
+            _quotaError.value = failed
+                .takeIf { it.isNotEmpty() }
+                ?.let { "以下网盘空间信息获取失败：" + it.joinToString("、") }
             loading.value = false
         }
     }

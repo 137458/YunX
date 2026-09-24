@@ -45,6 +45,7 @@
         android:roundIcon="@drawable/icon"
         android:supportsRtl="true"
         android:requestLegacyExternalStorage="true"
+        android:enableOnBackInvokedCallback="true"
         android:theme="@style/Theme.ComposeEmptyActivity">
 
         <activity

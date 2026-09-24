@@ -29,7 +29,6 @@ import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -41,13 +40,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ChevronRight
 import com.yunx.app.ui.components.LocalScaffoldPadding
 import top.yukonga.miuix.kmp.basic.ScrollBehavior
 import androidx.compose.runtime.Composable
@@ -75,7 +70,6 @@ import com.yunx.app.data.backup.AuthCrypto
 import com.yunx.app.data.download.DownloadPlatform
 import com.yunx.app.data.download.DownloadSaver
 import com.yunx.app.data.prefs.SettingsRepository
-import com.yunx.app.data.update.UpdateChecker
 import com.yunx.app.ui.SnackbarController
 import com.yunx.app.util.LogExporter
 import kotlinx.coroutines.Dispatchers
@@ -83,15 +77,14 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.Card
-import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.InfiniteProgressIndicator
-import top.yukonga.miuix.kmp.basic.RadioButton
 import top.yukonga.miuix.kmp.basic.SmallTitle
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.basic.TextField
 import top.yukonga.miuix.kmp.overlay.OverlayDialog
 import top.yukonga.miuix.kmp.preference.ArrowPreference
+import top.yukonga.miuix.kmp.preference.RadioButtonPreference
 import top.yukonga.miuix.kmp.preference.SliderPreference
 import top.yukonga.miuix.kmp.preference.SwitchPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme
@@ -100,6 +93,9 @@ import kotlin.math.roundToLong
 
 /** 可选的下载线程数档位（最高 512） */
 private val threadOptions = listOf(1, 2, 4, 8, 16, 32, 64, 128, 256, 512)
+
+/** 卡片分组之间的统一间距（页面左右外边距统一为 16dp） */
+private val CardGap = 12.dp
 
 /** 按平台下载线程数设置项 */
 private data class ThreadPlatform(val platform: String, val label: String)
@@ -143,14 +139,14 @@ fun SettingsScreen(
     onAboutClick: () -> Unit,
     onSupportClick: () -> Unit,
     backupManager: AuthBackupManager,
-    /** 用应用内置下载器下载更新 APK（URL + 文件名），由 MainScreen 注入 DownloadManager */
-    onDownloadUpdateApk: (url: String, fileName: String) -> Unit,
+    /** 检查更新：结果弹窗（含下载进度与安装入口）由 MainScreen 统一承载，这里只发请求 */
+    onCheckUpdate: () -> Unit,
+    /** 隐藏调试菜单：强制弹出更新弹窗（不看版本号，仅用于预览 UI） */
+    onPreviewUpdateDialog: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var showThreadsDialog by remember { mutableStateOf(false) }
     var showLogDialog by remember { mutableStateOf(false) }
-    // 检查更新结果（非空时弹更新对话框）
-    var updateRelease by remember { mutableStateOf<UpdateChecker.Release?>(null) }
     // 网盘认证导出弹窗（AES 加密 + 导出范围）
     var showExportAuthDialog by remember { mutableStateOf(false) }
     // 网盘认证导入：加密文件内容（非空时弹解密密码框）
@@ -254,8 +250,8 @@ fun SettingsScreen(
             .padding(
                 top = scaffoldPadding.calculateTopPadding() + 8.dp,
                 bottom = scaffoldPadding.calculateBottomPadding() + 16.dp,
-                start = 12.dp,
-                end = 12.dp
+                start = 16.dp,
+                end = 16.dp
             )
     ) {
         // ---------- 分类 1: 下载 ----------
@@ -263,11 +259,11 @@ fun SettingsScreen(
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 12.dp)
+                .padding(bottom = CardGap)
         ) {
             ArrowPreference(
                 title = "下载线程数",
-                summary = "按网盘分别设置分片并发数（默认 32，最高 512）",
+                summary = "按网盘分别设置分片并发数（默认 32，最高 512）；仅对新建任务生效",
                 onClick = { showThreadsDialog = true }
             )
             ArrowPreference(
@@ -289,11 +285,9 @@ fun SettingsScreen(
             }
             SliderPreference(
                 value = maxConcurrent.toFloat(),
-                onValueChange = {
-                    val v = it.roundToInt().coerceIn(1, 8)
-                    maxConcurrent = v
-                    settingsRepo.maxConcurrentDownloads = v
-                },
+                // 拖动过程只更新本地状态，松手（onValueChangeFinished）才落盘，避免每帧写 SharedPreferences
+                onValueChange = { maxConcurrent = it.roundToInt().coerceIn(1, 8) },
+                onValueChangeFinished = { settingsRepo.maxConcurrentDownloads = maxConcurrent },
                 valueRange = 1f..8f,
                 steps = 6,
                 title = "最大同时下载任务数",
@@ -302,11 +296,8 @@ fun SettingsScreen(
             )
             SliderPreference(
                 value = (speedLimitBps / (1024 * 1024)).toFloat(),
-                onValueChange = { mb ->
-                    val limit = mb.roundToLong() * 1024 * 1024
-                    speedLimitBps = limit
-                    settingsRepo.downloadSpeedLimit = limit
-                },
+                onValueChange = { mb -> speedLimitBps = mb.roundToLong() * 1024 * 1024 },
+                onValueChangeFinished = { settingsRepo.downloadSpeedLimit = speedLimitBps },
                 valueRange = 0f..30f,
                 steps = 29,
                 title = "下载速度限制",
@@ -315,11 +306,8 @@ fun SettingsScreen(
             )
             SliderPreference(
                 value = retryCount.toFloat(),
-                onValueChange = {
-                    val v = it.roundToInt().coerceIn(0, 10)
-                    retryCount = v
-                    settingsRepo.downloadRetryCount = v
-                },
+                onValueChange = { retryCount = it.roundToInt().coerceIn(0, 10) },
+                onValueChangeFinished = { settingsRepo.downloadRetryCount = retryCount },
                 valueRange = 0f..10f,
                 steps = 9,
                 title = "失败自动重试",
@@ -370,7 +358,7 @@ fun SettingsScreen(
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 12.dp)
+                .padding(bottom = CardGap)
         ) {
             ArrowPreference(
                 title = "主题与外观",
@@ -384,25 +372,12 @@ fun SettingsScreen(
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 12.dp)
+                .padding(bottom = CardGap)
         ) {
             ArrowPreference(
                 title = "检查更新",
                 summary = "检查 GitHub 是否有新版本可用",
-                onClick = {
-                    scope.launch {
-                        SnackbarController.show("正在检查更新…")
-                        val release = runCatching { UpdateChecker.fetchLatestRelease() }.getOrNull()
-                        val current = UpdateChecker.currentVersion(context)
-                        if (release == null) {
-                            SnackbarController.show("检查更新失败，请检查网络")
-                        } else if (UpdateChecker.compareVersions(release.tagName, current) > 0) {
-                            updateRelease = release
-                        } else {
-                            SnackbarController.show("已是最新版本")
-                        }
-                    }
-                }
+                onClick = onCheckUpdate
             )
             ArrowPreference(
                 title = "导出日志",
@@ -416,7 +391,7 @@ fun SettingsScreen(
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 12.dp)
+                .padding(bottom = CardGap)
         ) {
             ArrowPreference(
                 title = "导出网盘认证",
@@ -435,7 +410,7 @@ fun SettingsScreen(
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 12.dp)
+                .padding(bottom = CardGap)
         ) {
             ArrowPreference(
                 title = "关于云析",
@@ -534,15 +509,8 @@ fun SettingsScreen(
             Button(
                 onClick = {
                     showDevMenu = false
-                    scope.launch {
-                        val release = runCatching { UpdateChecker.fetchLatestRelease() }.getOrNull()
-                        updateRelease = release ?: UpdateChecker.Release(
-                            tagName = "v1.2.4（预览）",
-                            body = "这是调试预览弹窗，用于查看更新弹窗 UI（含镜像站下载按钮）。",
-                            assets = emptyList(),
-                            publishedAt = ""
-                        )
-                    }
+                    // 预览走主页面同一弹窗：不再在本页维护第二份更新状态
+                    onPreviewUpdateDialog()
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -555,42 +523,6 @@ fun SettingsScreen(
                 modifier = Modifier.fillMaxWidth()
             )
         }
-    }
-
-    // 检查更新结果弹窗（发现新版本时展示，下载走系统浏览器）
-    updateRelease?.let { release ->
-        UpdateDialog(
-            currentVersion = UpdateChecker.currentVersion(context),
-            release = release,
-            onDownload = {
-                updateRelease = null
-                val apk = release.assets.firstOrNull { it.name.endsWith(".apk", true) }
-                if (apk != null) {
-                    onDownloadUpdateApk(apk.downloadUrl, apk.name)
-                    SnackbarController.show("已加入下载 ${apk.name}")
-                } else {
-                    SnackbarController.show("未找到 APK 下载链接")
-                }
-            },
-            onDownloadMirror = {
-                updateRelease = null
-                val apk = release.assets.firstOrNull { it.name.endsWith(".apk", true) }
-                if (apk != null) {
-                    onDownloadUpdateApk(UpdateChecker.mirrorUrl(apk.downloadUrl), apk.name)
-                    SnackbarController.show("已通过镜像站加入下载 ${apk.name}")
-                } else {
-                    SnackbarController.show("未找到 APK 下载链接")
-                }
-            },
-            onLater = { updateRelease = null },
-            onIgnore = {
-                context.getSharedPreferences("yunx_prefs", android.content.Context.MODE_PRIVATE)
-                    .edit()
-                    .putString("ignored_version", release.tagName)
-                    .apply()
-                updateRelease = null
-            }
-        )
     }
 
     // 线程数选择弹窗（按平台）
@@ -612,39 +544,19 @@ fun SettingsScreen(
                 color = MiuixTheme.colorScheme.onSurfaceSecondary
             )
             Spacer(modifier = Modifier.height(12.dp))
+            // 平台行改用 miuix-preference 的 ArrowPreference：行结构、点击态与禁用态交给组件统一处理
             threadPlatforms.forEach { item ->
                 val current = settingsRepo.downloadThreadsFor(item.platform)
                 val isXunlei = item.platform == DownloadPlatform.XUNLEI
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(8.dp))
-                        .clickable(enabled = !isXunlei) {
-                            selectedThreadPlatform = item
-                            showPlatformThreadDialog = true
-                        }
-                        .padding(vertical = 12.dp, horizontal = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = item.label,
-                        style = MiuixTheme.textStyles.body1,
-                        modifier = Modifier.weight(1f)
-                    )
-                    Text(
-                        text = if (isXunlei) "固定 8 线程" else "$current 线程",
-                        style = MiuixTheme.textStyles.body2,
-                        color = if (isXunlei) MiuixTheme.colorScheme.onSurfaceSecondary else MiuixTheme.colorScheme.primary
-                    )
-                    if (!isXunlei) {
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Icon(
-                            imageVector = Icons.Outlined.ChevronRight,
-                            contentDescription = null,
-                            tint = MiuixTheme.colorScheme.onSurfaceSecondary
-                        )
+                ArrowPreference(
+                    title = item.label,
+                    summary = if (isXunlei) "固定 8 线程" else "$current 线程",
+                    enabled = !isXunlei,
+                    onClick = {
+                        selectedThreadPlatform = item
+                        showPlatformThreadDialog = true
                     }
-                }
+                )
             }
             Spacer(modifier = Modifier.height(16.dp))
             Button(
@@ -670,31 +582,24 @@ fun SettingsScreen(
                 .heightIn(max = 360.dp)
                 .verticalScroll(rememberScrollState())
         ) {
-            threadOptions.chunked(2).forEach { rowValues ->
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    rowValues.forEach { value ->
-                        RadioThreadRow(
-                            value = value,
-                            threads = current,
-                            onSelect = { v ->
-                                settingsRepo.setDownloadThreads(selectedThreadPlatform.platform, v)
-                                showPlatformThreadDialog = false
-                            },
-                            modifier = Modifier.weight(1f)
-                        )
+            // 线程档位改用 miuix-preference 单选行：整行可点，命中区与主题样式统一
+            threadOptions.forEach { value ->
+                RadioButtonPreference(
+                    title = "$value 线程",
+                    selected = current == value,
+                    onClick = {
+                        settingsRepo.setDownloadThreads(selectedThreadPlatform.platform, value)
+                        showPlatformThreadDialog = false
                     }
-                    if (rowValues.size == 1) Spacer(modifier = Modifier.weight(1f))
-                }
+                )
             }
             Spacer(modifier = Modifier.height(16.dp))
             Button(
                 onClick = { showPlatformThreadDialog = false },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("取消")
+                // 单选行点选即生效，按钮只负责关窗：叫「取消」会让人误以为能撤销刚才的选择
+                Text("关闭")
             }
         }
     }
@@ -856,36 +761,17 @@ private fun ExportAuthDialog(
                 style = MiuixTheme.textStyles.subtitle,
                 color = MiuixTheme.colorScheme.primary
             )
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(8.dp))
-                    .clickable { onlyLoggedIn = true }
-                    .padding(vertical = 4.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                RadioButton(
-                    selected = onlyLoggedIn,
-                    onClick = { onlyLoggedIn = true }
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("仅导出当前已登录的网盘", style = MiuixTheme.textStyles.body1)
-            }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(8.dp))
-                    .clickable { onlyLoggedIn = false }
-                    .padding(vertical = 4.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                RadioButton(
-                    selected = !onlyLoggedIn,
-                    onClick = { onlyLoggedIn = false }
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("导出全部绑定的网盘", style = MiuixTheme.textStyles.body1)
-            }
+            // 导出范围改用 miuix-preference 单选行：整行即命中区，交互与主题样式由组件统一负责
+            RadioButtonPreference(
+                title = "仅导出当前已登录的网盘",
+                selected = onlyLoggedIn,
+                onClick = { onlyLoggedIn = true }
+            )
+            RadioButtonPreference(
+                title = "导出全部绑定的网盘",
+                selected = !onlyLoggedIn,
+                onClick = { onlyLoggedIn = false }
+            )
             Spacer(modifier = Modifier.height(8.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -979,34 +865,6 @@ private fun OperationLoadingDialog(message: String) {
         ) {
             InfiniteProgressIndicator()
         }
-    }
-}
-
-/** 线程数单选行（用于弹窗两列布局，每行占半宽） */
-@Composable
-private fun RadioThreadRow(
-    value: Int,
-    threads: Int,
-    onSelect: (Int) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(8.dp))
-            .clickable { onSelect(value) }
-            .padding(vertical = 6.dp, horizontal = 4.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        RadioButton(
-            selected = threads == value,
-            onClick = { onSelect(value) }
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(
-            text = "$value 线程",
-            style = MiuixTheme.textStyles.body1
-        )
     }
 }
 

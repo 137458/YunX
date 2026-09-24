@@ -21,7 +21,6 @@ package com.yunx.app.ui.screens
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
-import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -41,6 +40,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.yunx.app.ui.SnackbarController
 import com.yunx.app.util.TextCipher
 import kotlinx.coroutines.delay
 import top.yukonga.miuix.kmp.basic.Button
@@ -70,10 +70,8 @@ fun SafetyNoticeDialog() {
     WindowDialog(
         show = visible,
         onDismissRequest = {
-            if (seconds <= 0) {
-                visible = false
-                acknowledge(context)
-            }
+            // 点弹窗外部只关闭，不写入「已知晓」：否则用户误触一次后安全提示永久不再出现
+            if (seconds <= 0) visible = false
         },
         title = TextCipher.dTitle,
     ) {
@@ -171,6 +169,7 @@ private fun copyUrl(context: Context) {
     runCatching {
         val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         cm.setPrimaryClip(ClipData.newPlainText(TextCipher.dUrl, TextCipher.dUrl))
-        Toast.makeText(context, TextCipher.dCopied, Toast.LENGTH_SHORT).show()
+        // 统一走全局 Snackbar：项目其余位置已不用 Toast
+        SnackbarController.show(TextCipher.dCopied)
     }
 }

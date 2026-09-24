@@ -25,13 +25,13 @@ import android.os.Looper
 import android.webkit.JavascriptInterface
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
-import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -110,18 +110,8 @@ fun XunleiVerifyWebViewScreen(
 
     val webView = remember(verifyUrl) {
         WebView(context).apply {
-            settings.javaScriptEnabled = true
-            settings.domStorageEnabled = true
-            settings.setSupportZoom(true)
-            settings.builtInZoomControls = true
-            settings.displayZoomControls = false
-            settings.useWideViewPort = true
-            settings.loadWithOverviewMode = true
-            settings.layoutAlgorithm = WebSettings.LayoutAlgorithm.NARROW_COLUMNS
-            settings.userAgentString = XunleiConstants.APP_UA
-            settings.allowFileAccess = false
-            settings.allowContentAccess = false
-            settings.mixedContentMode = WebSettings.MIXED_CONTENT_NEVER_ALLOW
+            // 统一登录 WebView 加固：关闭文件访问 / 禁止混合内容 / 允许第三方 Cookie（UA 用迅雷 App UA）
+            LoginWebViewDefaults.apply(this, XunleiConstants.APP_UA)
             if (trustedInitialUrl) attachVerificationBridge(this, bridge)
             webViewClient = object : WebViewClient() {
                 override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
@@ -186,7 +176,8 @@ fun XunleiVerifyWebViewScreen(
             )
         }
     ) { innerPadding ->
-        Box(Modifier.fillMaxSize().padding(innerPadding)) {
+        // 键盘避让：验证页验证码输入框聚焦时不被键盘遮挡
+        Box(Modifier.fillMaxSize().padding(innerPadding).imePadding()) {
             AndroidView(factory = { webView }, modifier = Modifier.fillMaxSize())
             if (isLoading) {
                 LinearProgressIndicator(

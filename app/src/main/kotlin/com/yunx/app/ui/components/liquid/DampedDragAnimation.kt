@@ -23,18 +23,21 @@ import androidx.compose.animation.core.spring
 import androidx.compose.foundation.MutatorMutex
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.foundation.gestures.drag
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.withFrameMillis
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.pointer.AwaitPointerEventScope
 import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.PointerId
 import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.PointerInputScope
+import androidx.compose.ui.input.pointer.changedToUpIgnoreConsumed
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.input.pointer.util.VelocityTracker
 import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.util.fastFirstOrNull
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
@@ -172,6 +175,9 @@ internal class DampedDragAnimation(
 
 /**
  * 高性能无手势吞噬的手势检测器。
+ *
+ * 拖动期间当前指针抬起而仍有其它手指按下时，把拖动接续到那根手指上，
+ * 而不是判定为取消——否则第二根手指接管会让滑块中途卡死。
  */
 internal suspend fun PointerInputScope.inspectDragGestures(
     onDragStart: (down: PointerInputChange) -> Unit = {},
@@ -184,14 +190,62 @@ internal suspend fun PointerInputScope.inspectDragGestures(
         val down = awaitFirstDown(false)
         onDragStart(down)
         onDrag(initialDown, Offset.Zero)
-        val success = drag(
+        val upEvent = drag(
             pointerId = initialDown.id,
             onDrag = { onDrag(it, it.positionChange()) },
         )
-        if (success) {
-            onDragEnd()
-        } else {
+        if (upEvent == null) {
             onDragCancel()
+        } else {
+            onDragEnd()
         }
+    }
+}
+
+/**
+ * 等待 [pointerId] 的位移事件或抬起。
+ * 当前指针抬起而其它手指仍按下时切换到那根手指继续拖动；返回 null 表示手势事件丢失。
+ */
+private suspend inline fun AwaitPointerEventScope.awaitDragOrUp(
+    pointerId: PointerId,
+): PointerInputChange? {
+    var pointer = pointerId
+    while (true) {
+        val event = awaitPointerEvent()
+        val dragEvent = event.changes.fastFirstOrNull { it.id == pointer } ?: return null
+        if (dragEvent.changedToUpIgnoreConsumed()) {
+            val otherDown = event.changes.fastFirstOrNull { it.pressed }
+            if (otherDown == null) {
+                return dragEvent
+            }
+            pointer = otherDown.id
+        } else if (dragEvent.previousPosition != dragEvent.position) {
+            return dragEvent
+        }
+    }
+}
+
+/**
+ * 拖动主循环：返回抬起事件表示正常结束，返回 null 表示被消费或中断。
+ */
+private suspend inline fun AwaitPointerEventScope.drag(
+    pointerId: PointerId,
+    onDrag: (PointerInputChange) -> Unit,
+): PointerInputChange? {
+    val isPointerUp = currentEvent.changes.fastFirstOrNull { it.id == pointerId }?.pressed != true
+    if (isPointerUp) {
+        return null
+    }
+    var pointer = pointerId
+    while (true) {
+        val change = awaitDragOrUp(pointer) ?: return null
+        if (change.isConsumed) {
+            return null
+        }
+        if (change.changedToUpIgnoreConsumed()) {
+            return change
+        }
+        onDrag(change)
+        pointer = change.id
     }
 }

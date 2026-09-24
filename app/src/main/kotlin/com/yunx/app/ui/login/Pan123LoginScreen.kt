@@ -18,11 +18,7 @@
 
 package com.yunx.app.ui.login
 
-import android.graphics.Bitmap
-import android.webkit.WebChromeClient
-import android.webkit.WebSettings
 import android.webkit.WebView
-import android.webkit.WebViewClient
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -30,14 +26,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.ContentPaste
-import com.yunx.app.ui.AppSnackbarHost
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -45,10 +40,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.yunx.app.data.network.Pan123Constants
+import com.yunx.app.data.repository.SaveResult
+import com.yunx.app.ui.AppSnackbarHost
 import com.yunx.app.ui.SnackbarController
 import com.yunx.app.ui.rememberGlobalSnackbarHostState
 import com.yunx.app.ui.viewmodel.Pan123AccountViewModel
@@ -72,7 +68,7 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /**
  * 123 云盘登录页（网页登录方案，与夸克/百度等一致）：
- * - WebView 打开官网个人盘主页 [Pan123Constants.WEB_LOGIN_URL]，由用户手动登录（验证码/扫码由官网处理）；
+ * - WebView 打开官网个人盘主页 [Pan123Constants.WEB_LOGIN_URL]，由用户手动登录（统一走 [rememberLoginWebView]）；
  * - 登录成功后网页 SPA 会把 Bearer JWT 写入当前域 localStorage，键名 authorToken（旧账号密码登录的 data.token 同源同形）；
  * - 右上角「保存」/自动登录检测均从 localStorage 提取该值，经 user/info 接口校验后落库。
  */
@@ -82,12 +78,10 @@ fun Pan123LoginScreen(
     onBack: () -> Unit,
     onSaved: () -> Unit
 ) {
-    val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var isSaving by remember { mutableStateOf(false) }
-    var isLoading by remember { mutableStateOf(true) }
 
-    // 手动输入 Token 弹窗状态
+    // 手动输入凭证弹窗状态
     var showTokenDialog by remember { mutableStateOf(false) }
     var tokenInput by remember { mutableStateOf("") }
     var isSavingManual by remember { mutableStateOf(false) }
@@ -96,58 +90,31 @@ fun Pan123LoginScreen(
     var showTutorial by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { showTutorial = true }
 
-    val webView = remember {
-        WebView(context).apply {
-            settings.javaScriptEnabled = true
-            settings.domStorageEnabled = true   // 123 云盘把登录态（authorToken）存在 localStorage，必须开启
-            settings.setSupportZoom(true)
-            settings.builtInZoomControls = true
-            settings.displayZoomControls = false
-            settings.useWideViewPort = true
-            settings.loadWithOverviewMode = true
-            settings.layoutAlgorithm = WebSettings.LayoutAlgorithm.NARROW_COLUMNS
-            setInitialScale(0)
-            // 桌面 UA：yun.123pan.cn 个人盘是桌面 SPA；移动 UA 会跳到不完整的移动版页面
-            settings.userAgentString = Pan123Constants.WEB_UA
-            webViewClient = object : WebViewClient() {
-                override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
-                    isLoading = true
-                }
+    // 统一 WebView：关闭文件访问 / 禁止混合内容 / 允许第三方 Cookie / 错误与超时回调 / 失败重试
+    val controller = rememberLoginWebView(
+        url = Pan123Constants.WEB_LOGIN_URL,
+        userAgent = Pan123Constants.WEB_UA,
+        injectViewport = true
+    )
 
-                override fun onPageFinished(view: WebView?, url: String?) {
-                    isLoading = false
-                    // 强制覆盖页面 viewport：适配屏幕宽度 + 允许双指缩放（桌面版页面无 viewport 或限制缩放时生效）
-                    view?.evaluateJavascript(
-                        "(function(){var m=document.querySelector('meta[name=\"viewport\"]');" +
-                            "var c='width=device-width,initial-scale=1.0,maximum-scale=5.0,user-scalable=yes';" +
-                            "if(m){m.setAttribute('content',c);}else{var n=document.createElement('meta');n.name='viewport';n.content=c;document.head.appendChild(n);}" +
-                            "window.dispatchEvent(new Event('resize'));})()",
-                        null
-                    )
-                }
-            }
-            webChromeClient = WebChromeClient()
-            loadUrl(Pan123Constants.WEB_LOGIN_URL)
-        }
+    // 保存中允许返回：网络卡死时不能把用户困在登录页；离开时提示保存已取消
+    val exitLogin: () -> Unit = {
+        if (isSaving || isSavingManual) SnackbarController.show("已取消保存，可稍后重新登录")
+        onBack()
     }
-
-    // 页面销毁时释放 WebView
-    DisposableEffect(Unit) {
-        onDispose { webView.destroy() }
-    }
-
-    // 系统返回键 → 返回主页（保存中禁用）
-    BackHandler(enabled = !isSaving && !isSavingManual) { onBack() }
 
     // 自动登录检测：网页登录完成（authorToken 写入 localStorage）即自动提取并校验登录，无需手动点「保存」
     rememberWebLoginAutoDetect(
-        sampleCredential = { webView.readLocalStorageValue(Pan123Constants.LOCAL_STORAGE_TOKEN_KEY) },
+        sampleCredential = { controller.webView.readLocalStorageValue(Pan123Constants.LOCAL_STORAGE_TOKEN_KEY) },
         isPlausible = { it.isNotBlank() },
-        validateAndSave = { viewModel.saveToken(it) },
+        validateAndSave = { loginSaveResult { viewModel.saveToken(it) } == SaveResult.Success },
         isPaused = { isSaving || isSavingManual || showTokenDialog },
         onInFlightChange = { isSaving = it },
         onAutoSaved = onSaved
     )
+
+    // 系统返回键：优先回退网页历史（登录流程多跳转），无历史才退出登录页
+    BackHandler { if (!controller.goBack()) exitLogin() }
 
     // 全局 Snackbar 宿主
     val snackbarHostState = rememberGlobalSnackbarHostState()
@@ -156,9 +123,10 @@ fun Pan123LoginScreen(
         snackbarHost = { AppSnackbarHost(snackbarHostState, modifier = Modifier.padding(bottom = 16.dp)) },
         topBar = {
             TopAppBar(
-                title = "123云盘登录",
+                title = "123 云盘登录",
                 navigationIcon = {
-                    IconButton(onClick = { if (!isSaving && !isSavingManual) onBack() }) {
+                    // 顶栏返回始终可点：保存中也要能退出，避免用户被困
+                    IconButton(onClick = exitLogin) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "返回"
@@ -172,7 +140,7 @@ fun Pan123LoginScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Outlined.ContentPaste,
-                            contentDescription = "手动输入 Token",
+                            contentDescription = "手动输入凭证",
                             tint = MiuixTheme.colorScheme.onSurfaceVariantActions
                         )
                     }
@@ -189,15 +157,27 @@ fun Pan123LoginScreen(
                             onClick = {
                                 scope.launch {
                                     isSaving = true
-                                    // 提取网页 localStorage 的 authorToken 作为登录凭证
-                                    val token = webView.readLocalStorageValue(Pan123Constants.LOCAL_STORAGE_TOKEN_KEY)
-                                    val saved = if (token.isBlank()) false else viewModel.saveToken(token)
-                                    isSaving = false
-                                    if (saved) {
-                                        SnackbarController.show("登录成功")
-                                        onSaved()
-                                    } else {
-                                        SnackbarController.show("未检测到登录态，请先完成登录")
+                                    try {
+                                        // 提取网页 localStorage 的 authorToken 作为登录凭证
+                                        val token = controller.webView
+                                            .readLocalStorageValue(Pan123Constants.LOCAL_STORAGE_TOKEN_KEY)
+                                        // 三态：成功才关闭登录页；凭证无效提示检查；网络失败保留输入、留在本页
+                                        val result = if (token.isBlank()) {
+                                            SaveResult.InvalidCredential
+                                        } else {
+                                            loginSaveResult { viewModel.saveToken(token) }
+                                        }
+                                        when (result) {
+                                            SaveResult.Success -> {
+                                                SnackbarController.show("登录成功")
+                                                onSaved()
+                                            }
+                                            SaveResult.InvalidCredential ->
+                                                SnackbarController.show("未检测到登录态，请先完成网页登录")
+                                            is SaveResult.NetworkError -> SnackbarController.show(result.message)
+                                        }
+                                    } finally {
+                                        isSaving = false
                                     }
                                 }
                             },
@@ -212,13 +192,18 @@ fun Pan123LoginScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                // 键盘避让：网页表单聚焦时把内容顶到键盘上方，输入框不被遮挡
+                .imePadding()
         ) {
             AndroidView(
-                factory = { webView },
+                factory = { controller.webView },
                 modifier = Modifier.fillMaxSize()
             )
-            if (isLoading) {
+            if (controller.isLoading) {
                 LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+            }
+            controller.failureMessage?.let { message ->
+                LoginLoadFailureOverlay(message = message, onRetry = { controller.retry() })
             }
         }
 
@@ -248,7 +233,7 @@ fun Pan123LoginScreen(
                     color = MiuixTheme.colorScheme.onSurface
                 )
                 Text(
-                    text = "4. 或点击「粘贴」图标，手动粘贴 Token",
+                    text = "4. 或点击「粘贴」图标，手动粘贴 authorToken",
                     style = MiuixTheme.textStyles.body1,
                     color = MiuixTheme.colorScheme.onSurface
                 )
@@ -266,10 +251,10 @@ fun Pan123LoginScreen(
             )
         }
 
-        // 手动输入 Token 弹窗
+        // 手动输入凭证弹窗（各平台统一标题，字段名沿用平台自身：authorToken）
         OverlayDialog(
             show = showTokenDialog,
-            title = "手动输入 Token",
+            title = "手动输入凭证",
             onDismissRequest = { if (!isSavingManual) showTokenDialog = false }
         ) {
             Column {
@@ -304,14 +289,20 @@ fun Pan123LoginScreen(
                         onClick = {
                             scope.launch {
                                 isSavingManual = true
-                                val saved = viewModel.saveToken(tokenInput.trim())
-                                isSavingManual = false
-                                if (saved) {
-                                    SnackbarController.show("登录成功")
-                                    showTokenDialog = false
-                                    onSaved()
-                                } else {
-                                    SnackbarController.show("Token 无效，请检查是否为完整的 authorToken")
+                                try {
+                                    when (val result = loginSaveResult { viewModel.saveToken(tokenInput.trim()) }) {
+                                        SaveResult.Success -> {
+                                            SnackbarController.show("登录成功")
+                                            showTokenDialog = false
+                                            onSaved()
+                                        }
+                                        SaveResult.InvalidCredential ->
+                                            SnackbarController.show("凭证无效，请检查是否为完整的 authorToken")
+                                        // 网络失败：保留弹窗与已输入内容，只提示重试
+                                        is SaveResult.NetworkError -> SnackbarController.show(result.message)
+                                    }
+                                } finally {
+                                    isSavingManual = false
                                 }
                             }
                         },

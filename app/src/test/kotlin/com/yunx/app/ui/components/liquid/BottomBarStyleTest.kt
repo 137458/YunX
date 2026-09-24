@@ -87,7 +87,10 @@ class BottomBarStyleTest {
 
     @Test
     fun resolve_liquidGlassDegradesToBlurWithoutRuntimeShader() {
-        // API < 33 无 AGSL 运行时着色器：自动降级为毛玻璃悬浮底栏
+        // 防御分支：有采样源但没有 AGSL 运行时着色器时退到毛玻璃。
+        // 注意：实际运行中这条分支当前不可达——rememberBlurBackdrop() 在
+        // !isRuntimeShaderSupported() 时直接返回 null，所以 hasBackdrop 必然为 false，
+        // 真实链路见 resolve_noBackdropOnApiBelow33_degradesToNone。
         assertEquals(
             FloatingBottomBarMode.Blur,
             resolveFloatingBottomBarMode(
@@ -96,6 +99,22 @@ class BottomBarStyleTest {
                 shaderSupported = false
             )
         )
+    }
+
+    @Test
+    fun resolve_noBackdropOnApiBelow33_degradesToNone() {
+        // API < 33：rememberBlurBackdrop() 返回 null（miuix 的 blur() 首指令即
+        // isRuntimeShaderSupported() 早退），因此液态玻璃与毛玻璃两档都只能退到纯色胶囊。
+        for (requested in listOf(FloatingBottomBarMode.LiquidGlass, FloatingBottomBarMode.Blur)) {
+            assertEquals(
+                FloatingBottomBarMode.None,
+                resolveFloatingBottomBarMode(
+                    requested = requested,
+                    hasBackdrop = false,
+                    shaderSupported = false
+                )
+            )
+        }
     }
 
     @Test
@@ -136,7 +155,8 @@ class BottomBarStyleTest {
                 shaderSupported = true
             )
         )
-        // 毛玻璃不依赖运行时着色器，无着色器时同样保持 Blur
+        // 档位保持 Blur，但注意 miuix 的 blur() 在无运行时着色器时直接早退，
+        // 实际渲染结果是半透明纯色胶囊（不是真模糊）
         assertEquals(
             FloatingBottomBarMode.Blur,
             resolveFloatingBottomBarMode(

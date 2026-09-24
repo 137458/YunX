@@ -34,6 +34,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -43,6 +44,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -104,6 +106,7 @@ import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.basic.TopAppBar
 import top.yukonga.miuix.kmp.overlay.OverlayDialog
+import top.yukonga.miuix.kmp.preference.SwitchPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /** 预置主题色（Material 风格种子色） */
@@ -123,17 +126,18 @@ private val presetColors = listOf(
 /** 底部导航栏样式选项（顺序与 BottomBarStyle.ordinal 一一对应，不可调序） */
 private val bottomBarStyleOptions = listOf("液态玻璃", "毛玻璃", "标准")
 
-/** 各档位说明文案（与 bottomBarStyleOptions 同序） */
+/** 各档位说明文案（与 bottomBarStyleOptions 同序；模糊与折射均依赖 miuix-blur 的 RuntimeShader） */
 private val bottomBarStyleHints = listOf(
-    "悬浮胶囊 + 透镜折射与色散光晕，随手机倾斜产生镜面高光；需 Android 13+，低版本自动降级为毛玻璃。",
-    "悬浮胶囊 + 背景高斯模糊，观感接近液态玻璃但不含折射，兼容全部机型。",
+    "悬浮胶囊 + 透镜折射与色散光晕，随手机倾斜产生镜面高光；需 Android 13+，低版本自动降级为半透明纯色。",
+    "悬浮胶囊 + 背景高斯模糊，观感接近液态玻璃但不含折射；需 Android 13+，低版本自动降级为半透明纯色。",
     "Miuix 原生贴底导航栏，无背景采样与着色器开销，最省电。"
 )
 
 /**
  * 主题与外观设置页（Miuix 规范重构）：
- * - 外观模式：Squircle 胶囊单选（跟随系统 / 浅色 / 深色）
+ * - 外观模式：Squircle 胶囊单选（跟随系统 / 浅色 / 深色）+ AMOLED 纯黑开关（仅深色可用）
  * - 主题色：Miuix Card 分组，动态色彩开关（Android 12+）+ LazyRow 色圆选择 + 自定义调色盘（Miuix OverlayDialog + Slider）
+ * - 实时预览：用当前 colorScheme 绘制主色/表面/文字示例，设置改动后立即刷新
  * - 底部导航栏：液态玻璃 / 毛玻璃 / 标准三档切换
  * - 桌面图标：Miuix Card 分组，Squircle 预览
  * - 对接 AppThemeManager 内存与持久化状态
@@ -152,6 +156,13 @@ fun ThemeScreen(
         1
     } else {
         AppThemeManager.colorMode
+    }
+
+    // 当前是否呈现深色外观：AMOLED 纯黑只在深色下有意义，浅色时开关禁用
+    val darkAppearance = when (AppThemeManager.darkMode) {
+        1 -> false
+        2 -> true
+        else -> isSystemInDarkTheme()
     }
 
     // ---------- 桌面图标动态切换 ----------
@@ -241,7 +252,22 @@ fun ThemeScreen(
                         }
                     }
                 }
+                // AMOLED 纯黑：只在深色外观下有意义，浅色时禁用并由 summary 说明原因
+                SwitchPreference(
+                    checked = AppThemeManager.isAmoled,
+                    onCheckedChange = { AppThemeManager.setAmoled(context, it) },
+                    title = "AMOLED 纯黑",
+                    summary = if (darkAppearance) {
+                        "深色下把背景与卡片表面压到纯黑，降低 OLED 屏幕耗电"
+                    } else {
+                        "仅深色模式生效，当前为浅色外观"
+                    },
+                    enabled = darkAppearance
+                )
             }
+
+            // ---------- 当前主题实时预览 ----------
+            ThemePreviewCard()
 
             // ---------- 主题色彩 ----------
             SmallTitle(text = "主题颜色")
@@ -433,7 +459,8 @@ private fun SmoothFilterChip(
     )
     Surface(
         onClick = onClick,
-        modifier = modifier.height(38.dp),
+        // 触摸目标下限 48dp（无障碍规范）：高度不再用固定 38dp，命中区必须覆盖整个胶囊
+        modifier = modifier.heightIn(min = 48.dp),
         shape = SquircleShape(12.dp),
         color = containerColor
     ) {
@@ -445,6 +472,104 @@ private fun SmoothFilterChip(
                 fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal
             )
         }
+    }
+}
+
+/**
+ * 当前主题实时预览卡片：直接用 MiuixTheme.colorScheme 绘制主色块、表面与文字示例，
+ * 主题设置改动后随重组立即刷新，用来直观确认配色效果。
+ */
+@Composable
+private fun ThemePreviewCard() {
+    val colors = MiuixTheme.colorScheme
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 16.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = "实时预览",
+                style = MiuixTheme.textStyles.subtitle,
+                color = colors.onSurface
+            )
+            Text(
+                text = "以下色块取自当前主题方案",
+                style = MiuixTheme.textStyles.body2,
+                color = colors.onSurfaceSecondary
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // 主色示例块
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(SquircleShape(14.dp))
+                        .background(colors.primary)
+                )
+                // 表面 + 正文/次要文字示例
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(SquircleShape(14.dp))
+                        .background(colors.surface)
+                        .border(1.dp, colors.dividerLine, SquircleShape(14.dp))
+                        .padding(12.dp)
+                ) {
+                    Column {
+                        Text(
+                            text = "正文示例文字",
+                            style = MiuixTheme.textStyles.body1,
+                            color = colors.onSurface
+                        )
+                        Text(
+                            text = "次要说明文字",
+                            style = MiuixTheme.textStyles.body2,
+                            color = colors.onSurfaceSecondary
+                        )
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+            // 容器分层：AMOLED 下 High/Highest 仍保留灰阶，用于区分卡片分组边界
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                PreviewSwatch(color = colors.surfaceContainer, label = "容器", modifier = Modifier.weight(1f))
+                PreviewSwatch(color = colors.surfaceContainerHigh, label = "高容器", modifier = Modifier.weight(1f))
+                PreviewSwatch(color = colors.surfaceContainerHighest, label = "最高容器", modifier = Modifier.weight(1f))
+            }
+        }
+    }
+}
+
+/** 预览色块：容器色 + 名称，用于展示当前方案的分层灰阶 */
+@Composable
+private fun PreviewSwatch(
+    color: Color,
+    label: String,
+    modifier: Modifier = Modifier
+) {
+    Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(24.dp)
+                .clip(SquircleShape(8.dp))
+                .background(color)
+                .border(1.dp, MiuixTheme.colorScheme.dividerLine, SquircleShape(8.dp))
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = label,
+            style = MiuixTheme.textStyles.footnote1,
+            color = MiuixTheme.colorScheme.onSurfaceSecondary
+        )
     }
 }
 

@@ -18,12 +18,7 @@
 
 package com.yunx.app.ui.login
 
-import android.graphics.Bitmap
 import android.webkit.CookieManager
-import android.webkit.WebChromeClient
-import android.webkit.WebSettings
-import android.webkit.WebView
-import android.webkit.WebViewClient
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -31,24 +26,25 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.ContentPaste
-import com.yunx.app.ui.AppSnackbarHost
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.yunx.app.data.network.BaiduConstants
+import com.yunx.app.data.repository.SaveResult
+import com.yunx.app.ui.AppSnackbarHost
 import com.yunx.app.ui.SnackbarController
 import com.yunx.app.ui.rememberGlobalSnackbarHostState
 import com.yunx.app.ui.viewmodel.BaiduAccountViewModel
@@ -69,7 +65,7 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /**
  * 百度网盘登录页：
- * - WebView 加载百度网盘官网，由用户手动登录；
+ * - WebView 加载百度网盘官网，由用户手动登录（统一走 [rememberLoginWebView]）；
  * - 自动登录检测：网页内登录完成后自动提取 Cookie（关键字段 BDUSS/STOKEN）并校验落库（右上角「保存」保留作手动兜底）；
  * - 支持手动粘贴 Cookie（需含 BDUSS=）。
  */
@@ -79,11 +75,8 @@ fun BaiduLoginScreen(
     onBack: () -> Unit,
     onSaved: () -> Unit
 ) {
-    val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var isSaving by remember { mutableStateOf(false) }
-    var isLoading by remember { mutableStateOf(true) }
-
     var showCookieDialog by remember { mutableStateOf(false) }
     var cookieInput by remember { mutableStateOf("") }
     var isSavingManual by remember { mutableStateOf(false) }
@@ -92,55 +85,31 @@ fun BaiduLoginScreen(
     // 进入登录页先弹风控提示，确认后再弹登录教程（避免两个弹窗叠层）
     var showRiskDialog by remember { mutableStateOf(true) }
 
-    val webView = remember {
-        WebView(context).apply {
-            settings.javaScriptEnabled = true
-            settings.domStorageEnabled = true
-            settings.setSupportZoom(true)
-            settings.builtInZoomControls = true
-            settings.displayZoomControls = false
-            settings.useWideViewPort = true
-            settings.loadWithOverviewMode = true
-            settings.layoutAlgorithm = WebSettings.LayoutAlgorithm.NARROW_COLUMNS
-            setInitialScale(0)
-            settings.userAgentString = BaiduConstants.UA_WEB
-            webViewClient = object : WebViewClient() {
-                override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
-                    isLoading = true
-                }
+    // 统一 WebView：关闭文件访问 / 禁止混合内容 / 允许第三方 Cookie / 错误与超时回调 / 失败重试
+    val controller = rememberLoginWebView(
+        url = BaiduConstants.LOGIN_URL,
+        userAgent = BaiduConstants.UA_WEB,
+        injectViewport = true
+    )
 
-                override fun onPageFinished(view: WebView?, url: String?) {
-                    isLoading = false
-                    // 强制覆盖页面 viewport：允许缩放 + 适配屏幕宽度（桌面版页面无 viewport 或限制了缩放时生效）
-                    view?.evaluateJavascript(
-                        "(function(){var m=document.querySelector('meta[name=\"viewport\"]');" +
-                            "var c='width=device-width,initial-scale=1.0,maximum-scale=5.0,user-scalable=yes';" +
-                            "if(m){m.setAttribute('content',c);}else{var n=document.createElement('meta');n.name='viewport';n.content=c;document.head.appendChild(n);}" +
-                            "window.dispatchEvent(new Event('resize'));})()",
-                        null
-                    )
-                }
-            }
-            webChromeClient = WebChromeClient()
-            loadUrl(BaiduConstants.LOGIN_URL)
-        }
+    // 保存中允许返回：网络卡死时不能把用户困在登录页；离开时提示保存已取消
+    val exitLogin: () -> Unit = {
+        if (isSaving || isSavingManual) SnackbarController.show("已取消保存，可稍后重新登录")
+        onBack()
     }
 
     // 自动登录检测：网页内登录完成（BDUSS 出现并通过接口校验）即自动保存登录；右上角「保存」保留作手动兜底
     rememberWebLoginAutoDetect(
         sampleCredential = { CookieManager.getInstance().getCookie(BaiduConstants.COOKIE_DOMAIN).orEmpty() },
         isPlausible = { BaiduConstants.isValidCookie(it) },
-        validateAndSave = { viewModel.saveBaiduAccount(it) },
+        validateAndSave = { loginSaveResult { viewModel.saveBaiduAccount(it) } == SaveResult.Success },
         isPaused = { isSaving || isSavingManual || showCookieDialog },
         onInFlightChange = { isSaving = it },
         onAutoSaved = onSaved
     )
 
-    DisposableEffect(Unit) {
-        onDispose { webView.destroy() }
-    }
-
-    BackHandler(enabled = !isSaving && !isSavingManual) { onBack() }
+    // 系统返回键：优先回退网页历史（登录流程多跳转），无历史才退出登录页
+    BackHandler { if (!controller.goBack()) exitLogin() }
 
     // 全局 Snackbar 宿主
     val snackbarHostState = rememberGlobalSnackbarHostState()
@@ -151,7 +120,8 @@ fun BaiduLoginScreen(
             TopAppBar(
                 title = "百度网盘登录",
                 navigationIcon = {
-                    IconButton(onClick = { if (!isSaving && !isSavingManual) onBack() }) {
+                    // 顶栏返回始终可点：保存中也要能退出，避免用户被困
+                    IconButton(onClick = exitLogin) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "返回"
@@ -165,7 +135,7 @@ fun BaiduLoginScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Outlined.ContentPaste,
-                            contentDescription = "手动输入 Cookie",
+                            contentDescription = "手动输入凭证",
                             tint = MiuixTheme.colorScheme.onSurfaceVariantActions
                         )
                     }
@@ -182,16 +152,22 @@ fun BaiduLoginScreen(
                             onClick = {
                                 scope.launch {
                                     isSaving = true
-                                    val cookie = CookieManager.getInstance()
-                                        .getCookie(BaiduConstants.COOKIE_DOMAIN)
-                                        .orEmpty()
-                                    val saved = viewModel.saveBaiduAccount(cookie)
-                                    isSaving = false
-                                    if (saved) {
-                                        SnackbarController.show("登录成功")
-                                        onSaved()
-                                    } else {
-                                        SnackbarController.show("未检测到登录态，请先完成登录")
+                                    try {
+                                        val cookie = CookieManager.getInstance()
+                                            .getCookie(BaiduConstants.COOKIE_DOMAIN)
+                                            .orEmpty()
+                                        // 三态：成功才关闭登录页；凭证无效提示检查；网络失败保留输入、留在本页
+                                        when (val result = loginSaveResult { viewModel.saveBaiduAccount(cookie) }) {
+                                            SaveResult.Success -> {
+                                                SnackbarController.show("登录成功")
+                                                onSaved()
+                                            }
+                                            SaveResult.InvalidCredential ->
+                                                SnackbarController.show("凭证无效，请先完成网页登录，或检查 Cookie 是否含 BDUSS=")
+                                            is SaveResult.NetworkError -> SnackbarController.show(result.message)
+                                        }
+                                    } finally {
+                                        isSaving = false
                                     }
                                 }
                             },
@@ -206,13 +182,18 @@ fun BaiduLoginScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                // 键盘避让：网页表单聚焦时把内容顶到键盘上方，输入框不被遮挡
+                .imePadding()
         ) {
             AndroidView(
-                factory = { webView },
+                factory = { controller.webView },
                 modifier = Modifier.fillMaxSize()
             )
-            if (isLoading) {
+            if (controller.isLoading) {
                 LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+            }
+            controller.failureMessage?.let { message ->
+                LoginLoadFailureOverlay(message = message, onRetry = { controller.retry() })
             }
         }
 
@@ -287,10 +268,10 @@ fun BaiduLoginScreen(
             )
         }
 
-        // 手动输入 Cookie 弹窗
+        // 手动输入凭证弹窗（各平台统一标题，字段名沿用平台自身：Cookie）
         OverlayDialog(
             show = showCookieDialog,
-            title = "手动输入 Cookie",
+            title = "手动输入凭证",
             onDismissRequest = { if (!isSavingManual) showCookieDialog = false }
         ) {
             Column {
@@ -325,14 +306,20 @@ fun BaiduLoginScreen(
                         onClick = {
                             scope.launch {
                                 isSavingManual = true
-                                val saved = viewModel.saveBaiduAccount(cookieInput.trim())
-                                isSavingManual = false
-                                if (saved) {
-                                    SnackbarController.show("登录成功")
-                                    showCookieDialog = false
-                                    onSaved()
-                                } else {
-                                    SnackbarController.show("Cookie 无效，请检查是否包含 BDUSS=")
+                                try {
+                                    when (val result = loginSaveResult { viewModel.saveBaiduAccount(cookieInput.trim()) }) {
+                                        SaveResult.Success -> {
+                                            SnackbarController.show("登录成功")
+                                            showCookieDialog = false
+                                            onSaved()
+                                        }
+                                        SaveResult.InvalidCredential ->
+                                            SnackbarController.show("凭证无效，请检查是否包含 BDUSS=")
+                                        // 网络失败：保留弹窗与已输入内容，只提示重试
+                                        is SaveResult.NetworkError -> SnackbarController.show(result.message)
+                                    }
+                                } finally {
+                                    isSavingManual = false
                                 }
                             }
                         },

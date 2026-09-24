@@ -23,6 +23,9 @@ import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -69,6 +72,7 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -96,6 +100,7 @@ import top.yukonga.miuix.kmp.blur.highlight.LightPosition
 import top.yukonga.miuix.kmp.blur.highlight.LightSource
 import top.yukonga.miuix.kmp.blur.isRuntimeShaderSupported
 import top.yukonga.miuix.kmp.blur.layerBackdrop
+import top.yukonga.miuix.kmp.blur.noiseDither
 import top.yukonga.miuix.kmp.blur.rememberLayerBackdrop
 import top.yukonga.miuix.kmp.theme.LocalContentColor as MiuixLocalContentColor
 import top.yukonga.miuix.kmp.theme.MiuixTheme
@@ -170,9 +175,11 @@ private val iosIndicatorSpecular: Highlight = Highlight(
     ),
 )
 
-/** 高光参考点在归一化 UV 坐标系中的位置 */
-private const val LIGHT_REF_X = 0.5f
-private const val LIGHT_REF_Y = 0.7f
+/**
+ * 深色下大面积模糊的抗色带噪点系数。
+ * 量级参考 miuix BlurDefaults.noiseCoefficient（0.0045），只用于打散暗部色带，不引入可见颗粒。
+ */
+private const val DARK_NOISE_COEFFICIENT = 0.006f
 
 /**
  * 槽位式底栏项。
@@ -431,20 +438,29 @@ fun FloatingBottomBar(
                         tabWidthPx = (contentWidthPx / tabsCount).coerceAtLeast(0f)
                     }
                     .graphicsLayer { translationX = panelOffset }
+                    // 外壳投影保留但减弱：它是 Blur / None 降级档位唯一的悬浮感来源，
+                    // 液态玻璃档位下"按压浮起"的层次改由滑块自身的投影承担，避免两层阴影叠加发脏。
                     .dropShadow(
                         shape = pillShape,
                         shadow = Shadow(
                             radius = 10.dp,
                             color = Color.Black,
-                            alpha = if (isDark) 0.2f else 0.1f,
+                            alpha = if (isDark) 0.14f else 0.07f,
                         ),
                     )
-                    // 吞掉底栏空白处的点击，避免穿透到下层列表
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null,
-                        onClick = {},
-                    )
+                    // 吞掉底栏空白处的手势，避免穿透到下层列表。
+                    // 不用 clickable(onClick = {})：空的 clickable 会生成一个无标签的 clickable 语义节点，
+                    // TalkBack 会把它读成一个空按钮。pointerInput 不产生任何语义节点。
+                    // Main 传递顺序是「子 → 父」，requireUnconsumed = true 保证 Tab 子项已消费的按下
+                    // 不会走到这里，所以不会吞掉 Tab 的点击；同时只消费「按下/抬起」而不消费移动事件，
+                    // 避免打断滑块自身的拖拽。
+                    .pointerInput(Unit) {
+                        awaitEachGesture {
+                            val down = awaitFirstDown(requireUnconsumed = true)
+                            down.consume()
+                            waitForUpOrCancellation()
+                        }
+                    }
                     .then(
                         if (isLiquidGlassMode && backdrop != null) {
                             Modifier.drawBackdrop(
@@ -454,6 +470,8 @@ fun FloatingBottomBar(
                                     padding = maxOf(padding, lensPaddingPx)
                                     vibrancy()
                                     blur(blur4Px, blur4Px)
+                                    // 深色下大面积模糊会把暗部量化成色带，用极小系数噪点打散
+                                    if (isDark) noiseDither(DARK_NOISE_COEFFICIENT)
                                     lens(
                                         refractionHeight = lens24Px,
                                         refractionAmount = lens24Px,
@@ -474,6 +492,8 @@ fun FloatingBottomBar(
                                 shape = { pillShape },
                                 effects = {
                                     blur(blur25Px, blur25Px)
+                                    // 降级档位模糊半径更大，暗部色带更明显，同样需要噪点打散
+                                    if (isDark) noiseDither(DARK_NOISE_COEFFICIENT)
                                 },
                                 onDrawSurface = { drawRect(containerColor) },
                             )
@@ -523,6 +543,16 @@ fun FloatingBottomBar(
                         .graphicsLayer {
                             val progressOffset = dampedDragAnimation.value * tabWidthPx
                             translationX = if (isLtr) progressOffset + panelOffset else -progressOffset + panelOffset
+                        }
+                        // 参考实现把滑块阴影的 alpha 绑定到按压力度：静止时滑块贴合外壳，
+                        // 按下才浮起投影。miuix 的 drawBackdrop 没有 shadow 参数，因此改用独立的
+                        // dropShadow；它在 Draw 阶段读取 pressProgress，不会引起重组。
+                        .dropShadow(shape = pillShape) {
+                            val progress = dampedDragAnimation.pressProgress
+                            radius = 10.dp.toPx()
+                            color = Color.Black
+                            alpha = 0.22f * progress
+                            offset = Offset(0f, 3.dp.toPx())
                         }
                         .then(interactiveHighlight?.gestureModifier ?: Modifier)
                         .then(dampedDragAnimation.modifier)
@@ -576,6 +606,15 @@ fun FloatingBottomBar(
                         .graphicsLayer {
                             val progressOffset = dampedDragAnimation.value * tabWidthPx
                             translationX = if (isLtr) progressOffset + panelOffset else -progressOffset + panelOffset
+                        }
+                        // 降级档位没有透镜与内阴影，按压反馈全靠缩放与投影，
+                        // 因此这里同样按 pressProgress 淡入滑块投影。
+                        .dropShadow(shape = pillShape) {
+                            val progress = dampedDragAnimation.pressProgress
+                            radius = 10.dp.toPx()
+                            color = Color.Black
+                            alpha = 0.2f * progress
+                            offset = Offset(0f, 3.dp.toPx())
                         }
                         .then(dampedDragAnimation.modifier)
                         .clip(pillShape)

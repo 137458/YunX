@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -39,7 +40,6 @@ import androidx.compose.material.icons.outlined.Phone
 import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
-import com.yunx.app.ui.AppSnackbarHost
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -56,6 +56,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import com.yunx.app.ui.AppSnackbarHost
 import com.yunx.app.ui.SnackbarController
 import com.yunx.app.ui.rememberGlobalSnackbarHostState
 import com.yunx.app.ui.viewmodel.XunleiAccountViewModel
@@ -74,6 +75,9 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 /**
  * 迅雷网盘登录页：账号+密码登录，触发风控时切换短信验证码流程。
  * 步骤：账号密码 →（需要时）发送短信 → 输入验证码 → 完成。
+ *
+ * 错误提示只保留表单内联红字（与其余 5 个登录页「只用 Snackbar」不同，这里以贴近输入框为准），
+ * 不再额外弹一条内容相同的全局 Snackbar，避免同一条错误重复展示。
  */
 @Composable
 fun XunleiLoginScreen(
@@ -95,13 +99,6 @@ fun XunleiLoginScreen(
     var smsCode by rememberSaveable { mutableStateOf("") }
     var isSending by remember { mutableStateOf(false) }
 
-    // 登录错误提示
-    LaunchedEffect(error) {
-        error?.let {
-            SnackbarController.show(it)
-            viewModel.consumeLoginError()
-        }
-    }
     // 登录成功后自动关闭登录页（短信/密码任一方式成功，账号非空即关闭）
     LaunchedEffect(account) {
         if (account != null) onSaved()
@@ -132,6 +129,8 @@ fun XunleiLoginScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                // 键盘避让：输入框聚焦时把内容顶到键盘上方，密码/验证码输入框不被遮挡
+                .imePadding()
                 .verticalScroll(rememberScrollState())
                 .padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -144,7 +143,7 @@ fun XunleiLoginScreen(
             )
             Text(
                 text = if (step?.needSms == true) {
-                    if (smsSent) "账号密码登录触发安全验证，验证码已发送至 ${username}"
+                    if (smsSent) "账号密码登录触发安全验证，验证码已发送至 $username"
                     else "账号密码登录触发安全验证，请点击下方「发送验证码」"
                 } else {
                     "使用迅雷账号登录，支持解析与下载分享文件"

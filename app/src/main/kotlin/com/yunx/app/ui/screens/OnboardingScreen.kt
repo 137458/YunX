@@ -23,6 +23,13 @@ import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -81,12 +88,14 @@ fun OnboardingScreen(
         modifier = modifier
             .fillMaxSize()
             .background(MiuixTheme.colorScheme.background)
+            // 边到边：顶部状态栏高度由系统 inset 提供，不再用固定 56dp 硬撑
+            .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top))
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(start = 24.dp, end = 24.dp, top = 56.dp, bottom = 120.dp),
+                .padding(start = 24.dp, end = 24.dp, top = 24.dp, bottom = 120.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // ---------- 顶部：渐变图标 + 名称 + 标语 ----------
@@ -236,16 +245,19 @@ fun OnboardingScreen(
         Surface(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                // 手势导航条不能压住主操作按钮
+                .navigationBarsPadding(),
             color = MiuixTheme.colorScheme.background,
             shadowElevation = 8.dp
         ) {
             Button(
                 onClick = onFinish,
+                // defaultMinSize 而非固定 height：系统字体放大时按钮不会被裁切
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 24.dp, vertical = 16.dp)
-                    .height(52.dp)
+                    .defaultMinSize(minHeight = 52.dp)
             ) {
                 Text(
                     text = "开始使用",

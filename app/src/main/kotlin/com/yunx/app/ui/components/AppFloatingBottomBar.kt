@@ -56,6 +56,7 @@ fun AppFloatingBottomBar(
     style: BottomBarStyle = BottomBarStyle.Default,
 ) {
     val tabs = remember { MainTab.entries }
+    val haptics = rememberHaptics()
     val colors = FloatingBottomBarDefaults.colors(
         containerColor = MiuixTheme.colorScheme.surfaceContainer,
         indicatorColor = MiuixTheme.colorScheme.primary,
@@ -65,7 +66,10 @@ fun AppFloatingBottomBar(
 
     FloatingBottomBar(
         selectedIndex = { currentTab.ordinal },
-        onSelected = { index -> onTabSelected(tabs[index.coerceIn(0, tabs.lastIndex)]) },
+        onSelected = { index ->
+            haptics.tick()
+            onTabSelected(tabs[index.coerceIn(0, tabs.lastIndex)])
+        },
         tabsCount = tabs.size,
         modifier = modifier,
         backdrop = backdrop,
@@ -74,18 +78,21 @@ fun AppFloatingBottomBar(
     ) {
         tabs.forEach { tab ->
             FloatingBottomBarItem(
-                onClick = { onTabSelected(tab) },
+                onClick = {
+                    haptics.tick()
+                    onTabSelected(tab)
+                },
                 selected = currentTab == tab,
-                modifier = Modifier
-                    .defaultMinSize(minWidth = 72.dp)
-                    .semantics { contentDescription = tab.title }
+                // 不要在外层再设 contentDescription：槽位里的 Text 会被 clickable 合并成标签，
+                // 两处同文案会让 TalkBack 把同一个 Tab 读两遍。
+                modifier = Modifier.defaultMinSize(minWidth = 72.dp)
             ) {
                 // 选中态配色由底栏图层注入：液态玻璃档位下由滑块折射透出，
                 // 降级档位下由滑块内的平移副本承载，槽位本身无需判断状态。
                 val contentColor = LocalFloatingBottomBarContentColor.current
                 Icon(
                     imageVector = if (currentTab == tab) tab.selectedIcon else tab.unselectedIcon,
-                    contentDescription = null, // 外层 Tab 容器统一拥有语义 contentDescription
+                    contentDescription = null, // 装饰性图标：标签由同容器内的 Text 提供
                     tint = contentColor,
                     modifier = Modifier.size(24.dp)
                 )

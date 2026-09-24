@@ -18,11 +18,7 @@
 
 package com.yunx.app.ui.login
 
-import android.graphics.Bitmap
 import android.webkit.CookieManager
-import android.webkit.WebChromeClient
-import android.webkit.WebView
-import android.webkit.WebViewClient
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -30,14 +26,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.ContentPaste
-import com.yunx.app.ui.AppSnackbarHost
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -45,10 +40,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.yunx.app.data.network.QuarkConstants
+import com.yunx.app.data.repository.SaveResult
+import com.yunx.app.ui.AppSnackbarHost
 import com.yunx.app.ui.SnackbarController
 import com.yunx.app.ui.rememberGlobalSnackbarHostState
 import com.yunx.app.ui.viewmodel.QuarkAccountViewModel
@@ -69,8 +65,8 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /**
  * 夸克网盘登录页：
- * - 顶部标题栏：返回按钮 + 手动输入 Cookie 图标 + 保存按钮（登录完成后点击，提取 Cookie 并校验保存）
- * - 主体：WebView 加载夸克网盘官网，由用户手动登录
+ * - 顶部标题栏：返回按钮 + 手动输入凭证图标 + 保存按钮（登录完成后点击，提取 Cookie 并校验保存）
+ * - 主体：WebView 加载夸克网盘官网，由用户手动登录（统一走 [rememberLoginWebView]）
  * - 自动登录检测：网页内登录完成后自动提取 Cookie 并登录（「保存」按钮保留作手动兜底）
  * - 进入页面时弹登录教程
  */
@@ -80,12 +76,10 @@ fun QuarkLoginScreen(
     onBack: () -> Unit,
     onSaved: () -> Unit
 ) {
-    val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var isSaving by remember { mutableStateOf(false) }
-    var isLoading by remember { mutableStateOf(true) }
 
-    // 手动输入 Cookie 弹窗状态
+    // 手动输入凭证弹窗状态
     var showCookieDialog by remember { mutableStateOf(false) }
     var cookieInput by remember { mutableStateOf("") }
     var isSavingManual by remember { mutableStateOf(false) }
@@ -94,50 +88,30 @@ fun QuarkLoginScreen(
     var showTutorial by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { showTutorial = true }
 
-    val webView = remember {
-        WebView(context).apply {
-            settings.javaScriptEnabled = true
-            settings.domStorageEnabled = true
+    // 统一 WebView：关闭文件访问 / 禁止混合内容 / 允许第三方 Cookie / 错误与超时回调 / 失败重试
+    val controller = rememberLoginWebView(
+        url = QuarkConstants.LOGIN_URL,
+        userAgent = QuarkConstants.USER_AGENT
+    )
 
-            settings.setSupportZoom(true)          // 支持缩放
-            settings.builtInZoomControls = true    // 启用内置缩放机制（双指缩放）
-            settings.displayZoomControls = false   // 隐藏屏幕上的缩放按钮（只保留手势）
-
-            settings.useWideViewPort = true        // 支持 viewport 标签
-            settings.loadWithOverviewMode = true
-
-            settings.userAgentString = QuarkConstants.USER_AGENT
-            webViewClient = object : WebViewClient() {
-                override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
-                    isLoading = true
-                }
-
-                override fun onPageFinished(view: WebView?, url: String?) {
-                    isLoading = false
-                }
-            }
-            webChromeClient = WebChromeClient()
-            loadUrl(QuarkConstants.LOGIN_URL)
-        }
+    // 保存中允许返回：网络卡死时不能把用户困在登录页；离开时提示保存已取消
+    val exitLogin: () -> Unit = {
+        if (isSaving || isSavingManual) SnackbarController.show("已取消保存，可稍后重新登录")
+        onBack()
     }
 
     // 自动登录检测：网页内登录完成（Cookie 出现并通过接口校验）即自动保存登录；右上角「保存」保留作手动兜底
     rememberWebLoginAutoDetect(
         sampleCredential = { CookieManager.getInstance().getCookie(QuarkConstants.COOKIE_DOMAIN).orEmpty() },
         isPlausible = { QuarkConstants.isValidCookie(it) },
-        validateAndSave = { viewModel.saveQuarkAccount(it) },
+        validateAndSave = { loginSaveResult { viewModel.saveQuarkAccount(it) } == SaveResult.Success },
         isPaused = { isSaving || isSavingManual || showCookieDialog },
         onInFlightChange = { isSaving = it },
         onAutoSaved = onSaved
     )
 
-    // 页面销毁时释放 WebView
-    DisposableEffect(Unit) {
-        onDispose { webView.destroy() }
-    }
-
-    // 系统返回键 → 返回主页（保存中禁用）
-    BackHandler(enabled = !isSaving && !isSavingManual) { onBack() }
+    // 系统返回键：优先回退网页历史（登录流程多跳转），无历史才退出登录页
+    BackHandler { if (!controller.goBack()) exitLogin() }
 
     // 全局 Snackbar 宿主
     val snackbarHostState = rememberGlobalSnackbarHostState()
@@ -148,7 +122,8 @@ fun QuarkLoginScreen(
             TopAppBar(
                 title = "夸克网盘登录",
                 navigationIcon = {
-                    IconButton(onClick = { if (!isSaving && !isSavingManual) onBack() }) {
+                    // 顶栏返回始终可点：保存中也要能退出，避免用户被困
+                    IconButton(onClick = exitLogin) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "返回"
@@ -156,14 +131,14 @@ fun QuarkLoginScreen(
                     }
                 },
                 actions = {
-                    // 手动输入 Cookie
+                    // 手动输入凭证
                     IconButton(
                         onClick = { if (!isSaving && !isSavingManual) showCookieDialog = true },
                         enabled = !isSaving && !isSavingManual
                     ) {
                         Icon(
                             imageVector = Icons.Outlined.ContentPaste,
-                            contentDescription = "手动输入 Cookie",
+                            contentDescription = "手动输入凭证",
                             tint = MiuixTheme.colorScheme.onSurfaceVariantActions
                         )
                     }
@@ -180,16 +155,22 @@ fun QuarkLoginScreen(
                             onClick = {
                                 scope.launch {
                                     isSaving = true
-                                    val cookie = CookieManager.getInstance()
-                                        .getCookie(QuarkConstants.COOKIE_DOMAIN)
-                                        .orEmpty()
-                                    val saved = viewModel.saveQuarkAccount(cookie)
-                                    isSaving = false
-                                    if (saved) {
-                                        SnackbarController.show("登录成功")
-                                        onSaved()
-                                    } else {
-                                        SnackbarController.show("未检测到登录态，请先完成登录")
+                                    try {
+                                        val cookie = CookieManager.getInstance()
+                                            .getCookie(QuarkConstants.COOKIE_DOMAIN)
+                                            .orEmpty()
+                                        // 三态：成功才关闭登录页；凭证无效提示检查；网络失败保留输入、留在本页
+                                        when (val result = loginSaveResult { viewModel.saveQuarkAccount(cookie) }) {
+                                            SaveResult.Success -> {
+                                                SnackbarController.show("登录成功")
+                                                onSaved()
+                                            }
+                                            SaveResult.InvalidCredential ->
+                                                SnackbarController.show("凭证无效，请先完成网页登录，或检查 Cookie 是否含 __pus= 与 __puus=")
+                                            is SaveResult.NetworkError -> SnackbarController.show(result.message)
+                                        }
+                                    } finally {
+                                        isSaving = false
                                     }
                                 }
                             },
@@ -204,13 +185,18 @@ fun QuarkLoginScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                // 键盘避让：网页表单聚焦时把内容顶到键盘上方，输入框不被遮挡
+                .imePadding()
         ) {
             AndroidView(
-                factory = { webView },
+                factory = { controller.webView },
                 modifier = Modifier.fillMaxSize()
             )
-            if (isLoading) {
+            if (controller.isLoading) {
                 LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+            }
+            controller.failureMessage?.let { message ->
+                LoginLoadFailureOverlay(message = message, onRetry = { controller.retry() })
             }
         }
 
@@ -253,10 +239,10 @@ fun QuarkLoginScreen(
             )
         }
 
-        // 手动输入 Cookie 弹窗
+        // 手动输入凭证弹窗（各平台统一标题，字段名沿用平台自身：Cookie）
         OverlayDialog(
             show = showCookieDialog,
-            title = "手动输入 Cookie",
+            title = "手动输入凭证",
             onDismissRequest = { if (!isSavingManual) showCookieDialog = false }
         ) {
             Column {
@@ -291,14 +277,20 @@ fun QuarkLoginScreen(
                         onClick = {
                             scope.launch {
                                 isSavingManual = true
-                                val saved = viewModel.saveQuarkAccount(cookieInput.trim())
-                                isSavingManual = false
-                                if (saved) {
-                                    SnackbarController.show("登录成功")
-                                    showCookieDialog = false
-                                    onSaved()
-                                } else {
-                                    SnackbarController.show("Cookie 无效，请检查是否包含 __pus= 与 __puus=")
+                                try {
+                                    when (val result = loginSaveResult { viewModel.saveQuarkAccount(cookieInput.trim()) }) {
+                                        SaveResult.Success -> {
+                                            SnackbarController.show("登录成功")
+                                            showCookieDialog = false
+                                            onSaved()
+                                        }
+                                        SaveResult.InvalidCredential ->
+                                            SnackbarController.show("凭证无效，请检查是否包含 __pus= 与 __puus=")
+                                        // 网络失败：保留弹窗与已输入内容，只提示重试
+                                        is SaveResult.NetworkError -> SnackbarController.show(result.message)
+                                    }
+                                } finally {
+                                    isSavingManual = false
                                 }
                             }
                         },

@@ -58,6 +58,10 @@ import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
 
+/** 高光参考点在归一化 UV 坐标系中的位置：偏下，让镜面反射落在胶囊的中下部。 */
+private const val LIGHT_REF_X = 0.5f
+private const val LIGHT_REF_Y = 0.7f
+
 @Immutable
 data class DeviceTilt(
     val gravityX: Float = 0f,
@@ -170,8 +174,8 @@ fun rememberGravityRotatedHighlight(
                     style = baseStyle.copy(
                         primaryLight = basePrimary.copy(
                             position = LightPosition(
-                                x = 0.5f + cos(rad),
-                                y = 0.7f + sin(rad),
+                                x = LIGHT_REF_X + cos(rad),
+                                y = LIGHT_REF_Y + sin(rad),
                                 z = basePrimary.position.z,
                             ),
                         ),

@@ -50,11 +50,13 @@ class C139AccountRepository(
     }
 
     /**
-     * 校验 139 Cookie 有效性（Os_SSo_Sid+RMKEY 或 authorization 任一成立）；
-     * 有效则提取账号与 authorization 并落库，返回 true。
+     * 校验 139 Cookie 有效性（Os_SSo_Sid+RMKEY 或 authorization 任一成立）并落库，返回三态结果。
+     * 139 登录态完全在本地解析，不发网络校验请求，因此不会产生「网络失败」态；
+     * 旧实现把「服务端校验失败」当成功（拿不到账号就回退默认昵称并返回 true），现在统一由
+     * [C139Constants.isValidCookie] 决定，形态不合法即视为凭证无效。
      */
-    suspend fun saveC139Account(cookie: String): Boolean {
-        if (!C139Constants.isValidCookie(cookie)) return false
+    suspend fun saveC139AccountResult(cookie: String): SaveResult {
+        if (!C139Constants.isValidCookie(cookie)) return SaveResult.InvalidCredential
         val nickname = C139Constants.extractAccount(cookie) ?: "139用户"
         val authorization = C139Constants.extractAuthorization(cookie).orEmpty()
         dao.upsert(
@@ -65,6 +67,13 @@ class C139AccountRepository(
                 authorization = authorization
             )
         )
-        return true
+        return SaveResult.Success
     }
+
+    /**
+     * Boolean 兼容入口（账号 ViewModel 仍按 Boolean 调用）。
+     * 139 无网络校验，不存在网络失败态，故直接按成功/凭证无效返回。
+     */
+    suspend fun saveC139Account(cookie: String): Boolean =
+        saveC139AccountResult(cookie) == SaveResult.Success
 }

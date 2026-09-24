@@ -228,6 +228,11 @@ class Pan123CloudViewModel(
         moveLoad(moveDirStack.lastOrNull() ?: "0", moveNameStack.toList())
     }
 
+    /** 移动目标目录加载失败后的重试：重新加载当前目录（不改变已进入的层级） */
+    fun retryMove() {
+        moveLoad(moveDirStack.lastOrNull() ?: "0", moveNameStack.toList())
+    }
+
     private fun moveLoad(dirId: String, pathNames: List<String>) {
         _moveUiState.value = Pan123CloudUiState.Loading
         viewModelScope.launch {

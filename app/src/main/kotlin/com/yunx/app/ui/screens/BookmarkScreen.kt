@@ -28,9 +28,7 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -46,6 +44,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -68,7 +67,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -80,6 +78,7 @@ import com.yunx.app.ui.SnackbarController
 import com.yunx.app.ui.theme.SquircleShape
 import com.yunx.app.ui.viewmodel.BookmarkViewModel
 import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
@@ -122,6 +121,8 @@ fun BookmarkScreen(
     var showAddDialog by remember { mutableStateOf(false) }
     var editingBookmark by remember { mutableStateOf<BookmarkEntity?>(null) }
     var menuBookmark by remember { mutableStateOf<BookmarkEntity?>(null) }
+    // 待确认删除的收藏：删除不可逆，先弹确认框再落库
+    var pendingDelete by remember { mutableStateOf<BookmarkEntity?>(null) }
 
     val filtered = remember(bookmarks, selectedCategory) {
         val cat = selectedCategory
@@ -186,11 +187,17 @@ fun BookmarkScreen(
             }
 
             if (filtered.isEmpty()) {
+                // 区分「完全没有收藏」与「当前分类下没有收藏」：两者文案与出口操作都不同，
+                // 否则筛选为空时会误报「还没有收藏任何网盘链接」，用户无法理解。
                 item(key = "empty") {
-                    EmptyBookmark(onAdd = { showAddDialog = true })
+                    EmptyBookmark(
+                        filtered = bookmarks.isNotEmpty(),
+                        onAdd = { showAddDialog = true },
+                        onClearFilter = { selectedCategory = null }
+                    )
                 }
             } else {
-                items(filtered, key = { it.id }) { bookmark ->
+                items(filtered, key = { it.id }, contentType = { "bookmark" }) { bookmark ->
                     BookmarkRow(
                         bookmark = bookmark,
                         onClick = { onResolve(bookmark.link, bookmark.pwd) },
@@ -252,10 +259,25 @@ fun BookmarkScreen(
                     editingBookmark = bookmark
                 },
                 onDelete = {
+                    // 先关菜单再弹确认框，避免两个 OverlayDialog 同时挂载
                     menuBookmark = null
-                    viewModel.delete(bookmark.id)
+                    pendingDelete = bookmark
                 },
                 onDismiss = { menuBookmark = null }
+            )
+        }
+
+        // 删除确认：收藏删除不可逆，先二次确认再落库
+        pendingDelete?.let { target ->
+            DeleteBookmarkDialog(
+                show = true,
+                title = target.title.ifBlank { target.link },
+                onConfirm = {
+                    viewModel.delete(target.id)
+                    pendingDelete = null
+                    SnackbarController.show("已删除收藏")
+                },
+                onDismiss = { pendingDelete = null }
             )
         }
     }
@@ -311,18 +333,18 @@ private fun CategoryChip(
 }
 
 /** 收藏列表项：平台 / 分类标签 + 标题 + 链接，点击解析、长按打开菜单 */
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun BookmarkRow(
     bookmark: BookmarkEntity,
     onClick: () -> Unit,
     onLongClick: () -> Unit
 ) {
+    // 用 Miuix Card 自带的手势参数：Card 内部 pressable 会拦截 combinedClickable，
+    // 直接套 combinedClickable 会导致点击/长按无反应。
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(SquircleShape(16.dp))
-            .combinedClickable(onClick = onClick, onLongClick = onLongClick)
+        modifier = Modifier.fillMaxWidth(),
+        onClick = onClick,
+        onLongPress = onLongClick
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -341,6 +363,8 @@ private fun BookmarkRow(
                     Spacer(modifier = Modifier.width(8.dp))
                 }
                 Surface(
+                    // 分类名由用户自定义，必须限宽 + 单行省略，否则长分类名会撑破卡片行
+                    modifier = Modifier.widthIn(max = 120.dp),
                     shape = SquircleShape(6.dp),
                     color = MiuixTheme.colorScheme.surfaceVariant
                 ) {
@@ -348,6 +372,8 @@ private fun BookmarkRow(
                         text = bookmark.category,
                         style = MiuixTheme.textStyles.footnote1,
                         color = MiuixTheme.colorScheme.onSurfaceSecondary,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
                     )
                 }
@@ -374,9 +400,16 @@ private fun BookmarkRow(
     }
 }
 
-/** 空状态 */
+/**
+ * 空状态。
+ * @param filtered true 表示"有收藏但当前分类下为空"，此时应提示清除筛选而不是引导添加。
+ */
 @Composable
-private fun EmptyBookmark(onAdd: () -> Unit) {
+private fun EmptyBookmark(
+    filtered: Boolean,
+    onAdd: () -> Unit,
+    onClearFilter: () -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -387,17 +420,22 @@ private fun EmptyBookmark(onAdd: () -> Unit) {
             imageVector = Icons.Outlined.BookmarkBorder,
             contentDescription = null,
             modifier = Modifier.size(48.dp),
-            tint = MiuixTheme.colorScheme.dividerLine
+            // dividerLine 是分隔线专用色，深色下几乎不可见，图标必须用次级内容色
+            tint = MiuixTheme.colorScheme.onSurfaceSecondary
         )
         Spacer(modifier = Modifier.height(12.dp))
         Text(
-            text = "还没有收藏任何网盘链接",
+            text = if (filtered) "该分类下暂无收藏" else "还没有收藏任何网盘链接",
             style = MiuixTheme.textStyles.body1,
             color = MiuixTheme.colorScheme.onSurfaceSecondary
         )
         Spacer(modifier = Modifier.height(4.dp))
         Text(
-            text = "可在解析页点击「添加至收藏」，或点击右上角 + 手动添加",
+            text = if (filtered) {
+                "切换到其他分类，或清除筛选查看全部收藏"
+            } else {
+                "可在解析页点击「添加至收藏」，或点击右上角 + 手动添加"
+            },
             style = MiuixTheme.textStyles.footnote1,
             color = MiuixTheme.colorScheme.onSurfaceSecondary,
             textAlign = TextAlign.Center
@@ -749,6 +787,7 @@ private fun BookmarkMenuDialog(
             TextButton(
                 text = "删除",
                 onClick = onDelete,
+                textStyle = MiuixTheme.textStyles.button.copy(color = MiuixTheme.colorScheme.error),
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(8.dp))
@@ -757,6 +796,52 @@ private fun BookmarkMenuDialog(
                 horizontalArrangement = Arrangement.End
             ) {
                 TextButton(text = "取消", onClick = onDismiss)
+            }
+        }
+    }
+}
+
+/** 删除确认弹窗：收藏删除不可逆，必须二次确认（Miuix OverlayDialog） */
+@Composable
+private fun DeleteBookmarkDialog(
+    show: Boolean,
+    title: String,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    OverlayDialog(
+        show = show,
+        title = "删除收藏",
+        onDismissRequest = onDismiss
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+        ) {
+            Text(
+                text = "确定删除「$title」？该操作不可恢复。",
+                style = MiuixTheme.textStyles.body2,
+                color = MiuixTheme.colorScheme.onSurfaceSecondary,
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                TextButton(text = "取消", onClick = onDismiss)
+                Spacer(modifier = Modifier.width(8.dp))
+                Button(
+                    onClick = onConfirm,
+                    colors = ButtonDefaults.buttonColors(
+                        color = MiuixTheme.colorScheme.error,
+                        contentColor = MiuixTheme.colorScheme.onError
+                    )
+                ) {
+                    Text("删除")
+                }
             }
         }
     }

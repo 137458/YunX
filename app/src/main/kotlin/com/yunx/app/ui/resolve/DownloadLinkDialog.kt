@@ -35,6 +35,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -50,6 +51,7 @@ import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.overlay.OverlayDialog
@@ -90,24 +92,43 @@ fun DownloadLinkDialog(
                 modifier = Modifier.fillMaxWidth(),
                 insideMargin = PaddingValues(12.dp)
             ) {
-                Text(
-                    text = link.downloadUrl,
-                    modifier = Modifier.combinedClickable(
-                        onClick = {},
-                        onLongClick = {
+                Row(verticalAlignment = Alignment.Top) {
+                    Text(
+                        text = link.downloadUrl,
+                        modifier = Modifier
+                            .weight(1f)
+                            // 长按复制保留为快捷方式，但不再是唯一入口
+                            .combinedClickable(
+                                onClick = {},
+                                onLongClick = {
+                                    copyToClipboard(context, link.downloadUrl)
+                                    SnackbarController.show("下载链接已复制")
+                                }
+                            ),
+                        style = MiuixTheme.textStyles.body2.copy(
+                            fontFamily = FontFamily.Monospace,
+                            fontSize = 11.sp,
+                            lineHeight = 15.sp
+                        ),
+                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                        maxLines = 4,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    // 显式复制按钮：保证 TalkBack 用户也能复制（长按手势对读屏不可达）
+                    IconButton(
+                        onClick = {
                             copyToClipboard(context, link.downloadUrl)
                             SnackbarController.show("下载链接已复制")
-                        }
-                    ),
-                    style = MiuixTheme.textStyles.body2.copy(
-                        fontFamily = FontFamily.Monospace,
-                        fontSize = 11.sp,
-                        lineHeight = 15.sp
-                    ),
-                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
-                    maxLines = 4,
-                    overflow = TextOverflow.Ellipsis
-                )
+                        },
+                        modifier = Modifier.size(48.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.ContentCopy,
+                            contentDescription = "复制下载链接",
+                            tint = MiuixTheme.colorScheme.primary
+                        )
+                    }
+                }
             }
             Text(
                 text = "点击「开始下载」将分片多线程下载并保存到 Download 目录",

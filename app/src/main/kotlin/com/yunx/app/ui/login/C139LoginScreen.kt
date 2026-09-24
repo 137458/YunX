@@ -18,33 +18,21 @@
 
 package com.yunx.app.ui.login
 
-import android.graphics.Bitmap
-import android.os.Build
-import android.util.Log
 import android.webkit.CookieManager
-import android.webkit.RenderProcessGoneDetail
-import android.webkit.WebChromeClient
-import android.webkit.WebResourceRequest
-import android.webkit.WebResourceResponse
-import android.webkit.WebSettings
-import android.webkit.WebView
-import android.webkit.WebViewClient
 import androidx.activity.compose.BackHandler
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.ContentPaste
-import com.yunx.app.ui.AppSnackbarHost
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -52,14 +40,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.yunx.app.data.network.C139Constants
+import com.yunx.app.data.repository.SaveResult
+import com.yunx.app.ui.AppSnackbarHost
 import com.yunx.app.ui.SnackbarController
 import com.yunx.app.ui.rememberGlobalSnackbarHostState
 import com.yunx.app.ui.viewmodel.C139AccountViewModel
-import com.yunx.app.util.LogRedactor
 import kotlinx.coroutines.launch
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
@@ -75,11 +63,9 @@ import top.yukonga.miuix.kmp.basic.TopAppBar
 import top.yukonga.miuix.kmp.overlay.OverlayDialog
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
-private const val TAG = "C139Login"
-
 /**
  * 139 网盘（和彩云）登录页：
- * - WebView 加载 yun.139.com，由用户手动登录（短信/验证码/风控由官网处理）；
+ * - WebView 加载 yun.139.com，由用户手动登录（短信/验证码/风控由官网处理，统一走 [rememberLoginWebView]）；
  * - 自动登录检测：登录完成后自动从 CookieManager 提取 mail.10086.cn / yun.139.com 的 Cookie
  *   （需含 Os_SSo_Sid + RMKEY，右上角「保存」保留作手动兜底）；
  * - 支持手动粘贴 Cookie（需含 Os_SSo_Sid= 与 RMKEY=）。
@@ -90,10 +76,8 @@ fun C139LoginScreen(
     onBack: () -> Unit,
     onSaved: () -> Unit
 ) {
-    val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var isSaving by remember { mutableStateOf(false) }
-    var isLoading by remember { mutableStateOf(true) }
 
     var showCookieDialog by remember { mutableStateOf(false) }
     var cookieInput by remember { mutableStateOf("") }
@@ -102,87 +86,31 @@ fun C139LoginScreen(
     var showTutorial by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { showTutorial = true }
 
-    val webView = remember {
-        WebView(context).apply {
-            settings.javaScriptEnabled = true
-            settings.domStorageEnabled = true
-            settings.setSupportZoom(true)
-            settings.builtInZoomControls = true
-            settings.displayZoomControls = false
-            settings.useWideViewPort = true
-            settings.loadWithOverviewMode = true
-            settings.layoutAlgorithm = WebSettings.LayoutAlgorithm.NARROW_COLUMNS
-            setInitialScale(0)
-            // 139 网盘用手机 UA（移动版页面在 WebView 渲染稳定；PC 版 SPA 会因环境检测白屏）
-            settings.userAgentString = WebSettings.getDefaultUserAgent(context)
-            webViewClient = object : WebViewClient() {
-                override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
-                    Log.d(TAG, "onPageStarted: ${LogRedactor.url(url)}")
-                    isLoading = true
-                }
+    // 统一 WebView：关闭文件访问 / 禁止混合内容 / 允许第三方 Cookie / 错误与超时回调 / 失败重试。
+    // userAgent 传 null 即沿用 WebView 默认 UA（139 移动版页面在默认 UA 下渲染稳定）
+    val controller = rememberLoginWebView(
+        url = C139Constants.LOGIN_URL,
+        injectViewport = true
+    )
 
-                override fun onPageFinished(view: WebView?, url: String?) {
-                    Log.d(TAG, "onPageFinished: ${LogRedactor.url(url)}")
-                    isLoading = false
-                    // 强制覆盖页面 viewport：适配屏幕宽度 + 允许双指缩放（139 移动版页面 viewport 缺失或限制缩放时生效）
-                    view?.evaluateJavascript(
-                        "(function(){var m=document.querySelector('meta[name=\"viewport\"]');" +
-                            "var c='width=device-width,initial-scale=1.0,maximum-scale=5.0,user-scalable=yes';" +
-                            "if(m){m.setAttribute('content',c);}else{var n=document.createElement('meta');n.name='viewport';n.content=c;document.head.appendChild(n);}" +
-                            "window.dispatchEvent(new Event('resize'));})()",
-                        null
-                    )
-                }
-
-                override fun onReceivedError(
-                    view: WebView?,
-                    request: WebResourceRequest?,
-                    error: android.webkit.WebResourceError?
-                ) {
-                    Log.e(TAG, "onReceivedError: code=${error?.errorCode} desc=${error?.description} origin=${LogRedactor.url(request?.url)}")
-                    isLoading = false
-                }
-
-                override fun onReceivedHttpError(
-                    view: WebView?,
-                    request: WebResourceRequest?,
-                    errorResponse: WebResourceResponse?
-                ) {
-                    Log.e(TAG, "onReceivedHttpError: status=${errorResponse?.statusCode} reason=${errorResponse?.reasonPhrase} origin=${LogRedactor.url(request?.url)}")
-                }
-
-                @RequiresApi(Build.VERSION_CODES.O)
-                override fun onRenderProcessGone(view: WebView?, detail: RenderProcessGoneDetail?): Boolean {
-                    Log.e(TAG, "onRenderProcessGone: didCrash=${detail?.didCrash()} priority=${detail?.rendererPriorityAtExit()}")
-                    // 渲染进程崩溃（139 PC 版页面较重/低端机内存不足）：提示并自动重载一次
-                    isLoading = false
-                    SnackbarController.show("页面加载异常，正在重试…")
-                    view?.post { view.reload() }
-                    return true
-                }
-            }
-            webChromeClient = WebChromeClient()
-            loadUrl(C139Constants.LOGIN_URL)
-        }
+    // 保存中允许返回：网络卡死时不能把用户困在登录页；离开时提示保存已取消
+    val exitLogin: () -> Unit = {
+        if (isSaving || isSavingManual) SnackbarController.show("已取消保存，可稍后重新登录")
+        onBack()
     }
 
     // 自动登录检测：网页内登录完成（Cookie 出现）即自动保存登录；右上角「保存」保留作手动兜底
     rememberWebLoginAutoDetect(
         sampleCredential = { C139Constants.extractCookies { CookieManager.getInstance().getCookie(it) } },
         isPlausible = { C139Constants.isValidCookie(it) },
-        validateAndSave = { viewModel.saveC139Account(it) },
+        validateAndSave = { loginSaveResult { viewModel.saveC139Account(it) } == SaveResult.Success },
         isPaused = { isSaving || isSavingManual || showCookieDialog },
         onInFlightChange = { isSaving = it },
         onAutoSaved = onSaved
     )
 
-    // 页面销毁时释放 WebView
-    DisposableEffect(Unit) {
-        onDispose { webView.destroy() }
-    }
-
-    // 系统返回键 → 返回主页（保存中禁用）
-    BackHandler(enabled = !isSaving && !isSavingManual) { onBack() }
+    // 系统返回键：优先回退网页历史（登录流程多跳转），无历史才退出登录页
+    BackHandler { if (!controller.goBack()) exitLogin() }
 
     // 全局 Snackbar 宿主
     val snackbarHostState = rememberGlobalSnackbarHostState()
@@ -191,9 +119,10 @@ fun C139LoginScreen(
         snackbarHost = { AppSnackbarHost(snackbarHostState, modifier = Modifier.padding(bottom = 16.dp)) },
         topBar = {
             TopAppBar(
-                title = "139网盘登录",
+                title = "139 网盘登录",
                 navigationIcon = {
-                    IconButton(onClick = { if (!isSaving && !isSavingManual) onBack() }) {
+                    // 顶栏返回始终可点：保存中也要能退出，避免用户被困
+                    IconButton(onClick = exitLogin) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "返回"
@@ -207,7 +136,7 @@ fun C139LoginScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Outlined.ContentPaste,
-                            contentDescription = "手动输入 Cookie",
+                            contentDescription = "手动输入凭证",
                             tint = MiuixTheme.colorScheme.onSurfaceVariantActions
                         )
                     }
@@ -224,16 +153,22 @@ fun C139LoginScreen(
                             onClick = {
                                 scope.launch {
                                     isSaving = true
-                                    val cookie = C139Constants.extractCookies {
-                                        CookieManager.getInstance().getCookie(it)
-                                    }
-                                    val saved = viewModel.saveC139Account(cookie)
-                                    isSaving = false
-                                    if (saved) {
-                                        SnackbarController.show("登录成功")
-                                        onSaved()
-                                    } else {
-                                        SnackbarController.show("未检测到登录态，请先完成登录")
+                                    try {
+                                        val cookie = C139Constants.extractCookies {
+                                            CookieManager.getInstance().getCookie(it)
+                                        }
+                                        // 三态：139 无网络校验，只会返回成功/凭证无效
+                                        when (val result = loginSaveResult { viewModel.saveC139Account(cookie) }) {
+                                            SaveResult.Success -> {
+                                                SnackbarController.show("登录成功")
+                                                onSaved()
+                                            }
+                                            SaveResult.InvalidCredential ->
+                                                SnackbarController.show("凭证无效，请先完成网页登录，或检查 Cookie 是否含 Os_SSo_Sid= 与 RMKEY=")
+                                            is SaveResult.NetworkError -> SnackbarController.show(result.message)
+                                        }
+                                    } finally {
+                                        isSaving = false
                                     }
                                 }
                             },
@@ -248,13 +183,18 @@ fun C139LoginScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                // 键盘避让：网页表单聚焦时把内容顶到键盘上方，输入框不被遮挡
+                .imePadding()
         ) {
             AndroidView(
-                factory = { webView },
+                factory = { controller.webView },
                 modifier = Modifier.fillMaxSize()
             )
-            if (isLoading) {
+            if (controller.isLoading) {
                 LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+            }
+            controller.failureMessage?.let { message ->
+                LoginLoadFailureOverlay(message = message, onRetry = { controller.retry() })
             }
         }
 
@@ -302,10 +242,10 @@ fun C139LoginScreen(
             )
         }
 
-        // 手动输入 Cookie 弹窗
+        // 手动输入凭证弹窗（各平台统一标题，字段名沿用平台自身：Cookie）
         OverlayDialog(
             show = showCookieDialog,
-            title = "手动输入 Cookie",
+            title = "手动输入凭证",
             onDismissRequest = { if (!isSavingManual) showCookieDialog = false }
         ) {
             Column {
@@ -340,14 +280,20 @@ fun C139LoginScreen(
                         onClick = {
                             scope.launch {
                                 isSavingManual = true
-                                val saved = viewModel.saveC139Account(cookieInput.trim())
-                                isSavingManual = false
-                                if (saved) {
-                                    SnackbarController.show("登录成功")
-                                    showCookieDialog = false
-                                    onSaved()
-                                } else {
-                                    SnackbarController.show("Cookie 无效，请检查是否包含 Os_SSo_Sid= 与 RMKEY=")
+                                try {
+                                    when (val result = loginSaveResult { viewModel.saveC139Account(cookieInput.trim()) }) {
+                                        SaveResult.Success -> {
+                                            SnackbarController.show("登录成功")
+                                            showCookieDialog = false
+                                            onSaved()
+                                        }
+                                        SaveResult.InvalidCredential ->
+                                            SnackbarController.show("凭证无效，请检查是否包含 Os_SSo_Sid= 与 RMKEY=")
+                                        // 网络失败：保留弹窗与已输入内容，只提示重试
+                                        is SaveResult.NetworkError -> SnackbarController.show(result.message)
+                                    }
+                                } finally {
+                                    isSavingManual = false
                                 }
                             }
                         },

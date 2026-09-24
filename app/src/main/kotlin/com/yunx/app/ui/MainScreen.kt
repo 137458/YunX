@@ -43,7 +43,6 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Bookmarks
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.material3.ExperimentalMaterial3Api
 import com.yunx.app.ui.AppSnackbarHost
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.unit.dp
@@ -64,6 +63,8 @@ import top.yukonga.miuix.kmp.basic.TopAppBar
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import androidx.compose.ui.graphics.Color
 import com.yunx.app.ui.components.BlurredBar
+import com.yunx.app.ui.components.FadeEdge
+import com.yunx.app.ui.components.FadeEdgeMask
 import com.yunx.app.ui.components.blurBackdropSource
 import com.yunx.app.ui.components.rememberBlurBackdrop
 import com.yunx.app.ui.components.AppFloatingBottomBar
@@ -86,7 +87,6 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.viewmodel.compose.viewModel
-import android.content.res.Configuration
 import android.Manifest
 import android.content.Context
 import android.content.Intent
@@ -141,6 +141,8 @@ import com.yunx.app.ui.screens.SettingsScreen
 import com.yunx.app.ui.screens.SupportScreen
 import com.yunx.app.ui.screens.ThemeScreen
 import com.yunx.app.ui.screens.UpdateDialog
+import com.yunx.app.ui.screens.rememberUpdateDownloadState
+import com.yunx.app.ui.util.installApk
 import com.yunx.app.ui.viewmodel.BaiduAccountViewModel
 import com.yunx.app.ui.viewmodel.BaiduCloudViewModel
 import com.yunx.app.ui.viewmodel.BookmarkViewModel
@@ -164,6 +166,15 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.yunx.app.data.network.HttpClients
 
+/** 悬浮胶囊底栏（64dp 本体）+ 与屏幕底边的视觉间距（16dp），作为内容区底部避让的目标值 */
+private val FloatingBarDesiredClearance = 80.dp
+
+/** 提示条避让高度：在内容避让值之上再抬 8dp，避免提示条与悬浮底栏贴边 */
+private val FloatingBarSnackbarClearance = FloatingBarDesiredClearance + 8.dp
+
+/** 宽屏断点（dp）：达到后主界面改用侧边 NavigationRail 而不是底部导航栏 */
+private const val WIDE_SCREEN_MIN_WIDTH_DP = 600
+
 /**
  * 主页框架（Miuix 架构）：
  * - 统一外层骨架为 Miuix Scaffold；
@@ -173,7 +184,6 @@ import com.yunx.app.data.network.HttpClients
  * - 通过 SaveableStateHolder 保存各页面状态，切换 Tab 再切回来不会重置；
  * - 全屏覆盖层（关于页、主题页、登录页等）平滑过渡展示。
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen() {
     var currentTab by rememberSaveable { mutableStateOf(MainTab.Resolve) }
@@ -194,17 +204,16 @@ fun MainScreen() {
 
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    // 横屏时使用侧边导航栏（NavigationRail），竖屏按用户选择的底栏样式渲染
-    val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+    // 设置仓储：引导页/忽略版本号等 UI 状态也统一从这里读写（构造时会迁移旧的 yunx_prefs 值）
+    val settings = remember { SettingsRepository(context) }
+    // 宽屏（≥600dp）使用侧边导航栏（NavigationRail），否则按用户选择的底栏样式渲染。
+    // 用宽度而不是 orientation 判断：这样平板竖屏、折叠屏展开态也能命中，横屏手机同样命中。
+    val isWideScreen = LocalConfiguration.current.screenWidthDp >= WIDE_SCREEN_MIN_WIDTH_DP
     // 底栏样式由「主题与外观」页写入，经 AppThemeManager 的内存态即时响应
     val bottomBarStyle = BottomBarStyle.fromPersisted(AppThemeManager.bottomBarStyle)
     val blurBackdrop = rememberBlurBackdrop()
-    // 首次启动引导页（context 声明后检测）
-    var showOnboarding by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) {
-        val prefs = context.getSharedPreferences("yunx_prefs", android.content.Context.MODE_PRIVATE)
-        showOnboarding = !prefs.getBoolean("onboarding_shown", false)
-    }
+    // 首次启动引导页：初值同步读取，避免先渲染一帧主界面再被引导页覆盖（启动瞬间闪主页）
+    var showOnboarding by remember { mutableStateOf(!settings.onboardingShown) }
 
     // 更新检测：请求 GitHub 最新 Release（仓库无 Release / 网络失败则不提示）
     var showUpdateDialog by remember { mutableStateOf(false) }
@@ -212,8 +221,7 @@ fun MainScreen() {
     LaunchedEffect(Unit) {
         val release = UpdateChecker.fetchLatestRelease() ?: return@LaunchedEffect
         val current = UpdateChecker.currentVersion(context)
-        val prefs = context.getSharedPreferences("yunx_prefs", android.content.Context.MODE_PRIVATE)
-        val ignored = prefs.getString("ignored_version", "")
+        val ignored = settings.ignoredUpdateVersion
         if (UpdateChecker.compareVersions(release.tagName, current) > 0 &&
             release.tagName != ignored
         ) {
@@ -228,7 +236,6 @@ fun MainScreen() {
     val c139Api = remember { C139Api() }
     val pan123Api = remember { Pan123Api() }
     val db = remember { AppDatabase.get(context) }
-    val settings = remember { SettingsRepository(context) }
     val repository = remember {
         QuarkAccountRepository(db.quarkAccountDao(), api)
     }
@@ -456,6 +463,54 @@ fun MainScreen() {
     val downloadViewModel: DownloadViewModel = viewModel(
         factory = DownloadViewModel.Factory(downloadManager)
     )
+    // 更新包下载任务：弹窗内直接展示进度与安装入口；任务被用户在下载页删除时进度态自动消失
+    var updateTaskId by remember { mutableStateOf<Long?>(null) }
+    val updateDownload = rememberUpdateDownloadState(
+        tasks = downloadViewModel.tasks,
+        stats = downloadViewModel.stats,
+        taskId = updateTaskId
+    )
+
+    /** 打开更新弹窗：清掉上一次的下载任务绑定，避免旧进度直接回填到新弹窗 */
+    fun showUpdateDialogFor(release: UpdateChecker.Release) {
+        updateTaskId = null
+        pendingRelease = release
+        showUpdateDialog = true
+    }
+
+    /** 更新包加入内置下载引擎（mirror=true 走镜像站），任务 id 回填给弹窗订阅进度 */
+    fun enqueueUpdateApk(release: UpdateChecker.Release, mirror: Boolean) {
+        val apk = release.assets.firstOrNull { it.name.endsWith(".apk", true) }
+        if (apk == null) {
+            SnackbarController.show("未找到 APK 下载链接")
+            return
+        }
+        val url = if (mirror) UpdateChecker.mirrorUrl(apk.downloadUrl) else apk.downloadUrl
+        scope.launch { updateTaskId = downloadManager.enqueue(url = url, fileName = apk.name) }
+    }
+
+    /** 检查更新（设置页入口）：有新版才弹窗；preview=true 为隐藏调试菜单的强制预览 */
+    fun checkForUpdate(preview: Boolean) {
+        scope.launch {
+            if (!preview) SnackbarController.show("正在检查更新…")
+            val release = runCatching { UpdateChecker.fetchLatestRelease() }.getOrNull()
+            when {
+                release == null && preview -> showUpdateDialogFor(
+                    UpdateChecker.Release(
+                        tagName = "v1.2.4（预览）",
+                        body = "这是调试预览弹窗，用于查看更新弹窗 UI（含镜像站下载按钮）。",
+                        assets = emptyList(),
+                        publishedAt = ""
+                    )
+                )
+                release == null -> SnackbarController.show("检查更新失败，请检查网络")
+                preview -> showUpdateDialogFor(release)
+                UpdateChecker.compareVersions(release.tagName, UpdateChecker.currentVersion(context)) > 0 ->
+                    showUpdateDialogFor(release)
+                else -> SnackbarController.show("已是最新版本")
+            }
+        }
+    }
     val bookmarkViewModel: BookmarkViewModel = viewModel(
         factory = BookmarkViewModel.Factory(db.bookmarkDao())
     )
@@ -502,10 +557,7 @@ fun MainScreen() {
     if (showOnboarding) {
         OnboardingScreen(
             onFinish = {
-                context.getSharedPreferences("yunx_prefs", android.content.Context.MODE_PRIVATE)
-                    .edit()
-                    .putBoolean("onboarding_shown", true)
-                    .apply()
+                settings.onboardingShown = true
                 showOnboarding = false
             }
         )
@@ -606,7 +658,7 @@ fun MainScreen() {
     // 折叠标题状态提升到本层：跨页面共享，页面切换时折叠/展开状态保持不变
     val scrollBehavior = MiuixScrollBehavior()
 
-    // 全局 Snackbar 宿主（Material3，替换原 Toast 提示）
+    // 全局提示条宿主（Miuix 原生 Snackbar，经 SnackbarController 广播事件）
     val snackbarHostState = rememberGlobalSnackbarHostState()
 
     // 主框架与全屏覆盖层（关于页）放在同一 Box：覆盖层带过渡动画
@@ -698,12 +750,9 @@ fun MainScreen() {
                         onAboutClick = { showAbout = true },
                         onSupportClick = { showSupport = true },
                         backupManager = backupManager,
-                        onDownloadUpdateApk = { url, name ->
-                            scope.launch {
-                                downloadManager.enqueue(url = url, fileName = name)
-                                currentTab = MainTab.Download
-                            }
-                        }
+                        // 检查更新统一由本页弹窗承载（含下载进度与安装入口）
+                        onCheckUpdate = { checkForUpdate(preview = false) },
+                        onPreviewUpdateDialog = { checkForUpdate(preview = true) }
                     )
                 }
             }
@@ -722,7 +771,7 @@ fun MainScreen() {
         },
         bottomBar = {
             // 标准底栏档位：贴底固定的 Miuix NavigationBar
-            if (!isLandscape && bottomBarStyle == BottomBarStyle.MiuixStandard) {
+            if (!isWideScreen && bottomBarStyle == BottomBarStyle.MiuixStandard) {
                 AppStandardBottomBar(
                     currentTab = currentTab,
                     onTabSelected = { currentTab = it }
@@ -732,7 +781,7 @@ fun MainScreen() {
         floatingToolbar = {
             // 悬浮档位（液态玻璃 / 毛玻璃）：Scaffold 已按「导航栏 inset + FloatingToolbarSpacing」
             // 把底栏抬到底边之上，这里不要再补 bottom padding
-            if (!isLandscape && bottomBarStyle.isFloating) {
+            if (!isWideScreen && bottomBarStyle.isFloating) {
                 AppFloatingBottomBar(
                     currentTab = currentTab,
                     onTabSelected = { currentTab = it },
@@ -743,7 +792,8 @@ fun MainScreen() {
         },
         floatingToolbarPosition = ToolbarPosition.BottomCenter,
         snackbarHost = {
-            val floatingBarBottomPadding = if (!isLandscape && bottomBarStyle.isFloating) 88.dp else 16.dp
+            val floatingBarBottomPadding =
+                if (!isWideScreen && bottomBarStyle.isFloating) FloatingBarSnackbarClearance else 16.dp
             AppSnackbarHost(
                 hostState = snackbarHostState,
                 modifier = Modifier
@@ -753,7 +803,16 @@ fun MainScreen() {
         }
     ) { innerPadding ->
         val layoutDirection = LocalLayoutDirection.current
-        val floatingBarBottomPadding = if (!isLandscape && bottomBarStyle.isFloating) 80.dp else 0.dp
+        // 悬浮底栏的内容避让：Miuix Scaffold 会把 floatingToolbar 的高度 + FloatingToolbarSpacing
+        // + 底部导航栏 inset 计入 innerPadding。这里只在它没算够时补差额，既不重复预留出
+        // 一大块空白，也不会让最后一项被底栏盖住（两种 Scaffold 行为下都安全）。
+        val floatingBarBottomPadding = if (!isWideScreen && bottomBarStyle.isFloating) {
+            val desiredClearance = FloatingBarDesiredClearance
+            val alreadyReserved = innerPadding.calculateBottomPadding()
+            (desiredClearance - alreadyReserved).coerceAtLeast(0.dp)
+        } else {
+            0.dp
+        }
         val effectiveScaffoldPadding = PaddingValues(
             start = innerPadding.calculateStartPadding(layoutDirection),
             top = innerPadding.calculateTopPadding(),
@@ -761,7 +820,7 @@ fun MainScreen() {
             bottom = innerPadding.calculateBottomPadding() + floatingBarBottomPadding
         )
         CompositionLocalProvider(LocalScaffoldPadding provides effectiveScaffoldPadding) {
-            if (isLandscape) {
+            if (isWideScreen) {
                 // 横屏：左侧侧边导航栏（NavigationRail）+ 右侧内容区
                 Row(
                     modifier = Modifier
@@ -790,6 +849,14 @@ fun MainScreen() {
                         .blurBackdropSource(blurBackdrop)
                 ) {
                     tabContent()
+                    // 列表滚到悬浮底栏下方时用羽化过渡，避免内容被底栏硬切
+                    if (!isWideScreen && bottomBarStyle.isFloating) {
+                        FadeEdgeMask(
+                            edge = FadeEdge.Bottom,
+                            height = 28.dp,
+                            modifier = Modifier.padding(bottom = FloatingBarDesiredClearance)
+                        )
+                    }
                 }
             }
         }
@@ -806,10 +873,7 @@ fun MainScreen() {
         AboutScreen(
             onBack = { showAbout = false },
             onPreviewOnboarding = {
-                context.getSharedPreferences("yunx_prefs", android.content.Context.MODE_PRIVATE)
-                    .edit()
-                    .putBoolean("onboarding_shown", false)
-                    .apply()
+                settings.onboardingShown = false
                 showAbout = false
                 showOnboarding = true
             }
@@ -905,46 +969,23 @@ fun MainScreen() {
     }
 
 
-    // 发现新版本弹窗（覆盖在主页之上）
+    // 发现新版本弹窗（覆盖在主页之上）：下载进度、安装入口都在弹窗内完成
     pendingRelease?.let { release ->
         if (showUpdateDialog) {
             UpdateDialog(
                 currentVersion = UpdateChecker.currentVersion(context),
                 release = release,
-                onDownload = {
+                download = updateDownload,
+                onDownload = { enqueueUpdateApk(release, mirror = false) },
+                onDownloadMirror = { enqueueUpdateApk(release, mirror = true) },
+                onInstall = { updateDownload?.let { installApk(context, it.savePath) } },
+                onOpenDownloadPage = {
                     showUpdateDialog = false
-                    // 用内置下载功能下载更新 APK 到 Download 目录，并切到下载页
-                    val apk = release.assets.firstOrNull { it.name.endsWith(".apk", true) }
-                    if (apk != null) {
-                        scope.launch {
-                            downloadManager.enqueue(url = apk.downloadUrl, fileName = apk.name)
-                            currentTab = MainTab.Download
-                        }
-                        SnackbarController.show("已加入下载，完成后点击「打开」即可安装")
-                    } else {
-                        SnackbarController.show("未找到 APK 下载链接")
-                    }
-                },
-                onDownloadMirror = {
-                    showUpdateDialog = false
-                    // 镜像站下载：GitHub 直连慢/失败时走国内加速镜像
-                    val apk = release.assets.firstOrNull { it.name.endsWith(".apk", true) }
-                    if (apk != null) {
-                        scope.launch {
-                            downloadManager.enqueue(url = UpdateChecker.mirrorUrl(apk.downloadUrl), fileName = apk.name)
-                            currentTab = MainTab.Download
-                        }
-                        SnackbarController.show("已通过镜像站加入下载，完成后点击「打开」即可安装")
-                    } else {
-                        SnackbarController.show("未找到 APK 下载链接")
-                    }
+                    currentTab = MainTab.Download
                 },
                 onLater = { showUpdateDialog = false },
                 onIgnore = {
-                    context.getSharedPreferences("yunx_prefs", android.content.Context.MODE_PRIVATE)
-                        .edit()
-                        .putString("ignored_version", release.tagName)
-                        .apply()
+                    settings.ignoredUpdateVersion = release.tagName
                     showUpdateDialog = false
                 }
             )

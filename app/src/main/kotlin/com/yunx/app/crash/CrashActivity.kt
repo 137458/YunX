@@ -29,13 +29,17 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
@@ -44,12 +48,6 @@ import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.ExitToApp
 import androidx.compose.material.icons.outlined.Refresh
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -62,11 +60,18 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.yunx.app.MainActivity
+import com.yunx.app.R
 import com.yunx.app.ui.GlobalSnackbarHost
 import com.yunx.app.ui.SnackbarController
 import com.yunx.app.ui.items.CustomFabMenu
 import com.yunx.app.ui.items.FabMenuItem
 import com.yunx.app.ui.theme.ComposeEmptyActivityTheme
+import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.CardDefaults
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.Surface
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /**
  * 崩溃界面（运行在独立进程 :crash）：
@@ -74,6 +79,14 @@ import com.yunx.app.ui.theme.ComposeEmptyActivityTheme
  */
 class CrashActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        // 应用内主题设置：与 MainActivity 一致，必须在 super.onCreate 之前切换窗口主题。
+        // values-night 只跟随系统，若应用内「始终深色」而系统是浅色，崩溃页会先闪一帧白色背景。
+        val darkModePref = getSharedPreferences("yunx_settings", Context.MODE_PRIVATE)
+            .getInt("dark_mode", 0)
+        when (darkModePref) {
+            1 -> setTheme(R.style.Theme_ComposeEmptyActivity_Light)
+            2 -> setTheme(R.style.Theme_ComposeEmptyActivity_Dark)
+        }
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         val crashLog = intent.getStringExtra(CrashHandler.EXTRA_CRASH_LOG) ?: "未知错误"
@@ -113,7 +126,12 @@ private fun CrashScreen(crashLog: String) {
         )
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            // 消费系统栏 insets：enableEdgeToEdge 后正文与 FAB 都不能被状态栏/导航栏遮挡
+            .windowInsetsPadding(WindowInsets.safeDrawing)
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -124,48 +142,49 @@ private fun CrashScreen(crashLog: String) {
             Surface(
                 modifier = Modifier.size(64.dp),
                 shape = CircleShape,
-                color = MaterialTheme.colorScheme.errorContainer
+                color = MiuixTheme.colorScheme.errorContainer
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Icon(
                         imageVector = Icons.Filled.BugReport,
                         contentDescription = null,
                         modifier = Modifier.size(32.dp),
-                        tint = MaterialTheme.colorScheme.onErrorContainer
+                        tint = MiuixTheme.colorScheme.onErrorContainer
                     )
                 }
             }
             Spacer(modifier = Modifier.height(16.dp))
             Text(
                 text = "应用发生崩溃",
-                style = MaterialTheme.typography.titleLarge
+                style = MiuixTheme.textStyles.title1,
+                color = MiuixTheme.colorScheme.onBackground
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = "很抱歉，应用遇到了未预期的错误。你可以复制崩溃信息反馈给开发者，或重启应用继续使用。",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                style = MiuixTheme.textStyles.body2,
+                color = MiuixTheme.colorScheme.onSurfaceVariantSummary
             )
             Spacer(modifier = Modifier.height(16.dp))
-            // 崩溃报告（可滚动）
+            // 崩溃报告（整页可滚动）
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-                )
+                colors = CardDefaults.defaultColors(
+                    color = MiuixTheme.colorScheme.surfaceContainer
+                ),
+                insideMargin = PaddingValues(16.dp)
             ) {
                 Text(
                     text = crashLog,
-                    modifier = Modifier.padding(16.dp),
-                    style = MaterialTheme.typography.labelSmall.copy(
+                    style = MiuixTheme.textStyles.footnote2.copy(
                         fontFamily = FontFamily.Monospace,
                         fontSize = 11.sp,
                         lineHeight = 15.sp
                     ),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                 )
             }
-            Spacer(modifier = Modifier.height(88.dp)) // 给 FAB 留出空间
+            Spacer(modifier = Modifier.height(88.dp)) // 给 FAB 留出空间（系统栏 insets 已由外层 Box 消费）
         }
 
         CustomFabMenu(

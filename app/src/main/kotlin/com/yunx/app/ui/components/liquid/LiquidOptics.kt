@@ -16,6 +16,21 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/*
+ * ── 折射与色散着色器来源 ──
+ *
+ * 本文件里的 ROUNDED_RECT_REFRACTION_SHADER 与 ROUNDED_RECT_REFRACTION_WITH_DISPERSION_SHADER
+ * 移植自 kyant 的 AndroidLiquidGlass（com.kyant.backdrop 的 lens 效果与色散采样实现）。
+ * miuix 0.9.3 的 miuix-blur 经 javap 确认只提供 blur / colorControls / blendColors /
+ * noiseDither / textureBlurEffect 等效果，internal.ShadersKt 中不存在折射或色散着色器，
+ * 所以透镜折射必须自带 AGSL。代价是上游修复不会自动流入本项目：升级 AndroidLiquidGlass
+ * 或调整折射算法时，需要手工比对并同步这两段着色器。
+ *
+ * 限制：透镜四角半径目前硬编码为胶囊（minDimension / 2，见 lens() 里的 halfMin），
+ * 只适用于本底栏的胶囊外壳与滑块。若要复用到非胶囊形状，必须按真实圆角分别传入四角半径，
+ * 不能再共用同一个 halfMin。
+ */
+
 package com.yunx.app.ui.components.liquid
 
 import androidx.compose.runtime.Composable

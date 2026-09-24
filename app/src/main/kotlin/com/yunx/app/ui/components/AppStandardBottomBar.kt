@@ -22,8 +22,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalHapticFeedback
 import com.yunx.app.ui.navigation.MainTab
 import top.yukonga.miuix.kmp.basic.NavigationBar
 import top.yukonga.miuix.kmp.basic.NavigationBarItem
@@ -41,7 +39,8 @@ fun AppStandardBottomBar(
     modifier: Modifier = Modifier
 ) {
     val tabs = remember { MainTab.entries }
-    val hapticFeedback = LocalHapticFeedback.current
+    // 普通点击用轻触感：LongPress 是强震动，用在切 Tab 上过重
+    val haptics = rememberHaptics()
 
     NavigationBar(modifier = modifier.fillMaxWidth()) {
         tabs.forEach { tab ->
@@ -49,7 +48,7 @@ fun AppStandardBottomBar(
             NavigationBarItem(
                 selected = isSelected,
                 onClick = {
-                    hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                    haptics.tick()
                     onTabSelected(tab)
                 },
                 icon = if (isSelected) tab.selectedIcon else tab.unselectedIcon,

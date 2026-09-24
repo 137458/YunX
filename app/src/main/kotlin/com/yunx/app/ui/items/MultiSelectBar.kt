@@ -22,6 +22,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -37,7 +38,6 @@ import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.DriveFileMove
 import androidx.compose.material.icons.outlined.SaveAlt
 import androidx.compose.material.icons.outlined.SelectAll
-import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,14 +47,21 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import top.yukonga.miuix.kmp.basic.FloatingToolbar
 import top.yukonga.miuix.kmp.basic.FloatingToolbarDefaults
+import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
-/** 多选底部批量操作项 */
+/**
+ * 多选底部批量操作项。
+ *
+ * @param destructive 危险操作（删除等）用 error 角色色呈现；
+ *   不能用 label 字符串判断——改文案或做多语言时会立刻失效。
+ */
 internal data class MultiSelectAction(
     val label: String,
     val icon: ImageVector,
     val tint: Color = Color.Unspecified,
+    val destructive: Boolean = false,
     val onClick: () -> Unit
 )
 
@@ -64,7 +71,6 @@ internal data class MultiSelectAction(
  */
 @Composable
 internal fun MultiSelectBar(
-    count: Int,
     actions: List<MultiSelectAction>,
     modifier: Modifier = Modifier
 ) {
@@ -87,17 +93,18 @@ internal fun MultiSelectBar(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 actions.forEach { action ->
-                    val isDelete = action.label == "删除"
                     val itemTint = when {
-                        isDelete -> MiuixTheme.colorScheme.error
+                        action.destructive -> MiuixTheme.colorScheme.error
                         action.tint != Color.Unspecified -> action.tint
                         else -> MiuixTheme.colorScheme.primary
                     }
-                    val textTint = if (isDelete) MiuixTheme.colorScheme.error else MiuixTheme.colorScheme.onSurfaceVariantActions
+                    val textTint = if (action.destructive) MiuixTheme.colorScheme.error else MiuixTheme.colorScheme.onSurfaceVariantActions
 
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier
+                            // 保证 48dp 命中区：2 字标签时实际宽度约 44dp，低于无障碍下限
+                            .defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
                             .clip(CircleShape)
                             .clickable(onClick = action.onClick)
                             .padding(horizontal = 10.dp, vertical = 6.dp)
@@ -127,7 +134,6 @@ internal fun MultiSelectBar(
  */
 @Composable
 internal fun MultiSelectBar(
-    count: Int,
     onSelectAll: (() -> Unit)? = null,
     isAllSelected: Boolean = false,
     onDownload: (() -> Unit)? = null,
@@ -183,10 +189,11 @@ internal fun MultiSelectBar(
                     label = "删除",
                     icon = Icons.Outlined.Delete,
                     tint = MiuixTheme.colorScheme.error,
+                    destructive = true,
                     onClick = onDelete
                 )
             )
         }
     }
-    MultiSelectBar(count = count, actions = actions, modifier = modifier)
+    MultiSelectBar(actions = actions, modifier = modifier)
 }

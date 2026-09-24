@@ -93,11 +93,24 @@ class QuarkAccountRepository(
     }
 
     /**
-     * 校验 Cookie 有效性；有效则拉取昵称并落库，返回 true；无效返回 false。
+     * 校验 Cookie 有效性并落库，返回三态结果。
+     * 旧实现把「服务端校验失败」也当成登录成功（拿不到昵称就回退默认昵称并返回 true）；
+     * 现在服务端没返回昵称即视为未通过校验，并区分网络失败。
      */
-    suspend fun saveQuarkAccount(cookie: String): Boolean {
-        if (!QuarkConstants.isValidCookie(cookie)) return false
-        val nickname = api.fetchNickname(cookie) ?: "夸克用户"
+    suspend fun saveQuarkAccountResult(cookie: String): SaveResult {
+        if (!QuarkConstants.isValidCookie(cookie)) return SaveResult.InvalidCredential
+        val nickname = api.fetchNickname(cookie)
+        if (nickname == null) {
+            // 服务端没给昵称：链路可达说明是服务端拒绝凭证，链路不可达才是网络失败
+            return SaveResultPolicy.of(
+                credentialShapeValid = true,
+                nickname = null,
+                transportReachable = probeTransportReachable(
+                    QuarkConstants.ACCOUNT_INFO_URL,
+                    QuarkConstants.API_USER_AGENT
+                )
+            )
+        }
         dao.upsert(
             QuarkAccountEntity(
                 id = "quark",
@@ -107,6 +120,17 @@ class QuarkAccountRepository(
         )
         // 重置刷新计时：新登录的 __puus 是新鲜的，避免立刻触发一次无谓刷新
         lastRefreshTs = System.currentTimeMillis()
-        return true
+        return SaveResult.Success
     }
+
+    /**
+     * Boolean 兼容入口（账号 ViewModel 仍按 Boolean 调用）：
+     * 网络失败时抛 [SaveNetworkException]，避免被调用侧误判为「凭证无效」而提示检查 Cookie。
+     */
+    suspend fun saveQuarkAccount(cookie: String): Boolean =
+        when (val result = saveQuarkAccountResult(cookie)) {
+            SaveResult.Success -> true
+            SaveResult.InvalidCredential -> false
+            is SaveResult.NetworkError -> throw SaveNetworkException(result.message)
+        }
 }

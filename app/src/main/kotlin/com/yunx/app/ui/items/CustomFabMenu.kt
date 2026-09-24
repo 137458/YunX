@@ -47,6 +47,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.yunx.app.ui.theme.SquircleShape
@@ -92,6 +93,8 @@ fun BoxScope.CustomFabMenu(
         Box(
             modifier = Modifier
                 .matchParentSize()
+                // 纯手势遮罩：不产生语义节点，否则 TalkBack 会读出一个覆盖整屏的无名可点区域
+                .clearAndSetSemantics { }
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null
@@ -131,7 +134,8 @@ fun BoxScope.CustomFabMenu(
                         },
                         shadowElevation = if (item.isSelected) 4.dp else 2.dp,
                         minWidth = 48.dp,
-                        minHeight = 44.dp
+                        // 无障碍下限 48dp：44dp 的命中区偏小
+                        minHeight = 48.dp
                     ) {
                         Row(
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),

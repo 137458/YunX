@@ -18,38 +18,18 @@
 
 package com.yunx.app.ui.screens
 
-import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.DriveFileMove
-import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material.icons.outlined.Share
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -57,45 +37,49 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.state.ToggleableState
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.yunx.app.data.network.model.ShareFile
 import com.yunx.app.data.prefs.SettingsRepository
-import com.yunx.app.ui.SnackbarController
-import com.yunx.app.ui.components.BreadcrumbBar
-import com.yunx.app.ui.components.BreadcrumbItem
-import com.yunx.app.ui.items.MultiSelectAction
-import com.yunx.app.ui.resolve.BackToParentItem
-import com.yunx.app.ui.resolve.DownloadLinkDialog
-import com.yunx.app.ui.resolve.ShareFileRow
-import com.yunx.app.ui.theme.SquircleShape
+import com.yunx.app.ui.drive.CloudDriveBrowser
+import com.yunx.app.ui.drive.CloudDriveUiState
+import com.yunx.app.ui.drive.DriveActions
+import com.yunx.app.ui.drive.DriveExpiryOption
+import com.yunx.app.ui.drive.DriveSpec
+import com.yunx.app.ui.drive.PasscodePolicy
 import com.yunx.app.ui.viewmodel.BaiduCloudUiState
 import com.yunx.app.ui.viewmodel.BaiduCloudViewModel
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Checkbox
-import top.yukonga.miuix.kmp.basic.Icon
-import top.yukonga.miuix.kmp.basic.InfiniteProgressIndicator
 import top.yukonga.miuix.kmp.basic.ScrollBehavior
-import top.yukonga.miuix.kmp.basic.Surface
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
-import top.yukonga.miuix.kmp.basic.TextField
-import top.yukonga.miuix.kmp.overlay.OverlayBottomSheet
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.window.WindowDialog
 
 /** 百度非会员限速阈值：>300MB 提示 */
 private const val BAIDU_LIMIT_BYTES = 300L * 1024 * 1024
 
+/** 百度网盘平台差异：文案 + 有效期编码 0/1/7/30（默认 0）+ 必带 4 位提取码 */
+private val baiduDriveSpec = DriveSpec(
+    title = "百度网盘",
+    shareDesc = "生成分享链接（带提取码）",
+    shareHint = "百度分享必须带 4 位提取码",
+    expiryOptions = listOf<DriveExpiryOption<Any?>>(
+        DriveExpiryOption("永久有效", 0),
+        DriveExpiryOption("1 天", 1),
+        DriveExpiryOption("7 天", 7),
+        DriveExpiryOption("30 天", 30)
+    ),
+    passcode = PasscodePolicy.Fixed(label = "提取码（4 位字母数字）"),
+    folderIcon = Icons.Outlined.DriveFileMove
+)
+
 /**
- * 百度网盘云盘浏览页：
- * - 目录浏览 + 下拉刷新 + 面包屑回退
- * - 长按多选（批量下载/分享/移动/删除）
- * - 文件/文件夹操作菜单（下载/重命名/移动/分享/删除）
- * 基于 CloudDriveScaffold 规范实现。
+ * 百度网盘云盘浏览页。
+ *
+ * 界面结构与其余四个网盘完全一致，这里只做两件事：
+ * 1. 把 [BaiduCloudUiState] 映射成通用 [CloudDriveUiState]；
+ * 2. 把 ViewModel 操作绑定成 [DriveActions]，并保留百度特有的 >300MB 限速拦截。
  */
 @Composable
 fun BaiduCloudScreen(
@@ -107,253 +91,80 @@ fun BaiduCloudScreen(
 ) {
     val context = LocalContext.current
     val state by viewModel.uiState.collectAsState()
+    val moveState by viewModel.moveUiState.collectAsState()
+    val driveState = state.toBaiduDriveState()
+    val driveMoveState = moveState.toBaiduDriveState()
 
-    // 系统返回键：多选模式下先退出多选；否则子目录返回上一级，根目录返回账号列表
-    BackHandler {
-        if (viewModel.multiSelectMode) {
-            viewModel.exitMultiSelect()
-        } else {
-            val s = state
-            if (s is BaiduCloudUiState.Loaded && s.pathNames.isNotEmpty()) viewModel.back() else onExit()
-        }
-    }
-
-    val scrollPositions = remember { mutableStateMapOf<String, Int>() }
-    var showActionSheet by remember { mutableStateOf(false) }
-    var showRename by remember { mutableStateOf(false) }
-    var showMove by remember { mutableStateOf(false) }
-    var showShare by remember { mutableStateOf(false) }
-    var showDeleteConfirm by remember { mutableStateOf(false) }
-
-    // 百度非会员 >300MB 限速提示：记住「不再显示」，单文件/批量下载前拦截
+    // 百度非会员 >300MB 限速提示：记住「不再显示」，单文件/批量/文件夹下载前拦截
     val settingsRepo = remember { SettingsRepository(context) }
     var limitHintDismissed by remember { mutableStateOf(settingsRepo.baiduLimitHintDismissed) }
-    var showBaiduLimitDialog by remember { mutableStateOf(false) }
-    var pendingBaiduDownload by remember { mutableStateOf<String?>(null) } // "single" / "batch"
+    var showLimitDialog by remember { mutableStateOf(false) }
+    var pendingDownload by remember { mutableStateOf<(() -> Unit)?>(null) }
 
-    fun maybeShowBaiduLimit(files: List<ShareFile>, action: String, onProceed: () -> Unit) {
-        if (!limitHintDismissed && files.any { it.fsize > BAIDU_LIMIT_BYTES }) {
-            pendingBaiduDownload = action
-            showBaiduLimitDialog = true
-        } else {
-            onProceed()
-        }
-    }
-
-    LaunchedEffect(viewModel.cloudMessage) {
-        viewModel.cloudMessage?.let {
-            SnackbarController.show(it)
-            viewModel.consumeMessage()
-        }
-    }
-
-    LaunchedEffect(viewModel.downloadTriggered) {
-        if (viewModel.downloadTriggered > 0) {
-            viewModel.consumeDownloadTriggered()
-            onDownloadStarted()
-        }
-    }
-
-    // 单文件下载确认弹窗
-    viewModel.downloadLink?.let { link ->
-        DownloadLinkDialog(
-            link = link,
-            onDownload = { viewModel.startDownload() },
-            onDismiss = { viewModel.dismissDownloadDialog() }
-        )
-    }
-
-    Surface(
-        modifier = modifier.fillMaxSize(),
-        color = MiuixTheme.colorScheme.surface
-    ) {
-        AnimatedContent(
-            targetState = state,
-            transitionSpec = {
-                fadeIn(tween(200)) togetherWith fadeOut(tween(140))
-            },
-            label = "baiduCloudState"
-        ) { s ->
-            when (s) {
-                is BaiduCloudUiState.Loading -> CloudDriveLoadingView()
-
-                is BaiduCloudUiState.Error -> CloudDriveErrorView(
-                    message = s.message,
-                    onExit = onExit,
-                    onRetry = { viewModel.refresh() }
-                )
-
-                is BaiduCloudUiState.Loaded -> {
-                    val multiSelectActions = remember(viewModel.selected.size) {
-                        listOf(
-                            MultiSelectAction(
-                                label = "下载",
-                                icon = Icons.Outlined.Download,
-                                onClick = {
-                                    maybeShowBaiduLimit(viewModel.selected, "batch") {
-                                        viewModel.downloadSelected()
-                                    }
-                                }
-                            ),
-                            MultiSelectAction(
-                                label = "分享",
-                                icon = Icons.Outlined.Share,
-                                onClick = { showShare = true }
-                            ),
-                            MultiSelectAction(
-                                label = "移动",
-                                icon = Icons.Outlined.DriveFileMove,
-                                onClick = { showMove = true }
-                            ),
-                            MultiSelectAction(
-                                label = "删除",
-                                icon = Icons.Outlined.Delete,
-                                onClick = { showDeleteConfirm = true }
-                            )
-                        )
-                    }
-
-                    CloudDriveScaffold(
-                        driveTitle = "百度网盘",
-                        files = s.files,
-                        pathNames = s.pathNames,
-                        isRefreshing = viewModel.refreshing,
-                        onRefresh = { viewModel.refresh() },
-                        multiSelectMode = viewModel.multiSelectMode,
-                        selectedFiles = viewModel.selected.toSet(),
-                        scrollBehavior = scrollBehavior,
-                        onExit = onExit,
-                        onBackToParent = { viewModel.back() },
-                        onNavigateToLevel = { viewModel.navigateToLevel(it) },
-                        onToggleSelectAll = { viewModel.toggleSelectAll(it) },
-                        onExitMultiSelect = { viewModel.exitMultiSelect() },
-                        onFileClick = { file ->
-                            if (viewModel.multiSelectMode) {
-                                viewModel.toggleSelect(file)
-                            } else if (file.isdir) {
-                                viewModel.openFolder(file)
-                            } else {
-                                viewModel.openActions(file)
-                                showActionSheet = true
-                            }
-                        },
-                        onFileMoreClick = { file ->
-                            viewModel.openActions(file)
-                            showActionSheet = true
-                        },
-                        onFileLongClick = { file -> viewModel.enterMultiSelect(file) },
-                        multiSelectActions = multiSelectActions,
-                        scrollPositions = scrollPositions
-                    )
-                }
-            }
-        }
-    }
-
-    // 文件操作弹窗
-    if (showActionSheet && viewModel.actionFile != null) {
-        val file = viewModel.actionFile!!
-        BaiduActionSheet(
-            file = file,
-            viewModel = viewModel,
-            onDownload = {
-                showActionSheet = false
-                maybeShowBaiduLimit(listOf(file), "single") {
-                    viewModel.downloadFile()
-                }
-            },
-            onDownloadFolder = if (file.isdir) {
-                {
-                    showActionSheet = false
-                    viewModel.downloadFolder()
-                }
-            } else null,
-            onRename = {
-                showActionSheet = false
-                showRename = true
-            },
-            onMove = {
-                showActionSheet = false
-                showMove = true
-            },
-            onShare = {
-                showActionSheet = false
-                showShare = true
-            },
-            onDelete = {
-                showActionSheet = false
-                showDeleteConfirm = true
-            },
-            onDismiss = {
-                showActionSheet = false
-                viewModel.dismissActions()
-            }
-        )
-    }
-
-
-    // 重命名弹窗（WindowDialog）
-    if (showRename && viewModel.actionFile != null) {
-        CloudDriveRenameDialog(
-            show = true,
-            initialName = viewModel.actionFile?.fname ?: "",
-            onConfirm = {
-                viewModel.renameFile(it)
-                showRename = false
-            },
-            onDismiss = { showRename = false }
-        )
-    }
-
-    // 移动目录弹窗
-    if (showMove) {
-        BaiduMoveSheet(
-            viewModel = viewModel,
-            onDismiss = { showMove = false }
-        )
-    }
-
-    // 分享弹窗
-    if (showShare) {
-        BaiduShareSheet(
-            viewModel = viewModel,
-            onDismiss = { showShare = false }
-        )
-    }
-
-    // 分享结果弹窗（WindowDialog）
-    viewModel.shareResult?.let { info ->
-        ShareResultDialog(
-            info = info,
-            onDismiss = { viewModel.dismissShareResult() }
-        )
-    }
-
-    // 删除二次确认（WindowDialog）
-    CloudDriveDeleteDialog(
-        show = showDeleteConfirm,
-        onDismissRequest = { showDeleteConfirm = false },
-        title = "删除文件",
-        message = if (viewModel.multiSelectMode) {
-            "确定要删除选中的 ${viewModel.selected.size} 项吗？删除后将移入回收站。"
-        } else {
-            "确定要删除「${viewModel.actionFile?.fname}」吗？删除后将移入回收站。"
-        },
-        onConfirm = {
-            if (viewModel.multiSelectMode) {
-                viewModel.deleteSelected()
-            } else {
-                viewModel.deleteFile()
-            }
-        }
+    val actions = DriveActions(
+        refresh = { viewModel.refresh() },
+        back = { viewModel.back() },
+        navigateToLevel = { viewModel.navigateToLevel(it) },
+        toggleSelectAll = { viewModel.toggleSelectAll(it) },
+        exitMultiSelect = { viewModel.exitMultiSelect() },
+        openFolder = { viewModel.openFolder(it) },
+        toggleSelect = { viewModel.toggleSelect(it) },
+        enterMultiSelect = { viewModel.enterMultiSelect(it) },
+        openActions = { viewModel.openActions(it) },
+        dismissActions = { viewModel.dismissActions() },
+        openMoveRoot = { viewModel.openMoveRoot() },
+        openMoveFolder = { viewModel.openMoveFolder(it) },
+        moveBack = { viewModel.moveBack() },
+        moveNavigateToLevel = { viewModel.moveNavigateToLevel(it) },
+        retryMove = { viewModel.retryMove() },
+        move = { to, multi -> if (multi) viewModel.moveSelected(to) else viewModel.moveFile(to) },
+        rename = { viewModel.renameFile(it) },
+        deleteFile = { viewModel.deleteFile() },
+        deleteSelected = { viewModel.deleteSelected() },
+        shareFile = { expiry, passcode -> viewModel.shareFile(expiry as Int, passcode) },
+        shareSelected = { expiry, passcode -> viewModel.shareSelected(expiry as Int, passcode) },
+        downloadFile = { viewModel.downloadFile() },
+        downloadFolder = { viewModel.downloadFolder() },
+        downloadSelected = { viewModel.downloadSelected() }
     )
 
-    // 百度非会员 >300MB 限速确认提示弹窗（WindowDialog + Miuix Checkbox 规范）
-    if (showBaiduLimitDialog) {
+    CloudDriveBrowser(
+        spec = baiduDriveSpec,
+        state = driveState,
+        moveState = driveMoveState,
+        isRefreshing = viewModel.refreshing,
+        multiSelectMode = viewModel.multiSelectMode,
+        selected = viewModel.selected,
+        operating = viewModel.isOperating,
+        shareResult = viewModel.shareResult,
+        actions = actions,
+        scrollBehavior = scrollBehavior,
+        onExit = onExit,
+        onDownloadStarted = onDownloadStarted,
+        downloadLink = viewModel.downloadLink,
+        onStartDownload = { viewModel.startDownload() },
+        onDismissDownloadDialog = { viewModel.dismissDownloadDialog() },
+        cloudMessage = viewModel.cloudMessage,
+        onConsumeMessage = { viewModel.consumeMessage() },
+        downloadTriggered = viewModel.downloadTriggered,
+        onConsumeDownloadTriggered = { viewModel.consumeDownloadTriggered() },
+        onDismissShareResult = { viewModel.dismissShareResult() },
+        requestDownload = { files, proceed ->
+            if (!limitHintDismissed && files.any { it.fsize > BAIDU_LIMIT_BYTES }) {
+                pendingDownload = proceed
+                showLimitDialog = true
+            } else {
+                proceed()
+            }
+        },
+        modifier = modifier
+    )
+
+    if (showLimitDialog) {
         var neverShow by remember { mutableStateOf(false) }
         WindowDialog(
             show = true,
-            onDismissRequest = { showBaiduLimitDialog = false },
+            onDismissRequest = { showLimitDialog = false },
             title = "下载大文件提示"
         ) {
             Column(
@@ -383,22 +194,18 @@ fun BaiduCloudScreen(
                 ) {
                     TextButton(
                         text = "取消",
-                        onClick = { showBaiduLimitDialog = false },
+                        onClick = { showLimitDialog = false },
                         modifier = Modifier.weight(1f)
                     )
                     Button(
                         onClick = {
-                            showBaiduLimitDialog = false
+                            showLimitDialog = false
                             if (neverShow) {
                                 settingsRepo.baiduLimitHintDismissed = true
                                 limitHintDismissed = true
                             }
-                            if (pendingBaiduDownload == "batch") {
-                                viewModel.downloadSelected()
-                            } else {
-                                viewModel.downloadFile()
-                            }
-                            pendingBaiduDownload = null
+                            pendingDownload?.invoke()
+                            pendingDownload = null
                         },
                         modifier = Modifier.weight(1f),
                         colors = ButtonDefaults.buttonColorsPrimary()
@@ -411,320 +218,9 @@ fun BaiduCloudScreen(
     }
 }
 
-/** 百度网盘操作菜单抽屉（OverlayBottomSheet） */
-@Composable
-private fun BaiduActionSheet(
-    file: ShareFile,
-    viewModel: BaiduCloudViewModel,
-    onDownload: () -> Unit,
-    onDownloadFolder: (() -> Unit)? = null,
-    onRename: () -> Unit,
-    onMove: () -> Unit,
-    onShare: () -> Unit,
-    onDelete: () -> Unit,
-    onDismiss: () -> Unit
-) {
-    OverlayBottomSheet(
-        show = true,
-        onDismissRequest = onDismiss
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 24.dp, end = 24.dp, top = 4.dp, bottom = 32.dp)
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Surface(
-                    modifier = Modifier.size(40.dp),
-                    shape = SquircleShape(12.dp),
-                    color = MiuixTheme.colorScheme.primary.copy(alpha = 0.12f)
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            imageVector = if (file.isdir) Icons.Outlined.DriveFileMove else Icons.Outlined.Download,
-                            contentDescription = null,
-                            tint = MiuixTheme.colorScheme.primary,
-                            modifier = Modifier.size(22.dp)
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.width(12.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = file.fname,
-                        style = MiuixTheme.textStyles.title4,
-                        fontWeight = FontWeight.Medium,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    Text(
-                        text = if (file.isdir) "文件夹" else "文件",
-                        style = MiuixTheme.textStyles.footnote1,
-                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.height(12.dp))
-            if (!file.isdir) {
-                CloudActionItem(
-                    icon = Icons.Outlined.Download,
-                    title = "下载",
-                    desc = "使用内置下载功能保存到本机",
-                    tint = MiuixTheme.colorScheme.primary,
-                    onClick = onDownload
-                )
-            } else if (onDownloadFolder != null) {
-                CloudActionItem(
-                    icon = Icons.Outlined.Download,
-                    title = "下载文件夹",
-                    desc = "递归下载整个文件夹，保持目录结构",
-                    tint = MiuixTheme.colorScheme.primary,
-                    onClick = onDownloadFolder
-                )
-            }
-            CloudActionItem(
-                icon = Icons.Outlined.Share,
-                title = "分享",
-                desc = "生成分享链接（带提取码）",
-                tint = MiuixTheme.colorScheme.primary,
-                onClick = onShare
-            )
-            CloudActionItem(
-                icon = Icons.Outlined.DriveFileMove,
-                title = "移动到",
-                desc = "移动到网盘的其他目录",
-                tint = MiuixTheme.colorScheme.primary,
-                onClick = onMove
-            )
-            CloudActionItem(
-                icon = Icons.Outlined.Edit,
-                title = "重命名",
-                desc = "修改文件名",
-                tint = MiuixTheme.colorScheme.primary,
-                onClick = onRename
-            )
-            CloudActionItem(
-                icon = Icons.Outlined.Delete,
-                title = "删除",
-                desc = "删除到回收站",
-                tint = MiuixTheme.colorScheme.error,
-                onClick = onDelete
-            )
-        }
-    }
-}
-
-/** 移动目录选择抽屉（OverlayBottomSheet + BreadcrumbBar） */
-@Composable
-private fun BaiduMoveSheet(
-    viewModel: BaiduCloudViewModel,
-    onDismiss: () -> Unit
-) {
-    val moveState by viewModel.moveUiState.collectAsState()
-    LaunchedEffect(Unit) { viewModel.openMoveRoot() }
-
-    OverlayBottomSheet(
-        show = true,
-        onDismissRequest = onDismiss
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 24.dp, end = 24.dp, top = 4.dp, bottom = 32.dp)
-        ) {
-            CloudStepHeader(
-                title = "移动到",
-                subtitle = if (viewModel.multiSelectMode) "已选 ${viewModel.selected.size} 项" else (viewModel.actionFile?.fname ?: ""),
-                onBack = onDismiss
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            val movePathNames = (moveState as? BaiduCloudUiState.Loaded)?.pathNames ?: emptyList()
-            val moveBreadcrumbs = remember(movePathNames) {
-                buildList {
-                    add(BreadcrumbItem(path = "root", text = "根目录"))
-                    movePathNames.forEachIndexed { index, name ->
-                        add(BreadcrumbItem(path = (index + 1).toString(), text = name))
-                    }
-                }
-            }
-            BreadcrumbBar(
-                items = moveBreadcrumbs,
-                onItemClick = { viewModel.moveNavigateToLevel(it) },
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            if ((moveState as? BaiduCloudUiState.Loaded)?.pathNames?.isNotEmpty() == true) {
-                BackToParentItem(onClick = { viewModel.moveBack() })
-                Spacer(modifier = Modifier.height(4.dp))
-            }
-            AnimatedContent(
-                targetState = moveState,
-                transitionSpec = { fadeIn(tween(180)) togetherWith fadeOut(tween(140)) },
-                label = "baiduMoveState"
-            ) { s ->
-                when (s) {
-                    is BaiduCloudUiState.Loading -> Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(180.dp),
-                        contentAlignment = Alignment.Center
-                    ) { InfiniteProgressIndicator() }
-
-                    is BaiduCloudUiState.Error -> Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(140.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = s.message,
-                            style = MiuixTheme.textStyles.body2,
-                            color = MiuixTheme.colorScheme.onSurfaceVariantSummary
-                        )
-                    }
-
-                    is BaiduCloudUiState.Loaded -> {
-                        val dirs = s.files.filter { it.isdir }
-                        if (dirs.isEmpty()) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(90.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = "当前目录没有子文件夹，可直接移动到此处",
-                                    style = MiuixTheme.textStyles.body2,
-                                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
-                                    textAlign = TextAlign.Center
-                                )
-                            }
-                        } else {
-                            LazyColumn(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .heightIn(max = 240.dp),
-                                verticalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                items(dirs, key = { it.fid }) { dir ->
-                                    ShareFileRow(file = dir, onClick = { viewModel.openMoveFolder(dir) })
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            val dirName = (moveState as? BaiduCloudUiState.Loaded)?.pathNames?.lastOrNull() ?: "根目录"
-            Button(
-                onClick = {
-                    val to = (moveState as? BaiduCloudUiState.Loaded)?.dirPath ?: "/"
-                    if (viewModel.multiSelectMode) viewModel.moveSelected(to) else viewModel.moveFile(to)
-                    onDismiss()
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp),
-                colors = ButtonDefaults.buttonColorsPrimary()
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.DriveFileMove,
-                    contentDescription = null,
-                    tint = MiuixTheme.colorScheme.onPrimary,
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("移动到此处（$dirName）", style = MiuixTheme.textStyles.button)
-            }
-        }
-    }
-}
-
-/** 百度分享设置抽屉（OverlayBottomSheet） */
-@Composable
-private fun BaiduShareSheet(
-    viewModel: BaiduCloudViewModel,
-    onDismiss: () -> Unit
-) {
-    var passcode by remember { mutableStateOf("") }
-    var period by remember { mutableStateOf(0) }
-    val periodOptions = listOf(
-        "永久有效" to 0,
-        "1 天" to 1,
-        "7 天" to 7,
-        "30 天" to 30
-    )
-
-    OverlayBottomSheet(
-        show = true,
-        onDismissRequest = onDismiss
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 24.dp, end = 24.dp, top = 4.dp, bottom = 32.dp)
-        ) {
-            CloudStepHeader(
-                title = "分享文件",
-                subtitle = if (viewModel.multiSelectMode) "已选 ${viewModel.selected.size} 项" else (viewModel.actionFile?.fname ?: ""),
-                onBack = onDismiss
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "百度分享必须带 4 位提取码",
-                style = MiuixTheme.textStyles.footnote1,
-                color = MiuixTheme.colorScheme.onSurfaceVariantSummary
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-            TextField(
-                value = passcode,
-                onValueChange = { passcode = it.take(4).filter { c -> c.isLetterOrDigit() } },
-                modifier = Modifier.fillMaxWidth(),
-                label = "提取码（4 位字母数字）",
-                useLabelAsPlaceholder = true,
-                singleLine = true
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = "有效期",
-                style = MiuixTheme.textStyles.headline2,
-                color = MiuixTheme.colorScheme.onSurfaceVariantSummary
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                periodOptions.forEach { (name, value) ->
-                    CloudSelectChip(
-                        selected = period == value,
-                        label = name,
-                        onClick = { period = value }
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.height(20.dp))
-            Button(
-                onClick = {
-                    if (viewModel.multiSelectMode) {
-                        viewModel.shareSelected(period, passcode)
-                    } else {
-                        viewModel.shareFile(period, passcode)
-                    }
-                    onDismiss()
-                },
-                enabled = passcode.length == 4,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp),
-                colors = ButtonDefaults.buttonColorsPrimary()
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.Share,
-                    contentDescription = null,
-                    tint = MiuixTheme.colorScheme.onPrimary,
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("创建分享", style = MiuixTheme.textStyles.button)
-            }
-        }
-    }
+/** 百度目录标识使用绝对路径（根为 "/"） */
+private fun BaiduCloudUiState.toBaiduDriveState(): CloudDriveUiState = when (this) {
+    is BaiduCloudUiState.Loading -> CloudDriveUiState.Loading
+    is BaiduCloudUiState.Error -> CloudDriveUiState.Error(message)
+    is BaiduCloudUiState.Loaded -> CloudDriveUiState.Loaded(files, pathNames, dirPath)
 }

@@ -26,7 +26,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -353,7 +352,12 @@ fun ShareDetailScreen(
                 }
             }
 
-            items(displayFiles, key = { it.fid }) { file ->
+            // contentType 按类型区分：目录与文件混排时 Compose 只复用同类型 slot，避免布局抖动
+            items(
+                items = displayFiles,
+                key = { it.fid },
+                contentType = { if (it.isdir) "dir" else "file" }
+            ) { file ->
                 ShareFileRow(
                     file = file,
                     onClick = {
@@ -398,7 +402,6 @@ fun ShareDetailScreen(
         // 多选模式：底部批量操作栏（转存/下载）
         if (viewModel.multiSelectMode) {
             MultiSelectBar(
-                count = viewModel.selected.size,
                 actions = buildList {
                     // 转存仅夸克分享支持
                     if (viewModel.canSave) {
@@ -742,13 +745,14 @@ internal fun ShareFileRow(
             }
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
-                // 文件名过长时滚动播放显示
+                // 文件名过长时省略号截断。
+                // 不用 basicMarquee：每个可见行常驻动画会让长目录滚动时全部行持续重绘。
                 Text(
                     text = file.fname,
                     style = MiuixTheme.textStyles.body1,
                     color = if (selected) MiuixTheme.colorScheme.onPrimaryContainer else MiuixTheme.colorScheme.onSurface,
                     maxLines = 1,
-                    modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE)
+                    overflow = TextOverflow.Ellipsis
                 )
                 Spacer(modifier = Modifier.height(2.dp))
                 // 副标题行：文件夹/大小 + 修改时间（同一行展示）
@@ -768,7 +772,9 @@ internal fun ShareFileRow(
                 )
             }
             if (onSave != null) {
-                IconButton(onClick = onSave, modifier = Modifier.size(36.dp)) {
+                // Miuix 的 IconButton 不会自动扩展命中区（javap 确认无 minimumInteractiveComponentSize），
+                // 36dp 会低于 48dp 无障碍下限，这里显式给足
+                IconButton(onClick = onSave, modifier = Modifier.size(48.dp)) {
                     Icon(
                         imageVector = Icons.Outlined.SaveAlt,
                         contentDescription = "转存",
@@ -778,7 +784,7 @@ internal fun ShareFileRow(
                 }
             }
             if (onMore != null) {
-                IconButton(onClick = onMore, modifier = Modifier.size(36.dp)) {
+                IconButton(onClick = onMore, modifier = Modifier.size(48.dp)) {
                     Icon(
                         imageVector = Icons.Outlined.MoreVert,
                         contentDescription = "更多",

@@ -61,8 +61,10 @@ internal fun ScrollToTopButton(
             listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 0
         }
     }
+    // 滚动过程中淡出：悬浮按钮不该在用户拖动列表时一直挡内容
+    val isScrolling by rememberScrollActivityState(listState)
     AnimatedVisibility(
-        visible = showButton,
+        visible = showButton && !isScrolling,
         enter = fadeIn(tween(200)) + scaleIn(tween(200), initialScale = 0.8f),
         exit = fadeOut(tween(150)) + scaleOut(tween(150), targetScale = 0.8f),
         modifier = modifier

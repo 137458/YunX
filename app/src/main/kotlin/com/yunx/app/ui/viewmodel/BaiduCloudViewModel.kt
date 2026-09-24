@@ -224,6 +224,11 @@ class BaiduCloudViewModel(
         moveLoad(moveDirStack.lastOrNull() ?: "/", moveNameStack.toList())
     }
 
+    /** 移动目标目录加载失败后的重试：重新加载当前目录（不改变已进入的层级） */
+    fun retryMove() {
+        moveLoad(moveDirStack.lastOrNull() ?: "/", moveNameStack.toList())
+    }
+
     private fun moveLoad(dirPath: String, pathNames: List<String>) {
         _moveUiState.value = BaiduCloudUiState.Loading
         viewModelScope.launch {

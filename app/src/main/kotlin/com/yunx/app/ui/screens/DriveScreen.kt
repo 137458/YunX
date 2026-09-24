@@ -57,6 +57,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -78,6 +79,7 @@ import com.yunx.app.ui.viewmodel.QuarkCloudViewModel
 import com.yunx.app.ui.viewmodel.UCCoudViewModel
 import com.yunx.app.ui.viewmodel.XunleiCloudViewModel
 import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.CardDefaults
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.LinearProgressIndicator
@@ -86,6 +88,7 @@ import top.yukonga.miuix.kmp.basic.PullToRefresh
 import top.yukonga.miuix.kmp.basic.ScrollBehavior
 import top.yukonga.miuix.kmp.basic.Surface
 import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.basic.rememberPullToRefreshState
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
@@ -207,6 +210,8 @@ fun DriveScreen(
         driveQuotaViewModel.loadAll()
     }
     val isRefreshing by driveQuotaViewModel.loading.collectAsState()
+    // 必须在 Composable 上下文里收集：LazyColumn 的 LazyListScope lambda 不是 @Composable
+    val quotaError by driveQuotaViewModel.quotaError.collectAsState()
 
     // 账号列表 ↔ 夸克云盘 ↔ UC 云盘 ↔ 迅雷云盘 ↔ 百度云盘 ↔ 139 云盘 ↔ 123 云盘：平滑过渡
     AnimatedContent(
@@ -291,6 +296,39 @@ fun DriveScreen(
                                 color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                                 modifier = Modifier.padding(bottom = 4.dp)
                             )
+                        }
+                        // 空间信息加载失败提示：失败时卡片只是没有进度条，
+                        // 用户无法区分「未登录」与「请求失败」，这里给出明确提示与重试入口
+                        quotaError?.let { message ->
+                            item(key = "quota_error") {
+                                Card(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    colors = CardDefaults.defaultColors(
+                                        color = MiuixTheme.colorScheme.errorContainer
+                                    )
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(12.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = message,
+                                            style = MiuixTheme.textStyles.body2,
+                                            color = MiuixTheme.colorScheme.onErrorContainer,
+                                            maxLines = 2,
+                                            overflow = TextOverflow.Ellipsis,
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                        TextButton(
+                                            text = "重试",
+                                            onClick = { driveQuotaViewModel.loadAll() },
+                                            textStyle = MiuixTheme.textStyles.button.copy(
+                                                color = MiuixTheme.colorScheme.onErrorContainer
+                                            )
+                                        )
+                                    }
+                                }
+                            }
                         }
                         item(key = quark.id) {
                             DriveAccountCard(

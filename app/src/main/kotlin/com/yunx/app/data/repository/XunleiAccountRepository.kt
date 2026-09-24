@@ -22,6 +22,7 @@ import com.yunx.app.data.db.XunleiAccountDao
 import com.yunx.app.data.db.XunleiAccountEntity
 import com.yunx.app.data.network.XunleiApi
 import com.yunx.app.data.network.XunleiLoginStep
+import java.io.IOException
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -53,53 +54,85 @@ class XunleiAccountRepository(
         return api.sendSms(mobile, deviceId)
     }
 
-    /** 短信验证码登录并换取 token，成功落库返回 true */
+    /**
+     * 短信验证码登录并换取 token，返回三态结果。
+     * 迅雷 SDK 接口在网络不通时会直接抛 IOException（与其它平台「吞异常返回 null」不同），
+     * 这里统一收敛为「网络失败」态，避免异常冒泡到调用方。
+     */
+    suspend fun loginWithSmsResult(
+        mobile: String,
+        smsCode: String,
+        creditKey: String,
+        smsToken: String
+    ): SaveResult {
+        val deviceId = XunleiApi.newDeviceId()
+        return try {
+            val step = api.smsLogin(mobile, smsCode, creditKey, smsToken, deviceId)
+            if (step.sessionId.isBlank()) return SaveResult.InvalidCredential
+            // 换 token 前先 initCaptcha 拿 captcha_token（官方时序：smslogin → captcha/init → signin/token）
+            val captchaToken = api.initCaptcha(deviceId, mobile) ?: ""
+            val tokens = api.exchangeToken(step.sessionId, deviceId, captchaToken)
+                ?: return SaveResult.InvalidCredential
+            dao.upsert(
+                XunleiAccountEntity(
+                    id = "xunlei",
+                    accessToken = tokens.first,
+                    refreshToken = tokens.second,
+                    deviceId = deviceId,
+                    captchaToken = captchaToken,
+                    nickname = step.nickname.ifBlank { "迅雷用户" }
+                )
+            )
+            SaveResult.Success
+        } catch (e: IOException) {
+            SaveResult.NetworkError(ACCOUNT_NETWORK_ERROR)
+        }
+    }
+
+    /**
+     * Boolean 兼容入口。
+     * 迅雷账号 ViewModel 自行消费结果并直接展示错误文案、且不捕获异常，因此这里不抛
+     * [SaveNetworkException]：网络失败同样返回 false，由 ViewModel 的既有提示兜底。
+     */
     suspend fun loginWithSms(
         mobile: String,
         smsCode: String,
         creditKey: String,
         smsToken: String
-    ): Boolean {
+    ): Boolean = loginWithSmsResult(mobile, smsCode, creditKey, smsToken) == SaveResult.Success
+
+    /** 密码登录成功后用 sessionID 换 token 落库，返回三态结果（网络异常收敛为网络失败态） */
+    suspend fun finishLoginResult(
+        step: XunleiLoginStep,
+        username: String
+    ): SaveResult {
+        if (step.sessionId.isBlank()) return SaveResult.InvalidCredential
         val deviceId = XunleiApi.newDeviceId()
-        val step = api.smsLogin(mobile, smsCode, creditKey, smsToken, deviceId)
-        if (step.sessionId.isBlank()) return false
-        // 换 token 前先 initCaptcha 拿 captcha_token（官方时序：smslogin → captcha/init → signin/token）
-        val captchaToken = api.initCaptcha(deviceId, mobile) ?: ""
-        val tokens = api.exchangeToken(step.sessionId, deviceId, captchaToken) ?: return false
-        dao.upsert(
-            XunleiAccountEntity(
-                id = "xunlei",
-                accessToken = tokens.first,
-                refreshToken = tokens.second,
-                deviceId = deviceId,
-                captchaToken = captchaToken,
-                nickname = step.nickname.ifBlank { "迅雷用户" }
+        return try {
+            val captchaToken = api.initCaptcha(deviceId, username) ?: ""
+            val tokens = api.exchangeToken(step.sessionId, deviceId, captchaToken)
+                ?: return SaveResult.InvalidCredential
+            dao.upsert(
+                XunleiAccountEntity(
+                    id = "xunlei",
+                    accessToken = tokens.first,
+                    refreshToken = tokens.second,
+                    deviceId = deviceId,
+                    captchaToken = captchaToken,
+                    nickname = step.nickname.ifBlank { "迅雷用户" }
+                )
             )
-        )
-        return true
+            SaveResult.Success
+        } catch (e: IOException) {
+            SaveResult.NetworkError(ACCOUNT_NETWORK_ERROR)
+        }
     }
 
-    /** 密码登录成功后用 sessionID 换 token 落库 */
+    /** Boolean 兼容入口（同 [loginWithSms]：不抛异常，网络失败返回 false）。 */
     suspend fun finishLogin(
         step: XunleiLoginStep,
         username: String
-    ): Boolean {
-        if (step.sessionId.isBlank()) return false
-        val deviceId = XunleiApi.newDeviceId()
-        val captchaToken = api.initCaptcha(deviceId, username) ?: ""
-        val tokens = api.exchangeToken(step.sessionId, deviceId, captchaToken) ?: return false
-        dao.upsert(
-            XunleiAccountEntity(
-                id = "xunlei",
-                accessToken = tokens.first,
-                refreshToken = tokens.second,
-                deviceId = deviceId,
-                captchaToken = captchaToken,
-                nickname = step.nickname.ifBlank { "迅雷用户" }
-            )
-        )
-        return true
-    }
+    ): Boolean = finishLoginResult(step, username) == SaveResult.Success
 
     /** 刷新 token 后更新 accessToken/refreshToken（deviceId/captchaToken 保持不变） */
     suspend fun updateTokens(accessToken: String, refreshToken: String) {

@@ -23,6 +23,7 @@ import android.webkit.WebStorage
 import com.yunx.app.data.db.Pan123AccountDao
 import com.yunx.app.data.db.Pan123AccountEntity
 import com.yunx.app.data.network.Pan123Api
+import com.yunx.app.data.network.Pan123Constants
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -40,14 +41,26 @@ class Pan123AccountRepository(
     suspend fun getAccount(): Pan123AccountEntity? = dao.getAccount()
 
     /**
-     * 网页登录凭证（authorToken）校验并落库：先用 user/info 接口确认 token 有效并取昵称，成功返回 true。
+     * 网页登录凭证（authorToken）校验并落库，返回三态结果。
+     * 旧实现把网络失败与 token 失效混为一谈（都返回 false，界面统一提示「Token 无效」）；
+     * 现在服务端没返回昵称时会区分链路不可达（网络失败）与凭证被拒（凭证无效）。
      * @param token 123 云盘网页 localStorage 的 authorToken（Bearer JWT）
      */
-    suspend fun saveToken(token: String): Boolean {
+    suspend fun saveTokenResult(token: String): SaveResult {
         val t = token.trim()
-        if (t.isBlank()) return false
+        if (t.isBlank()) return SaveResult.InvalidCredential
         // 网页登录拿不到手机号：account 留空，账号页展示时回退昵称
-        val nickname = api.fetchNickname(t) ?: return false
+        val nickname = api.fetchNickname(t)
+        if (nickname == null) {
+            return SaveResultPolicy.of(
+                credentialShapeValid = true,
+                nickname = null,
+                transportReachable = probeTransportReachable(
+                    Pan123Constants.USER_INFO_URL,
+                    Pan123Constants.WEB_UA
+                )
+            )
+        }
         dao.upsert(
             Pan123AccountEntity(
                 id = "pan123",
@@ -56,16 +69,47 @@ class Pan123AccountRepository(
                 nickname = nickname
             )
         )
-        return true
+        return SaveResult.Success
     }
 
-    /** 校验当前 token 是否仍有效（失败自动清库，下次重新登录） */
-    suspend fun validate(): Boolean {
-        val acc = dao.getAccount() ?: return false
-        val ok = api.fetchNickname(acc.accessToken) != null
-        if (!ok) dao.clear()
-        return ok
+    /**
+     * Boolean 兼容入口（账号 ViewModel 仍按 Boolean 调用）：
+     * 网络失败时抛 [SaveNetworkException]，避免界面把网络问题误报为「Token 无效」。
+     */
+    suspend fun saveToken(token: String): Boolean =
+        when (val result = saveTokenResult(token)) {
+            SaveResult.Success -> true
+            SaveResult.InvalidCredential -> false
+            is SaveResult.NetworkError -> throw SaveNetworkException(result.message)
+        }
+
+    /**
+     * 校验当前 token 是否仍有效，返回三态结果。
+     * 只有确认凭证无效才清库；网络失败时保留登录态，避免断网瞬间被误清导致用户被迫重新登录。
+     */
+    suspend fun validateResult(): SaveResult {
+        val acc = dao.getAccount() ?: return SaveResult.InvalidCredential
+        val nickname = api.fetchNickname(acc.accessToken)
+        if (nickname != null) return SaveResult.Success
+        val result = SaveResultPolicy.of(
+            credentialShapeValid = true,
+            nickname = null,
+            transportReachable = probeTransportReachable(
+                Pan123Constants.USER_INFO_URL,
+                Pan123Constants.WEB_UA
+            )
+        )
+        if (result == SaveResult.InvalidCredential) dao.clear()
+        return result
     }
+
+    /** Boolean 兼容入口：网络失败以异常透传，避免被当成「token 失效」而清库。 */
+    suspend fun validate(): Boolean =
+        when (val result = validateResult()) {
+            SaveResult.Success -> true
+            SaveResult.InvalidCredential -> false
+            is SaveResult.NetworkError -> throw SaveNetworkException(result.message)
+        }
 
     /**
      * 退出登录：清库 + 清理 WebView 登录态（Cookie 与 localStorage/DOM 存储）。
