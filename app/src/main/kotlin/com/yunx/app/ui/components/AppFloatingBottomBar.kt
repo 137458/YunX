@@ -25,8 +25,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -46,6 +47,8 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
  * 悬浮式底部导航栏（液态玻璃 / 毛玻璃）。
  *
  * 具体渲染档位由 [style] 决定，运行时不支持时在 [FloatingBottomBar] 内部继续降级。
+ * 震动走「外层单一派发」：拖拽落点经 [FloatingBottomBar] 的 onSelected 回调、槽位点击走自家 onClick，
+ * 两条路径各派发一次，底栏内部不再重复触发。
  */
 @Composable
 fun AppFloatingBottomBar(
@@ -67,8 +70,7 @@ fun AppFloatingBottomBar(
     FloatingBottomBar(
         selectedIndex = { currentTab.ordinal },
         onSelected = { index ->
-            // 拖拽落点与指示灯轻点的震动已由底栏内部手势状态机派发，
-            // 这里不能再 tick，否则同一次操作会连震两次
+            haptics.tick()
             onTabSelected(tabs[index.coerceIn(0, tabs.lastIndex)])
         },
         tabsCount = tabs.size,
@@ -77,22 +79,23 @@ fun AppFloatingBottomBar(
         mode = style.requestedFloatingMode ?: FloatingBottomBarMode.LiquidGlass,
         colors = colors
     ) {
-        tabs.forEach { tab ->
+        tabs.forEachIndexed { index, tab ->
+            val isSelected = currentTab == tab
             FloatingBottomBarItem(
                 onClick = {
                     haptics.tick()
                     onTabSelected(tab)
                 },
-                selected = currentTab == tab,
-                // 不要在外层再设 contentDescription：槽位里的 Text 会被 clickable 合并成标签，
-                // 两处同文案会让 TalkBack 把同一个 Tab 读两遍。
-                modifier = Modifier.defaultMinSize(minWidth = 72.dp)
+                // 选中语义注入槽位：底栏不为每个 Tab 生成独立语义节点
+                modifier = Modifier
+                    .defaultMinSize(minWidth = 72.dp)
+                    .semantics { selected = isSelected }
             ) {
                 // 选中态配色由底栏图层注入：液态玻璃档位下由滑块折射透出，
                 // 降级档位下由滑块内的平移副本承载，槽位本身无需判断状态。
                 val contentColor = LocalFloatingBottomBarContentColor.current
                 Icon(
-                    imageVector = if (currentTab == tab) tab.selectedIcon else tab.unselectedIcon,
+                    imageVector = if (isSelected) tab.selectedIcon else tab.unselectedIcon,
                     contentDescription = null, // 装饰性图标：标签由同容器内的 Text 提供
                     tint = contentColor,
                     modifier = Modifier.size(24.dp)
@@ -102,9 +105,9 @@ fun AppFloatingBottomBar(
                     text = tab.title,
                     fontSize = 11.sp,
                     lineHeight = 14.sp,
+                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
                     maxLines = 1,
-                    softWrap = false,
-                    overflow = TextOverflow.Visible,
+                    overflow = TextOverflow.Ellipsis,
                     color = contentColor
                 )
             }

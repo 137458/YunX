@@ -18,6 +18,7 @@
 
 package com.yunx.app.ui.components.liquid
 
+import androidx.compose.animation.core.EaseOut
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.atan2
@@ -47,15 +48,12 @@ object LiquidPhysicsMath {
     }
 
     /**
-     * 计算橡皮筋面板阻尼拖拽位移 (EaseOut 弹性曲线)。
+     * 计算橡皮筋面板阻尼拖拽位移（EaseOut 弹性曲线，与 pixez 上游一致）。
      */
     fun calculateRubberBandOffset(dragOffset: Float, totalWidth: Float, rubberBandPx: Float): Float {
         if (totalWidth <= 0f) return 0f
         val fraction = (dragOffset / totalWidth).coerceIn(-1f, 1f)
-        val progress = abs(fraction)
-        // EaseOut cubic: 1 - (1 - t)^3
-        val easeOut = 1f - (1f - progress) * (1f - progress) * (1f - progress)
-        return rubberBandPx * fraction.sign * easeOut
+        return rubberBandPx * fraction.sign * EaseOut.transform(abs(fraction))
     }
 
     /**
