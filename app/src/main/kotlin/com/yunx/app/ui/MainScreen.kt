@@ -847,17 +847,16 @@ fun MainScreen() {
                 ) {
                     tabContent()
                     // 列表滚到悬浮底栏下方时用羽化过渡，避免内容被底栏硬切。
-                    // 雾带下沿贴住底栏上沿 = 导航栏 inset + FloatingToolbarSpacing + 底栏高度；
-                    // 不用 Scaffold 的 innerPadding：Snackbar 显示时它会把瞬时高度也算进来，雾带会跟着上下跳。
+                    // 雾带压在底栏之下：上沿与底栏上沿齐平（导航栏 inset + FloatingToolbarSpacing + 底栏高度），
+                    // 向下渐浓，透过玻璃表现为内容在底栏内渐隐；底栏上方不留可见雾带。
                     if (!isWideScreen && bottomBarStyle.isFloating) {
-                        val barTopOffset = WindowInsets.navigationBars
+                        val barHeight = WindowInsets.navigationBars
                             .only(WindowInsetsSides.Bottom)
                             .asPaddingValues()
                             .calculateBottomPadding() + FloatingBarTopClearance
                         FadeEdgeMask(
                             edge = FadeEdge.Bottom,
-                            height = 28.dp,
-                            modifier = Modifier.padding(bottom = barTopOffset)
+                            height = barHeight
                         )
                     }
                 }
