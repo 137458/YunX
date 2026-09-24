@@ -35,7 +35,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Download
-import androidx.compose.material.icons.outlined.DriveFileMove
+import androidx.compose.material.icons.automirrored.outlined.DriveFileMove
 import androidx.compose.material.icons.outlined.SaveAlt
 import androidx.compose.material.icons.outlined.SelectAll
 import androidx.compose.runtime.Composable
@@ -167,7 +167,7 @@ internal fun MultiSelectBar(
             add(
                 MultiSelectAction(
                     label = "移动",
-                    icon = Icons.Outlined.DriveFileMove,
+                    icon = Icons.AutoMirrored.Outlined.DriveFileMove,
                     tint = MiuixTheme.colorScheme.primary,
                     onClick = onMove
                 )

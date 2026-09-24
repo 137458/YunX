@@ -298,7 +298,7 @@ private fun DownloadProgressSection(download: UpdateDownloadState) {
     }
 }
 
-/** 「忽略本次 / 稍后」两个次要动作并排 */
+/** 「忽略此版本 / 稍后」两个次要动作并排 */
 @Composable
 private fun IgnoreAndLaterRow(onIgnore: () -> Unit, onLater: () -> Unit) {
     Row(
@@ -306,7 +306,7 @@ private fun IgnoreAndLaterRow(onIgnore: () -> Unit, onLater: () -> Unit) {
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         TextButton(
-            text = "忽略本次",
+            text = "忽略此版本",
             onClick = onIgnore,
             modifier = Modifier.weight(1f)
         )

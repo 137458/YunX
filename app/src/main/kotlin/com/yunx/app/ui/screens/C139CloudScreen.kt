@@ -19,7 +19,7 @@
 package com.yunx.app.ui.screens
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.DriveFileMove
+import androidx.compose.material.icons.automirrored.outlined.DriveFileMove
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -46,7 +46,7 @@ private val c139DriveSpec = DriveSpec(
         DriveExpiryOption("30 天", 30)
     ),
     passcode = PasscodePolicy.Auto,
-    folderIcon = Icons.Outlined.DriveFileMove
+    folderIcon = Icons.AutoMirrored.Outlined.DriveFileMove
 )
 
 @Composable

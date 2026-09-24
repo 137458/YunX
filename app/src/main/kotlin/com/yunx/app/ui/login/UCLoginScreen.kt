@@ -158,7 +158,7 @@ fun UCLoginScreen(
                                                 onSaved()
                                             }
                                             SaveResult.InvalidCredential ->
-                                                SnackbarController.show("凭证无效，请先完成网页登录，或检查 Cookie 是否含 __pus= 与 __puus=")
+                                                SnackbarController.show("未检测到登录状态，请先在网页中完成登录，再点保存")
                                             is SaveResult.NetworkError -> SnackbarController.show(result.message)
                                         }
                                     } finally {
@@ -264,7 +264,7 @@ fun UCLoginScreen(
                                                 onSaved()
                                             }
                                             SaveResult.InvalidCredential ->
-                                                SnackbarController.show("凭证无效，请检查是否包含 __pus= 与 __puus=")
+                                                SnackbarController.show("Cookie 不完整，请确认复制了完整的登录凭证")
                                             // 网络失败：保留弹窗与已输入内容，只提示重试
                                             is SaveResult.NetworkError -> SnackbarController.show(result.message)
                                         }

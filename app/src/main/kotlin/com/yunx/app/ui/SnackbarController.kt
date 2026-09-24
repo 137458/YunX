@@ -30,8 +30,10 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import top.yukonga.miuix.kmp.basic.Snackbar
+import top.yukonga.miuix.kmp.basic.SnackbarDuration
 import top.yukonga.miuix.kmp.basic.SnackbarHost
 import top.yukonga.miuix.kmp.basic.SnackbarHostState
+import top.yukonga.miuix.kmp.basic.SnackbarResult
 
 /**
  * 全局 Snackbar 通道：任何位置（Composable / 工具函数）调用 show() 即可显示。
@@ -42,16 +44,28 @@ import top.yukonga.miuix.kmp.basic.SnackbarHostState
  * 多个宿主（MainScreen / 各 Sheet / 各 LoginScreen）同时活跃时共享广播，各自渲染。
  */
 object SnackbarController {
-    internal data class Event(val seq: Long, val message: String)
+    internal data class Event(
+        val seq: Long,
+        val message: String,
+        /** 可选动作按钮文案（如「撤销」）；给出后提示条停留时间自动延长 */
+        val actionLabel: String? = null,
+        val onAction: (() -> Unit)? = null
+    )
 
     private val _events = MutableStateFlow<Event?>(null)
     private var seq = 0L
 
     internal val events: StateFlow<Event?> = _events
 
-    fun show(message: String) {
+    /**
+     * 显示一条提示。
+     *
+     * @param actionLabel 动作按钮文案；与 [onAction] 成对给出才会渲染按钮
+     * @param onAction 用户点动作按钮后的回调（在宿主协程上下文执行）
+     */
+    fun show(message: String, actionLabel: String? = null, onAction: (() -> Unit)? = null) {
         // 每次 show 都是新 Event（seq 递增），StateFlow 值必然变化 → 所有收集者都会收到
-        _events.value = Event(++seq, message)
+        _events.value = Event(++seq, message, actionLabel.takeIf { onAction != null }, onAction)
     }
 
     /**
@@ -108,7 +122,17 @@ fun rememberGlobalSnackbarHostState(): SnackbarHostState {
     LaunchedEffect(hostState) {
         SnackbarController.events.collect { event ->
             if (event != null) {
-                hostState.showSnackbar(event.message)
+                val result = hostState.showSnackbar(
+                    message = event.message,
+                    actionLabel = event.actionLabel,
+                    // 带动作按钮时给足停留时间，否则用户还没看清就消失了
+                    duration = if (event.actionLabel != null) {
+                        SnackbarDuration.Long
+                    } else {
+                        SnackbarDuration.Short
+                    }
+                )
+                if (result == SnackbarResult.ActionPerformed) event.onAction?.invoke()
                 SnackbarController.consume(event.seq)
             }
         }

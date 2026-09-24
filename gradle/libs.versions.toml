@@ -9,6 +9,7 @@ composeBom = "2025.10.01"
 room = "2.6.1"
 ksp = "2.1.0-1.0.29"
 material = "1.14.0"   # 官方 Material 主库，自带 com.google.android.material.color.utilities 包
+# 0.9.4 起要求 AGP 9.1+ / Compose 1.12（整条工具链升级），本项目暂固定 0.9.3
 miuix = "0.9.3"
 kotlinx-serialization = "1.8.0"
 

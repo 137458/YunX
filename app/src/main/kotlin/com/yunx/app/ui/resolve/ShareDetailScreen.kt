@@ -54,7 +54,7 @@ import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.FolderOpen
-import androidx.compose.material.icons.outlined.InsertDriveFile
+import androidx.compose.material.icons.automirrored.outlined.InsertDriveFile
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.SaveAlt
 import androidx.compose.material.icons.outlined.Search
@@ -732,7 +732,7 @@ internal fun ShareFileRow(
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Icon(
-                        imageVector = if (file.isdir) Icons.Outlined.Folder else Icons.Outlined.InsertDriveFile,
+                        imageVector = if (file.isdir) Icons.Outlined.Folder else Icons.AutoMirrored.Outlined.InsertDriveFile,
                         contentDescription = null,
                         modifier = Modifier.size(20.dp),
                         tint = if (file.isdir) {

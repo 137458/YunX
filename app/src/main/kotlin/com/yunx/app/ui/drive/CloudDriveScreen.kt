@@ -37,7 +37,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Download
-import androidx.compose.material.icons.outlined.DriveFileMove
+import androidx.compose.material.icons.automirrored.outlined.DriveFileMove
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.runtime.Composable
@@ -194,7 +194,7 @@ fun CloudDriveBrowser(
                             ),
                             MultiSelectAction(
                                 label = "移动",
-                                icon = Icons.Outlined.DriveFileMove,
+                                icon = Icons.AutoMirrored.Outlined.DriveFileMove,
                                 onClick = { actions.openMoveRoot(); step = DriveStep.MOVE }
                             ),
                             MultiSelectAction(
@@ -277,7 +277,7 @@ fun CloudDriveBrowser(
                     onClick = { step = DriveStep.SHARE }
                 )
                 CloudActionItem(
-                    icon = Icons.Outlined.DriveFileMove,
+                    icon = Icons.AutoMirrored.Outlined.DriveFileMove,
                     title = "移动到",
                     desc = "移动到网盘的其他目录",
                     tint = MiuixTheme.colorScheme.primary,

@@ -19,7 +19,7 @@
 package com.yunx.app.ui.drive
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.DriveFileMove
+import androidx.compose.material.icons.automirrored.outlined.DriveFileMove
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.yunx.app.data.network.model.ShareFile
 
@@ -42,7 +42,7 @@ data class DriveSpec(
     /** 提取码策略 */
     val passcode: PasscodePolicy,
     /** 文件夹图标（操作抽屉头部的文件夹图标；移动按钮统一使用 [DriveIcons.move]） */
-    val folderIcon: ImageVector = Icons.Outlined.DriveFileMove,
+    val folderIcon: ImageVector = Icons.AutoMirrored.Outlined.DriveFileMove,
     /** 浏览页空目录提示 */
     val emptyText: String = "此目录为空"
 )
@@ -52,7 +52,7 @@ data class DriveExpiryOption<T>(val label: String, val value: T)
 
 /** 各平台共用图标：与 CloudDriveScaffold / 文件操作抽屉保持一致 */
 object DriveIcons {
-    val move: ImageVector = Icons.Outlined.DriveFileMove
+    val move: ImageVector = Icons.AutoMirrored.Outlined.DriveFileMove
 }
 
 /**

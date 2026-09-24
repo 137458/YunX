@@ -40,8 +40,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Bookmarks
 import androidx.compose.foundation.layout.Arrangement
 import com.yunx.app.ui.AppSnackbarHost
 import androidx.compose.runtime.CompositionLocalProvider
@@ -52,8 +50,6 @@ import top.yukonga.miuix.kmp.basic.ScrollBehavior
 import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.window.WindowDialog
 import com.yunx.app.ui.components.LocalScaffoldPadding
-import top.yukonga.miuix.kmp.basic.Icon
-import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.NavigationRail
 import top.yukonga.miuix.kmp.basic.NavigationRailItem
 import top.yukonga.miuix.kmp.basic.Scaffold
@@ -671,15 +667,14 @@ fun MainScreen() {
             scrollBehavior = scrollBehavior,
             color = if (blurBackdrop != null) Color.Transparent else MiuixTheme.colorScheme.surface,
             actions = {
-                // 解析页标题右上角：收藏网盘链接入口
+                // 解析页标题右上角：收藏网盘链接入口。
+                // 用带文字的按钮而不是纯图标：收藏是低频入口，只画一个书签图标时
+                // 用户既认不出图标含义，也不知道这里能进收藏夹。
                 if (currentTab == MainTab.Resolve) {
-                    IconButton(onClick = { showBookmarks = true }) {
-                        Icon(
-                            imageVector = Icons.Outlined.Bookmarks,
-                            contentDescription = "收藏网盘链接",
-                            tint = MiuixTheme.colorScheme.onSurfaceVariantActions
-                        )
-                    }
+                    TextButton(
+                        text = "收藏",
+                        onClick = { showBookmarks = true }
+                    )
                 }
             }
         )
@@ -759,89 +754,80 @@ fun MainScreen() {
         }
     }
 
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        topBar = {
-            BlurredBar(
-                backdrop = blurBackdrop,
-                scrollBehavior = scrollBehavior,
-            ) {
-                topBarContent()
-            }
-        },
-        bottomBar = {
-            // 标准底栏档位：贴底固定的 Miuix NavigationBar
-            if (!isWideScreen && bottomBarStyle == BottomBarStyle.MiuixStandard) {
-                AppStandardBottomBar(
-                    currentTab = currentTab,
-                    onTabSelected = { currentTab = it }
-                )
-            }
-        },
-        floatingToolbar = {
-            // 悬浮档位（液态玻璃 / 毛玻璃）：Scaffold 已按「导航栏 inset + FloatingToolbarSpacing」
-            // 把底栏抬到底边之上，这里不要再补 bottom padding
-            if (!isWideScreen && bottomBarStyle.isFloating) {
-                AppFloatingBottomBar(
-                    currentTab = currentTab,
-                    onTabSelected = { currentTab = it },
-                    backdrop = blurBackdrop,
-                    style = bottomBarStyle
-                )
-            }
-        },
-        floatingToolbarPosition = ToolbarPosition.BottomCenter,
-        snackbarHost = {
-            val floatingBarBottomPadding =
-                if (!isWideScreen && bottomBarStyle.isFloating) FloatingBarSnackbarClearance else 16.dp
-            AppSnackbarHost(
-                hostState = snackbarHostState,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = floatingBarBottomPadding)
+    // 宽屏时侧边导航栏整高铺满、顶栏只覆盖右侧内容区；
+    // 若把 Rail 塞进 Scaffold 内部，顶栏会横跨整宽而 Rail 挂在顶栏下方，平板上观感是「顶栏悬空」。
+    Row(modifier = Modifier.fillMaxSize()) {
+        if (isWideScreen) {
+            MainNavigationRail(
+                currentTab = currentTab,
+                onTabSelected = { currentTab = it }
             )
         }
-    ) { innerPadding ->
-        val layoutDirection = LocalLayoutDirection.current
-        // 悬浮底栏的内容避让：Miuix Scaffold 会把 floatingToolbar 的高度 + FloatingToolbarSpacing
-        // + 底部导航栏 inset 计入 innerPadding。这里只在它没算够时补差额，既不重复预留出
-        // 一大块空白，也不会让最后一项被底栏盖住（两种 Scaffold 行为下都安全）。
-        val floatingBarBottomPadding = if (!isWideScreen && bottomBarStyle.isFloating) {
-            val desiredClearance = FloatingBarDesiredClearance
-            val alreadyReserved = innerPadding.calculateBottomPadding()
-            (desiredClearance - alreadyReserved).coerceAtLeast(0.dp)
-        } else {
-            0.dp
-        }
-        val effectiveScaffoldPadding = PaddingValues(
-            start = innerPadding.calculateStartPadding(layoutDirection),
-            top = innerPadding.calculateTopPadding(),
-            end = innerPadding.calculateEndPadding(layoutDirection),
-            bottom = innerPadding.calculateBottomPadding() + floatingBarBottomPadding
-        )
-        CompositionLocalProvider(LocalScaffoldPadding provides effectiveScaffoldPadding) {
-            if (isWideScreen) {
-                // 横屏：左侧侧边导航栏（NavigationRail）+ 右侧内容区
-                Row(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding)
+
+        Scaffold(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight(),
+            topBar = {
+                BlurredBar(
+                    backdrop = blurBackdrop,
+                    scrollBehavior = scrollBehavior,
                 ) {
-                    MainNavigationRail(
+                    topBarContent()
+                }
+            },
+            bottomBar = {
+                // 标准底栏档位：贴底固定的 Miuix NavigationBar
+                if (!isWideScreen && bottomBarStyle == BottomBarStyle.MiuixStandard) {
+                    AppStandardBottomBar(
                         currentTab = currentTab,
                         onTabSelected = { currentTab = it }
                     )
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight()
-                            .blurBackdropSource(blurBackdrop)
-                    ) {
-                        tabContent()
-                    }
                 }
+            },
+            floatingToolbar = {
+                // 悬浮档位（液态玻璃 / 毛玻璃）：Scaffold 已按「导航栏 inset + FloatingToolbarSpacing」
+                // 把底栏抬到底边之上，这里不要再补 bottom padding
+                if (!isWideScreen && bottomBarStyle.isFloating) {
+                    AppFloatingBottomBar(
+                        currentTab = currentTab,
+                        onTabSelected = { currentTab = it },
+                        backdrop = blurBackdrop,
+                        style = bottomBarStyle
+                    )
+                }
+            },
+            floatingToolbarPosition = ToolbarPosition.BottomCenter,
+            snackbarHost = {
+                val floatingBarBottomPadding =
+                    if (!isWideScreen && bottomBarStyle.isFloating) FloatingBarSnackbarClearance else 16.dp
+                AppSnackbarHost(
+                    hostState = snackbarHostState,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = floatingBarBottomPadding)
+                )
+            }
+        ) { innerPadding ->
+            val layoutDirection = LocalLayoutDirection.current
+            // 悬浮底栏的内容避让：Miuix Scaffold 会把 floatingToolbar 的高度 + FloatingToolbarSpacing
+            // + 底部导航栏 inset 计入 innerPadding。这里只在它没算够时补差额，既不重复预留出
+            // 一大块空白，也不会让最后一项被底栏盖住（两种 Scaffold 行为下都安全）。
+            val floatingBarBottomPadding = if (!isWideScreen && bottomBarStyle.isFloating) {
+                val desiredClearance = FloatingBarDesiredClearance
+                val alreadyReserved = innerPadding.calculateBottomPadding()
+                (desiredClearance - alreadyReserved).coerceAtLeast(0.dp)
             } else {
-                // 竖屏：内容区占满全屏，内部列表消费 LocalScaffoldPadding 获得穿透滚动效果；
+                0.dp
+            }
+            val effectiveScaffoldPadding = PaddingValues(
+                start = innerPadding.calculateStartPadding(layoutDirection),
+                top = innerPadding.calculateTopPadding(),
+                end = innerPadding.calculateEndPadding(layoutDirection),
+                bottom = innerPadding.calculateBottomPadding() + floatingBarBottomPadding
+            )
+            CompositionLocalProvider(LocalScaffoldPadding provides effectiveScaffoldPadding) {
+                // 内容区占满内容栏（宽屏时右栏），内部列表消费 LocalScaffoldPadding 获得穿透滚动效果；
                 // 挂载 blurBackdropSource 支持顶部 BlurredBar 与底部悬浮栏采样
                 Box(
                     modifier = Modifier
@@ -987,6 +973,12 @@ fun MainScreen() {
                 onIgnore = {
                     settings.ignoredUpdateVersion = release.tagName
                     showUpdateDialog = false
+                    // 忽略是不可见状态，给一次撤销机会，避免用户误点后再也等不到提示
+                    SnackbarController.show(
+                        message = "已忽略 ${release.tagName}，该版本不再提示",
+                        actionLabel = "撤销",
+                        onAction = { settings.ignoredUpdateVersion = "" }
+                    )
                 }
             )
         }
@@ -994,7 +986,10 @@ fun MainScreen() {
 }
 
 /**
- * 侧边导航栏（横屏）：4 个主 Tab，使用 Miuix NavigationRail 与 NavigationRailItem。
+ * 侧边导航栏（宽屏）：4 个主 Tab，使用 Miuix NavigationRail 与 NavigationRailItem。
+ *
+ * 整高铺满并自行消费系统栏 inset（defaultWindowInsetsPadding），
+ * 因此可以放在内容 Scaffold 之外，不再被顶栏压在下面。
  */
 @Composable
 private fun MainNavigationRail(
@@ -1002,7 +997,10 @@ private fun MainNavigationRail(
     onTabSelected: (MainTab) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    NavigationRail(modifier = modifier) {
+    NavigationRail(
+        modifier = modifier.fillMaxHeight(),
+        defaultWindowInsetsPadding = true
+    ) {
         MainTab.entries.forEach { tab ->
             NavigationRailItem(
                 selected = currentTab == tab,

@@ -26,7 +26,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.DriveFileMove
+import androidx.compose.material.icons.automirrored.outlined.DriveFileMove
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -71,7 +71,7 @@ private val baiduDriveSpec = DriveSpec(
         DriveExpiryOption("30 天", 30)
     ),
     passcode = PasscodePolicy.Fixed(label = "提取码（4 位字母数字）"),
-    folderIcon = Icons.Outlined.DriveFileMove
+    folderIcon = Icons.AutoMirrored.Outlined.DriveFileMove
 )
 
 /**

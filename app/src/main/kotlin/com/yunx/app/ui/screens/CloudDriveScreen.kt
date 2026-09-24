@@ -28,7 +28,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Download
-import androidx.compose.material.icons.outlined.DriveFileMove
+import androidx.compose.material.icons.automirrored.outlined.DriveFileMove
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -144,7 +144,7 @@ fun CloudDriveScreen(
                             ),
                             MultiSelectAction(
                                 label = "移动",
-                                icon = Icons.Outlined.DriveFileMove,
+                                icon = Icons.AutoMirrored.Outlined.DriveFileMove,
                                 onClick = {
                                     batchInitial = BatchStep.MOVE
                                     showBatchActions = true

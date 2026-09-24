@@ -46,7 +46,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Download
-import androidx.compose.material.icons.outlined.DriveFileMove
+import androidx.compose.material.icons.automirrored.outlined.DriveFileMove
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Share
@@ -265,7 +265,7 @@ private fun ActionMenu(
             onClick = onShare
         )
         CloudActionItem(
-            icon = Icons.Outlined.DriveFileMove,
+            icon = Icons.AutoMirrored.Outlined.DriveFileMove,
             title = "移动到",
             desc = "移动到网盘的其他目录",
             tint = MiuixTheme.colorScheme.primary,
@@ -395,7 +395,7 @@ private fun MoveStep(
                 InfiniteProgressIndicator(modifier = Modifier.size(20.dp))
             } else {
                 Icon(
-                    imageVector = Icons.Outlined.DriveFileMove,
+                    imageVector = Icons.AutoMirrored.Outlined.DriveFileMove,
                     contentDescription = null,
                     tint = MiuixTheme.colorScheme.onPrimary,
                     modifier = Modifier.size(18.dp)
@@ -828,7 +828,7 @@ private fun BatchMenu(
             onClick = onShare
         )
         CloudActionItem(
-            icon = Icons.Outlined.DriveFileMove,
+            icon = Icons.AutoMirrored.Outlined.DriveFileMove,
             title = "移动到",
             desc = "批量移动到网盘的其他目录",
             tint = MiuixTheme.colorScheme.primary,
@@ -1050,7 +1050,7 @@ private fun BatchMoveStep(
                 InfiniteProgressIndicator(modifier = Modifier.size(20.dp))
             } else {
                 Icon(
-                    imageVector = Icons.Outlined.DriveFileMove,
+                    imageVector = Icons.AutoMirrored.Outlined.DriveFileMove,
                     contentDescription = null,
                     tint = MiuixTheme.colorScheme.onPrimary,
                     modifier = Modifier.size(18.dp)
