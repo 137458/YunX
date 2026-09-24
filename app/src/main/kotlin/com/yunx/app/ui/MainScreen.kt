@@ -37,8 +37,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.only
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.foundation.layout.Arrangement
 import com.yunx.app.ui.AppSnackbarHost
@@ -164,6 +169,12 @@ import com.yunx.app.data.network.HttpClients
 
 /** 悬浮胶囊底栏（64dp 本体）+ 与屏幕底边的视觉间距（16dp），作为内容区底部避让的目标值 */
 private val FloatingBarDesiredClearance = 80.dp
+
+/**
+ * 悬浮底栏上沿距内容区底边的高度（不含导航栏 inset）：
+ * Miuix Scaffold 的 FloatingToolbarSpacing(4dp) + 底栏本体高度(64dp)。
+ */
+private val FloatingBarTopClearance = 68.dp
 
 /** 提示条避让高度：在内容避让值之上再抬 8dp，避免提示条与悬浮底栏贴边 */
 private val FloatingBarSnackbarClearance = FloatingBarDesiredClearance + 8.dp
@@ -835,12 +846,18 @@ fun MainScreen() {
                         .blurBackdropSource(blurBackdrop)
                 ) {
                     tabContent()
-                    // 列表滚到悬浮底栏下方时用羽化过渡，避免内容被底栏硬切
+                    // 列表滚到悬浮底栏下方时用羽化过渡，避免内容被底栏硬切。
+                    // 雾带下沿贴住底栏上沿 = 导航栏 inset + FloatingToolbarSpacing + 底栏高度；
+                    // 不用 Scaffold 的 innerPadding：Snackbar 显示时它会把瞬时高度也算进来，雾带会跟着上下跳。
                     if (!isWideScreen && bottomBarStyle.isFloating) {
+                        val barTopOffset = WindowInsets.navigationBars
+                            .only(WindowInsetsSides.Bottom)
+                            .asPaddingValues()
+                            .calculateBottomPadding() + FloatingBarTopClearance
                         FadeEdgeMask(
                             edge = FadeEdge.Bottom,
                             height = 28.dp,
-                            modifier = Modifier.padding(bottom = FloatingBarDesiredClearance)
+                            modifier = Modifier.padding(bottom = barTopOffset)
                         )
                     }
                 }
