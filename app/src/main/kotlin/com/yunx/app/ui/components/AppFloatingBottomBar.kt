@@ -67,7 +67,8 @@ fun AppFloatingBottomBar(
     FloatingBottomBar(
         selectedIndex = { currentTab.ordinal },
         onSelected = { index ->
-            haptics.tick()
+            // 拖拽落点与指示灯轻点的震动已由底栏内部手势状态机派发，
+            // 这里不能再 tick，否则同一次操作会连震两次
             onTabSelected(tabs[index.coerceIn(0, tabs.lastIndex)])
         },
         tabsCount = tabs.size,

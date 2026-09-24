@@ -561,6 +561,9 @@ fun FloatingBottomBar(
                             shape = { pillShape },
                             effects = {
                                 val progress = dampedDragAnimation.pressProgress
+                                // 与外壳同一套光学语言：折射内容同样做饱和度增强，
+                                // 否则滑块内的画面比外壳更灰，看起来像一层灰色遮罩
+                                vibrancy()
                                 lens(
                                     refractionHeight = lensHeight10Px * (0.6f + 0.4f * progress),
                                     refractionAmount = lensAmount14Px * (0.6f + 0.4f * progress),
@@ -579,20 +582,22 @@ fun FloatingBottomBar(
                                 scaleY *= compressY
                             },
                             onDrawSurface = {
+                                // 静止面色只留极薄一层：再叠加内阴影会把折射压成不透明的灰面，
+                                // 按压力度才继续加深，保证折射始终透出来
                                 val progress = dampedDragAnimation.pressProgress
                                 drawRect(
-                                    color = if (!isDark) Color.Black.copy(alpha = 0.1f) else Color.White.copy(alpha = 0.1f),
+                                    color = if (!isDark) Color.Black.copy(alpha = 0.05f) else Color.White.copy(alpha = 0.05f),
                                     alpha = 1f - progress,
                                 )
                                 drawRect(Color.Black.copy(alpha = 0.03f * progress))
                             },
                         )
-                        // 内阴影：按下时半径与浓度随压力增长，制造玻璃被压出的凹陷
+                        // 内阴影：按压力度驱动，静止时滑块贴合外壳不显凹陷，按下才出现玻璃被压出的边缘
                         .innerShadow(shape = pillShape) {
                             val progress = dampedDragAnimation.pressProgress
-                            radius = 8.dp.toPx() * (0.5f + 0.5f * progress)
+                            radius = 8.dp.toPx() * progress
                             color = Color.Black
-                            alpha = 0.15f * (0.5f + 0.5f * progress)
+                            alpha = 0.15f * progress
                         }
                         .height(56.dp)
                         .width(tabWidthDp),

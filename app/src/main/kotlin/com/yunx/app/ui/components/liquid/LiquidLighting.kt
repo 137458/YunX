@@ -18,23 +18,15 @@
 
 package com.yunx.app.ui.components.liquid
 
-import android.content.Context
 import android.graphics.RuntimeShader
-import android.hardware.Sensor
-import android.hardware.SensorEvent
-import android.hardware.SensorEventListener
-import android.hardware.SensorManager
 import android.os.Build
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.VectorConverter
 import androidx.compose.animation.core.VisibilityThreshold
 import androidx.compose.animation.core.spring
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
@@ -45,15 +37,12 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ShaderBrush
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import top.yukonga.miuix.kmp.blur.highlight.BloomStroke
 import top.yukonga.miuix.kmp.blur.highlight.Highlight
 import top.yukonga.miuix.kmp.blur.highlight.LightPosition
+import top.yukonga.miuix.kmp.blur.sensor.rememberDeviceTilt
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -62,85 +51,10 @@ import kotlin.math.sin
 private const val LIGHT_REF_X = 0.5f
 private const val LIGHT_REF_Y = 0.7f
 
-@Immutable
-data class DeviceTilt(
-    val gravityX: Float = 0f,
-    val gravityY: Float = 0f,
-    val gravityZ: Float = 9.8f
-)
-
-/**
- * 监听设备重力/加速度计传感器，生命周期感知（后台 ON_STOP 时自动注销，防止功耗泄漏）。
- */
-@Composable
-fun rememberDeviceTilt(): State<DeviceTilt> {
-    val context = LocalContext.current
-    val lifecycleOwner = LocalLifecycleOwner.current
-    val tiltState = remember { mutableStateOf(DeviceTilt()) }
-
-    DisposableEffect(context, lifecycleOwner) {
-        val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as? SensorManager
-        val sensor = sensorManager?.getDefaultSensor(Sensor.TYPE_GRAVITY)
-            ?: sensorManager?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
-        if (sensorManager == null || sensor == null) {
-            return@DisposableEffect onDispose {}
-        }
-
-        var isRegistered = false
-        val listener = object : SensorEventListener {
-            override fun onSensorChanged(event: SensorEvent?) {
-                event?.values?.let { v ->
-                    if (v.size >= 3) {
-                        tiltState.value = DeviceTilt(
-                            gravityX = v[0] / SensorManager.GRAVITY_EARTH,
-                            gravityY = v[1] / SensorManager.GRAVITY_EARTH,
-                            gravityZ = v[2] / SensorManager.GRAVITY_EARTH
-                        )
-                    }
-                }
-            }
-            override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
-        }
-
-        fun register() {
-            if (!isRegistered) {
-                sensorManager.registerListener(listener, sensor, SensorManager.SENSOR_DELAY_UI)
-                isRegistered = true
-            }
-        }
-
-        fun unregister() {
-            if (isRegistered) {
-                sensorManager.unregisterListener(listener)
-                isRegistered = false
-            }
-        }
-
-        val observer = LifecycleEventObserver { _, event ->
-            when (event) {
-                Lifecycle.Event.ON_START, Lifecycle.Event.ON_RESUME -> register()
-                Lifecycle.Event.ON_STOP, Lifecycle.Event.ON_PAUSE -> unregister()
-                Lifecycle.Event.ON_DESTROY -> unregister()
-                else -> {}
-            }
-        }
-
-        lifecycleOwner.lifecycle.addObserver(observer)
-        if (lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
-            register()
-        }
-
-        onDispose {
-            lifecycleOwner.lifecycle.removeObserver(observer)
-            unregister()
-        }
-    }
-    return tiltState
-}
-
 /**
  * 对传感器重力方向进行 3° 步长量化。
- * 包装为 State，仅供 Draw 阶段闭包中延迟解构，彻底避免 Composition 重组风暴。
+ * 器件角度取自 miuix-blur 的 [rememberDeviceTilt]（自带生命周期注销与平滑），
+ * 这里只做量化并包装为 State，仅供 Draw 阶段闭包中延迟解构，彻底避免 Composition 重组风暴。
  */
 @Composable
 fun rememberQuantizedGravityAngle(): State<Float> {

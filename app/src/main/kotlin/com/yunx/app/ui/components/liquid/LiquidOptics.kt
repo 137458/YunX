@@ -26,13 +26,14 @@
  * 所以透镜折射必须自带 AGSL。代价是上游修复不会自动流入本项目：升级 AndroidLiquidGlass
  * 或调整折射算法时，需要手工比对并同步这两段着色器。
  *
- * 限制：透镜四角半径目前硬编码为胶囊（minDimension / 2，见 lens() 里的 halfMin），
- * 只适用于本底栏的胶囊外壳与滑块。若要复用到非胶囊形状，必须按真实圆角分别传入四角半径，
- * 不能再共用同一个 halfMin。
+ * 限制：四角半径按当前 shape 解析（支持任意 CornerBasedShape，并处理 LTR），无法解析的
+ * 自定义形状退回胶囊半径，因此 lens() 复用到非胶囊形状时折射依旧可用；但着色器只实现圆角
+ * 矩形 SDF，其他轮廓（斜切、不对称路径）仍会被当作圆角矩形处理。
  */
 
 package com.yunx.app.ui.components.liquid
 
+import androidx.compose.foundation.shape.CornerBasedShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
@@ -40,6 +41,7 @@ import androidx.compose.ui.graphics.GraphicsLayerScope
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.LayoutDirection
 import top.yukonga.miuix.kmp.blur.Backdrop
 import top.yukonga.miuix.kmp.blur.BackdropEffectScope
 import top.yukonga.miuix.kmp.blur.colorControls
@@ -87,6 +89,8 @@ fun BackdropEffectScope.vibrancy() {
 
 /**
  * AGSL/SkSL 圆角矩形透镜折射效果与色散彩虹晕扩展。
+ *
+ * 四角半径从当前 [shape] 解析，按短边一半封顶；解析不到时退回胶囊半径，保证折射不静默失效。
  */
 fun BackdropEffectScope.lens(
     refractionHeight: Float,
@@ -96,13 +100,13 @@ fun BackdropEffectScope.lens(
 ) {
     if (!isRuntimeShaderSupported()) return
     if (refractionHeight <= 0f || refractionAmount <= 0f) return
+    if (size.width <= 1f || size.height <= 1f) return
 
     if (padding < refractionAmount) {
         padding = refractionAmount
     }
 
-    val halfMin = minOf(size.width, size.height) / 2f
-    val radii = floatArrayOf(halfMin, halfMin, halfMin, halfMin)
+    val radii = cornerRadiiPx()
     val dispersionEnabled = chromaticAberration > 0f
     val shaderString = if (dispersionEnabled) {
         ROUNDED_RECT_REFRACTION_WITH_DISPERSION_SHADER
@@ -111,11 +115,12 @@ fun BackdropEffectScope.lens(
     }
     val key = if (dispersionEnabled) "LiquidGlassLensDispersion" else "LiquidGlassLens"
 
+    // 采样尺寸与半径按降采样系数缩放，全部带下限守卫，避免 0 尺寸或 0 边缘厚度进入着色器
     val sf = downscaleFactor.coerceAtLeast(1).toFloat()
-    val scaledSizeW = size.width / sf
-    val scaledSizeH = size.height / sf
+    val scaledSizeW = (size.width / sf).coerceAtLeast(1f)
+    val scaledSizeH = (size.height / sf).coerceAtLeast(1f)
     val scaledPadding = padding / sf
-    val scaledRefractionHeight = refractionHeight / sf
+    val scaledRefractionHeight = (refractionHeight / sf).coerceAtLeast(0.001f)
     val scaledRefractionAmount = refractionAmount / sf
     val scaledRadii = FloatArray(radii.size) { radii[it] / sf }
 
@@ -134,6 +139,33 @@ fun BackdropEffectScope.lens(
             setFloatUniform("chromaticAberration", chromaticAberration)
         }
     }
+}
+
+/**
+ * 解析当前 shape 的四角半径（px）。
+ * 顺序为 [左上, 右上, 右下, 左下]，与着色器 radiusAt 的 float4 分量一一对应；
+ * 非 [CornerBasedShape] 的形状无法解析，退回胶囊半径。
+ */
+private fun BackdropEffectScope.cornerRadiiPx(): FloatArray {
+    val maxRadius = size.minDimension / 2f
+    val cornerShape = shape as? CornerBasedShape
+        ?: return floatArrayOf(maxRadius, maxRadius, maxRadius, maxRadius)
+    val isLtr = layoutDirection == LayoutDirection.Ltr
+    return capCornerRadii(
+        floatArrayOf(
+            (if (isLtr) cornerShape.topStart else cornerShape.topEnd).toPx(size, this),
+            (if (isLtr) cornerShape.topEnd else cornerShape.topStart).toPx(size, this),
+            (if (isLtr) cornerShape.bottomEnd else cornerShape.bottomStart).toPx(size, this),
+            (if (isLtr) cornerShape.bottomStart else cornerShape.bottomEnd).toPx(size, this),
+        ),
+        maxRadius,
+    )
+}
+
+/** 四角半径规整：负值归零、超过短边一半的值封顶。 */
+internal fun capCornerRadii(radii: FloatArray, maxRadius: Float): FloatArray {
+    val cap = maxRadius.coerceAtLeast(0f)
+    return FloatArray(radii.size) { radii[it].coerceIn(0f, cap) }
 }
 
 private const val ROUNDED_RECT_REFRACTION_SHADER = """
@@ -173,7 +205,8 @@ private const val ROUNDED_RECT_REFRACTION_SHADER = """
     }
 
     float circleMap(float x) {
-        return 1.0 - sqrt(max(0.0, 1.0 - x * x));
+        float clampedX = clamp(x, 0.0, 1.0);
+        return 1.0 - sqrt(max(0.0, 1.0 - clampedX * clampedX));
     }
 
     float2 safeNormalize(float2 v) {
@@ -182,9 +215,12 @@ private const val ROUNDED_RECT_REFRACTION_SHADER = """
     }
 
     half4 main(float2 coord) {
+        if (size.x <= 1.0 || size.y <= 1.0) {
+            return content.eval(coord);
+        }
         float2 halfSize = size * 0.5;
         float2 centeredCoord = (coord + offset) - halfSize;
-        float radius = radiusAt(centeredCoord, cornerRadii);
+        float radius = clamp(radiusAt(centeredCoord, cornerRadii), 0.0, min(halfSize.x, halfSize.y));
 
         float sd = sdRoundedRect(centeredCoord, halfSize, radius);
         if (-sd >= refractionHeight) {
@@ -192,9 +228,10 @@ private const val ROUNDED_RECT_REFRACTION_SHADER = """
         }
         sd = min(sd, 0.0);
 
-        float d = circleMap(1.0 - -sd / refractionHeight) * refractionAmount;
+        float d = circleMap(clamp(1.0 - -sd / max(refractionHeight, 1e-4), 0.0, 1.0)) * refractionAmount;
         float gradRadius = min(radius * 1.5, min(halfSize.x, halfSize.y));
-        float2 grad = safeNormalize(gradSdRoundedRect(centeredCoord, halfSize, gradRadius) + depthEffect * safeNormalize(centeredCoord));
+        float2 gradCenter = depthEffect > 0.5 ? safeNormalize(centeredCoord) : float2(0.0);
+        float2 grad = safeNormalize(gradSdRoundedRect(centeredCoord, halfSize, gradRadius) + gradCenter);
 
         float2 refractedCoord = coord + d * grad;
         return content.eval(refractedCoord);
@@ -239,7 +276,8 @@ private const val ROUNDED_RECT_REFRACTION_WITH_DISPERSION_SHADER = """
     }
 
     float circleMap(float x) {
-        return 1.0 - sqrt(max(0.0, 1.0 - x * x));
+        float clampedX = clamp(x, 0.0, 1.0);
+        return 1.0 - sqrt(max(0.0, 1.0 - clampedX * clampedX));
     }
 
     float2 safeNormalize(float2 v) {
@@ -248,9 +286,12 @@ private const val ROUNDED_RECT_REFRACTION_WITH_DISPERSION_SHADER = """
     }
 
     half4 main(float2 coord) {
+        if (size.x <= 1.0 || size.y <= 1.0) {
+            return content.eval(coord);
+        }
         float2 halfSize = size * 0.5;
         float2 centeredCoord = (coord + offset) - halfSize;
-        float radius = radiusAt(centeredCoord, cornerRadii);
+        float radius = clamp(radiusAt(centeredCoord, cornerRadii), 0.0, min(halfSize.x, halfSize.y));
 
         float sd = sdRoundedRect(centeredCoord, halfSize, radius);
         if (-sd >= refractionHeight) {
@@ -258,12 +299,14 @@ private const val ROUNDED_RECT_REFRACTION_WITH_DISPERSION_SHADER = """
         }
         sd = min(sd, 0.0);
 
-        float d = circleMap(1.0 - -sd / refractionHeight) * refractionAmount;
+        float d = circleMap(clamp(1.0 - -sd / max(refractionHeight, 1e-4), 0.0, 1.0)) * refractionAmount;
         float gradRadius = min(radius * 1.5, min(halfSize.x, halfSize.y));
-        float2 grad = safeNormalize(gradSdRoundedRect(centeredCoord, halfSize, gradRadius) + depthEffect * safeNormalize(centeredCoord));
+        float2 gradCenter = depthEffect > 0.5 ? safeNormalize(centeredCoord) : float2(0.0);
+        float2 grad = safeNormalize(gradSdRoundedRect(centeredCoord, halfSize, gradRadius) + gradCenter);
 
         float2 refractedCoord = coord + d * grad;
-        float dispersionIntensity = chromaticAberration * ((centeredCoord.x * centeredCoord.y) / (halfSize.x * halfSize.y));
+        float halfArea = max(halfSize.x * halfSize.y, 1.0);
+        float dispersionIntensity = chromaticAberration * clamp((centeredCoord.x * centeredCoord.y) / halfArea, -2.0, 2.0);
         float2 dispersedCoord = d * grad * dispersionIntensity;
 
         half4 color = half4(0.0);
