@@ -34,6 +34,9 @@
 - 修复悬浮底栏的羽化雾带露在底栏上方、看起来像多出一层灰雾的问题：雾带改为压在底栏之下（上沿与底栏上沿齐平、向下渐浓），底栏上方不再有可见雾带
 
 ### 新增
+- 更新弹窗改版为 Miuix/HyperOS 规范版式：版本跃迁横幅（当前版 ➔ 新版胶囊 + NEW 角标）、三联元信息胶囊栏（发布通道 / 安装包体积 / 发布日期）、带边框的 Markdown 更新日志视口，以及随下载状态切换的底部按钮栏
+- 更新弹窗补充「在浏览器中查看完整发布说明」外链，Release 正文被 GitHub 截断时有完整说明的出口
+- 下载失败时弹窗直接给出「镜像站下载 / 重试」双按钮，不再只能到下载页自行重试
 - 新增 MarkdownText 富文本渲染组件（标题/列表/分隔线/行内加粗与代码），用于更新说明
 - 新增 ui/util/FileOpeners.kt：打开文件与安装 APK 的公共出口，下载页与更新弹窗共用
 - 主题与外观页新增「AMOLED 纯黑」开关与当前主题实时预览卡片
@@ -47,6 +50,8 @@
 - 「忽略此版本」后给出可撤销提示条：全局 Snackbar 支持动作按钮，带动作时停留时间自动延长
 - 删除 4 个无引用的组件文件（AppStateView / CollapsibleText / PlaceholderScreen / AccessibilityExt，约 500 行死代码）
 - 更新弹窗内直接展示下载进度与「安装更新」入口，不再把用户甩到下载页自己找安装包；「检查更新」收敛为主页面单一弹窗，设置页不再维护第二份更新状态
+- 更新弹窗适配横屏 / 矮视口：内容整体可滚动，更新日志视口高度随视口压缩，弹层不再被系统裁切
+- 更新包体积与速度的字节格式化收敛到 UpdateChecker.formatBytes，弹窗与下载页同口径并补单元测试
 - 全局提示条迁移到 miuix-ui 原生 SnackbarHost / Snackbar：支持上滑关闭、外观与系统 HyperOS 提示条一致，同时移除最后一处 Material3 UI 组件与自绘 Toast 材质
 - 引导页「已展示」标记与「已忽略版本号」收敛到 SettingsRepository（含旧 yunx_prefs 值的一次性迁移），不再有游离于设置仓储之外的 SharedPreferences 读写
 - 转存抽屉与目录选择器残留的 Material3 Surface / CircularProgressIndicator / Icon 全部替换为 Miuix 对应组件

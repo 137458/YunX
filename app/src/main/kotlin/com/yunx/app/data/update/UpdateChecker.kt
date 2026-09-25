@@ -20,6 +20,7 @@ package com.yunx.app.data.update
 
 import android.content.Context
 import com.yunx.app.data.network.HttpClients
+import java.util.Locale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Request
@@ -42,15 +43,23 @@ object UpdateChecker {
 
     data class Asset(
         val name: String,
-        val downloadUrl: String
+        val downloadUrl: String,
+        /** GitHub assets[].size：用于弹窗提前展示安装包体积，0 表示未知 */
+        val size: Long = 0L
     )
 
     data class Release(
         val tagName: String,
         val body: String,
         val assets: List<Asset>,
-        val publishedAt: String
-    )
+        val publishedAt: String,
+        /** GitHub releases.html_url：弹窗底部的「查看完整发布说明」外链 */
+        val releaseUrl: String = ""
+    ) {
+        /** 首个 APK 资产（按 assets 顺序取第一个 .apk），仓库未上传 APK 时为 null */
+        val apkAsset: Asset?
+            get() = assets.firstOrNull { it.name.endsWith(".apk", ignoreCase = true) }
+    }
 
     /** 比较两个版本号：v1 > v2 返回正数，v1 < v2 返回负数，相等返回 0 */
     fun compareVersions(v1: String, v2: String): Int {
@@ -63,6 +72,22 @@ object UpdateChecker {
             if (num1 != num2) return num1 - num2
         }
         return 0
+    }
+
+    /**
+     * 字节数格式化（B/KB/MB/GB/TB，保留一位小数）。
+     * 放在这里而不是弹窗内：下载页与弹窗必须同口径，且该换算需要单元测试覆盖。
+     */
+    fun formatBytes(bytes: Long): String {
+        if (bytes <= 0L) return "0 B"
+        val units = arrayOf("B", "KB", "MB", "GB", "TB")
+        var value = bytes.toDouble()
+        var unitIndex = 0
+        while (value >= 1024 && unitIndex < units.lastIndex) {
+            value /= 1024
+            unitIndex++
+        }
+        return String.format(Locale.US, "%.1f %s", value, units[unitIndex])
     }
 
     /** 当前应用版本号（packageManager.versionName） */
@@ -94,7 +119,13 @@ object UpdateChecker {
                 json.optJSONArray("assets")?.let { arr ->
                     for (i in 0 until arr.length()) {
                         val a = arr.optJSONObject(i) ?: continue
-                        add(Asset(a.optString("name"), a.optString("browser_download_url")))
+                        add(
+                            Asset(
+                                name = a.optString("name"),
+                                downloadUrl = a.optString("browser_download_url"),
+                                size = a.optLong("size")
+                            )
+                        )
                     }
                 }
             }
@@ -102,7 +133,8 @@ object UpdateChecker {
                 tagName = tag,
                 body = json.optString("body"),
                 assets = assets,
-                publishedAt = json.optString("published_at")
+                publishedAt = json.optString("published_at"),
+                releaseUrl = json.optString("html_url")
             )
         }.getOrNull()
     }

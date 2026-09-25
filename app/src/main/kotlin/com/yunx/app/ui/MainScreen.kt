@@ -71,6 +71,7 @@ import com.yunx.app.ui.components.rememberBlurBackdrop
 import com.yunx.app.ui.components.AppFloatingBottomBar
 import com.yunx.app.ui.components.AppStandardBottomBar
 import com.yunx.app.ui.components.liquid.BottomBarStyle
+import com.yunx.app.ui.components.liquid.FloatingBottomBarMinHeight
 import com.yunx.app.ui.theme.AppThemeManager
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -167,17 +168,17 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.yunx.app.data.network.HttpClients
 
-/** 悬浮胶囊底栏（64dp 本体）+ 与屏幕底边的视觉间距（16dp），作为内容区底部避让的目标值 */
-private val FloatingBarDesiredClearance = 80.dp
-
 /**
- * 悬浮底栏上沿距内容区底边的高度（不含导航栏 inset）：
- * Miuix Scaffold 的 FloatingToolbarSpacing(4dp) + 底栏本体高度(64dp)。
+ * 悬浮底栏与屏幕底边的视觉间距（不含底栏本体高度）。
+ * 底栏本体高度不写死（见 [FloatingBottomBarMinHeight]），避让值由实测高度 + 该间距得出。
  */
-private val FloatingBarTopClearance = 68.dp
+private val FloatingBarBottomMargin = 16.dp
 
-/** 提示条避让高度：在内容避让值之上再抬 8dp，避免提示条与悬浮底栏贴边 */
-private val FloatingBarSnackbarClearance = FloatingBarDesiredClearance + 8.dp
+/** Miuix Scaffold 为 floatingToolbar 预留的间距，底栏上沿 = 该间距 + 底栏本体高度。 */
+private val FloatingBarSpacing = 4.dp
+
+/** 提示条避让：在内容避让值之上再抬 8dp，避免提示条与悬浮底栏贴边。 */
+private val FloatingBarSnackbarExtraMargin = 8.dp
 
 /** 宽屏断点（dp）：达到后主界面改用侧边 NavigationRail 而不是底部导航栏 */
 private const val WIDE_SCREEN_MIN_WIDTH_DP = 600
@@ -219,6 +220,11 @@ fun MainScreen() {
     // 底栏样式由「主题与外观」页写入，经 AppThemeManager 的内存态即时响应
     val bottomBarStyle = BottomBarStyle.fromPersisted(AppThemeManager.bottomBarStyle)
     val blurBackdrop = rememberBlurBackdrop()
+    // 悬浮底栏实测高度：内容自适应后高度不再是固定 64dp，避让与羽化雾带都以实测值为准。
+    // 未测量到之前退回最小高度，保证首帧不闪避让。
+    var floatingBarHeight by remember { mutableStateOf(FloatingBottomBarMinHeight) }
+    // 内容区底部避让目标：底栏本体高度 + 与屏幕底边的视觉间距
+    val floatingBarDesiredClearance = floatingBarHeight + FloatingBarBottomMargin
     // 首次启动引导页：初值同步读取，避免先渲染一帧主界面再被引导页覆盖（启动瞬间闪主页）
     var showOnboarding by remember { mutableStateOf(!settings.onboardingShown) }
 
@@ -804,14 +810,19 @@ fun MainScreen() {
                         currentTab = currentTab,
                         onTabSelected = { currentTab = it },
                         backdrop = blurBackdrop,
-                        style = bottomBarStyle
+                        style = bottomBarStyle,
+                        onBarHeightChanged = { floatingBarHeight = it }
                     )
                 }
             },
             floatingToolbarPosition = ToolbarPosition.BottomCenter,
             snackbarHost = {
                 val floatingBarBottomPadding =
-                    if (!isWideScreen && bottomBarStyle.isFloating) FloatingBarSnackbarClearance else 16.dp
+                    if (!isWideScreen && bottomBarStyle.isFloating) {
+                        floatingBarDesiredClearance + FloatingBarSnackbarExtraMargin
+                    } else {
+                        16.dp
+                    }
                 AppSnackbarHost(
                     hostState = snackbarHostState,
                     modifier = Modifier
@@ -825,7 +836,7 @@ fun MainScreen() {
             // + 底部导航栏 inset 计入 innerPadding。这里只在它没算够时补差额，既不重复预留出
             // 一大块空白，也不会让最后一项被底栏盖住（两种 Scaffold 行为下都安全）。
             val floatingBarBottomPadding = if (!isWideScreen && bottomBarStyle.isFloating) {
-                val desiredClearance = FloatingBarDesiredClearance
+                val desiredClearance = floatingBarDesiredClearance
                 val alreadyReserved = innerPadding.calculateBottomPadding()
                 (desiredClearance - alreadyReserved).coerceAtLeast(0.dp)
             } else {
@@ -853,7 +864,7 @@ fun MainScreen() {
                         val barHeight = WindowInsets.navigationBars
                             .only(WindowInsetsSides.Bottom)
                             .asPaddingValues()
-                            .calculateBottomPadding() + FloatingBarTopClearance
+                            .calculateBottomPadding() + FloatingBarSpacing + floatingBarHeight
                         FadeEdgeMask(
                             edge = FadeEdge.Bottom,
                             height = barHeight
@@ -984,6 +995,14 @@ fun MainScreen() {
                 onOpenDownloadPage = {
                     showUpdateDialog = false
                     currentTab = MainTab.Download
+                },
+                // 发布页外链：Release 正文可能被 GitHub 截断，给用户一条看完整说明的出口
+                onOpenReleasePage = release.releaseUrl.takeIf { it.isNotBlank() }?.let { url ->
+                    {
+                        runCatching {
+                            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+                        }.onFailure { SnackbarController.show("无法打开浏览器") }
+                    }
                 },
                 onLater = { showUpdateDialog = false },
                 onIgnore = {
