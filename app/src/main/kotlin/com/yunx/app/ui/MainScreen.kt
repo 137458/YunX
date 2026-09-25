@@ -991,18 +991,30 @@ fun MainScreen() {
                 download = updateDownload,
                 onDownload = { enqueueUpdateApk(release, mirror = false) },
                 onDownloadMirror = { enqueueUpdateApk(release, mirror = true) },
-                onInstall = { updateDownload?.let { installApk(context, it.savePath) } },
+                // savePath 为空 = 任务标记完成但落盘路径丢失（如用户在下载页删过文件），
+                // 此时装不出来，直接提示而不是拉起一个空安装器
+                onInstall = {
+                    val path = updateDownload?.savePath
+                    if (path.isNullOrBlank()) {
+                        SnackbarController.show("安装包不存在，请重新下载")
+                    } else {
+                        installApk(context, path)
+                    }
+                },
                 onOpenDownloadPage = {
                     showUpdateDialog = false
                     currentTab = MainTab.Download
                 },
-                // 发布页外链：Release 正文可能被 GitHub 截断，给用户一条看完整说明的出口
-                onOpenReleasePage = release.releaseUrl.takeIf { it.isNotBlank() }?.let { url ->
-                    {
-                        runCatching {
-                            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
-                        }.onFailure { SnackbarController.show("无法打开浏览器") }
+                // 发布页外链：Release 正文可能被 GitHub 截断，给用户一条看完整说明的出口。
+                // html_url 缺失（如调试预览）时退回仓库 releases 索引，保证下载失败时
+                // 浏览器兜底通道始终存在，而不是整条链接消失
+                onOpenReleasePage = {
+                    val url = release.releaseUrl.ifBlank {
+                        "https://github.com/CYQawa/YunX/releases"
                     }
+                    runCatching {
+                        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+                    }.onFailure { SnackbarController.show("无法打开浏览器") }
                 },
                 onLater = { showUpdateDialog = false },
                 onIgnore = {

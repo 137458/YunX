@@ -94,7 +94,7 @@ import com.yunx.app.ui.theme.SquircleShape
 import com.yunx.app.ui.util.installApk
 import com.yunx.app.ui.util.openSavedFile
 import com.yunx.app.ui.viewmodel.DownloadViewModel
-import java.util.Locale
+import com.yunx.app.util.ByteFormat
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Card
@@ -1062,29 +1062,9 @@ private fun progressText(task: DownloadTaskEntity): String {
     return "已下载 ${formatSize(shown)} / ${formatSize(task.totalSize)} · $percent%"
 }
 
-private fun formatSize(bytes: Long): String {
-    if (bytes <= 0) return "0 B"
-    val units = arrayOf("B", "KB", "MB", "GB", "TB")
-    var value = bytes.toDouble()
-    var i = 0
-    while (value >= 1024 && i < units.size - 1) {
-        value /= 1024
-        i++
-    }
-    return String.format(Locale.US, "%.1f %s", value, units[i])
-}
+private fun formatSize(bytes: Long): String = ByteFormat.size(bytes)
 
-private fun formatSpeed(bytesPerSec: Long): String {
-    if (bytesPerSec <= 0) return "0 B/s"
-    val units = arrayOf("B/s", "KB/s", "MB/s", "GB/s")
-    var value = bytesPerSec.toDouble()
-    var i = 0
-    while (value >= 1024 && i < units.size - 1) {
-        value /= 1024
-        i++
-    }
-    return String.format(Locale.US, "%.1f %s", value, units[i])
-}
+private fun formatSpeed(bytesPerSec: Long): String = ByteFormat.speed(bytesPerSec)
 
 private fun formatRemain(millis: Long): String {
     if (millis < 0) return "计算中"

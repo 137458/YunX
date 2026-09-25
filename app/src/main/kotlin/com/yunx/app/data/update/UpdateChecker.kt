@@ -20,7 +20,6 @@ package com.yunx.app.data.update
 
 import android.content.Context
 import com.yunx.app.data.network.HttpClients
-import java.util.Locale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Request
@@ -72,22 +71,6 @@ object UpdateChecker {
             if (num1 != num2) return num1 - num2
         }
         return 0
-    }
-
-    /**
-     * 字节数格式化（B/KB/MB/GB/TB，保留一位小数）。
-     * 放在这里而不是弹窗内：下载页与弹窗必须同口径，且该换算需要单元测试覆盖。
-     */
-    fun formatBytes(bytes: Long): String {
-        if (bytes <= 0L) return "0 B"
-        val units = arrayOf("B", "KB", "MB", "GB", "TB")
-        var value = bytes.toDouble()
-        var unitIndex = 0
-        while (value >= 1024 && unitIndex < units.lastIndex) {
-            value /= 1024
-            unitIndex++
-        }
-        return String.format(Locale.US, "%.1f %s", value, units[unitIndex])
     }
 
     /** 当前应用版本号（packageManager.versionName） */

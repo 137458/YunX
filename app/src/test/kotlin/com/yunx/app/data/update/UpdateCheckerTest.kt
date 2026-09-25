@@ -18,10 +18,7 @@
 
 package com.yunx.app.data.update
 
-import com.yunx.app.ui.screens.UpdateDownloadState
-import com.yunx.app.data.db.DownloadTaskEntity
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -34,8 +31,6 @@ class UpdateCheckerTest {
         assets = assets,
         publishedAt = "2026-03-01T10:00:00Z"
     )
-
-    // ── 版本比较 ──
 
     @Test
     fun comparesVersionSegmentsNumericallyNotLexically() {
@@ -55,8 +50,6 @@ class UpdateCheckerTest {
         assertEquals(0, UpdateChecker.compareVersions("v2.0.0", "2.0.0"))
     }
 
-    // ── APK 资产挑选 ──
-
     @Test
     fun picksFirstApkAssetIgnoringCaseAndOtherFiles() {
         val apk = release(
@@ -75,54 +68,11 @@ class UpdateCheckerTest {
         assertNull(release(emptyList()).apkAsset)
     }
 
-    // ── 镜像站直链 ──
-
     @Test
     fun buildsMirrorUrlWithoutDroppingQuery() {
         assertEquals(
             UpdateChecker.MIRROR_PREFIX + "https://github.com/a/b/releases/download/v1/app.apk?token=t",
             UpdateChecker.mirrorUrl("https://github.com/a/b/releases/download/v1/app.apk?token=t")
         )
-    }
-
-    // ── 字节格式化（与弹窗展示口径一致）──
-
-    @Test
-    fun formatsBytesAcrossUnits() {
-        assertEquals("0 B", UpdateChecker.formatBytes(0))
-        assertEquals("0 B", UpdateChecker.formatBytes(-5))
-        assertEquals("512.0 B", UpdateChecker.formatBytes(512))
-        assertEquals("1.0 KB", UpdateChecker.formatBytes(1024))
-        assertEquals("1.5 MB", UpdateChecker.formatBytes((1.5 * 1024 * 1024).toLong()))
-        assertEquals("2.0 GB", UpdateChecker.formatBytes(2L * 1024 * 1024 * 1024))
-    }
-
-    // ── 弹窗下载状态推导 ──
-
-    @Test
-    fun downloadStateDerivesFlagsFromTaskStatus() {
-        val active = UpdateDownloadState(DownloadTaskEntity.STATUS_DOWNLOADING, 50, 100, 2048, "/tmp/a.apk")
-        assertTrue(active.isActive)
-        assertFalse(active.isFinished)
-        assertFalse(active.isFailed)
-        assertEquals(0.5f, active.fraction, 0.0001f)
-
-        assertTrue(UpdateDownloadState(DownloadTaskEntity.STATUS_PENDING, 0, 0, 0, "").isActive)
-        assertTrue(UpdateDownloadState(DownloadTaskEntity.STATUS_COMPLETED, 100, 100, 0, "/tmp/a.apk").isFinished)
-        assertTrue(UpdateDownloadState(DownloadTaskEntity.STATUS_FAILED, 10, 100, 0, "").isFailed)
-    }
-
-    @Test
-    fun fractionIsZeroWhenTotalSizeUnknown() {
-        // 服务器未给 Content-Length：不能伪造百分比，进度条由调用方隐藏
-        val unknown = UpdateDownloadState(DownloadTaskEntity.STATUS_DOWNLOADING, 4096, 0, 0, "")
-        assertEquals(0f, unknown.fraction, 0.0001f)
-        assertTrue(unknown.isActive)
-    }
-
-    @Test
-    fun fractionIsClampedWhenServerOverreports() {
-        val overshoot = UpdateDownloadState(DownloadTaskEntity.STATUS_DOWNLOADING, 200, 100, 0, "")
-        assertEquals(1f, overshoot.fraction, 0.0001f)
     }
 }

@@ -50,6 +50,7 @@ import androidx.compose.ui.unit.sp
 import com.yunx.app.data.db.DownloadTaskEntity
 import com.yunx.app.data.download.DownloadStats
 import com.yunx.app.data.update.UpdateChecker
+import com.yunx.app.util.ByteFormat
 import com.yunx.app.ui.components.MarkdownText
 import kotlinx.coroutines.flow.StateFlow
 import top.yukonga.miuix.kmp.basic.Button
@@ -74,6 +75,10 @@ data class UpdateDownloadState(
     val isActive: Boolean
         get() = status == DownloadTaskEntity.STATUS_DOWNLOADING ||
             status == DownloadTaskEntity.STATUS_PENDING
+
+    /** 用户从下载页暂停了更新包任务：进度不再推进，必须和「正在下载」区分开 */
+    val isPaused: Boolean
+        get() = status == DownloadTaskEntity.STATUS_PAUSED
 
     val isFinished: Boolean
         get() = status == DownloadTaskEntity.STATUS_COMPLETED
@@ -172,7 +177,12 @@ fun UpdateDialog(
             if (onOpenReleasePage != null) {
                 Spacer(modifier = Modifier.height(10.dp))
                 Text(
-                    text = "在浏览器中查看完整发布说明",
+                    text = if (download?.isFailed == true) {
+                        // 下载失败时这是唯一的浏览器兜底出口，文案要说清它能救急
+                        "浏览器中打开下载页"
+                    } else {
+                        "在浏览器中查看完整发布说明"
+                    },
                     style = MiuixTheme.textStyles.body2.copy(fontSize = 11.sp),
                     color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                     textAlign = TextAlign.Center,
@@ -248,7 +258,7 @@ private fun MetaCapsuleRow(release: UpdateChecker.Release) {
     ) {
         MetaCapsule(text = "稳定版")
         release.apkAsset?.takeIf { it.size > 0L }?.let { apk ->
-            MetaCapsule(text = UpdateChecker.formatBytes(apk.size))
+            MetaCapsule(text = ByteFormat.size(apk.size))
         }
         Spacer(modifier = Modifier.weight(1f))
         val date = release.publishedAt.takeIf { it.isNotBlank() }?.take(10)
@@ -353,6 +363,43 @@ private fun DownloadStatusSection(download: UpdateDownloadState) {
             )
         }
 
+        // 暂停：进度条停在原处，文案必须说「已暂停」而不是「正在下载」
+        download.isPaused -> Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .background(MiuixTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f))
+                .padding(12.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "下载已暂停",
+                    style = MiuixTheme.textStyles.body2.copy(fontSize = 12.sp, fontWeight = FontWeight.Medium),
+                    color = MiuixTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = if (download.total > 0) {
+                        "${ByteFormat.size(download.downloaded)} / ${ByteFormat.size(download.total)}" +
+                            " (${(download.fraction * 100).toInt()}%)"
+                    } else {
+                        "${ByteFormat.size(download.downloaded)} · 大小未知"
+                    },
+                    style = MiuixTheme.textStyles.body2.copy(fontSize = 11.sp),
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary
+                )
+            }
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = "可到下载任务中继续，或直接重新下载。",
+                style = MiuixTheme.textStyles.body2.copy(fontSize = 11.sp),
+                color = MiuixTheme.colorScheme.onSurfaceVariantSummary
+            )
+        }
+
         else -> Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -365,7 +412,7 @@ private fun DownloadStatusSection(download: UpdateDownloadState) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                val speedText = if (download.speed > 0) " · ${UpdateChecker.formatBytes(download.speed)}/s" else ""
+                val speedText = if (download.speed > 0) " · ${ByteFormat.size(download.speed)}/s" else ""
                 Text(
                     text = "正在下载更新包$speedText",
                     style = MiuixTheme.textStyles.body2.copy(fontSize = 12.sp, fontWeight = FontWeight.SemiBold),
@@ -373,11 +420,11 @@ private fun DownloadStatusSection(download: UpdateDownloadState) {
                 )
                 Text(
                     text = if (download.total > 0) {
-                        "${UpdateChecker.formatBytes(download.downloaded)} / ${UpdateChecker.formatBytes(download.total)}" +
+                        "${ByteFormat.size(download.downloaded)} / ${ByteFormat.size(download.total)}" +
                             " (${(download.fraction * 100).toInt()}%)"
                     } else {
                         // 服务器未给 Content-Length：只报已下载量，不伪造百分比
-                        "${UpdateChecker.formatBytes(download.downloaded)} · 大小未知"
+                        "${ByteFormat.size(download.downloaded)} · 大小未知"
                     },
                     style = MiuixTheme.textStyles.body2.copy(fontSize = 11.sp),
                     color = MiuixTheme.colorScheme.onSurfaceVariantSummary
@@ -419,14 +466,15 @@ private fun UpdateActionBar(
             modifier = Modifier.fillMaxWidth()
         ) {
             when {
-                // ① 下载中：转到下载任务接管（应用内下载引擎支持后台续跑）
+                // ① 下载中：关闭弹窗让下载在后台继续（任务跑在前台服务里，关窗不停），
+                // 或跳到下载任务页查看实时进度
                 download != null && download.isActive -> {
                     Button(
                         onClick = onLater,
                         colors = ButtonDefaults.buttonColors(),
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text("后台下载")
+                        Text("后台继续")
                     }
                     Button(
                         onClick = onOpenDownloadPage,
@@ -437,7 +485,25 @@ private fun UpdateActionBar(
                     }
                 }
 
-                // ② 下载完成：重新下载 / 安装更新
+                // ② 已暂停：重新下载 / 转到下载任务继续（沿用引擎的断点续传）
+                download != null && download.isPaused -> {
+                    Button(
+                        onClick = onDownload,
+                        colors = ButtonDefaults.buttonColors(),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("重新下载")
+                    }
+                    Button(
+                        onClick = onOpenDownloadPage,
+                        colors = ButtonDefaults.buttonColorsPrimary(),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("转到下载任务")
+                    }
+                }
+
+                // ③ 下载完成：重新下载 / 安装更新
                 download != null && download.isFinished -> {
                     Button(
                         onClick = onDownload,
@@ -455,7 +521,7 @@ private fun UpdateActionBar(
                     }
                 }
 
-                // ③ 下载失败：镜像站重试 / 直接重试
+                // ④ 下载失败：镜像站重试 / 直接重试
                 download != null && download.isFailed -> {
                     if (mirrorDownload != null) {
                         Button(
@@ -475,7 +541,7 @@ private fun UpdateActionBar(
                     }
                 }
 
-                // ④ 尚未开始：忽略此版本 / 稍后 / 立即更新
+                // ⑤ 尚未开始：忽略此版本 / 稍后 / 立即更新
                 else -> {
                     Button(
                         onClick = onIgnore,
