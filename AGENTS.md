@@ -1,4 +1,4 @@
-# Agent.md — YunX（云析）AI 协作指南
+# AGENTS.md — YunX（云析）AI 协作指南
 
 本文件面向在本仓库工作的 AI 编码代理（Claude Code / Cursor / Copilot Agent 等）。
 目标：让代理无需反复摸索即可写出**符合本项目既有约定**的代码。
