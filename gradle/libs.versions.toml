@@ -2,9 +2,11 @@
 agp = "8.13.0"
 kotlin = "2.1.0"
 coreKtx = "1.17.0"
+webkit = "1.17.1"   # 登录 WebView：关闭 X-Requested-With + 同步桌面 client hints（UserAgentMetadata）
 lifecycleRuntimeKtx = "2.9.2"
 activityCompose = "1.11.0"
-composeBom = "2025.10.01"
+composeBom = "2026.06.01"  
+material3Expressive = "1.5.0-alpha18"
 
 room = "2.6.1"
 ksp = "2.1.0-1.0.29"
@@ -12,6 +14,7 @@ material = "1.14.0"   # 官方 Material 主库，自带 com.google.android.mater
 # 0.9.4 起要求 AGP 9.1+ / Compose 1.12（整条工具链升级），本项目暂固定 0.9.3
 miuix = "0.9.3"
 kotlinx-serialization = "1.8.0"
+markdownRenderer = "0.35.0"   # mikepenz/multiplatform-markdown-renderer（GFM 渲染；0.35.0 用 Kotlin 2.1.x 编译，与项目 Kotlin 2.1.0 兼容；0.39+ 需 Kotlin 2.3）
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -33,15 +36,18 @@ miuix-icons-android = { module = "top.yukonga.miuix.kmp:miuix-icons-android", ve
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
 
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-webkit = { group = "androidx.webkit", name = "webkit", version.ref = "webkit" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
 androidx-ui = { group = "androidx.compose.ui", name = "ui" }
 androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
 androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
-androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
+androidx-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3Expressive" }   # 版本说明见上方 material3Expressive
 androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
 androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
+# GFM Markdown 渲染（Material3 变体，不含图片加载器；图片相对链接在渲染前预处理为绝对 URL）
+markdownRenderer = { group = "com.mikepenz", name = "multiplatform-markdown-renderer-m3", version.ref = "markdownRenderer" }

@@ -32,7 +32,8 @@ class ShareLinkParserTest {
             "https://pan.xunlei.com/s/Abc_123-xy" to (SharePlatform.XUNLEI to "Abc_123-xy"),
             "https://pan.baidu.com/s/1Abc_123-xy?pwd=9xYz" to (SharePlatform.BAIDU to "Abc_123-xy"),
             "https://yun.139.com/shareweb/#/w/i/Abc_123" to (SharePlatform.C139 to "Abc_123"),
-            "https://www.123pan.com/s/2785Vv-T4Ded" to (SharePlatform.PAN123 to "2785Vv-T4Ded")
+            "https://www.123pan.com/s/2785Vv-T4Ded" to (SharePlatform.PAN123 to "2785Vv-T4Ded"),
+            "https://115.com/s/swz54f736y2?password=y118" to (SharePlatform.PAN115 to "swz54f736y2")
         )
 
         cases.forEach { (text, expected) ->
@@ -49,7 +50,45 @@ class ShareLinkParserTest {
     }
 
     @Test
+    fun parsesPan115Forms() {
+        // 链接 ?password= 直接带码
+        val withQuery = ShareLinkParser.parse("https://115cdn.com/s/swz54f736y2?password=y118")!!
+        assertEquals(SharePlatform.PAN115, withQuery.platform)
+        assertEquals("swz54f736y2", withQuery.shareId)
+        assertEquals("y118", withQuery.pwd)
+        // 口令形式：/<share_code>-<code>/
+        val command = ShareLinkParser.parse("https://115.com/swz54f736y2-y118/")!!
+        assertEquals(SharePlatform.PAN115, command.platform)
+        assertEquals("swz54f736y2", command.shareId)
+        assertEquals("y118", command.pwd)
+    }
+
+    @Test
     fun rejectsUnrelatedUrl() {
         assertNull(ShareLinkParser.parse("https://example.com/s/Abc123"))
+    }
+
+    @Test
+    fun parsesGuangyaAndLanzouWithoutMisjudgingILanzou() {
+        // 光鸭：https://www.guangyapan.com/s/{shareId}
+        val guangya = ShareLinkParser.parse("https://www.guangyapan.com/s/Share123")!!
+        assertEquals(SharePlatform.GUANGYA, guangya.platform)
+        assertEquals("Share123", guangya.shareId)
+
+        // 蓝奏云域名族 lanzou*/lan[zs]o[ux]：子域、文件分享(i...)、文件夹分享(b...)与提取码
+        val lanzouSub = ShareLinkParser.parse("https://wwx.lanzoui.com/iAbc123")!!
+        assertEquals(SharePlatform.LANZOU, lanzouSub.platform)
+        assertEquals("iAbc123", lanzouSub.shareId)
+        val lanzouFolder = ShareLinkParser.parse("https://pan.lanzou.com/bFolder1?pwd=a1B2")!!
+        assertEquals(SharePlatform.LANZOU, lanzouFolder.platform)
+        assertEquals("bFolder1", lanzouFolder.shareId)
+        assertEquals("a1B2", lanzouFolder.pwd)
+
+        // 蓝奏云优享版：识别为 ILANZOU（不再误判为蓝奏云），分享路径 /s/<id>
+        val ilanzou = ShareLinkParser.parse("https://www.ilanzou.com/s/Abc123")!!
+        assertEquals(SharePlatform.ILANZOU, ilanzou.platform)
+        assertEquals("Abc123", ilanzou.shareId)
+        val ilanzouBare = ShareLinkParser.parse("https://ilanzou.com/s/Abc123")!!
+        assertEquals(SharePlatform.ILANZOU, ilanzouBare.platform)
     }
 }

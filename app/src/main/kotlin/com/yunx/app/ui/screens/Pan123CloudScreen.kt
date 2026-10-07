@@ -24,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import com.yunx.app.data.network.model.ShareExpire
 import com.yunx.app.ui.drive.CloudDriveBrowser
 import com.yunx.app.ui.drive.CloudDriveUiState
 import com.yunx.app.ui.drive.DriveActions
@@ -40,10 +41,10 @@ private val pan123DriveSpec = DriveSpec(
     shareDesc = "生成分享链接（可设提取码/有效期）",
     shareHint = null,
     expiryOptions = listOf<DriveExpiryOption<Any?>>(
-        DriveExpiryOption("永久有效", null),
-        DriveExpiryOption("1 天", 1),
-        DriveExpiryOption("7 天", 7),
-        DriveExpiryOption("30 天", 30)
+        DriveExpiryOption("永久有效", ShareExpire.FOREVER),
+        DriveExpiryOption("1 天", ShareExpire.ONE_DAY),
+        DriveExpiryOption("7 天", ShareExpire.SEVEN_DAYS),
+        DriveExpiryOption("30 天", ShareExpire.THIRTY_DAYS)
     ),
     passcode = PasscodePolicy.Optional(label = "4 位提取码"),
     folderIcon = Icons.AutoMirrored.Outlined.DriveFileMove
@@ -82,13 +83,13 @@ fun Pan123CloudScreen(
         deleteSelected = { viewModel.deleteSelected() },
         shareFile = { expiry, passcode ->
             viewModel.shareFile(
-                expirationDays = expiry as Int?,
+                expiredType = expiry as Int,
                 sharePwd = if (passcode.isBlank()) "" else passcode
             )
         },
         shareSelected = { expiry, passcode ->
             viewModel.shareSelected(
-                expirationDays = expiry as Int?,
+                expiredType = expiry as Int,
                 sharePwd = if (passcode.isBlank()) "" else passcode
             )
         },

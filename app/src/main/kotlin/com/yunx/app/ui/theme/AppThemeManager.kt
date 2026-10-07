@@ -53,6 +53,10 @@ object AppThemeManager {
     var isAmoled by mutableStateOf(false)
         private set
 
+    /** 文件名是否多行显示 */
+    var fileNameMultiLine by mutableStateOf(false)
+        private set
+
     private var initialized = false
 
     /** 复用同一个仓储实例，避免每次读写都重建 SharedPreferences 包装 */
@@ -91,6 +95,7 @@ object AppThemeManager {
         seedColor = s.themeSeedColor
         bottomBarStyle = s.bottomBarStyle
         isAmoled = s.isAmoled
+        fileNameMultiLine = s.fileNameMultiLine
         syncedVersion = SettingsRepository.changeVersion
     }
 
@@ -136,6 +141,13 @@ object AppThemeManager {
     fun setAmoled(context: Context, value: Boolean) {
         isAmoled = value
         repo(context).isAmoled = value
+        markSynced()
+    }
+
+    /** 设置文件名多行显示并持久化 */
+    fun setFileNameMultiLine(context: Context, value: Boolean) {
+        fileNameMultiLine = value
+        repo(context).fileNameMultiLine = value
         markSynced()
     }
 }

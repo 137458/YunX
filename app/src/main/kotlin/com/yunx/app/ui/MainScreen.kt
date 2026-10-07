@@ -107,16 +107,28 @@ import com.yunx.app.data.download.DownloadManager
 import com.yunx.app.data.backup.AuthBackupManager
 import com.yunx.app.data.network.BaiduApi
 import com.yunx.app.data.network.C139Api
+import com.yunx.app.data.network.Pan115Api
 import com.yunx.app.data.network.Pan123Api
 import com.yunx.app.data.network.QuarkApi
 import com.yunx.app.data.network.UCApi
 import com.yunx.app.data.network.XunleiApi
+import com.yunx.app.data.network.GuangYaApi
+import com.yunx.app.data.network.ILanzouApi
+import com.yunx.app.data.network.LanzouApi
 import com.yunx.app.data.prefs.SettingsRepository
 import com.yunx.app.data.update.UpdateChecker
 import com.yunx.app.data.repository.BaiduAccountRepository
 import com.yunx.app.data.repository.BaiduResolveRepository
 import com.yunx.app.data.repository.C139AccountRepository
 import com.yunx.app.data.repository.C139ResolveRepository
+import com.yunx.app.data.repository.GuangYaAccountRepository
+import com.yunx.app.data.repository.GuangYaResolveRepository
+import com.yunx.app.data.repository.ILanzouAccountRepository
+import com.yunx.app.data.repository.ILanzouResolveRepository
+import com.yunx.app.data.repository.LanzouAccountRepository
+import com.yunx.app.data.repository.LanzouResolveRepository
+import com.yunx.app.data.repository.Pan115AccountRepository
+import com.yunx.app.data.repository.Pan115ResolveRepository
 import com.yunx.app.data.repository.Pan123AccountRepository
 import com.yunx.app.data.repository.Pan123ResolveRepository
 import com.yunx.app.data.repository.QuarkAccountRepository
@@ -232,7 +244,11 @@ fun MainScreen() {
     var showUpdateDialog by remember { mutableStateOf(false) }
     var pendingRelease by remember { mutableStateOf<UpdateChecker.Release?>(null) }
     LaunchedEffect(Unit) {
-        val release = UpdateChecker.fetchLatestRelease() ?: return@LaunchedEffect
+        val checkResult = UpdateChecker.fetchLatestRelease(
+            includePrerelease = settings.acceptPrereleaseUpdate
+        )
+        if (checkResult !is UpdateChecker.CheckResult.Success) return@LaunchedEffect
+        val release = checkResult.release
         val current = UpdateChecker.currentVersion(context)
         val ignored = settings.ignoredUpdateVersion
         if (UpdateChecker.compareVersions(release.tagName, current) > 0 &&
@@ -248,6 +264,10 @@ fun MainScreen() {
     val baiduApi = remember { BaiduApi() }
     val c139Api = remember { C139Api() }
     val pan123Api = remember { Pan123Api() }
+    val pan115Api = remember { Pan115Api() }
+    val guangyaApi = remember { GuangYaApi() }
+    val ilanzouApi = remember { ILanzouApi() }
+    val lanzouApi = remember { LanzouApi() }
     val db = remember { AppDatabase.get(context) }
     val repository = remember {
         QuarkAccountRepository(db.quarkAccountDao(), api)
@@ -267,6 +287,18 @@ fun MainScreen() {
     val pan123Repository = remember {
         Pan123AccountRepository(db.pan123AccountDao(), pan123Api)
     }
+    val pan115Repository = remember {
+        Pan115AccountRepository(db.pan115AccountDao(), pan115Api)
+    }
+    val guangyaRepository = remember {
+        GuangYaAccountRepository(db.guangyaAccountDao(), guangyaApi)
+    }
+    val ilanzouRepository = remember {
+        ILanzouAccountRepository(db.ilanzouAccountDao(), ilanzouApi)
+    }
+    val lanzouRepository = remember {
+        LanzouAccountRepository(db.lanzouAccountDao(), lanzouApi)
+    }
     // 网盘认证备份：打包/恢复各平台凭证
     val backupManager = remember {
         AuthBackupManager(
@@ -275,7 +307,11 @@ fun MainScreen() {
             db.xunleiAccountDao(),
             db.baiduAccountDao(),
             db.c139AccountDao(),
-            db.pan123AccountDao()
+            db.pan123AccountDao(),
+            db.pan115AccountDao(),
+            db.guangyaAccountDao(),
+            db.ilanzouAccountDao(),
+            db.lanzouAccountDao()
         )
     }
     // 下载管理器：OkHttp 分片下载器 + Room 任务持久化 + 可配置线程数（设置页动态生效）
@@ -413,7 +449,7 @@ fun MainScreen() {
             loginState = pan123LoginState
         )
     )
-    // 网盘空间详情：网盘页顶部「空间总览」展示 6 平台容量使用
+    // 网盘空间详情：网盘页顶部「空间总览」展示各平台容量使用
     val driveQuotaViewModel: DriveQuotaViewModel = viewModel(
         factory = DriveQuotaViewModel.Factory(
             api, { repository.getAccount()?.cookie },
@@ -424,7 +460,10 @@ fun MainScreen() {
             { xunleiRepository.getAccount()?.captchaToken },
             baiduApi, { baiduRepository.getAccount()?.cookie },
             c139Api, { c139Repository.getAccount()?.cookie },
-            pan123Api, { pan123Repository.getAccount()?.accessToken }
+            pan123Api, { pan123Repository.getAccount()?.accessToken },
+            pan115Api, { pan115Repository.getAccount()?.cookie },
+            guangyaApi, { guangyaRepository.getAccount() },
+            ilanzouApi, { ilanzouRepository.getAccount() }
         )
     )
     val xunleiResolveRepository = remember {
@@ -455,6 +494,21 @@ fun MainScreen() {
             tokenProvider = { pan123Repository.getAccount()?.accessToken }
         )
     }
+    val pan115ResolveRepository = remember {
+        Pan115ResolveRepository(pan115Api)
+    }
+    val guangyaResolveRepository = remember {
+        GuangYaResolveRepository(
+            api = guangyaApi,
+            tokenProvider = { guangyaRepository.ensureAccessToken() }
+        )
+    }
+    val ilanzouResolveRepository = remember {
+        ILanzouResolveRepository(ilanzouApi, ilanzouRepository)
+    }
+    val lanzouResolveRepository = remember {
+        LanzouResolveRepository(lanzouApi)
+    }
     val resolveViewModel: ResolveViewModel = viewModel(
         factory = ResolveViewModel.Factory(
             repository,
@@ -469,8 +523,17 @@ fun MainScreen() {
             c139ResolveRepository,
             pan123Repository,
             pan123ResolveRepository,
+            pan115Repository,
+            pan115ResolveRepository,
+            guangyaRepository,
+            guangyaResolveRepository,
+            ilanzouRepository,
+            ilanzouResolveRepository,
+            lanzouRepository,
+            lanzouResolveRepository,
             downloadManager,
-            db.bookmarkDao()
+            db.bookmarkDao(),
+            noSaveDownloadProvider = { settings.quarkNoSaveDownload }
         )
     )
     val downloadViewModel: DownloadViewModel = viewModel(
@@ -506,17 +569,24 @@ fun MainScreen() {
     fun checkForUpdate(preview: Boolean) {
         scope.launch {
             if (!preview) SnackbarController.show("正在检查更新…")
-            val release = runCatching { UpdateChecker.fetchLatestRelease() }.getOrNull()
+            val checkResult = runCatching {
+                UpdateChecker.fetchLatestRelease(includePrerelease = settings.acceptPrereleaseUpdate)
+            }.getOrNull()
+            val release = (checkResult as? UpdateChecker.CheckResult.Success)?.release
             when {
                 release == null && preview -> showUpdateDialogFor(
                     UpdateChecker.Release(
                         tagName = "v1.2.4（预览）",
                         body = "这是调试预览弹窗，用于查看更新弹窗 UI（含镜像站下载按钮）。",
                         assets = emptyList(),
-                        publishedAt = ""
+                        publishedAt = "",
+                        htmlUrl = ""
                     )
                 )
-                release == null -> SnackbarController.show("检查更新失败，请检查网络")
+                release == null -> {
+                    val reason = (checkResult as? UpdateChecker.CheckResult.Failure)?.reason
+                    SnackbarController.show(if (reason.isNullOrBlank()) "检查更新失败，请检查网络" else "检查更新失败：$reason")
+                }
                 preview -> showUpdateDialogFor(release)
                 UpdateChecker.compareVersions(release.tagName, UpdateChecker.currentVersion(context)) > 0 ->
                     showUpdateDialogFor(release)

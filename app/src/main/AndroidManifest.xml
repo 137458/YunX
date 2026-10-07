@@ -18,12 +18,13 @@
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
-
     <uses-sdk tools:overrideLibrary="top.yukonga.miuix.kmp.blur" />
 
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Android 16 实时更新（OPPO ColorOS 16 流体云按此规范接入）：把下载进度提升为「进行中」通知 -->
+    <uses-permission android:name="android.permission.POST_PROMOTED_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.INTERNET" />
     <!-- 锁屏保持下载：息屏时维持 Wi-Fi/CPU，避免长时间下载断连 -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
@@ -35,6 +36,14 @@
     <uses-permission
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="29" />
+    <!-- 内置下载引擎（Gopeed）只能按真实文件系统路径写文件：Android 11+ 要写公共 Download 目录
+         就得有「所有文件访问」。低版本不需要（9- 用上面的 WRITE_EXTERNAL_STORAGE，
+         10 由 application 的 requestLegacyExternalStorage 回到旧模式 + 同一运行时权限）。
+         用户需在系统设置里手动开启，PermissionState.allFilesAccessGranted 判断，
+         不给也能用——引擎会自动退到应用外部私有目录（见 Agent.md §3.29）。 -->
+    <uses-permission
+        android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
+        tools:ignore="ScopedStorage" />
 
     <application
         android:name=".YunXApp"
@@ -58,12 +67,15 @@
             </intent-filter>
         </activity>
 
-        <!-- 桌面图标动态切换（新图标 icon2）：默认禁用，主题与外观页切换后经 setComponentEnabledSetting 启用 -->
+        <!-- 桌面图标动态切换（新图标）：默认禁用，主题与外观页切换后经 setComponentEnabledSetting 启用。
+             图标走 @drawable/ic_launcher_new：API 26+ 为自适应图标（drawable-v26），API 24-25 为位图回退。
+             roundIcon 必须一并声明：部分启动器优先取 roundIcon，缺省会回落到 application 的经典图标。 -->
         <activity-alias
             android:name=".MainActivityIcon2"
             android:enabled="false"
             android:exported="true"
-            android:icon="@drawable/icon2"
+            android:icon="@drawable/ic_launcher_new"
+            android:roundIcon="@drawable/ic_launcher_new"
             android:label="@string/app_name"
             android:targetActivity=".MainActivity">
             <intent-filter>

@@ -21,10 +21,10 @@
 pluginManagement {
     repositories {
         if (System.getenv("YUNX_USE_MIRROR") != "false") {
-            maven { url = uri("https://mirrors.cloud.tencent.com/nexus/repository/maven-public/") }
             maven { url = uri("https://maven.aliyun.com/repository/gradle-plugin") }
             maven { url = uri("https://maven.aliyun.com/repository/google") }
             maven { url = uri("https://maven.aliyun.com/repository/public") }
+            maven { url = uri("https://mirrors.cloud.tencent.com/nexus/repository/maven-public/") }
         }
         gradlePluginPortal()
         google()
@@ -36,9 +36,9 @@ dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
         if (System.getenv("YUNX_USE_MIRROR") != "false") {
-            maven { url = uri("https://mirrors.cloud.tencent.com/nexus/repository/maven-public/") }
             maven { url = uri("https://maven.aliyun.com/repository/google") }
             maven { url = uri("https://maven.aliyun.com/repository/public") }
+            maven { url = uri("https://mirrors.cloud.tencent.com/nexus/repository/maven-public/") }
         }
         google()
         mavenCentral()

@@ -29,7 +29,8 @@ class UpdateCheckerTest {
         tagName = "v1.2.4",
         body = "## 更新内容\n- 修复下载",
         assets = assets,
-        publishedAt = "2026-03-01T10:00:00Z"
+        publishedAt = "2026-03-01T10:00:00Z",
+        htmlUrl = "https://github.com/137458/YunX/releases/tag/v1.2.4"
     )
 
     @Test

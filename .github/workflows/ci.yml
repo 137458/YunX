@@ -3,6 +3,16 @@ name: Android CI
 on:
   push:
     branches: [ "master" ]
+    # paths 过滤：仅当构建相关文件变化时才触发，避免空跑 CI（workflow 自身必须在列表内，否则改它不触发）
+    paths:
+      - '.github/workflows/ci.yml'
+      - 'app/**'
+      - 'gradle/**'
+      - 'gradle.properties'
+      - 'build.gradle.kts'
+      - 'settings.gradle.kts'
+      - 'gradlew'
+      - 'gradlew.bat'
   pull_request:
     branches: [ "master" ]
 
@@ -23,10 +33,6 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      # 显式安装 Android SDK（compileSdk=36 / build-tools），避免依赖 runner 预装版本或 AGP 现场下载
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
 
@@ -40,14 +46,12 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      # 完整构建 debug APK（验证编译链路 + 产出可安装包）
-      - name: Build debug APK
-        run: ./gradlew assembleDebug
+      - name: Build debug
+        run: ./gradlew assembleDebug  --no-daemon
 
       - name: Run unit tests
-        run: ./gradlew testDebugUnitTest
+        run: ./gradlew testDebugUnitTest --no-daemon
 
-      # 上传 debug APK 产物（PR 评论 / Actions 页面可下载）
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:

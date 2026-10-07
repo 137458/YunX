@@ -32,6 +32,7 @@ import com.yunx.app.ui.drive.DriveSpec
 import com.yunx.app.ui.drive.PasscodePolicy
 import com.yunx.app.ui.viewmodel.C139CloudUiState
 import com.yunx.app.ui.viewmodel.C139CloudViewModel
+import com.yunx.app.data.network.model.ShareExpire
 import top.yukonga.miuix.kmp.basic.ScrollBehavior
 
 /** 平台差异：文案 + 有效期编码 + 提取码策略 */
@@ -40,10 +41,10 @@ private val c139DriveSpec = DriveSpec(
     shareDesc = "生成分享链接（自动生成提取码）",
     shareHint = "提取码由系统自动生成",
     expiryOptions = listOf<DriveExpiryOption<Any?>>(
-        DriveExpiryOption("永久有效", null),
-        DriveExpiryOption("1 天", 1),
-        DriveExpiryOption("7 天", 7),
-        DriveExpiryOption("30 天", 30)
+        DriveExpiryOption("永久有效", ShareExpire.FOREVER),
+        DriveExpiryOption("1 天", ShareExpire.ONE_DAY),
+        DriveExpiryOption("7 天", ShareExpire.SEVEN_DAYS),
+        DriveExpiryOption("30 天", ShareExpire.THIRTY_DAYS)
     ),
     passcode = PasscodePolicy.Auto,
     folderIcon = Icons.AutoMirrored.Outlined.DriveFileMove
@@ -80,8 +81,8 @@ fun C139CloudScreen(
         rename = { viewModel.renameFile(it) },
         deleteFile = { viewModel.deleteFile() },
         deleteSelected = { viewModel.deleteSelected() },
-        shareFile = { expiry, _ -> viewModel.shareFile(period = expiry as Int?) },
-        shareSelected = { expiry, _ -> viewModel.shareSelected(period = expiry as Int?) },
+        shareFile = { expiry, _ -> viewModel.shareFile(expiredType = expiry as Int) },
+        shareSelected = { expiry, _ -> viewModel.shareSelected(expiredType = expiry as Int) },
         downloadFile = { viewModel.downloadFile() },
         downloadFolder = { viewModel.downloadFolder() },
         downloadSelected = { viewModel.downloadSelected() }
