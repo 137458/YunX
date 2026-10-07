@@ -30,7 +30,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -84,7 +84,7 @@ internal fun RowScope.FloatingBottomBarItem(
                 }
             }
             .focusable()
-            .fillMaxHeight()
+            .heightIn(min = FloatingBottomBarMinHeight - FloatingBottomBarVerticalPadding * 2)
             .weight(1f)
             .graphicsLayer {
                 val s = scale()

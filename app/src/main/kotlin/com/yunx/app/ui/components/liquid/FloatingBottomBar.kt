@@ -60,6 +60,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastCoerceIn
@@ -84,6 +85,17 @@ import kotlin.math.sin
 
 val LocalFloatingBottomBarContentColor = staticCompositionLocalOf { Color.Unspecified }
 val LocalFloatingBottomBarTabScale = staticCompositionLocalOf { { 1f } }
+
+/**
+ * 悬浮底栏的最小高度。
+ *
+ * 胶囊高度不写死：由槽位内容（图标 + 文字 + 上下留白）撑开，内容再矮也不低于此值，
+ * 保证与 Miuix 标准底栏同一观感；内容偏高（大字号 / 大图标）时胶囊按需长高。
+ */
+val FloatingBottomBarMinHeight = 64.dp
+
+/** 胶囊本体上下内边距（每侧 4dp）；滑块高度 = 胶囊高度 - 2 * 该值。 */
+internal val FloatingBottomBarVerticalPadding = 4.dp
 
 @Immutable
 class FloatingBottomBarColors(
@@ -202,6 +214,7 @@ fun FloatingBottomBar(
         FloatingBottomBarMode.Blur
     },
     colors: FloatingBottomBarColors = FloatingBottomBarDefaults.colors(),
+    onBarHeightChanged: ((Dp) -> Unit)? = null,
     content: @Composable RowScope.() -> Unit,
 ) {
     val isDark = MiuixTheme.colorScheme.surface.luminance() < 0.5f
@@ -222,6 +235,8 @@ fun FloatingBottomBar(
 
     var tabWidthPx by remember { mutableFloatStateOf(0f) }
     var totalWidthPx by remember { mutableFloatStateOf(0f) }
+    var barHeightPx by remember { mutableFloatStateOf(0f) }
+    val updatedOnBarHeightChanged by rememberUpdatedState(onBarHeightChanged)
 
     val offsetAnimation = remember { Animatable(0f) }
     val rubberBandPx = with(density) { 4.dp.toPx() }
@@ -334,6 +349,11 @@ fun FloatingBottomBar(
 
     val combinedBackdrop = backdrop?.let { rememberCombinedBackdrop(it, tabsBackdrop) }
 
+    // 滑块高度跟随外壳实测高度（未测量时退回最小高度），保证与胶囊内区始终等高对齐。
+    val indicatorHeight =
+        (with(density) { barHeightPx.toDp() } - FloatingBottomBarVerticalPadding * 2)
+            .coerceAtLeast(FloatingBottomBarMinHeight - FloatingBottomBarVerticalPadding * 2)
+
     Box(
         modifier = modifier.width(IntrinsicSize.Min),
         contentAlignment = Alignment.CenterStart,
@@ -353,6 +373,11 @@ fun FloatingBottomBar(
             interactiveHighlight = interactiveHighlight,
             onSizeChanged = { coords ->
                 totalWidthPx = coords.width.toFloat()
+                val measuredHeightPx = coords.height.toFloat()
+                if (measuredHeightPx > 0f && measuredHeightPx != barHeightPx) {
+                    barHeightPx = measuredHeightPx
+                    updatedOnBarHeightChanged?.invoke(with(density) { measuredHeightPx.toDp() })
+                }
                 val contentWidthPx = totalWidthPx - with(density) { 8.dp.toPx() }
                 tabWidthPx = (contentWidthPx / tabsCount).coerceAtLeast(0f)
             },
@@ -378,6 +403,7 @@ fun FloatingBottomBar(
             tabWidthPx = tabWidthPx,
             totalWidthPx = totalWidthPx,
             density = density,
+            indicatorHeight = indicatorHeight,
             isLiquidGlassMode = isLiquidGlassMode,
             combinedBackdrop = combinedBackdrop,
             dampedDragAnimation = dampedDragAnimation,

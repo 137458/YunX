@@ -29,6 +29,7 @@ import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.yunx.app.ui.components.liquid.BottomBarStyle
@@ -57,6 +58,7 @@ fun AppFloatingBottomBar(
     modifier: Modifier = Modifier,
     backdrop: Backdrop? = null,
     style: BottomBarStyle = BottomBarStyle.Default,
+    onBarHeightChanged: ((Dp) -> Unit)? = null,
 ) {
     val tabs = remember { MainTab.entries }
     val haptics = rememberHaptics()
@@ -77,7 +79,8 @@ fun AppFloatingBottomBar(
         modifier = modifier,
         backdrop = backdrop,
         mode = style.requestedFloatingMode ?: FloatingBottomBarMode.LiquidGlass,
-        colors = colors
+        colors = colors,
+        onBarHeightChanged = onBarHeightChanged
     ) {
         tabs.forEachIndexed { index, tab ->
             val isSelected = currentTab == tab

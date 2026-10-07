@@ -37,6 +37,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.width
@@ -58,6 +59,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
@@ -150,7 +152,7 @@ internal fun BottomBarBaseLayer(
                     },
                 )
                 .then(if (isLiquidGlassMode && interactiveHighlight != null) interactiveHighlight.modifier else Modifier)
-                .height(64.dp)
+                .heightIn(min = FloatingBottomBarMinHeight)
                 .padding(4.dp),
             verticalAlignment = Alignment.CenterVertically,
             content = content,
@@ -203,7 +205,7 @@ internal fun BottomBarActiveTabsLayer(
                         onDrawSurface = { drawRect(containerColor) },
                     )
                     .then(interactiveHighlight?.modifier ?: Modifier)
-                    .height(64.dp)
+                    .heightIn(min = FloatingBottomBarMinHeight)
                     .padding(4.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 content = content,
@@ -222,6 +224,7 @@ internal fun BottomBarIndicatorLayer(
     tabWidthPx: Float,
     totalWidthPx: Float,
     density: Density,
+    indicatorHeight: Dp,
     isLiquidGlassMode: Boolean,
     combinedBackdrop: Backdrop?,
     dampedDragAnimation: DampedDragAnimation,
@@ -283,7 +286,7 @@ internal fun BottomBarIndicatorLayer(
                             alpha = dampedDragAnimation.pressProgress,
                         )
                     }
-                    .height(56.dp)
+                    .height(indicatorHeight)
                     .width(tabWidthDp),
             )
         } else {
@@ -298,7 +301,7 @@ internal fun BottomBarIndicatorLayer(
                     .then(dampedDragAnimation.modifier)
                     .clip(pillShape)
                     .background(colors.indicatorColor.copy(alpha = 0.15f), pillShape)
-                    .height(56.dp)
+                    .height(indicatorHeight)
                     .width(tabWidthDp),
                 contentAlignment = Alignment.CenterStart,
             ) {
@@ -308,7 +311,7 @@ internal fun BottomBarIndicatorLayer(
                             .clearAndSetSemantics {}
                             .wrapContentWidth(align = Alignment.Start, unbounded = true)
                             .requiredWidth(with(density) { (totalWidthPx - 8.dp.toPx()).toDp() })
-                            .height(56.dp)
+                            .height(indicatorHeight)
                             .graphicsLayer {
                                 val progressOffset = dampedDragAnimation.value * tabWidthPx
                                 translationX = if (isLtr) -progressOffset else progressOffset
