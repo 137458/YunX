@@ -5,7 +5,12 @@ coreKtx = "1.17.0"
 webkit = "1.17.1"   # 登录 WebView：关闭 X-Requested-With + 同步桌面 client hints（UserAgentMetadata）
 lifecycleRuntimeKtx = "2.9.2"
 activityCompose = "1.11.0"
-composeBom = "2026.06.01"  
+composeBom = "2026.06.01"
+# 刻意覆盖 BOM 给的 material3 1.4.0（Expressive 的 ButtonGroup/LoadingIndicator/波浪进度条等组件只在 1.5.0-alpha）。
+# 三条门槛核对结论（2026-10-09，升 BOM 或该 alpha 前按 AGENTS.md §3.10 重核）：
+# ① kotlin-stdlib 要求：1.5.0-alpha 线要求 Kotlin ≥ 2.0，项目 2.1.0 满足（全量编译+单测实证）；
+# ② AAR minCompileSdk：要求 ≥ 36，项目 compileSdk 37 满足（AGP 构建期强校验，不满足直接报错）；
+# ③ manifest minSdk：material3 为 21 ≤ 项目 24。
 material3Expressive = "1.5.0-alpha18"
 
 room = "2.6.1"

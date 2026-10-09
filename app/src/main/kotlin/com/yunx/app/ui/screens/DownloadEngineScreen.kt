@@ -705,7 +705,7 @@ private fun KernelSourceMenu(
 }
 
 /**
- * 云端内核的底部弹窗（层级对齐「发现新版本」那个 UpdateSheet）：
+ * 云端内核的底部弹窗（层级对齐「发现新版本」的更新弹窗 UpdateDialog）：
  * 主按钮「网盘自动下载」**只在 Release 说明里命中网盘链接时**出现，否则只有 GitHub 一条路。
  * 两个通道都会按本机 ABI 自动挑包（`libgopeed-<abi>.aar`），下载完自动导入。
  */

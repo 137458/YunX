@@ -30,7 +30,8 @@ import com.yunx.app.util.ArchiveProbe
 
 class MainActivity : ComponentActivity() {
 
-    // ★ 通知权限不再在启动时申请/引导：统一收到引导页第 3 页（见 ui/screens/OnboardingPermissionPage.kt），
+    // ★ 通知权限不再在启动时申请/引导：统一收到引导页的「权限准备」区块
+    //   （ui/screens/OnboardingPermissionPage.kt 的 PermissionSection，嵌入 OnboardingScreen），
     //   之后只有设置页里的手动入口（「通知栏下载进度」）会再申请，避免每次启动都弹窗打扰。
     override fun onCreate(savedInstanceState: Bundle?) {
         // 应用内主题设置：始终深色/浅色时提前切换窗口主题，避免冷启动闪错背景色

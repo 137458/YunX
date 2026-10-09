@@ -18,8 +18,11 @@
 
 package com.yunx.app.ui.screens
 
+import android.Manifest
 import android.content.Intent
 import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -52,6 +55,11 @@ import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.outlined.Speed
 import androidx.compose.material.icons.outlined.Storage
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -64,8 +72,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.yunx.app.R
 import com.yunx.app.ui.theme.SquircleShape
+import com.yunx.app.util.PermissionState
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.CardDefaults
@@ -75,8 +87,12 @@ import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /**
- * 首次启动引导页：介绍云析（免费）+ 功能特性 + 免责声明。
- * Miuix 风格：渐变图标 + 功能列表 + 彩色免费卡 + 免责卡 + 底部主操作。
+ * 首次启动引导页（单页滚动）：介绍云析（免费）+ 功能特性 + 免责声明 + 权限准备 + 底部主操作。
+ * Miuix 风格：渐变图标 + 功能列表 + 彩色免费卡 + 免责卡 + 权限准备区块（[PermissionSection]）。
+ *
+ * ★ 权限申请统一收口在本页（AGENTS.md §3.17）：通知 / 后台运行可跳过；
+ *   存储权限在 Android 9 及以下是必要权限（没它保存必失败），未授权时底部「开始使用」置灰禁用
+ *   （文案不变，不给跳过），授权入口是权限准备区块的存储卡片。
  */
 @Composable
 fun OnboardingScreen(
@@ -84,6 +100,41 @@ fun OnboardingScreen(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+
+    // ★ 存储权限：Android 9 及以下是「必要权限」—— 没它下载能跑完，但保存一定失败
+    //   （DownloadManager 保存前直接抛「未授予存储权限，无法保存到下载目录」）。
+    //   状态提升在这里：未授权时底部「开始使用」置灰禁用。Android 10+ 走媒体库，
+    //   storageGranted() 恒为 true ⇒ 这段整体无感。
+    var storageGranted by remember { mutableStateOf(PermissionState.storageGranted(context)) }
+    // 用户拒绝过一次：授权框可能已弹不出来（勾了「不再询问」），之后一律改跳应用详情页
+    var storageDenied by remember { mutableStateOf(false) }
+    val storageLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        storageGranted = PermissionState.storageGranted(context)
+        if (!granted) storageDenied = true
+    }
+    // 从授权框 / 系统设置页返回时重查：只靠 remember 初值会出现"授权完返回还显示未授权"
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                storageGranted = PermissionState.storageGranted(context)
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+    val storageBlocking = PermissionState.storagePermissionRequired() && !storageGranted
+    val requestStorage: () -> Unit = {
+        if (storageDenied) {
+            // 已经拒绝过：运行时装不了授权框，只能去应用详情页手动打开权限
+            PermissionState.openAppDetails(context)
+        } else {
+            storageLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        }
+    }
+
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -235,6 +286,14 @@ fun OnboardingScreen(
             }
             Spacer(modifier = Modifier.height(16.dp))
 
+            // ---------- 权限准备（AGENTS.md §3.17：权限申请统一收口） ----------
+            PermissionSection(
+                storageGranted = storageGranted,
+                storageDenied = storageDenied,
+                onRequestStorage = requestStorage
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+
             // ---------- 开源仓库 ----------
             GitHubCard(context)
 
@@ -253,6 +312,8 @@ fun OnboardingScreen(
         ) {
             Button(
                 onClick = onFinish,
+                // Android 9- 未授予存储权限时不给开始（存储权限是必要权限）；文案不变
+                enabled = !storageBlocking,
                 // defaultMinSize 而非固定 height：系统字体放大时按钮不会被裁切
                 modifier = Modifier
                     .fillMaxWidth()

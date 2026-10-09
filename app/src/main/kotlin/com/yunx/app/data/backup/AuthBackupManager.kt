@@ -44,6 +44,7 @@ import com.yunx.app.data.db.UCAccountDao
 import com.yunx.app.data.db.UCAccountEntity
 import com.yunx.app.data.db.XunleiAccountDao
 import com.yunx.app.data.db.XunleiAccountEntity
+import com.yunx.app.data.download.DownloadPlatform
 import com.yunx.app.data.network.GitHubTokenStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -168,7 +169,7 @@ class AuthBackupManager(
         guangyaDao.getAccount()?.let { a ->
             if (!onlyLoggedIn || a.accessToken.isNotBlank()) accounts.put(
                 JSONObject()
-                    .put("platform", "guangya")
+                    .put("platform", DownloadPlatform.GUANGYA)
                     .put("accessToken", a.accessToken)
                     .put("refreshToken", a.refreshToken)
                     .put("deviceId", a.deviceId)
@@ -181,7 +182,7 @@ class AuthBackupManager(
         ilanzouDao.getAccount()?.let { a ->
             if (!onlyLoggedIn || a.appToken.isNotBlank()) accounts.put(
                 JSONObject()
-                    .put("platform", "ilanzou")
+                    .put("platform", DownloadPlatform.ILANZOU)
                     .put("appToken", a.appToken)
                     .put("uuid", a.uuid)
                     .put("account", a.account)
@@ -194,7 +195,7 @@ class AuthBackupManager(
         lanzouDao.getAccount()?.let { a ->
             if (!onlyLoggedIn || a.cookie.isNotBlank()) accounts.put(
                 JSONObject()
-                    .put("platform", "lanzou")
+                    .put("platform", DownloadPlatform.LANZOU)
                     .put("cookie", a.cookie)
                     .put("nickname", a.nickname)
                     .put("updatedAt", a.updatedAt)
@@ -328,7 +329,7 @@ class AuthBackupManager(
                         ); count++
                     }
                 }
-                "guangya" -> {
+                DownloadPlatform.GUANGYA -> {
                     val t = obj.optString("accessToken")
                     if (t.isNotBlank()) {
                         guangyaDao.upsert(
@@ -344,7 +345,7 @@ class AuthBackupManager(
                         ); count++
                     }
                 }
-                "ilanzou" -> {
+                DownloadPlatform.ILANZOU -> {
                     val t = obj.optString("appToken")
                     if (t.isNotBlank()) {
                         ilanzouDao.upsert(
@@ -360,7 +361,7 @@ class AuthBackupManager(
                         ); count++
                     }
                 }
-                "lanzou" -> {
+                DownloadPlatform.LANZOU -> {
                     val c = obj.optString("cookie")
                     if (c.isNotBlank()) {
                         lanzouDao.upsert(

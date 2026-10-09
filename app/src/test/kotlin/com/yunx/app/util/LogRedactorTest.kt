@@ -48,4 +48,18 @@ class LogRedactorTest {
         assertFalse(line.contains("jwt-secret"))
         assertEquals("download https://cdn.example Cookie=<redacted> access_token=<redacted>", line)
     }
+
+    @Test
+    fun redactsPasswordInPlainAssignment() {
+        assertEquals("login failed password=<redacted> retry", LogRedactor.line("login failed password=secret123 retry"))
+        assertFalse(LogRedactor.line("passwd=abc").contains("abc"))
+        assertFalse(LogRedactor.line("pwd: abc").contains("abc"))
+    }
+
+    @Test
+    fun redactsPasswordInJsonBodyAndKeepsStructure() {
+        val json = LogRedactor.line("""{"username":"u","password":"secret123"}""")
+        assertFalse(json.contains("secret123"))
+        assertEquals("""{"username":"u","password":"<redacted>"}""", json)
+    }
 }

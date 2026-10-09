@@ -23,8 +23,10 @@ import java.net.URI
 /** Redacts capability-bearing URL paths, queries, fragments and user info. */
 object LogRedactor {
     private val absoluteUrl = Regex("""https?://[^\s\"'<>]+""", RegexOption.IGNORE_CASE)
+    // 值字符类排除引号/右括号：JSON 形式（"password":"x"）只吃值本身，保住 JSON 结构；
+    // 组 2 是分隔符（含 JSON 冒号两侧的可选引号），替换时原样保留
     private val secretAssignment = Regex(
-        """(?i)\b(cookie|authorization|access[_-]?token|refresh[_-]?token|captcha[_-]?token|bduss|stoken|__puus|__pus|rmkey|signature|sign)\b(\s*[=:]\s*)([^\s,;]+)"""
+        """(?i)\b(password|passwd|pwd|cookie|authorization|access[_-]?token|refresh[_-]?token|captcha[_-]?token|bduss|stoken|__puus|__pus|rmkey|signature|sign)\b((?:")?\s*[=:]\s*(?:")?)([^\s,;"}\]]+)"""
     )
 
     fun url(value: Any?): String {

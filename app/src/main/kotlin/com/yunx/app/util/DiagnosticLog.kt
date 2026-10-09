@@ -235,7 +235,7 @@ object DiagnosticLog {
         }
     }
 
-    /** 网络请求：方法 / URL（已脱敏）/ 状态码 / 耗时 / 请求体与响应体摘要 */
+    /** 网络请求：方法 / URL（已脱敏）/ 状态码 / 耗时 / 请求体与响应体摘要（经 [LogRedactor.line] 脱敏） */
     fun network(
         method: String,
         url: String,
@@ -255,9 +255,10 @@ object DiagnosticLog {
             summary = buildString {
                 append(method).append(' ').append(LogRedactor.url(url))
                 if (error != null) append(" | err=").append(error)
-                // 请求体/响应体只在「解析错误、非 200/206」时记（见 DiagnosticNetworkInterceptor）
-                if (!requestBody.isNullOrBlank()) append(" | req=").append(oneLine(requestBody))
-                if (!responseBody.isNullOrBlank()) append(" | resp=").append(oneLine(responseBody))
+                // 请求体/响应体只在「解析错误、非 200/206」时记（见 DiagnosticNetworkInterceptor），
+                // 落盘前必须过 LogRedactor：body 里可能有明文密码/凭证（如登录失败时的请求体）
+                if (!requestBody.isNullOrBlank()) append(" | req=").append(LogRedactor.line(oneLine(requestBody)))
+                if (!responseBody.isNullOrBlank()) append(" | resp=").append(LogRedactor.line(oneLine(responseBody)))
             }
         )
     }

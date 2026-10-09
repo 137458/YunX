@@ -451,7 +451,7 @@ internal fun AnnouncementUnreadBadge(count: Int, modifier: Modifier = Modifier) 
  * `AnnouncementViewModel.pickPopupCandidate`）。
  *
  * 用 AlertDialog 而不是底部弹窗：它需要被明确看到（置顶公告相当于官方通知），
- * 也与「发现新版本」那套底部 UpdateSheet 在观感上区分开。
+ * 也与「发现新版本」的更新弹窗（UpdateDialog）在观感上区分开。
  * 两个出口都算已读：点「查看详情」进详情页、点「知道了」/ 点空白关掉。
  */
 @Composable

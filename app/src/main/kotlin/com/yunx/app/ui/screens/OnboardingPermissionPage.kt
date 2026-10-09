@@ -22,7 +22,6 @@ import android.Manifest
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -30,19 +29,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.BatteryChargingFull
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Storage
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -60,20 +51,27 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.yunx.app.util.PermissionState
+import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.CardDefaults
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.basic.TextButton
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /**
- * 引导页第 3 页：权限准备。
+ * 引导页「权限准备」区块：全项目的权限申请统一收在这里（首次启动一次性过一遍），
+ * 各功能内部只留"兜底"：通知权限（可选）、后台运行/忽略电池优化（可选）、存储权限（Android 9- 为**必要权限**）。
+ * 通知与后台运行可以跳过；存储权限拿不到时不给跳过 —— Android 9 及以下未授权时，底部「开始使用」
+ * 按钮会置灰禁用（文案不变），授权入口就是存储权限卡片；授权成功返回后按钮自动恢复可点。
  *
- * ★ 项目的权限申请统一收在这里（首次启动一次性过一遍），各功能内部只留"兜底"：
- *   通知权限（可选）、后台运行/忽略电池优化（可选）、存储权限（Android 9- 为**必要权限**）。
- *   通知与后台运行可以跳过；存储权限拿不到时不给跳过 —— Android 9 及以下未授权时，底部「开始使用」
- *   按钮会置灰禁用（文案不变），授权入口就是本页的「存储权限」卡片；授权成功返回后按钮自动恢复可点。
+ * ★ 存储权限的状态（storageGranted / storageDenied / onRequestStorage）提升在 [OnboardingScreen]：
+ *   它同时要控制底部按钮的可用性，不能在本区块里自生自灭。
  *
  * ★ 状态必须在 `ON_RESUME` 时重查：授权框 / 系统设置页都会让 Activity 走一次
  *   onPause → onResume，只靠 `remember` 初值会出现"授权完返回，卡片还显示未授权"。
  */
 @Composable
-internal fun PermissionPage(
+internal fun PermissionSection(
     storageGranted: Boolean,
     storageDenied: Boolean,
     onRequestStorage: () -> Unit
@@ -103,18 +101,12 @@ internal fun PermissionPage(
 
     val storageRequired = PermissionState.storagePermissionRequired()
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 24.dp)
-    ) {
-        Spacer(modifier = Modifier.height(8.dp))
+    Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = "权限准备",
-            style = MaterialTheme.typography.headlineSmall,
+            style = MiuixTheme.textStyles.headline2,
             fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurface
+            color = MiuixTheme.colorScheme.onBackground
         )
         Spacer(modifier = Modifier.height(4.dp))
         Text(
@@ -124,8 +116,8 @@ internal fun PermissionPage(
             } else {
                 "云析只用下面这几项系统授权，都可以跳过，之后也能在「设置」里随时更改"
             },
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            style = MiuixTheme.textStyles.body2,
+            color = MiuixTheme.colorScheme.onSurfaceSecondary
         )
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -186,11 +178,10 @@ internal fun PermissionPage(
                 "跳过的影响：没有通知权限 → 通知栏看不到下载进度；没有后台运行白名单 → 息屏后下载可能被暂停。" +
                     "Android 10 及以上保存文件不需要存储权限。"
             },
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MiuixTheme.textStyles.footnote1,
+            color = MiuixTheme.colorScheme.onSurfaceSecondary,
             lineHeight = 20.sp
         )
-        Spacer(modifier = Modifier.height(16.dp))
     }
 }
 
@@ -207,9 +198,8 @@ private fun PermissionCard(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.large,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        colors = CardDefaults.defaultColors(
+            color = MiuixTheme.colorScheme.surfaceContainer
         )
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -218,13 +208,14 @@ private fun PermissionCard(
                     imageVector = icon,
                     contentDescription = null,
                     modifier = Modifier.size(18.dp),
-                    tint = MaterialTheme.colorScheme.primary
+                    tint = MiuixTheme.colorScheme.primary
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = title,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold
+                    style = MiuixTheme.textStyles.title4,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MiuixTheme.colorScheme.onSurface
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 if (granted) {
@@ -233,32 +224,30 @@ private fun PermissionCard(
                         imageVector = Icons.Outlined.CheckCircle,
                         contentDescription = null,
                         modifier = Modifier.size(15.dp),
-                        tint = MaterialTheme.colorScheme.primary
+                        tint = MiuixTheme.colorScheme.primary
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = grantedText,
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.primary
+                        style = MiuixTheme.textStyles.footnote1,
+                        color = MiuixTheme.colorScheme.primary
                     )
                 }
             }
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = desc,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MiuixTheme.textStyles.footnote1,
+                color = MiuixTheme.colorScheme.onSurfaceSecondary,
                 lineHeight = 20.sp
             )
             // ★ 已授权就不显示操作按钮：「去设置」只在真的需要用户动手时才出现
             if (!granted && actionText != null) {
                 Spacer(modifier = Modifier.height(10.dp))
-                FilledTonalButton(
-                    onClick = onAction,
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp)
-                ) {
-                    Text(text = actionText, style = MaterialTheme.typography.labelLarge)
-                }
+                TextButton(
+                    text = actionText,
+                    onClick = onAction
+                )
             }
         }
     }
