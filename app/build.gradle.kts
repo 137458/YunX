@@ -114,7 +114,6 @@ android {
     kotlin {
         compilerOptions {
             jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.fromTarget("17"))
-            freeCompilerArgs.add("-Xskip-metadata-version-check")
         }
     }
 }
@@ -165,9 +164,9 @@ dependencies {
     implementation("androidx.navigationevent:navigationevent-compose:1.1.1")
     implementation(libs.kotlinx.serialization.json)
 
-    // 强制 kotlin-stdlib 与项目 Kotlin 2.1.0 对齐，避免第三方库（如 mikepenz）
-    // 传递引入更高版本 stdlib 导致 "compiled with an incompatible version of Kotlin"。
+    // kotlin-stdlib 统一到 2.4.20（miuix 0.9.4 的传递依赖要求）：运行时取最高版本，避免
+    // miuix / compose 1.12 在旧 stdlib 上缺方法；项目 Kotlin 2.3.21 编译器读 2.4 metadata 在官方 +1 兼容窗口内。
     constraints {
-        implementation("org.jetbrains.kotlin:kotlin-stdlib:2.1.0")
+        implementation("org.jetbrains.kotlin:kotlin-stdlib:2.4.20")
     }
 }

@@ -1,25 +1,35 @@
 [versions]
-agp = "8.13.0"
-kotlin = "2.1.0"
+# AGP 9.1：compose 1.12.x（miuix 0.9.4 的编译基线）在 AAR metadata 里强制要求 AGP ≥ 9.1.0，取 9.1 线最新 patch。
+# AGP 9 默认启用 built-in Kotlin，本项目继续用外部 KGP（kotlin-android + compose/serialization 插件 + KSP），
+# 由 gradle.properties 的 android.builtInKotlin=false 显式退出（AGP 9 官方过渡路径）。
+agp = "9.1.1"
+# miuix 0.9.4 由 Kotlin 2.4.20 编译发布（metadata 2.4），本项目用 2.3.21 消费：
+# Kotlin 编译器允许读取 metadata 比自身新一个小版本的二进制（+1 窗口，2.3 读 2.4 合法），
+# 选 2.3 线是为了与 KSP 2.3.12（基于 Kotlin 2.3.20 前端）同源，避免跳到 2.4 后 KSP 尚无对应版本。
+kotlin = "2.3.21"
 coreKtx = "1.17.0"
 webkit = "1.17.1"   # 登录 WebView：关闭 X-Requested-With + 同步桌面 client hints（UserAgentMetadata）
 lifecycleRuntimeKtx = "2.9.2"
 activityCompose = "1.11.0"
-composeBom = "2026.06.01"
+# miuix 0.9.4 以 Compose Multiplatform 1.12.0 编译，BOM 2026.09.00 起内含 compose 1.12.1（runtime/ui/foundation），与之对齐
+composeBom = "2026.09.00"
 # 刻意覆盖 BOM 给的 material3 1.4.0（Expressive 的 ButtonGroup/LoadingIndicator/波浪进度条等组件只在 1.5.0-alpha）。
-# 三条门槛核对结论（2026-10-09，升 BOM 或该 alpha 前按 AGENTS.md §3.10 重核）：
-# ① kotlin-stdlib 要求：1.5.0-alpha 线要求 Kotlin ≥ 2.0，项目 2.1.0 满足（全量编译+单测实证）；
+# 三条门槛核对结论（2026-10-10，升 BOM 或该 alpha 前按 AGENTS.md §3.10 重核）：
+# ① kotlin-stdlib 要求：1.5.0-alpha 线要求 Kotlin ≥ 2.0，项目 2.3.21 满足（全量编译+单测实证）；
 # ② AAR minCompileSdk：要求 ≥ 36，项目 compileSdk 37 满足（AGP 构建期强校验，不满足直接报错）；
 # ③ manifest minSdk：material3 为 21 ≤ 项目 24。
 material3Expressive = "1.5.0-alpha18"
 
-room = "2.6.1"
-ksp = "2.1.0-1.0.29"
+# Room 2.7 起正式支持 KSP2（KSP 2.x 默认走 KSP2 处理器），2.6.1 只兼容 KSP1
+room = "2.8.5"
+ksp = "2.3.12"
 material = "1.14.0"   # 官方 Material 主库，自带 com.google.android.material.color.utilities 包
-# 0.9.4 起要求 AGP 9.1+ / Compose 1.12（整条工具链升级），本项目暂固定 0.9.3
-miuix = "0.9.3"
-kotlinx-serialization = "1.8.0"
-markdownRenderer = "0.35.0"   # mikepenz/multiplatform-markdown-renderer（GFM 渲染；0.35.0 用 Kotlin 2.1.x 编译，与项目 Kotlin 2.1.0 兼容；0.39+ 需 Kotlin 2.3）
+# miuix 0.9.4（HyperOS Compose）：传递依赖 kotlin-stdlib 2.4.20 + CMP foundation 1.12.0（均由 Gradle 取最高版本解析）。
+# 消费方真实门槛 = Kotlin metadata +1 窗口（2.3 读 2.4）、compose 运行时 ≥ 1.12（BOM 2026.09.00）、
+# compose 1.12.x 强制 AGP ≥ 9.1、minSdk 24 —— 分别由 kotlin 2.3.21 / BOM / agp 9.1.1 / 项目 minSdk 满足。
+miuix = "0.9.4"
+kotlinx-serialization = "1.11.0"
+markdownRenderer = "0.35.0"   # mikepenz/multiplatform-markdown-renderer（GFM 渲染；0.35.0 用 Kotlin 2.1.x 编译，2.3 读 2.1 metadata 向后兼容）
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
