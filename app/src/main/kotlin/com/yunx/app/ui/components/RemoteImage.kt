@@ -25,8 +25,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -75,10 +75,10 @@ fun RemoteImage(
     shape: Shape = RectangleShape,
     contentScale: ContentScale = ContentScale.Crop,
     fallback: ImageVector? = null,
-    fallbackTint: Color = MaterialTheme.colorScheme.onSurfaceVariant,
+    fallbackTint: Color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
     autoHeight: Boolean = false,
     placeholderRatio: Float = 16f / 9f,
-    placeholderColor: Color = MaterialTheme.colorScheme.surfaceVariant
+    placeholderColor: Color = MiuixTheme.colorScheme.surfaceVariant
 ) {
     val link = url?.trim().orEmpty()
     // ★★ 状态必须用 `remember(link)` 建，**不能用 `produceState(initialValue, link)`**：

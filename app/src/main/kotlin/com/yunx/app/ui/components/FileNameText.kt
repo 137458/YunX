@@ -19,8 +19,7 @@
 package com.yunx.app.ui.components
 
 import androidx.compose.foundation.basicMarquee
-import androidx.compose.material3.LocalTextStyle
-import androidx.compose.material3.Text
+import top.yukonga.miuix.kmp.basic.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -48,7 +47,8 @@ private const val FILE_NAME_MAX_LINES = 3
 fun FileNameText(
     text: String,
     modifier: Modifier = Modifier,
-    style: TextStyle = LocalTextStyle.current,
+    // miuix 无 LocalTextStyle 等价物；当前全部调用方都显式传 style，默认值仅兜底
+    style: TextStyle = TextStyle.Default,
     color: Color = Color.Unspecified,
     fontWeight: FontWeight? = null,
     maxLines: Int = FILE_NAME_MAX_LINES,
