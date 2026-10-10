@@ -36,20 +36,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import top.yukonga.miuix.kmp.basic.SnackbarHost
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -66,16 +52,28 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import com.yunx.app.ui.AppSnackbarHost
 import com.yunx.app.ui.SnackbarController
 import com.yunx.app.ui.rememberGlobalSnackbarHostState
 import com.yunx.app.ui.viewmodel.LanzouAccountViewModel
 import kotlinx.coroutines.launch
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.ButtonDefaults
+import top.yukonga.miuix.kmp.basic.CircularProgressIndicator
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.Scaffold
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.basic.TextButton
+import top.yukonga.miuix.kmp.basic.TextField
+import top.yukonga.miuix.kmp.basic.TopAppBar
+import top.yukonga.miuix.kmp.overlay.OverlayDialog
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /**
  * 蓝奏云登录页（仅账号密码登录）：
  * 调用官网登录接口（accounts.woozooo.com，含 acw_sc__v2 人机校验）换取 Cookie 并落库。
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LanzouLoginScreen(
     viewModel: LanzouAccountViewModel,
@@ -95,10 +93,10 @@ fun LanzouLoginScreen(
     BackHandler(enabled = !isSaving) { onBack() }
 
     Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        snackbarHost = { AppSnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text("蓝奏云登录", style = MaterialTheme.typography.titleLarge) },
+                title = "蓝奏云登录",
                 navigationIcon = {
                     IconButton(onClick = { if (!isSaving) onBack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
@@ -109,11 +107,11 @@ fun LanzouLoginScreen(
                         Icon(
                             Icons.Outlined.Info,
                             contentDescription = "登录说明",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            tint = MiuixTheme.colorScheme.onSurfaceVariantActions
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
+                color = MiuixTheme.colorScheme.surface
             )
         }
     ) { innerPadding ->
@@ -127,31 +125,32 @@ fun LanzouLoginScreen(
         ) {
             Text(
                 text = "使用蓝奏云账号密码登录（官方接口，自动通过人机校验）",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                style = MiuixTheme.textStyles.body2,
+                color = MiuixTheme.colorScheme.onSurfaceVariantSummary
             )
 
-            OutlinedTextField(
+            TextField(
                 value = account,
                 onValueChange = {
                     account = it
                     error = null
                 },
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("用户名 / 账号 / 手机号") },
+                label = "用户名 / 账号 / 手机号",
+                useLabelAsPlaceholder = true,
                 singleLine = true,
-                enabled = !isSaving,
-                shape = MaterialTheme.shapes.large
+                enabled = !isSaving
             )
 
-            OutlinedTextField(
+            TextField(
                 value = password,
                 onValueChange = {
                     password = it
                     error = null
                 },
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("密码") },
+                label = "密码",
+                useLabelAsPlaceholder = true,
                 singleLine = true,
                 enabled = !isSaving,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
@@ -164,16 +163,15 @@ fun LanzouLoginScreen(
                             contentDescription = if (passwordVisible) "隐藏密码" else "显示密码"
                         )
                     }
-                },
-                shape = MaterialTheme.shapes.large
+                }
             )
 
             error?.let {
                 Text(
                     text = it,
                     modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.error
+                    style = MiuixTheme.textStyles.footnote1,
+                    color = MiuixTheme.colorScheme.error
                 )
             }
 
@@ -193,39 +191,47 @@ fun LanzouLoginScreen(
                     }
                 },
                 modifier = Modifier.fillMaxWidth().height(48.dp),
-                enabled = account.isNotBlank() && password.isNotBlank() && !isSaving
+                enabled = account.isNotBlank() && password.isNotBlank() && !isSaving,
+                colors = ButtonDefaults.buttonColorsPrimary()
             ) {
                 if (isSaving) {
                     CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("登录中…")
+                    Text("登录中…", style = MiuixTheme.textStyles.button)
                 } else {
-                    Text("登录")
+                    Text("登录", style = MiuixTheme.textStyles.button)
                 }
             }
         }
     }
 
-    if (showTutorial) {
-        AlertDialog(
-            onDismissRequest = { showTutorial = false },
-            icon = { Icon(Icons.Outlined.Info, contentDescription = null) },
-            title = { Text("登录说明") },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("1. 输入蓝奏云账号（用户名或手机号）与密码后点击「登录」。", style = MaterialTheme.typography.bodyMedium)
-                    Text(
-                        "2. 登录成功后 Cookie 会加密保存在本机，用于个人盘与分享转存。",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Text(
-                        "3. 若提示密码错误，请核对后重试（连续失败请稍后再试）。",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            },
-            confirmButton = { TextButton(onClick = { showTutorial = false }) { Text("知道了") } }
-        )
+    OverlayDialog(
+        show = showTutorial,
+        title = "登录说明",
+        onDismissRequest = { showTutorial = false }
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text("1. 输入蓝奏云账号（用户名或手机号）与密码后点击「登录」。", style = MiuixTheme.textStyles.body2)
+            Text(
+                "2. 登录成功后 Cookie 会加密保存在本机，用于个人盘与分享转存。",
+                style = MiuixTheme.textStyles.body2
+            )
+            Text(
+                "3. 若提示密码错误，请核对后重试（连续失败请稍后再试）。",
+                style = MiuixTheme.textStyles.body2,
+                color = MiuixTheme.colorScheme.onSurfaceVariantSummary
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            TextButton(
+                text = "知道了",
+                onClick = { showTutorial = false },
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
     }
 }

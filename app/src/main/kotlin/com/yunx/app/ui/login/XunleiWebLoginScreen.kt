@@ -27,30 +27,14 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.ContentPaste
-import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import top.yukonga.miuix.kmp.basic.SnackbarHost
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -64,12 +48,25 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.yunx.app.data.network.XunleiWebCredential
+import com.yunx.app.ui.AppSnackbarHost
 import com.yunx.app.ui.SnackbarController
 import com.yunx.app.ui.components.YunXWavyLoading
 import com.yunx.app.ui.rememberGlobalSnackbarHostState
 import com.yunx.app.ui.viewmodel.XunleiAccountViewModel
 import com.yunx.app.util.DiagnosticLog
 import kotlinx.coroutines.launch
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.ButtonDefaults
+import top.yukonga.miuix.kmp.basic.CircularProgressIndicator
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.Scaffold
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.basic.TextButton
+import top.yukonga.miuix.kmp.basic.TextField
+import top.yukonga.miuix.kmp.basic.TopAppBar
+import top.yukonga.miuix.kmp.overlay.OverlayDialog
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /**
  * 迅雷网页登录页：在应用内打开 pan.xunlei.com，由官网页面完成登录（扫码 / 账号密码 / 验证码都由它自己处理）。
@@ -80,7 +77,6 @@ import kotlinx.coroutines.launch
  * 为什么值得单独做一条网页登录：迅雷对「App 通道的账号密码/短信登录」风控很严（新设备必触发 review_panel），
  * 而网页版登录走的是另一套接口，不受这套风控影响，是收不到短信/密码被拦时最稳的一条路。
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun XunleiWebLoginScreen(
     viewModel: XunleiAccountViewModel,
@@ -162,13 +158,16 @@ fun XunleiWebLoginScreen(
     val snackbarHostState = rememberGlobalSnackbarHostState()
 
     Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        snackbarHost = { AppSnackbarHost(snackbarHostState, modifier = Modifier.padding(bottom = 16.dp)) },
         topBar = {
             TopAppBar(
-                title = { Text("迅雷网页登录", style = MaterialTheme.typography.titleLarge) },
+                title = "迅雷网页登录",
                 navigationIcon = {
                     IconButton(onClick = { if (!isSaving && !isSavingManual) onBack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "返回"
+                        )
                     }
                 },
                 actions = {
@@ -177,41 +176,44 @@ fun XunleiWebLoginScreen(
                         enabled = !isSaving && !isSavingManual
                     ) {
                         Icon(
-                            Icons.Outlined.ContentPaste,
+                            imageVector = Icons.Outlined.ContentPaste,
                             contentDescription = "手动粘贴登录凭据",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            tint = MiuixTheme.colorScheme.onSurfaceVariantActions
                         )
                     }
-                    TextButton(
-                        onClick = {
-                            scope.launch {
-                                isSaving = true
-                                try {
-                                    // 从网页 localStorage 提取登录凭据并校验落库
-                                    val raw = webView.evaluateJsEncoded(XunleiWebCredential.READ_SCRIPT)
-                                    val saved = raw.isNotBlank() && viewModel.saveWebCredential(raw)
-                                    if (saved) {
-                                        SnackbarController.show("登录成功")
-                                        onSaved()
-                                    } else {
-                                        SnackbarController.show("未检测到登录态，请先在网页中完成登录")
+                    if (isSaving) {
+                        CircularProgressIndicator(
+                            modifier = Modifier
+                                .padding(horizontal = 12.dp)
+                                .size(20.dp),
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        TextButton(
+                            text = "保存",
+                            onClick = {
+                                scope.launch {
+                                    isSaving = true
+                                    try {
+                                        // 从网页 localStorage 提取登录凭据并校验落库
+                                        val raw = webView.evaluateJsEncoded(XunleiWebCredential.READ_SCRIPT)
+                                        val saved = raw.isNotBlank() && viewModel.saveWebCredential(raw)
+                                        if (saved) {
+                                            SnackbarController.show("登录成功")
+                                            onSaved()
+                                        } else {
+                                            SnackbarController.show("未检测到登录态，请先在网页中完成登录")
+                                        }
+                                    } finally {
+                                        // 必须 finally：抛异常时「保存」按钮要能恢复可点，否则这个页面就废了
+                                        isSaving = false
                                     }
-                                } finally {
-                                    // 必须 finally：抛异常时「保存」按钮要能恢复可点，否则这个页面就废了
-                                    isSaving = false
                                 }
-                            }
-                        },
-                        enabled = !isSaving && !isSavingManual
-                    ) {
-                        if (isSaving) {
-                            CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
-                        } else {
-                            Text("保存")
-                        }
+                            },
+                            enabled = !isSaving && !isSavingManual
+                        )
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
+                }
             )
         }
     ) { innerPadding ->
@@ -223,66 +225,85 @@ fun XunleiWebLoginScreen(
         }
     }
 
-    if (showTutorial) {
-        AlertDialog(
-            onDismissRequest = { showTutorial = false },
-            icon = { Icon(Icons.Outlined.Info, contentDescription = null) },
-            title = { Text("网页登录说明") },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(
-                        text = "1. 在下方网页中登录迅雷账号（手机号验证码 / 扫码 / 密码都行）",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Text(
-                        text = "2. 登录完成后会自动识别并登录，通常无需手动操作",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Text(
-                        text = "3. 若没自动登录，可点右上角「保存」手动提取一次",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Text(
-                        text = "4. 仍不行就点「粘贴」图标，把网页登录后的凭据 JSON 贴进来",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Text(
-                        text = "5. 网页登录的令牌可自动续期；失效后需重新登录",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = { showTutorial = false }) { Text("知道了") }
-            }
+    // 网页登录说明弹窗
+    OverlayDialog(
+        show = showTutorial,
+        title = "网页登录说明",
+        onDismissRequest = { showTutorial = false }
+    ) {
+        Column(
+            modifier = Modifier.padding(bottom = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                text = "1. 在下方网页中登录迅雷账号（手机号验证码 / 扫码 / 密码都行）",
+                style = MiuixTheme.textStyles.body1,
+                color = MiuixTheme.colorScheme.onSurface
+            )
+            Text(
+                text = "2. 登录完成后会自动识别并登录，通常无需手动操作",
+                style = MiuixTheme.textStyles.body1,
+                color = MiuixTheme.colorScheme.onSurface
+            )
+            Text(
+                text = "3. 若没自动登录，可点右上角「保存」手动提取一次",
+                style = MiuixTheme.textStyles.body1,
+                color = MiuixTheme.colorScheme.onSurface
+            )
+            Text(
+                text = "4. 仍不行就点「粘贴」图标，把网页登录后的凭据 JSON 贴进来",
+                style = MiuixTheme.textStyles.body1,
+                color = MiuixTheme.colorScheme.onSurface
+            )
+            Text(
+                text = "5. 网页登录的令牌可自动续期；失效后需重新登录",
+                style = MiuixTheme.textStyles.body2,
+                color = MiuixTheme.colorScheme.onSurfaceVariantSummary
+            )
+        }
+        TextButton(
+            text = "知道了",
+            onClick = { showTutorial = false },
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.textButtonColorsPrimary()
         )
     }
 
-    if (showPasteDialog) {
-        AlertDialog(
-            onDismissRequest = { if (!isSavingManual) showPasteDialog = false },
-            title = { Text("手动粘贴登录凭据") },
-            text = {
-                Column {
-                    Text(
-                        text = "在电脑浏览器登录 pan.xunlei.com 后，从开发者工具复制 localStorage 中 " +
-                            "${XunleiWebCredential.STORAGE_KEY} 的值（整段 JSON 即可）",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    OutlinedTextField(
-                        value = pasteInput,
-                        onValueChange = { pasteInput = it },
-                        modifier = Modifier.fillMaxWidth(),
-                        placeholder = { Text("粘贴凭据 JSON…") },
-                        minLines = 4,
-                        maxLines = 8
-                    )
-                }
-            },
-            confirmButton = {
+    // 手动粘贴凭据弹窗
+    OverlayDialog(
+        show = showPasteDialog,
+        title = "手动粘贴登录凭据",
+        onDismissRequest = { if (!isSavingManual) showPasteDialog = false }
+    ) {
+        Column {
+            Text(
+                text = "在电脑浏览器登录 pan.xunlei.com 后，从开发者工具复制 localStorage 中 " +
+                    "${XunleiWebCredential.STORAGE_KEY} 的值（整段 JSON 即可）",
+                style = MiuixTheme.textStyles.body2,
+                color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                modifier = Modifier.padding(bottom = 12.dp)
+            )
+            TextField(
+                value = pasteInput,
+                onValueChange = { pasteInput = it },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp),
+                label = "粘贴凭据 JSON…",
+                useLabelAsPlaceholder = true,
+                minLines = 4,
+                maxLines = 8
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                TextButton(
+                    text = "取消",
+                    onClick = { if (!isSavingManual) showPasteDialog = false },
+                    modifier = Modifier.weight(1f),
+                    enabled = !isSavingManual
+                )
                 Button(
                     onClick = {
                         scope.launch {
@@ -301,21 +322,20 @@ fun XunleiWebLoginScreen(
                             }
                         }
                     },
-                    enabled = pasteInput.isNotBlank() && !isSavingManual
+                    modifier = Modifier.weight(1f),
+                    enabled = pasteInput.isNotBlank() && !isSavingManual,
+                    colors = ButtonDefaults.buttonColorsPrimary()
                 ) {
                     if (isSavingManual) {
-                        CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            strokeWidth = 2.dp
+                        )
                     } else {
                         Text("保存")
                     }
                 }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = { if (!isSavingManual) showPasteDialog = false },
-                    enabled = !isSavingManual
-                ) { Text("取消") }
             }
-        )
+        }
     }
 }

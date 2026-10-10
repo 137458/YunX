@@ -39,21 +39,6 @@ import androidx.compose.material.icons.outlined.Phone
 import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import top.yukonga.miuix.kmp.basic.SnackbarHost
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -67,16 +52,28 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import com.yunx.app.ui.AppSnackbarHost
 import com.yunx.app.ui.SnackbarController
 import com.yunx.app.ui.rememberGlobalSnackbarHostState
 import com.yunx.app.ui.viewmodel.GuangYaAccountViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.ButtonDefaults
+import top.yukonga.miuix.kmp.basic.CircularProgressIndicator
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.Scaffold
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.basic.TextButton
+import top.yukonga.miuix.kmp.basic.TextField
+import top.yukonga.miuix.kmp.basic.TopAppBar
+import top.yukonga.miuix.kmp.overlay.OverlayDialog
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /** 验证码重发倒计时（秒），与迅雷短信流程保持同一观感。 */
 private const val SMS_COUNTDOWN_SECONDS = 60
@@ -87,7 +84,6 @@ private const val SMS_COUNTDOWN_SECONDS = 60
  * - 登录按键下方提供「验证码登录」入口，切换到手机号短信验证码流程（文档 §2.6-§2.8）：
  *   发送验证码 → 校验换 verification_token → 老用户 signin / 新用户自动 signup。
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GuangYaLoginScreen(
     viewModel: GuangYaAccountViewModel,
@@ -146,25 +142,27 @@ fun GuangYaLoginScreen(
     }
 
     Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        snackbarHost = { AppSnackbarHost(snackbarHostState, modifier = Modifier.padding(bottom = 16.dp)) },
         topBar = {
             TopAppBar(
-                title = { Text("光鸭云盘登录", style = MaterialTheme.typography.titleLarge) },
+                title = "光鸭云盘登录",
                 navigationIcon = {
                     IconButton(onClick = { if (!isSaving && !isSendingSms) onBack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "返回"
+                        )
                     }
                 },
                 actions = {
                     IconButton(onClick = { showTutorial = true }, enabled = !isSaving && !isSendingSms) {
                         Icon(
-                            Icons.Outlined.Info,
+                            imageVector = Icons.Outlined.Info,
                             contentDescription = "登录教程",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            tint = MiuixTheme.colorScheme.onSurfaceVariantActions
                         )
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
+                }
             )
         }
     ) { innerPadding ->
@@ -179,33 +177,33 @@ fun GuangYaLoginScreen(
             Text(
                 text = if (smsMode) "使用手机号接收短信验证码登录 / 注册（新用户自动注册）"
                 else "使用光鸭云盘账号密码登录（如账号未设置密码，请到官网完成设置）",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                style = MiuixTheme.textStyles.body2,
+                color = MiuixTheme.colorScheme.onSurfaceVariantSummary
             )
 
             if (!smsMode) {
-                OutlinedTextField(
+                TextField(
                     value = account,
                     onValueChange = {
                         account = it
                         error = null
                     },
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text("账号") },
-                    placeholder = { Text("手机号 / 邮箱 / 用户名") },
+                    label = "账号",
+                    useLabelAsPlaceholder = true,
                     singleLine = true,
-                    enabled = !isSaving,
-                    shape = MaterialTheme.shapes.large
+                    enabled = !isSaving
                 )
 
-                OutlinedTextField(
+                TextField(
                     value = password,
                     onValueChange = {
                         password = it
                         error = null
                     },
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text("密码") },
+                    label = "密码",
+                    useLabelAsPlaceholder = true,
                     singleLine = true,
                     enabled = !isSaving,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
@@ -214,20 +212,19 @@ fun GuangYaLoginScreen(
                     trailingIcon = {
                         IconButton(onClick = { passwordVisible = !passwordVisible }) {
                             Icon(
-                                if (passwordVisible) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
+                                imageVector = if (passwordVisible) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
                                 contentDescription = if (passwordVisible) "隐藏密码" else "显示密码"
                             )
                         }
-                    },
-                    shape = MaterialTheme.shapes.large
+                    }
                 )
 
                 error?.let {
                     Text(
                         text = it,
                         modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.error
+                        style = MiuixTheme.textStyles.footnote1,
+                        color = MiuixTheme.colorScheme.error
                     )
                 }
 
@@ -247,7 +244,8 @@ fun GuangYaLoginScreen(
                         }
                     },
                     modifier = Modifier.fillMaxWidth().height(48.dp),
-                    enabled = account.isNotBlank() && password.isNotBlank() && !isSaving
+                    enabled = account.isNotBlank() && password.isNotBlank() && !isSaving,
+                    colors = ButtonDefaults.buttonColorsPrimary()
                 ) {
                     if (isSaving) {
                         CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
@@ -260,17 +258,16 @@ fun GuangYaLoginScreen(
 
                 // 登录按键下方的「验证码登录」入口：切到手机号短信验证码表单
                 TextButton(
+                    text = "验证码登录",
                     onClick = {
                         smsMode = true
                         error = null
                     },
                     enabled = !isSaving,
                     modifier = Modifier.align(Alignment.CenterHorizontally)
-                ) {
-                    Text("验证码登录", style = MaterialTheme.typography.bodyMedium)
-                }
+                )
             } else {
-                OutlinedTextField(
+                TextField(
                     value = phone,
                     onValueChange = {
                         phone = it
@@ -282,13 +279,12 @@ fun GuangYaLoginScreen(
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text("手机号") },
-                    placeholder = { Text("+86 13800000000") },
+                    label = "手机号",
+                    useLabelAsPlaceholder = true,
                     leadingIcon = { Icon(Icons.Outlined.Phone, contentDescription = null) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                     singleLine = true,
-                    enabled = !isSaving,
-                    shape = MaterialTheme.shapes.large
+                    enabled = !isSaving
                 )
 
                 Row(
@@ -296,24 +292,25 @@ fun GuangYaLoginScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    OutlinedTextField(
+                    TextField(
                         value = smsCode,
                         onValueChange = {
                             smsCode = it
                             error = null
                         },
                         modifier = Modifier.weight(1f),
-                        label = { Text("短信验证码") },
+                        label = "短信验证码",
+                        useLabelAsPlaceholder = true,
                         leadingIcon = { Icon(Icons.Outlined.Shield, contentDescription = null) },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         singleLine = true,
-                        enabled = !isSaving,
-                        shape = MaterialTheme.shapes.large
+                        enabled = !isSaving
                     )
-                    OutlinedButton(
+                    Button(
                         onClick = sendSmsCode,
                         enabled = phone.isNotBlank() && countdown == 0 && !isSendingSms,
-                        modifier = Modifier.height(56.dp)
+                        modifier = Modifier.height(56.dp),
+                        colors = ButtonDefaults.buttonColors()
                     ) {
                         if (isSendingSms) {
                             CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
@@ -330,8 +327,8 @@ fun GuangYaLoginScreen(
                     Text(
                         text = it,
                         modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.error
+                        style = MiuixTheme.textStyles.footnote1,
+                        color = MiuixTheme.colorScheme.error
                     )
                 }
 
@@ -353,7 +350,8 @@ fun GuangYaLoginScreen(
                         }
                     },
                     modifier = Modifier.fillMaxWidth().height(48.dp),
-                    enabled = phone.isNotBlank() && smsCode.isNotBlank() && verificationId.isNotBlank() && !isSaving
+                    enabled = phone.isNotBlank() && smsCode.isNotBlank() && verificationId.isNotBlank() && !isSaving,
+                    colors = ButtonDefaults.buttonColorsPrimary()
                 ) {
                     if (isSaving) {
                         CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
@@ -365,45 +363,54 @@ fun GuangYaLoginScreen(
                 }
 
                 TextButton(
+                    text = "返回密码登录",
                     onClick = {
                         smsMode = false
                         error = null
                     },
                     enabled = !isSaving,
                     modifier = Modifier.align(Alignment.CenterHorizontally)
-                ) {
-                    Text("返回密码登录", style = MaterialTheme.typography.bodyMedium)
-                }
+                )
             }
         }
     }
 
-    if (showTutorial) {
-        AlertDialog(
-            onDismissRequest = { showTutorial = false },
-            icon = { Icon(Icons.Outlined.Info, contentDescription = null) },
-            title = { Text("登录说明") },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("1. 输入光鸭云盘账号与密码后点击「登录」。", style = MaterialTheme.typography.bodyMedium)
-                    Text(
-                        "2. 也可点「验证码登录」，用手机号接收短信验证码登录（新用户自动注册）。",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Text(
-                        "3. 登录成功后 access / refresh 令牌与设备标识会加密保存在本机。",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Text(
-                        "4. 若提示需要安全验证，请重试或改用其它登录方式。",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = { showTutorial = false }) { Text("知道了") }
-            }
+    // 登录说明弹窗
+    OverlayDialog(
+        show = showTutorial,
+        title = "登录说明",
+        onDismissRequest = { showTutorial = false }
+    ) {
+        Column(
+            modifier = Modifier.padding(bottom = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                text = "1. 输入光鸭云盘账号与密码后点击「登录」。",
+                style = MiuixTheme.textStyles.body1,
+                color = MiuixTheme.colorScheme.onSurface
+            )
+            Text(
+                text = "2. 也可点「验证码登录」，用手机号接收短信验证码登录（新用户自动注册）。",
+                style = MiuixTheme.textStyles.body1,
+                color = MiuixTheme.colorScheme.onSurface
+            )
+            Text(
+                text = "3. 登录成功后 access / refresh 令牌与设备标识会加密保存在本机。",
+                style = MiuixTheme.textStyles.body1,
+                color = MiuixTheme.colorScheme.onSurface
+            )
+            Text(
+                text = "4. 若提示需要安全验证，请重试或改用其它登录方式。",
+                style = MiuixTheme.textStyles.body2,
+                color = MiuixTheme.colorScheme.onSurfaceVariantSummary
+            )
+        }
+        TextButton(
+            text = "知道了",
+            onClick = { showTutorial = false },
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.textButtonColorsPrimary()
         )
     }
 }

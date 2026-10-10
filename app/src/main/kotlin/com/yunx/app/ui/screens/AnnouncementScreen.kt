@@ -40,15 +40,9 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -78,6 +72,13 @@ import com.yunx.app.ui.components.RemoteImage
 import com.yunx.app.ui.theme.effectsDefault
 import com.yunx.app.ui.viewmodel.AnnouncementViewModel
 import kotlinx.coroutines.launch
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.Surface
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.basic.TextButton
+import top.yukonga.miuix.kmp.overlay.OverlayDialog
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /** 公告的共享元素 key：列表项（源）与详情页容器（目标）必须用同一个 key，形变才会发生 */
 internal fun announcementSharedKey(id: String): String = "announcement-item-$id"
@@ -398,7 +399,7 @@ private fun AnnouncementImageViewerPage(
             ) {
                 Text(
                     text = caption,
-                    style = MaterialTheme.typography.labelMedium,
+                    style = MiuixTheme.textStyles.footnote2,
                     modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp)
                 )
             }
@@ -418,7 +419,7 @@ private const val ViewerDoubleTapScale = 2.5f
 /**
  * 顶栏公告入口的未读红点角标（>99 显示 `99+`）。
  *
- * 为什么不用 material3 的 `BadgedBox`：那颗角标要叠在 24dp 图标上、自己控制偏移与最小尺寸，
+ * 为什么不用现成的角标组件（如 material3 的 `BadgedBox`）：那颗角标要叠在 24dp 图标上、自己控制偏移与最小尺寸，
  * 这里用 Surface + Text 手搓，样式完全可控（也免得跟着 alpha 版的组件 API 走）。
  */
 @Composable
@@ -427,8 +428,8 @@ internal fun AnnouncementUnreadBadge(count: Int, modifier: Modifier = Modifier) 
     Surface(
         modifier = modifier,
         shape = CircleShape,
-        color = MaterialTheme.colorScheme.error,
-        contentColor = MaterialTheme.colorScheme.onError
+        color = MiuixTheme.colorScheme.error,
+        contentColor = MiuixTheme.colorScheme.onError
     ) {
         Box(
             modifier = Modifier.padding(horizontal = 5.dp, vertical = 1.dp),
@@ -436,7 +437,7 @@ internal fun AnnouncementUnreadBadge(count: Int, modifier: Modifier = Modifier) 
         ) {
             Text(
                 text = if (count > 99) "99+" else count.toString(),
-                style = MaterialTheme.typography.labelSmall,
+                style = MiuixTheme.textStyles.footnote2,
                 fontSize = 10.sp,
                 lineHeight = 12.sp,
                 fontWeight = FontWeight.SemiBold,
@@ -450,7 +451,7 @@ internal fun AnnouncementUnreadBadge(count: Int, modifier: Modifier = Modifier) 
  * 启动弹窗：展示「未读的置顶公告」，没有置顶则展示「最新的一条未读」（候选逻辑见
  * `AnnouncementViewModel.pickPopupCandidate`）。
  *
- * 用 AlertDialog 而不是底部弹窗：它需要被明确看到（置顶公告相当于官方通知），
+ * 用居中弹窗（miuix `OverlayDialog`）而不是底部弹窗：它需要被明确看到（置顶公告相当于官方通知），
  * 也与「发现新版本」的更新弹窗（UpdateDialog）在观感上区分开。
  * 两个出口都算已读：点「查看详情」进详情页、点「知道了」/ 点空白关掉。
  */
@@ -466,65 +467,77 @@ fun AnnouncementPopupDialog(
         relativeTime(announcement.effectiveMillis).takeIf { it.isNotBlank() }
     ).joinToString(" · ")
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        icon = {
+    // OverlayDialog 需要 Boolean 的 show 状态：本弹窗「被组合即在展示」（是否弹出由调用方
+    // 持有的 announcement 决定），这里用本地状态镜像它，收起时置 false 走组件自己的退场。
+    var show by remember { mutableStateOf(true) }
+
+    OverlayDialog(
+        show = show,
+        title = announcement.title,
+        onDismissRequest = {
+            show = false
+            onDismiss()
+        }
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+        ) {
             AnnouncementChip(
                 text = if (announcement.isPinned) "置顶公告" else "最新公告",
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                containerColor = MiuixTheme.colorScheme.primaryContainer,
+                contentColor = MiuixTheme.colorScheme.onPrimaryContainer
             )
-        },
-        title = {
-            Text(
-                text = announcement.title,
-                style = MaterialTheme.typography.titleMedium,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
-            )
-        },
-        text = {
-            Column {
-                val cover = announcement.coverImage
-                if (!cover.isNullOrBlank()) {
-                    // ★ 弹窗封面走**固定高度**，不用 autoHeight：弹窗高度必须可预期 ——
-                    //   按图片原始比例的话，一张方图/长图就能把弹窗撑满、把标题和摘要挤成一团
-                    //   （实测症状：图片占了大半个弹窗、标题看不见、摘要压在图上）。
-                    //   写死 180dp + Crop 铺满，任何比例的图都只占 180dp。
-                    RemoteImage(
-                        url = cover,
-                        contentDescription = null,
-                        shape = MaterialTheme.shapes.medium,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(180.dp)
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                }
-                if (announcement.summary.isNotBlank()) {
-                    Text(
-                        text = announcement.summary,
-                        style = MaterialTheme.typography.bodyMedium,
-                        maxLines = 4,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                }
-                if (meta.isNotBlank()) {
-                    Text(
-                        text = meta,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+            Spacer(modifier = Modifier.height(10.dp))
+            val cover = announcement.coverImage
+            if (!cover.isNullOrBlank()) {
+                // ★ 弹窗封面走**固定高度**，不用 autoHeight：弹窗高度必须可预期 ——
+                //   按图片原始比例的话，一张方图/长图就能把弹窗撑满、把标题和摘要挤成一团
+                //   （实测症状：图片占了大半个弹窗、标题看不见、摘要压在图上）。
+                //   写死 180dp + Crop 铺满，任何比例的图都只占 180dp。
+                RemoteImage(
+                    url = cover,
+                    contentDescription = null,
+                    shape = RoundedCornerShape(12.dp),
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(180.dp)
+                )
+                Spacer(modifier = Modifier.height(12.dp))
             }
-        },
-        confirmButton = {
-            TextButton(onClick = onDetail) { Text("查看详情") }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("知道了") }
+            if (announcement.summary.isNotBlank()) {
+                Text(
+                    text = announcement.summary,
+                    style = MiuixTheme.textStyles.body2,
+                    maxLines = 4,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+            if (meta.isNotBlank()) {
+                Text(
+                    text = meta,
+                    style = MiuixTheme.textStyles.footnote2,
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary
+                )
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+            TextButton(
+                text = "查看详情",
+                onClick = onDetail,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            TextButton(
+                text = "知道了",
+                onClick = {
+                    show = false
+                    onDismiss()
+                },
+                modifier = Modifier.fillMaxWidth()
+            )
         }
-    )
+    }
 }

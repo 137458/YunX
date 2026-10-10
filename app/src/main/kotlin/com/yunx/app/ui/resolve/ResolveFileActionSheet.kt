@@ -32,9 +32,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.SaveAlt
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.MaterialTheme
 import com.yunx.app.ui.components.rememberOperationSheetState
 import com.yunx.app.ui.components.OperationSheet
 import androidx.compose.runtime.Composable
@@ -51,9 +48,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.outlined.Folder
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import com.yunx.app.ui.theme.SquircleShape
+import top.yukonga.miuix.kmp.basic.HorizontalDivider
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.Surface
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.font.FontWeight
 import com.yunx.app.data.network.model.ShareFile
@@ -69,16 +69,15 @@ private enum class ResolveActionStep { MENU, SAVE }
  * 解析页文件操作弹窗（点击文件行打开；文件夹行由行尾「更多」按钮打开）。
  *
  * 与网盘页的 [com.yunx.app.ui.screens.FileActionSheet] 保持同一形态与过渡：
- * 同为 M3 [ModalBottomSheet] + 顶部文件信息（[FileSheetHeader]）+ [ActionItem] 操作项，
+ * 同为底部操作抽屉（外壳 [OperationSheet]）+ 顶部文件信息（[FileSheetHeader]）+ [ActionItem] 操作项，
  * 区别只在可做的事 —— 分享里的文件不属于自己，没有分享/移动/重命名/删除。
  *
  * 过渡：
  * - 「转存」是**本弹窗内的第二级步骤**（与网盘页的「移动到」完全一致）：内容淡入淡出切换，
  *   不再关掉弹窗另开一个转存弹窗；返回箭头回到主菜单。
  * - 下载类动作没有第二级内容（下载链接弹窗是独立弹窗），先把弹窗滑下去
- *   （[androidx.compose.material3.SheetState.hide]）再执行，避免两个弹窗叠在一起。
+ *   （`sheetState.hide()`）再执行，避免两个弹窗叠在一起。
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun ResolveFileActionSheet(
     file: ShareFile,
@@ -140,7 +139,7 @@ internal fun ResolveFileActionSheet(
                             icon = Icons.Outlined.Download,
                             title = "下载文件夹",
                             desc = "递归下载整个文件夹，保持目录结构",
-                            tint = MaterialTheme.colorScheme.primary,
+                            tint = MiuixTheme.colorScheme.primary,
                             onClick = { act(onDownloadFolder) }
                         )
                     } else {
@@ -148,7 +147,7 @@ internal fun ResolveFileActionSheet(
                             icon = Icons.Outlined.Download,
                             title = "下载",
                             desc = "获取下载链接并保存到本机",
-                            tint = MaterialTheme.colorScheme.primary,
+                            tint = MiuixTheme.colorScheme.primary,
                             onClick = { act(onDownload) }
                         )
                     }
@@ -158,7 +157,7 @@ internal fun ResolveFileActionSheet(
                             icon = Icons.Outlined.SaveAlt,
                             title = "转存",
                             desc = if (file.isdir) "把整个文件夹存到我的网盘" else "把文件存到我的网盘",
-                            tint = MaterialTheme.colorScheme.primary,
+                            tint = MiuixTheme.colorScheme.primary,
                             // 不关弹窗：先准备转存状态，再切到转存步骤（内容淡入）
                             onClick = {
                                 onSave()
@@ -195,7 +194,7 @@ internal fun ActionItem(
     ) {
         Surface(
             modifier = Modifier.size(38.dp),
-            shape = MaterialTheme.shapes.large,
+            shape = SquircleShape(10.dp),
             color = tint.copy(alpha = 0.12f)
         ) {
             Box(contentAlignment = Alignment.Center) {
@@ -204,11 +203,11 @@ internal fun ActionItem(
         }
         Spacer(modifier = Modifier.width(14.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(text = title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
+            Text(text = title, style = MiuixTheme.textStyles.body1, fontWeight = FontWeight.Medium)
             Text(
                 text = desc,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                style = MiuixTheme.textStyles.footnote1,
+                color = MiuixTheme.colorScheme.onSurfaceVariantSummary
             )
         }
     }
@@ -219,14 +218,14 @@ internal fun FileSheetHeader(file: ShareFile) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Surface(
             modifier = Modifier.size(40.dp),
-            shape = MaterialTheme.shapes.large,
-            color = MaterialTheme.colorScheme.primaryContainer
+            shape = SquircleShape(12.dp),
+            color = MiuixTheme.colorScheme.primaryContainer
         ) {
             Box(contentAlignment = Alignment.Center) {
                 Icon(
                     imageVector = if (file.isdir) Icons.Outlined.Folder else Icons.Outlined.Download,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer
+                    tint = MiuixTheme.colorScheme.onPrimaryContainer
                 )
             }
         }
@@ -234,13 +233,13 @@ internal fun FileSheetHeader(file: ShareFile) {
         Column(modifier = Modifier.weight(1f)) {
             FileNameText(
                 text = file.fname,
-                style = MaterialTheme.typography.titleMedium,
+                style = MiuixTheme.textStyles.body1,
                 fontWeight = FontWeight.Medium
             )
             Text(
                 text = if (file.isdir) "文件夹" else "文件",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                style = MiuixTheme.textStyles.body2,
+                color = MiuixTheme.colorScheme.onSurfaceVariantSummary
             )
         }
     }

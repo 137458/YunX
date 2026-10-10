@@ -51,32 +51,9 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Cloud
-import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.FolderOpen
-import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.SwapHoriz
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -93,7 +70,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -103,17 +79,32 @@ import com.yunx.app.data.prefs.SettingsRepository
 import com.yunx.app.ui.components.YunXWavyLoading
 import com.yunx.app.ui.components.YunXWavyProgress
 import com.yunx.app.ui.resolve.formatSize
+import com.yunx.app.ui.theme.SquircleShape
 import com.yunx.app.ui.theme.effectsDefault
 import com.yunx.app.ui.theme.effectsFast
 import com.yunx.app.util.PermissionState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.CircularProgressIndicator
+import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.HorizontalDivider
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.Scaffold
+import top.yukonga.miuix.kmp.basic.Surface
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.basic.TextButton
+import top.yukonga.miuix.kmp.basic.TopAppBar
+import top.yukonga.miuix.kmp.overlay.OverlayBottomSheet
+import top.yukonga.miuix.kmp.overlay.OverlayDialog
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /**
  * 下载引擎页（设置 → 下载引擎）：一张卡片里上下两段，对应两套下载器（圆角图标块 + 标题 + 小标签 +
  * 说明 + 整宽按钮，段间一条细分隔线）。字号/圆角/间距刻意压到与设置页同一档
- * （标题 titleMedium、说明 bodySmall、按钮 44dp / 14dp 圆角），避免整页显得笨重。
+ * （标题 body1、说明 footnote1、按钮 44dp / 14dp 圆角），避免整页显得笨重。
  *
  * **本页不做自己的入场动画**：它是由设置页「下载引擎」那一行做容器变换（Container Transform）
  * "长"出来的（源侧 sharedBounds 见 MainScreen，目标侧见 OverlayPage），再叠一层淡入/位移会和形变打架。
@@ -187,11 +178,11 @@ fun DownloadEngineScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
     // 阶段状态全在 KernelProvisioner 单例里（下载跑在它自己的 scope 上，切页/退后台都不影响），
     // 这里只收集它渲染那个**不可关闭**的进度弹窗。
     val provisionPhase by KernelProvisioner.phase.collectAsState()
-    /** 「导入内核」按钮的下拉菜单（来源：云端 / 本地 AAR） */
+    /** 「导入内核」的来源弹窗（来源：云端 / 本地 AAR） */
     var showKernelMenu by remember { mutableStateOf(false) }
     /** 非 null = 云端下载的底部弹窗正在显示（已拿到 Release 且已按本机 ABI 挑好包） */
     var cloudRelease by remember { mutableStateOf<KernelProvisioner.KernelRelease?>(null) }
-    /** 「GitHub 下载」的二级菜单：直链 / 镜像站 */
+    /** 「GitHub 下载」的二级弹窗：直链 / 镜像站 */
     var showGithubDialog by remember { mutableStateOf(false) }
 
     fun refreshSoInfo() {
@@ -322,13 +313,13 @@ fun DownloadEngineScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
         modifier = modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
-                title = { Text("下载引擎", style = MaterialTheme.typography.titleLarge) },
+                title = "下载引擎",
+                color = MiuixTheme.colorScheme.surface,
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
+                }
             )
         }
     ) { innerPadding ->
@@ -344,16 +335,13 @@ fun DownloadEngineScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(
                     "下载引擎决定新任务由谁来执行，已存在的任务不受影响。",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    style = MiuixTheme.textStyles.footnote1,
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                 )
 
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-                    )
+                    cornerRadius = 20.dp
                 ) {
                     Column(modifier = Modifier.fillMaxWidth()) {
                         // ---------- 第 1 段：内置分片下载器 ----------
@@ -370,8 +358,8 @@ fun DownloadEngineScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
                             Text(
                                 "项目自带的下载器：按网盘分片并发、断点续传，保存位置走系统 SAF / MediaStore" +
                                     "（Android 10+ 不需要任何存储权限）。",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                style = MiuixTheme.textStyles.footnote1,
+                                color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                             )
                             EngineActionButton(
                                 selected = !engineOn,
@@ -382,12 +370,10 @@ fun DownloadEngineScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
                             )
                         }
 
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp)
-                                .height(1.dp)
-                                .background(MaterialTheme.colorScheme.outlineVariant)
+                        HorizontalDivider(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            thickness = 1.dp,
+                            color = MiuixTheme.colorScheme.dividerLine
                         )
 
                         // ---------- 第 2 段：Gopeed 引擎 ----------
@@ -405,8 +391,8 @@ fun DownloadEngineScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
                                 "内置 gomobile 核心：多连接分片且自带断点续传；" +
                                     "它是原生核心，只能按真实文件路径落盘（默认公共 Download 目录，" +
                                     "可在设置 →「下载保存目录」里自定义）。",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                style = MiuixTheme.textStyles.footnote1,
+                                color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                             )
 
                             Row(
@@ -421,8 +407,8 @@ fun DownloadEngineScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
                                 }
                                 Text(
                                     "引擎状态：",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    style = MiuixTheme.textStyles.footnote1,
+                                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                                 )
                                 AnimatedContent(
                                     targetState = engineState,
@@ -434,11 +420,11 @@ fun DownloadEngineScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
                                 ) { state ->
                                     Text(
                                         gopeedStateLabel(state),
-                                        style = MaterialTheme.typography.bodySmall,
+                                        style = MiuixTheme.textStyles.footnote1,
                                         color = if (state == GopeedEngine.State.RUNNING) {
-                                            MaterialTheme.colorScheme.primary
+                                            MiuixTheme.colorScheme.primary
                                         } else {
-                                            MaterialTheme.colorScheme.onSurfaceVariant
+                                            MiuixTheme.colorScheme.onSurfaceVariantSummary
                                         }
                                     )
                                 }
@@ -451,8 +437,8 @@ fun DownloadEngineScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
                                 } else {
                                     "内核：未导入（需要 libgopeed-<abi>.aar）"
                                 },
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                style = MiuixTheme.textStyles.footnote1,
+                                color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                             )
 
                             // 内核就绪后才出现的细节：下载目录 + 存储权限
@@ -464,8 +450,8 @@ fun DownloadEngineScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
                                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                                     Text(
                                         "下载目录：${downloadDir.absolutePath}",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        style = MiuixTheme.textStyles.footnote1,
+                                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                                     )
                                     Text(
                                         when {
@@ -477,81 +463,58 @@ fun DownloadEngineScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
                                             else ->
                                                 "存储权限：已就绪，引擎可直接写进上面的真实目录"
                                         },
-                                        style = MaterialTheme.typography.bodySmall,
+                                        style = MiuixTheme.textStyles.footnote1,
                                         color = if (storageBlocked) {
-                                            MaterialTheme.colorScheme.error
+                                            MiuixTheme.colorScheme.error
                                         } else {
-                                            MaterialTheme.colorScheme.onSurfaceVariant
+                                            MiuixTheme.colorScheme.onSurfaceVariantSummary
                                         }
                                     )
                                     if (storageBlocked) {
-                                        TextButton(onClick = { requestStoragePermission() }) {
-                                            Icon(
-                                                Icons.Outlined.FolderOpen,
-                                                contentDescription = null,
-                                                modifier = Modifier.size(16.dp)
-                                            )
-                                            Spacer(Modifier.width(6.dp))
-                                            Text(
-                                                if (needAllFiles) {
-                                                    "去开启「所有文件访问」"
-                                                } else {
-                                                    "授予存储权限"
-                                                }
-                                            )
-                                        }
+                                        TextButton(
+                                            text = if (needAllFiles) {
+                                                "去开启「所有文件访问」"
+                                            } else {
+                                                "授予存储权限"
+                                            },
+                                            onClick = { requestStoragePermission() }
+                                        )
                                     }
                                 }
                             }
 
-                            // 没导入内核时这个按钮是「导入内核」，点它弹来源菜单（云端 / 本地 AAR）；
-                            // 菜单要贴着按钮长，所以包一层 Box 当锚点
-                            Box {
-                                EngineActionButton(
-                                    selected = engineOn,
-                                    icon = when {
-                                        !installed -> Icons.Outlined.Add
-                                        storageBlocked -> Icons.Outlined.FolderOpen
-                                        else -> Icons.Outlined.SwapHoriz
-                                    },
-                                    label = when {
-                                        !installed -> "导入内核"
-                                        engineOn -> "使用中"
-                                        // 没存储权限就不给切：按钮直接变成权限入口（点它去开权限，而不是切完再报错）
-                                        storageBlocked -> "先授予存储权限"
-                                        else -> "切换到此引擎"
-                                    },
-                                    enabled = !busy && (!installed || !engineOn),
-                                    onClick = {
-                                        when {
-                                            !installed -> showKernelMenu = true
-                                            storageBlocked -> requestStoragePermission()
-                                            else -> chooseEngine(SettingsRepository.ENGINE_GOPEED)
-                                        }
+                            // 没导入内核时这个按钮是「导入内核」，点它弹来源弹窗（云端 / 本地 AAR，
+                            // 见页面底部的 KernelSourceMenu）
+                            EngineActionButton(
+                                selected = engineOn,
+                                icon = when {
+                                    !installed -> Icons.Outlined.Add
+                                    storageBlocked -> Icons.Outlined.FolderOpen
+                                    else -> Icons.Outlined.SwapHoriz
+                                },
+                                label = when {
+                                    !installed -> "导入内核"
+                                    engineOn -> "使用中"
+                                    // 没存储权限就不给切：按钮直接变成权限入口（点它去开权限，而不是切完再报错）
+                                    storageBlocked -> "先授予存储权限"
+                                    else -> "切换到此引擎"
+                                },
+                                enabled = !busy && (!installed || !engineOn),
+                                onClick = {
+                                    when {
+                                        !installed -> showKernelMenu = true
+                                        storageBlocked -> requestStoragePermission()
+                                        else -> chooseEngine(SettingsRepository.ENGINE_GOPEED)
                                     }
-                                )
-                                KernelSourceMenu(
-                                    expanded = showKernelMenu,
-                                    onDismiss = { showKernelMenu = false },
-                                    onCloud = {
-                                        showKernelMenu = false
-                                        fetchCloudRelease()
-                                    },
-                                    onLocal = {
-                                        showKernelMenu = false
-                                        importLauncher.launch(
-                                            arrayOf("application/octet-stream", "application/zip", "*/*")
-                                        )
-                                    }
-                                )
-                            }
+                                }
+                            )
 
                             if (installed) {
                                 // 引擎操作行：重启引擎（仅 Gopeed 模式）/ 删除内核。
-                                // 用 FlowRow 而不是 Row：窄屏上两个带图标的文字按钮也可能贴边，
+                                // 用 FlowRow 而不是 Row：窄屏上两个文字按钮也可能贴边，
                                 // 让它自己折行，别硬挤成溢出。
                                 // ★ 这里**没有**「更新内核」入口（用户要求去掉）：已导入状态下要换内核，
-                                //   得先「删除内核」再回到主按钮的「导入内核」走来源菜单。
+                                //   得先「删除内核」再回到主按钮的「导入内核」走来源弹窗。
                                 FlowRow(
                                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                                     verticalArrangement = Arrangement.spacedBy(2.dp)
@@ -561,7 +524,7 @@ fun DownloadEngineScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
                                     // 而且只留「重启」——都切到 Gopeed 了，单独「停止引擎」这个动作没有意义；
                                     // 引擎卡住时能自救的才是重启（停止 + 再启动，stop 是幂等的）。
                                     if (engineOn) {
-                                        TextButton(onClick = {
+                                        TextButton(text = "重启引擎", onClick = {
                                             action {
                                                 withContext(Dispatchers.IO) {
                                                     GopeedEngine.stop()
@@ -574,17 +537,9 @@ fun DownloadEngineScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
                                                 notice = "引擎已重启"
                                                 failure = GopeedEngine.lastError
                                             }
-                                        }) {
-                                            Icon(
-                                                Icons.Outlined.Refresh,
-                                                contentDescription = null,
-                                                modifier = Modifier.size(16.dp)
-                                            )
-                                            Spacer(Modifier.width(6.dp))
-                                            Text("重启引擎")
-                                        }
+                                        })
                                     }
-                                    TextButton(onClick = {
+                                    TextButton(text = "删除内核", onClick = {
                                         action {
                                             withContext(Dispatchers.IO) {
                                                 // uninstall 不允许在运行中删（Go core 还占着 .so），先停掉
@@ -603,23 +558,15 @@ fun DownloadEngineScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
                                             }
                                             failure = GopeedEngine.lastError
                                         }
-                                    }) {
-                                        Icon(
-                                            Icons.Outlined.Delete,
-                                            contentDescription = null,
-                                            modifier = Modifier.size(16.dp)
-                                        )
-                                        Spacer(Modifier.width(6.dp))
-                                        Text("删除内核")
-                                    }
+                                    })
                                 }
                             }
 
                             if (notice.isNotBlank()) {
                                 Text(
                                     notice,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.primary
+                                    style = MiuixTheme.textStyles.footnote1,
+                                    color = MiuixTheme.colorScheme.primary
                                 )
                             }
                             failure?.let { text ->
@@ -627,8 +574,8 @@ fun DownloadEngineScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
                                 SelectionContainer {
                                     Text(
                                         text,
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.error
+                                        style = MiuixTheme.textStyles.footnote1,
+                                        color = MiuixTheme.colorScheme.error
                                     )
                                 }
                                 if (gopeedNeedsRestart(text)) {
@@ -636,8 +583,8 @@ fun DownloadEngineScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
                                         "引擎桥接类一旦初始化失败，JVM 会在本进程内永久记住这次失败：" +
                                             "请到「最近任务」划掉本应用（或系统设置里强行停止）后重新打开，" +
                                             "再点一次启动。",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.error
+                                        style = MiuixTheme.textStyles.footnote1,
+                                        color = MiuixTheme.colorScheme.error
                                     )
                                 }
                             }
@@ -648,7 +595,23 @@ fun DownloadEngineScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
         }
     }
 
-    // ---------- 云端内核：底部弹窗（选来源）+ GitHub 二级菜单 + 不可关闭的进度弹窗 ----------
+    // ---------- 云端内核：来源弹窗 + 底部弹窗（选通道）+ GitHub 二级弹窗 + 不可关闭的进度弹窗 ----------
+
+    // ⓪ 「导入内核」的来源弹窗：从云端下载 / 导入本地 AAR（替代旧的下拉菜单）
+    KernelSourceMenu(
+        expanded = showKernelMenu,
+        onDismiss = { showKernelMenu = false },
+        onCloud = {
+            showKernelMenu = false
+            fetchCloudRelease()
+        },
+        onLocal = {
+            showKernelMenu = false
+            importLauncher.launch(
+                arrayOf("application/octet-stream", "application/zip", "*/*")
+            )
+        }
+    )
 
     // ① 底部弹窗：只在「已拿到 Release」时显示；说明里命中网盘链接才有「网盘自动下载」
     cloudRelease?.let { release ->
@@ -660,14 +623,13 @@ fun DownloadEngineScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
         )
     }
 
-    // ② GitHub 二级菜单：直链 / 镜像站（镜像站失败会自动回退直链）
-    if (showGithubDialog) {
-        KernelGithubDialog(
-            onDirect = { startKernelDownload(KernelProvisioner.Source.GITHUB) },
-            onMirror = { startKernelDownload(KernelProvisioner.Source.GITHUB_MIRROR) },
-            onDismiss = { showGithubDialog = false }
-        )
-    }
+    // ② GitHub 二级弹窗：直链 / 镜像站（镜像站失败会自动回退直链）
+    KernelGithubDialog(
+        show = showGithubDialog,
+        onDirect = { startKernelDownload(KernelProvisioner.Source.GITHUB) },
+        onMirror = { startKernelDownload(KernelProvisioner.Source.GITHUB_MIRROR) },
+        onDismiss = { showGithubDialog = false }
+    )
 
     // ③ 进度弹窗：网上取包到导入完成的全过程都在这里，**点空白/返回键都关不掉**
     //（只有「取消」和终态的「关闭」能走），免得用户手滑把 25MB 的下载甩掉
@@ -679,8 +641,8 @@ fun DownloadEngineScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
 }
 
 /**
- * 「导入内核」的来源菜单：从云端下载（GitHub Release，按本机 ABI 自动挑包）或本地 AAR。
- * 只挂在未导入时的那个主按钮上 —— 已导入状态下**没有**再导入的入口（用户要求去掉「更新内核」），
+ * 「导入内核」的来源弹窗：从云端下载（GitHub Release，按本机 ABI 自动挑包）或本地 AAR。
+ * 只由未导入时的那个主按钮唤起 —— 已导入状态下**没有**再导入的入口（用户要求去掉「更新内核」），
  * 要换内核得先「删除内核」再走这里。
  */
 @Composable
@@ -690,17 +652,34 @@ private fun KernelSourceMenu(
     onCloud: () -> Unit,
     onLocal: () -> Unit
 ) {
-    DropdownMenu(expanded = expanded, onDismissRequest = onDismiss) {
-        DropdownMenuItem(
-            text = { Text("从云端下载") },
-            leadingIcon = { Icon(Icons.Outlined.Cloud, contentDescription = null) },
-            onClick = onCloud
-        )
-        DropdownMenuItem(
-            text = { Text("导入本地 AAR") },
-            leadingIcon = { Icon(Icons.Outlined.Download, contentDescription = null) },
-            onClick = onLocal
-        )
+    OverlayDialog(
+        show = expanded,
+        title = "选择内核来源",
+        onDismissRequest = onDismiss
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+        ) {
+            TextButton(
+                text = "从云端下载",
+                onClick = onCloud,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            TextButton(
+                text = "导入本地 AAR",
+                onClick = onLocal,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            TextButton(
+                text = "取消",
+                onClick = onDismiss,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
     }
 }
 
@@ -709,7 +688,6 @@ private fun KernelSourceMenu(
  * 主按钮「网盘自动下载」**只在 Release 说明里命中网盘链接时**出现，否则只有 GitHub 一条路。
  * 两个通道都会按本机 ABI 自动挑包（`libgopeed-<abi>.aar`），下载完自动导入。
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun KernelCloudSheet(
     release: KernelProvisioner.KernelRelease,
@@ -717,11 +695,9 @@ private fun KernelCloudSheet(
     onGithub: () -> Unit,
     onDismiss: () -> Unit
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = sheetState,
-        containerColor = MaterialTheme.colorScheme.surface
+    OverlayBottomSheet(
+        show = true,
+        onDismissRequest = onDismiss
     ) {
         Column(
             modifier = Modifier
@@ -731,15 +707,15 @@ private fun KernelCloudSheet(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Surface(
                     modifier = Modifier.size(46.dp),
-                    shape = MaterialTheme.shapes.large,
-                    color = MaterialTheme.colorScheme.primaryContainer
+                    shape = SquircleShape(16.dp),
+                    color = MiuixTheme.colorScheme.primaryContainer
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
                             imageVector = Icons.Outlined.Cloud,
                             contentDescription = null,
                             modifier = Modifier.size(24.dp),
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer
+                            tint = MiuixTheme.colorScheme.onPrimaryContainer
                         )
                     }
                 }
@@ -747,14 +723,14 @@ private fun KernelCloudSheet(
                 Column {
                     Text(
                         text = "下载 Gopeed 内核",
-                        style = MaterialTheme.typography.titleLarge,
+                        style = MiuixTheme.textStyles.title4,
                         fontWeight = FontWeight.SemiBold
                     )
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = "版本 ${release.tagName}　·　本机 ${GopeedEngine.preferredAbi()}",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        style = MiuixTheme.textStyles.footnote2,
+                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                     )
                 }
             }
@@ -762,8 +738,8 @@ private fun KernelCloudSheet(
             Spacer(modifier = Modifier.height(18.dp))
 
             Surface(
-                shape = MaterialTheme.shapes.medium,
-                color = MaterialTheme.colorScheme.surfaceContainerLow
+                shape = SquircleShape(12.dp),
+                color = MiuixTheme.colorScheme.surfaceContainer
             ) {
                 Column(
                     modifier = Modifier
@@ -773,8 +749,8 @@ private fun KernelCloudSheet(
                 ) {
                     Text(
                         text = release.assetName,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface
+                        style = MiuixTheme.textStyles.body2,
+                        color = MiuixTheme.colorScheme.onSurface
                     )
                     Text(
                         text = if (release.assetSize > 0L) {
@@ -782,13 +758,13 @@ private fun KernelCloudSheet(
                         } else {
                             "大小未知"
                         },
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        style = MiuixTheme.textStyles.footnote1,
+                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                     )
                     Text(
                         text = "下载完成后自动解包导入，临时包不落到 Download 目录",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        style = MiuixTheme.textStyles.footnote1,
+                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                     )
                 }
             }
@@ -803,48 +779,19 @@ private fun KernelCloudSheet(
                         .fillMaxWidth()
                         .height(48.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Download,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("网盘自动下载")
+                    Text("网盘自动下载", style = MiuixTheme.textStyles.button)
                 }
                 Spacer(modifier = Modifier.height(8.dp))
             }
 
             // ② 次按钮：GitHub 下载（再选直链 / 镜像站）
-            if (release.panUrl != null) {
-                OutlinedButton(
-                    onClick = onGithub,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(46.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Cloud,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("GitHub 下载")
-                }
-            } else {
-                Button(
-                    onClick = onGithub,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Cloud,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("GitHub 下载")
-                }
+            Button(
+                onClick = onGithub,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(if (release.panUrl != null) 46.dp else 48.dp)
+            ) {
+                Text("GitHub 下载", style = MiuixTheme.textStyles.button)
             }
 
             Spacer(modifier = Modifier.height(4.dp))
@@ -854,57 +801,53 @@ private fun KernelCloudSheet(
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                TextButton(onClick = onDismiss) {
-                    Text("取消", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
+                TextButton(text = "取消", onClick = onDismiss)
             }
         }
     }
 }
 
-/** GitHub 通道的二级菜单：直链 / 镜像站（镜像站失效时下载器会自动回退直连） */
+/** GitHub 通道的二级弹窗：直链 / 镜像站（镜像站失效时下载器会自动回退直连） */
 @Composable
 private fun KernelGithubDialog(
+    show: Boolean,
     onDirect: () -> Unit,
     onMirror: () -> Unit,
     onDismiss: () -> Unit
 ) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("GitHub 下载") },
-        text = {
-            Column {
-                Button(onClick = onDirect, modifier = Modifier.fillMaxWidth()) {
-                    Icon(
-                        imageVector = Icons.Outlined.Download,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text("GitHub 直链下载")
-                }
-                Spacer(Modifier.height(8.dp))
-                OutlinedButton(onClick = onMirror, modifier = Modifier.fillMaxWidth()) {
-                    Icon(
-                        imageVector = Icons.Outlined.Cloud,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text("GitHub 镜像站下载")
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text("取消", color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
+    OverlayDialog(
+        show = show,
+        title = "GitHub 下载",
+        onDismissRequest = onDismiss
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+        ) {
+            TextButton(
+                text = "GitHub 直链下载",
+                onClick = onDirect,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(Modifier.height(4.dp))
+            TextButton(
+                text = "GitHub 镜像站下载",
+                onClick = onMirror,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(Modifier.height(4.dp))
+            TextButton(
+                text = "取消",
+                onClick = onDismiss,
+                modifier = Modifier.fillMaxWidth()
+            )
         }
-    )
+    }
 }
 
 /**
- * 内核下载的进度弹窗：**故意做成关不掉的**（`dismissOnBackPress`/`dismissOnClickOutside` 全 false）——
+ * 内核下载的进度弹窗：**故意做成关不掉的**（`onDismissRequest` 故意空着，点空白/返回键都不关）——
  * 25MB 的下载不该被一次误触甩掉；要中断只能按「取消」，那会清干净地把任务停掉。
  * 阶段文案跟着 [KernelProvisioner.Phase] 走，终态（完成/失败）给一个「关闭」。
  */
@@ -914,129 +857,124 @@ private fun KernelProgressDialog(
     onCancel: () -> Unit,
     onDismiss: () -> Unit
 ) {
-    if (phase is KernelProvisioner.Phase.Idle) return
-
     val done = phase as? KernelProvisioner.Phase.Done
     val failed = phase as? KernelProvisioner.Phase.Failed
     val downloading = phase as? KernelProvisioner.Phase.Downloading
     val merging = phase as? KernelProvisioner.Phase.Merging
     val finished = done != null || failed != null
 
-    AlertDialog(
-        onDismissRequest = { /* 故意空着：点空白/返回键都不关，见上面的说明 */ },
-        properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false),
-        title = {
+    OverlayDialog(
+        show = phase !is KernelProvisioner.Phase.Idle,
+        title = when {
+            done != null -> "内核已导入"
+            failed != null -> "内核下载失败"
+            else -> "正在获取内核"
+        },
+        onDismissRequest = { /* 故意空着：点空白/返回键都不关，见上面的说明 */ }
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
             Text(
-                when {
-                    done != null -> "内核已导入"
-                    failed != null -> "内核下载失败"
-                    else -> "正在获取内核"
+                text = when (phase) {
+                    is KernelProvisioner.Phase.FetchingRelease -> "正在获取最新版本…"
+                    is KernelProvisioner.Phase.Resolving -> "正在解析下载地址…"
+                    is KernelProvisioner.Phase.Downloading -> "正在分片下载…"
+                    is KernelProvisioner.Phase.Merging -> "正在合并分片…"
+                    is KernelProvisioner.Phase.Importing -> "正在解包导入…"
+                    is KernelProvisioner.Phase.Done ->
+                        "${phase.fileName} 已解出 libgojni.so ${formatSize(phase.bytes)}"
+                    is KernelProvisioner.Phase.Failed -> phase.message
+                    else -> ""
+                },
+                style = MiuixTheme.textStyles.body2,
+                color = if (failed != null) {
+                    MiuixTheme.colorScheme.error
+                } else {
+                    MiuixTheme.colorScheme.onSurface
                 }
             )
-        },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Text(
-                    text = when (phase) {
-                        is KernelProvisioner.Phase.FetchingRelease -> "正在获取最新版本…"
-                        is KernelProvisioner.Phase.Resolving -> "正在解析下载地址…"
-                        is KernelProvisioner.Phase.Downloading -> "正在分片下载…"
-                        is KernelProvisioner.Phase.Merging -> "正在合并分片…"
-                        is KernelProvisioner.Phase.Importing -> "正在解包导入…"
-                        is KernelProvisioner.Phase.Done ->
-                            "${phase.fileName} 已解出 libgojni.so ${formatSize(phase.bytes)}"
-                        is KernelProvisioner.Phase.Failed -> phase.message
-                        else -> ""
-                    },
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = if (failed != null) {
-                        MaterialTheme.colorScheme.error
+
+            when {
+                downloading != null -> {
+                    // 总大小未知时给不确定进度条，别拿 0% 骗人
+                    val known = downloading.total > 0L
+                    val fraction = if (known) {
+                        (downloading.downloaded.toFloat() / downloading.total).coerceIn(0f, 1f)
                     } else {
-                        MaterialTheme.colorScheme.onSurface
+                        0f
                     }
-                )
-
-                when {
-                    downloading != null -> {
-                        // 总大小未知时给不确定进度条，别拿 0% 骗人
-                        val known = downloading.total > 0L
-                        val fraction = if (known) {
-                            (downloading.downloaded.toFloat() / downloading.total).coerceIn(0f, 1f)
-                        } else {
-                            0f
-                        }
-                        if (known) {
-                            YunXWavyProgress(
-                                progress = { fraction },
-                                modifier = Modifier.fillMaxWidth(),
-                                color = MaterialTheme.colorScheme.primary,
-                                trackColor = MaterialTheme.colorScheme.surfaceContainerHighest
-                            )
-                        } else {
-                            YunXWavyLoading(modifier = Modifier.fillMaxWidth())
-                        }
-                        Text(
-                            text = buildString {
-                                if (known) {
-                                    append("${(fraction * 100).toInt()}%　")
-                                    append("${formatSize(downloading.downloaded)} / ${formatSize(downloading.total)}")
-                                } else {
-                                    append(formatSize(downloading.downloaded))
-                                }
-                                if (downloading.speedBps > 0L) {
-                                    append("　·　${formatSize(downloading.speedBps)}/s")
-                                }
-                                append("　·　${downloading.chunks} 分片")
-                            },
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    merging != null -> {
+                    if (known) {
                         YunXWavyProgress(
-                            progress = { (merging.percent / 100f).coerceIn(0f, 1f) },
+                            progress = { fraction },
                             modifier = Modifier.fillMaxWidth(),
-                            color = MaterialTheme.colorScheme.primary,
-                            trackColor = MaterialTheme.colorScheme.surfaceContainerHighest
+                            color = MiuixTheme.colorScheme.primary,
+                            trackColor = MiuixTheme.colorScheme.surfaceContainerHighest
                         )
-                        Text(
-                            text = "合并中 ${merging.percent}%",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    phase is KernelProvisioner.Phase.Importing -> {
+                    } else {
                         YunXWavyLoading(modifier = Modifier.fillMaxWidth())
                     }
-                    !finished -> {
-                        YunXWavyLoading(modifier = Modifier.fillMaxWidth())
-                    }
-                }
-
-                if (done != null) {
                     Text(
-                        text = if (GopeedEngine.pendingRestartForNewKernel) {
-                            "内核文件已换新，但本进程已经加载过旧内核（dlopen 进来的库卸载不掉），" +
-                                "需要重启应用才会用上新内核。"
-                        } else {
-                            "内核文件已就位，下次启动引擎就会用它。"
+                        text = buildString {
+                            if (known) {
+                                append("${(fraction * 100).toInt()}%　")
+                                append("${formatSize(downloading.downloaded)} / ${formatSize(downloading.total)}")
+                            } else {
+                                append(formatSize(downloading.downloaded))
+                            }
+                            if (downloading.speedBps > 0L) {
+                                append("　·　${formatSize(downloading.speedBps)}/s")
+                            }
+                            append("　·　${downloading.chunks} 分片")
                         },
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        style = MiuixTheme.textStyles.footnote1,
+                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                     )
                 }
-            }
-        },
-        confirmButton = {
-            if (finished) {
-                TextButton(onClick = onDismiss) { Text("关闭") }
-            } else {
-                TextButton(onClick = onCancel) {
-                    Text("取消", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                merging != null -> {
+                    YunXWavyProgress(
+                        progress = { (merging.percent / 100f).coerceIn(0f, 1f) },
+                        modifier = Modifier.fillMaxWidth(),
+                        color = MiuixTheme.colorScheme.primary,
+                        trackColor = MiuixTheme.colorScheme.surfaceContainerHighest
+                    )
+                    Text(
+                        text = "合并中 ${merging.percent}%",
+                        style = MiuixTheme.textStyles.footnote1,
+                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary
+                    )
+                }
+                phase is KernelProvisioner.Phase.Importing -> {
+                    YunXWavyLoading(modifier = Modifier.fillMaxWidth())
+                }
+                !finished -> {
+                    YunXWavyLoading(modifier = Modifier.fillMaxWidth())
                 }
             }
+
+            if (done != null) {
+                Text(
+                    text = if (GopeedEngine.pendingRestartForNewKernel) {
+                        "内核文件已换新，但本进程已经加载过旧内核（dlopen 进来的库卸载不掉），" +
+                            "需要重启应用才会用上新内核。"
+                    } else {
+                        "内核文件已就位，下次启动引擎就会用它。"
+                    },
+                    style = MiuixTheme.textStyles.footnote1,
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary
+                )
+            }
+
+            if (finished) {
+                TextButton(text = "关闭", onClick = onDismiss, modifier = Modifier.fillMaxWidth())
+            } else {
+                TextButton(text = "取消", onClick = onCancel, modifier = Modifier.fillMaxWidth())
+            }
         }
-    )
+    }
 }
 
 /**
@@ -1052,18 +990,18 @@ private fun EngineSectionHeader(
 ) {
     val container by animateColorAsState(
         targetValue = if (highlighted) {
-            MaterialTheme.colorScheme.primaryContainer
+            MiuixTheme.colorScheme.primaryContainer
         } else {
-            MaterialTheme.colorScheme.surfaceContainerHighest
+            MiuixTheme.colorScheme.surfaceContainerHighest
         },
         animationSpec = effectsDefault(),
         label = "engineIconContainer"
     )
     val tint by animateColorAsState(
         targetValue = if (highlighted) {
-            MaterialTheme.colorScheme.onPrimaryContainer
+            MiuixTheme.colorScheme.onPrimaryContainer
         } else {
-            MaterialTheme.colorScheme.onSurfaceVariant
+            MiuixTheme.colorScheme.onSurfaceVariantSummary
         },
         animationSpec = effectsDefault(),
         label = "engineIconTint"
@@ -1081,19 +1019,19 @@ private fun EngineSectionHeader(
         Spacer(Modifier.width(12.dp))
         Text(
             title,
-            style = MaterialTheme.typography.titleMedium,
+            style = MiuixTheme.textStyles.body1,
             fontWeight = FontWeight.Medium,
             modifier = Modifier.weight(1f)
         )
         if (badge != null) {
             Surface(
-                color = MaterialTheme.colorScheme.primaryContainer,
-                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                color = MiuixTheme.colorScheme.primaryContainer,
+                contentColor = MiuixTheme.colorScheme.onPrimaryContainer,
                 shape = RoundedCornerShape(6.dp)
             ) {
                 Text(
                     badge,
-                    style = MaterialTheme.typography.labelSmall,
+                    style = MiuixTheme.textStyles.footnote2,
                     modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
                 )
             }
@@ -1102,8 +1040,8 @@ private fun EngineSectionHeader(
 }
 
 /**
- * 段里的整宽操作按钮：当前引擎用 tonal 按钮显示「使用中」（带对勾、不可点），
- * 另一段用描边按钮显示「切换到此引擎 / 导入内核」。
+ * 段里的整宽操作按钮：当前引擎用「使用中」（带对勾、不可点），
+ * 另一段显示「切换到此引擎 / 导入内核」。
  */
 @Composable
 private fun EngineActionButton(
@@ -1114,26 +1052,26 @@ private fun EngineActionButton(
     onClick: () -> Unit
 ) {
     if (selected) {
-        FilledTonalButton(
+        Button(
             onClick = onClick,
             enabled = false,
             modifier = Modifier.fillMaxWidth().height(44.dp),
-            shape = RoundedCornerShape(14.dp)
+            cornerRadius = 14.dp
         ) {
             Icon(Icons.Outlined.Check, contentDescription = null, modifier = Modifier.size(18.dp))
             Spacer(Modifier.width(8.dp))
-            Text(label, style = MaterialTheme.typography.labelLarge)
+            Text(label, style = MiuixTheme.textStyles.button)
         }
     } else {
-        OutlinedButton(
+        Button(
             onClick = onClick,
             enabled = enabled,
             modifier = Modifier.fillMaxWidth().height(44.dp),
-            shape = RoundedCornerShape(14.dp)
+            cornerRadius = 14.dp
         ) {
             Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp))
             Spacer(Modifier.width(8.dp))
-            Text(label, style = MaterialTheme.typography.labelLarge)
+            Text(label, style = MiuixTheme.textStyles.button)
         }
     }
 }

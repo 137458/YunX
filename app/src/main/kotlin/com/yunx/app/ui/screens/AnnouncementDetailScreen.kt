@@ -24,7 +24,6 @@ import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -42,21 +41,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Visibility
-import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import top.yukonga.miuix.kmp.basic.SnackbarHost
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -73,6 +63,7 @@ import com.yunx.app.data.announcement.AnnouncementApi
 import com.yunx.app.data.announcement.formatLocalDateTime
 import com.yunx.app.data.announcement.parseIsoMillis
 import com.yunx.app.data.announcement.relativeTime
+import com.yunx.app.ui.AppSnackbarHost
 import com.yunx.app.ui.components.GitHubMarkdownImageTransformer
 import com.yunx.app.ui.components.RemoteImage
 import com.yunx.app.ui.components.YunXLoading
@@ -80,6 +71,14 @@ import com.yunx.app.ui.components.compactMarkdownTypography
 import com.yunx.app.ui.rememberGlobalSnackbarHostState
 import com.yunx.app.ui.theme.effectsDefault
 import com.yunx.app.ui.viewmodel.AnnouncementViewModel
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.HorizontalDivider
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.Scaffold
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.basic.TopAppBar
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /**
  * 公告详情页（共享元素的**目标**侧：从列表里被点的那一行"长"成整页，key 见 [announcementSharedKey]）。
@@ -96,7 +95,7 @@ import com.yunx.app.ui.viewmodel.AnnouncementViewModel
  * 详情接口会让 viewCount +1，所以 ViewModel 里按 id 缓存，本页重组 / 返回再进都不会重复请求；
  * 右上角刷新（[onRefresh]）与列表页刷新都会让那份缓存作废重拉，见 `AnnouncementViewModel.reloadCurrentDetail`。
  */
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun AnnouncementDetailPage(
     state: AnnouncementViewModel.DetailUiState,
@@ -116,10 +115,11 @@ fun AnnouncementDetailPage(
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        snackbarHost = { AppSnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text("公告详情", style = MaterialTheme.typography.titleLarge) },
+                title = "公告详情",
+                color = MiuixTheme.colorScheme.surface,
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
@@ -132,10 +132,7 @@ fun AnnouncementDetailPage(
                             Icon(Icons.Outlined.Refresh, contentDescription = "刷新公告")
                         }
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
+                }
             )
         }
     ) { innerPadding ->
@@ -196,14 +193,14 @@ private fun AnnouncementDetailContent(
                 if (item.isPinned) {
                     AnnouncementChip(
                         text = "置顶公告",
-                        containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onTertiaryContainer
+                        containerColor = MiuixTheme.colorScheme.primaryContainer,
+                        contentColor = MiuixTheme.colorScheme.onPrimaryContainer
                     )
                     Spacer(modifier = Modifier.height(10.dp))
                 }
                 Text(
                     text = item.title,
-                    style = MaterialTheme.typography.headlineSmall,
+                    style = MiuixTheme.textStyles.title4,
                     fontWeight = FontWeight.SemiBold
                 )
                 Spacer(modifier = Modifier.height(12.dp))
@@ -218,7 +215,7 @@ private fun AnnouncementDetailContent(
                         if (publisher.isNotBlank()) {
                             Text(
                                 text = publisher,
-                                style = MaterialTheme.typography.titleSmall,
+                                style = MiuixTheme.textStyles.body1,
                                 fontWeight = FontWeight.Medium
                             )
                             Spacer(modifier = Modifier.height(2.dp))
@@ -228,16 +225,16 @@ private fun AnnouncementDetailContent(
                             if (item.effectiveMillis > 0L) {
                                 Text(
                                     text = formatLocalDateTime(item.effectiveMillis),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    style = MiuixTheme.textStyles.footnote2,
+                                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                                 )
                                 val relative = relativeTime(item.effectiveMillis)
                                 if (relative.isNotBlank()) {
                                     Spacer(modifier = Modifier.width(6.dp))
                                     Text(
                                         text = "· $relative",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        style = MiuixTheme.textStyles.footnote2,
+                                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                                     )
                                 }
                             }
@@ -247,13 +244,13 @@ private fun AnnouncementDetailContent(
                                     imageVector = Icons.Outlined.Visibility,
                                     contentDescription = null,
                                     modifier = Modifier.size(12.dp),
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    tint = MiuixTheme.colorScheme.onSurfaceVariantSummary
                                 )
                                 Spacer(modifier = Modifier.width(3.dp))
                                 Text(
                                     text = item.viewCount.toString(),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    style = MiuixTheme.textStyles.footnote2,
+                                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                                 )
                             }
                         }
@@ -270,8 +267,8 @@ private fun AnnouncementDetailContent(
                 if (gallery.isEmpty()) {
                     Text(
                         text = "（本条公告没有正文）",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        style = MiuixTheme.textStyles.body2,
+                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                     )
                 }
             } else {
@@ -305,14 +302,14 @@ private fun AnnouncementDetailContent(
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
                                 text = "图片",
-                                style = MaterialTheme.typography.titleSmall,
+                                style = MiuixTheme.textStyles.body1,
                                 fontWeight = FontWeight.Medium
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
                                 text = "${gallery.size} 张",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                style = MiuixTheme.textStyles.footnote2,
+                                color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                             )
                         }
                         Spacer(modifier = Modifier.height(10.dp))
@@ -345,12 +342,7 @@ private fun AnnouncementDetailContent(
         item(key = "footer") {
             Column {
                 Spacer(modifier = Modifier.height(20.dp))
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(1.dp)
-                        .background(MaterialTheme.colorScheme.outlineVariant)
-                )
+                HorizontalDivider()
                 Spacer(modifier = Modifier.height(10.dp))
                 val updatedMillis = parseIsoMillis(item.updatedAt) ?: item.effectiveMillis
                 if (updatedMillis > 0L) {
@@ -363,8 +355,8 @@ private fun AnnouncementDetailContent(
                                 append(item.author)
                             }
                         },
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        style = MiuixTheme.textStyles.footnote2,
+                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                     )
                 }
             }
@@ -445,7 +437,8 @@ private fun AnnouncementGalleryImage(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val shape = if (hero) MaterialTheme.shapes.large else MaterialTheme.shapes.medium
+    // miuix 没有 M3 那套 shapes 令牌：large = 16dp、medium = 12dp（与 M3 默认值同口径）
+    val shape = if (hero) RoundedCornerShape(16.dp) else RoundedCornerShape(12.dp)
     Box(modifier = modifier) {
         AnimatedVisibility(
             visible = !open,
@@ -485,8 +478,8 @@ private fun AnnouncementGalleryImage(
                     AnnouncementChip(
                         text = "封面",
                         // 标签压在图片上：用实心 primary 而不是容器色，保证任何底图上都看得清
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary,
+                        containerColor = MiuixTheme.colorScheme.primary,
+                        contentColor = MiuixTheme.colorScheme.onPrimary,
                         modifier = Modifier
                             .align(Alignment.TopStart)
                             .padding(if (hero) 8.dp else 6.dp)
@@ -511,18 +504,20 @@ private fun AnnouncementDetailError(
             imageVector = Icons.Outlined.ErrorOutline,
             contentDescription = null,
             modifier = Modifier.size(40.dp),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant
+            tint = MiuixTheme.colorScheme.onSurfaceSecondary
         )
         Spacer(modifier = Modifier.height(12.dp))
-        Text(text = "公告加载失败", style = MaterialTheme.typography.titleSmall)
+        Text(text = "公告加载失败", style = MiuixTheme.textStyles.body1)
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = message,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MiuixTheme.textStyles.footnote1,
+            color = MiuixTheme.colorScheme.onSurfaceSecondary,
             textAlign = TextAlign.Center
         )
         Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = onRetry) { Text("重试") }
+        Button(onClick = onRetry) {
+            Text("重试", style = MiuixTheme.textStyles.button)
+        }
     }
 }

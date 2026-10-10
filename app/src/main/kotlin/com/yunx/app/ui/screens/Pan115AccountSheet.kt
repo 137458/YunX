@@ -25,6 +25,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -37,22 +38,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Logout
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import top.yukonga.miuix.kmp.basic.SnackbarHost
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -61,19 +47,25 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
-import androidx.compose.ui.input.nestedscroll.NestedScrollSource
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.yunx.app.data.db.Pan115AccountEntity
 import com.yunx.app.data.network.Pan115Constants
 import com.yunx.app.ui.SnackbarController
-import com.yunx.app.ui.rememberGlobalSnackbarHostState
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.ButtonDefaults
+import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.Surface
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.basic.TextButton
+import top.yukonga.miuix.kmp.overlay.OverlayBottomSheet
+import top.yukonga.miuix.kmp.overlay.OverlayDialog
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -81,7 +73,6 @@ import java.util.Locale
 /**
  * 已登录 115 账号的底部弹窗：展示账号信息、登录时间、Cookie（可展开/复制），并提供退出登录。
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Pan115AccountSheet(
     account: Pan115AccountEntity,
@@ -104,30 +95,11 @@ fun Pan115AccountSheet(
         SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(Date(account.updatedAt))
     }
 
-    val snackbarHostState = rememberGlobalSnackbarHostState()
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-
     val scrollState = rememberScrollState()
-    val sheetNestedScroll = remember(scrollState) {
-        object : NestedScrollConnection {
-            override fun onPostScroll(
-                consumed: Offset,
-                available: Offset,
-                source: NestedScrollSource
-            ): Offset {
-                val dy = available.y
-                if (dy > 0 && scrollState.value >= scrollState.maxValue) {
-                    return Offset(0f, dy)
-                }
-                return Offset.Zero
-            }
-        }
-    }
 
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = sheetState,
-        containerColor = MaterialTheme.colorScheme.surface
+    OverlayBottomSheet(
+        show = true,
+        onDismissRequest = onDismiss
     ) {
         Column(
             modifier = Modifier
@@ -137,7 +109,6 @@ fun Pan115AccountSheet(
                         Modifier
                             .fillMaxHeight()
                             .verticalScroll(scrollState)
-                            .nestedScroll(sheetNestedScroll)
                     } else {
                         Modifier
                     }
@@ -149,36 +120,40 @@ fun Pan115AccountSheet(
                 Surface(
                     modifier = Modifier.size(52.dp),
                     shape = CircleShape,
-                    color = MaterialTheme.colorScheme.primaryContainer
+                    color = MiuixTheme.colorScheme.primaryVariant
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Text(
                             text = account.nickname.take(1),
-                            style = MaterialTheme.typography.titleMedium,
+                            style = MiuixTheme.textStyles.title3,
                             fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                            color = MiuixTheme.colorScheme.onPrimaryVariant
                         )
                     }
                 }
                 Spacer(modifier = Modifier.width(16.dp))
-                Column {
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = account.nickname,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Medium
+                        style = MiuixTheme.textStyles.title4,
+                        fontWeight = FontWeight.Medium,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Box(
                             modifier = Modifier
                                 .size(8.dp)
-                                .background(MaterialTheme.colorScheme.primary, CircleShape)
+                                .background(MiuixTheme.colorScheme.primary, CircleShape)
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
                             text = "115网盘 · 已登录",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            style = MiuixTheme.textStyles.body2,
+                            color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
@@ -189,18 +164,15 @@ fun Pan115AccountSheet(
             // 登录信息
             Text(
                 text = "登录信息",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                style = MiuixTheme.textStyles.body2,
+                color = MiuixTheme.colorScheme.onSurfaceVariantSummary
             )
             Spacer(modifier = Modifier.height(8.dp))
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = MaterialTheme.shapes.large,
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-                )
+                insideMargin = PaddingValues(16.dp)
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
+                Column {
                     InfoRow(
                         label = "登录账号",
                         value = Pan115Constants.cookieValue(account.cookie, "UID").orEmpty()
@@ -211,43 +183,37 @@ fun Pan115AccountSheet(
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
                         text = "登录 Cookie",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        style = MiuixTheme.textStyles.body2,
+                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = displayCookie,
-                        style = MaterialTheme.typography.labelSmall.copy(
+                        style = MiuixTheme.textStyles.body2.copy(
                             fontFamily = FontFamily.Monospace,
                             fontSize = 11.sp,
                             lineHeight = 15.sp
                         ),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                     )
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.End
                     ) {
                         if (cookieTruncated) {
-                            TextButton(onClick = { showFullCookie = !showFullCookie }) {
-                                Text(if (showFullCookie) "收起" else "展开全部")
-                            }
+                            TextButton(
+                                text = if (showFullCookie) "收起" else "展开全部",
+                                onClick = { showFullCookie = !showFullCookie }
+                            )
                         }
                         TextButton(
+                            text = "复制",
                             onClick = {
                                 val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                                 clipboard.setPrimaryClip(ClipData.newPlainText("pan115_cookie", account.cookie))
                                 SnackbarController.show("Cookie 已复制")
                             }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Outlined.ContentCopy,
-                                contentDescription = null,
-                                modifier = Modifier.size(16.dp)
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text("复制")
-                        }
+                        )
                     }
                 }
             }
@@ -261,60 +227,78 @@ fun Pan115AccountSheet(
                     .fillMaxWidth()
                     .height(48.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.error,
-                    contentColor = MaterialTheme.colorScheme.onError
+                    color = MiuixTheme.colorScheme.error,
+                    contentColor = MiuixTheme.colorScheme.onError
                 )
             ) {
                 Icon(
                     imageVector = Icons.Outlined.Logout,
                     contentDescription = null,
-                    modifier = Modifier.size(18.dp)
+                    modifier = Modifier.size(18.dp),
+                    tint = MiuixTheme.colorScheme.onError
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("退出登录")
+                Text("退出登录", style = MiuixTheme.textStyles.button)
             }
-
-            // 复制提示（ModalBottomSheet 为独立窗口，需自带 Snackbar 宿主）
-            SnackbarHost(snackbarHostState)
         }
     }
 
     // 退出登录二次确认
-    if (showLogoutConfirm) {
-        AlertDialog(
-            onDismissRequest = { showLogoutConfirm = false },
-            title = { Text("退出登录") },
-            text = { Text("确定要退出当前 115 账号吗？退出后将清除本地凭证与网页登录状态。") },
-            confirmButton = {
+    OverlayDialog(
+        show = showLogoutConfirm,
+        onDismissRequest = { showLogoutConfirm = false },
+        title = "退出登录"
+    ) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Text(
+                text = "确定要退出当前 115 账号吗？退出后将清除本地凭证与网页登录状态。",
+                style = MiuixTheme.textStyles.body1,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
                 TextButton(
+                    text = "取消",
+                    onClick = { showLogoutConfirm = false },
+                    modifier = Modifier.weight(1f)
+                )
+                Button(
                     onClick = {
                         showLogoutConfirm = false
                         onLogout()
-                    }
+                    },
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.buttonColors(
+                        color = MiuixTheme.colorScheme.error,
+                        contentColor = MiuixTheme.colorScheme.onError
+                    )
                 ) {
-                    Text("退出", color = MaterialTheme.colorScheme.error)
+                    Text("退出", style = MiuixTheme.textStyles.button)
                 }
-            },
-            dismissButton = {
-                TextButton(onClick = { showLogoutConfirm = false }) { Text("取消") }
             }
-        )
+        }
     }
 }
 
+/** 信息行：标签定宽 + 值（限 2 行省略，避免长账号撑破卡片） */
 @Composable
 private fun InfoRow(label: String, value: String) {
     Row(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = label,
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MiuixTheme.textStyles.body2,
+            color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
             modifier = Modifier.width(72.dp)
         )
         Text(
             text = value,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface
+            style = MiuixTheme.textStyles.body1,
+            color = MiuixTheme.colorScheme.onSurface,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f)
         )
     }
 }
