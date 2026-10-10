@@ -59,6 +59,7 @@ import top.yukonga.miuix.kmp.window.WindowDialog
 import com.yunx.app.ui.components.LocalScaffoldPadding
 import top.yukonga.miuix.kmp.basic.NavigationRail
 import top.yukonga.miuix.kmp.basic.NavigationRailItem
+import top.yukonga.miuix.kmp.basic.rememberNavigationRailState
 import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.ToolbarPosition
@@ -198,8 +199,9 @@ private val FloatingBarSnackbarExtraMargin = 8.dp
  * 主页框架（Miuix 架构）：
  * - 统一外层骨架为 Miuix Scaffold；
  * - 顶部大标题（TopAppBar），切换 Tab 时标题文字随 Tab 变化；
- * - 导航 Tab（解析 / 网盘 / 下载 / 设置）：竖屏按「主题与外观」页选择的底栏样式渲染
- *   （液态玻璃悬浮 / 毛玻璃悬浮 / Miuix 标准底栏），横屏统一切换为 Miuix 侧边导航栏（NavigationRail）；
+ * - 导航 Tab（解析 / 网盘 / 下载 / 设置）：底部导航栏按「主题与外观」页选择的样式渲染
+ *   （液态玻璃悬浮 / 毛玻璃悬浮 / Miuix 标准底栏），所有窗口尺寸一致生效；
+ *   宽窗口（≥600dp 宽，或紧凑高度的横向窗口）额外在左侧显示 Miuix 可展开侧边导航栏（NavigationRail）。
  * - 通过 SaveableStateHolder 保存各页面状态，切换 Tab 再切回来不会重置；
  * - 全屏覆盖层（关于页、主题页、登录页等）平滑过渡展示。
  */
@@ -883,8 +885,8 @@ fun MainScreen(
                 }
             },
             bottomBar = {
-                // 标准底栏档位：贴底固定的 Miuix NavigationBar
-                if (!isWideScreen && bottomBarStyle == BottomBarStyle.MiuixStandard) {
+                // 标准底栏档位：贴底固定的 Miuix NavigationBar（宽屏同样按用户所选样式渲染）
+                if (bottomBarStyle == BottomBarStyle.MiuixStandard) {
                     AppStandardBottomBar(
                         currentTab = currentTab,
                         onTabSelected = { currentTab = it }
@@ -893,8 +895,9 @@ fun MainScreen(
             },
             floatingToolbar = {
                 // 悬浮档位（液态玻璃 / 毛玻璃）：Scaffold 已按「导航栏 inset + FloatingToolbarSpacing」
-                // 把底栏抬到底边之上，这里不要再补 bottom padding
-                if (!isWideScreen && bottomBarStyle.isFloating) {
+                // 把底栏抬到底边之上，这里不要再补 bottom padding。
+                // 大屏设备同样允许悬浮导航栏：用户选了悬浮样式就照常渲染（与侧边栏共存，分居两侧）
+                if (bottomBarStyle.isFloating) {
                     AppFloatingBottomBar(
                         currentTab = currentTab,
                         onTabSelected = { currentTab = it },
@@ -910,7 +913,7 @@ fun MainScreen(
             // 悬浮底栏的内容避让：Miuix Scaffold 会把 floatingToolbar 的高度 + FloatingToolbarSpacing
             // + 底部导航栏 inset 计入 innerPadding。这里只在它没算够时补差额，既不重复预留出
             // 一大块空白，也不会让最后一项被底栏盖住（两种 Scaffold 行为下都安全）。
-            val floatingBarBottomPadding = if (!isWideScreen && bottomBarStyle.isFloating) {
+            val floatingBarBottomPadding = if (bottomBarStyle.isFloating) {
                 val desiredClearance = floatingBarDesiredClearance
                 val alreadyReserved = innerPadding.calculateBottomPadding()
                 (desiredClearance - alreadyReserved).coerceAtLeast(0.dp)
@@ -935,7 +938,7 @@ fun MainScreen(
                     // 列表滚到悬浮底栏下方时用羽化过渡，避免内容被底栏硬切。
                     // 雾带压在底栏之下：上沿与底栏上沿齐平（导航栏 inset + FloatingToolbarSpacing + 底栏高度），
                     // 向下渐浓，透过玻璃表现为内容在底栏内渐隐；底栏上方不留可见雾带。
-                    if (!isWideScreen && bottomBarStyle.isFloating) {
+                    if (bottomBarStyle.isFloating) {
                         val barHeight = WindowInsets.navigationBars
                             .only(WindowInsetsSides.Bottom)
                             .asPaddingValues()
@@ -1014,7 +1017,7 @@ fun MainScreen(
         // 都画在本 Box 内、先于本宿主组合，提示不会被它们遮挡；Window 系独立窗口弹窗
         // （WindowDialog，如更新弹窗）盖不住本宿主，由各弹窗内容自带宿主接管（见各调用点）。
         val snackbarBottomPadding =
-            if (!isWideScreen && bottomBarStyle.isFloating) {
+            if (bottomBarStyle.isFloating) {
                 floatingBarDesiredClearance + FloatingBarSnackbarExtraMargin
             } else {
                 16.dp
@@ -1130,7 +1133,11 @@ fun MainScreen(
 /**
  * 侧边导航栏（宽屏）：4 个主 Tab，使用 Miuix NavigationRail 与 NavigationRailItem。
  *
- * 整高铺满并自行消费系统栏 inset（defaultWindowInsetsPadding），
+ * 按 miuix 官方要求传入 [rememberNavigationRailState] 启用可展开形态：
+ * 顶部自带展开/收起开关，展开后条目切换为「图标 + 文字」横排并带选中高亮胶囊，
+ * 收起态为经典紧凑布局；展开状态由官方 state 持有并跨配置变更保存。
+ *
+ * 整高铺满并自行消费系统栏 inset（defaultWindowInsetsPadding 默认开启），
  * 因此可以放在内容 Scaffold 之外，不再被顶栏压在下面。
  */
 @Composable
@@ -1141,7 +1148,7 @@ private fun MainNavigationRail(
 ) {
     NavigationRail(
         modifier = modifier.fillMaxHeight(),
-        defaultWindowInsetsPadding = true
+        state = rememberNavigationRailState()
     ) {
         MainTab.entries.forEach { tab ->
             NavigationRailItem(

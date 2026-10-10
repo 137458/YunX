@@ -283,7 +283,8 @@ internal fun CloudDriveScaffold(
                                         Icon(
                                             imageVector = Icons.Outlined.Search,
                                             contentDescription = null,
-                                            tint = MiuixTheme.colorScheme.onSurfaceVariantActions
+                                            tint = MiuixTheme.colorScheme.onSurfaceVariantActions,
+                                            modifier = Modifier.padding(horizontal = 12.dp)
                                         )
                                     },
                                     trailingIcon = {

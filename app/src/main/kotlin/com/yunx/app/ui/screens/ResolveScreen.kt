@@ -372,7 +372,10 @@ private fun ResolveInputContent(
                 Icon(
                     imageVector = Icons.Outlined.Link,
                     contentDescription = null,
-                    tint = MiuixTheme.colorScheme.onSurfaceVariantSummary
+                    tint = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                    // miuix TextField 的 leadingIcon 槽位不带任何内边距，需按官方示例补 12dp，
+                    // 否则图标会贴着输入框左缘、与文字挤在一起
+                    modifier = Modifier.padding(horizontal = 12.dp)
                 )
             },
             trailingIcon = if (link.isNotEmpty()) {

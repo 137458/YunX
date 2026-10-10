@@ -277,7 +277,7 @@ fun GuangYaLoginScreen(
                     modifier = Modifier.fillMaxWidth(),
                     label = "手机号",
                     useLabelAsPlaceholder = true,
-                    leadingIcon = { Icon(Icons.Outlined.Phone, contentDescription = null) },
+                    leadingIcon = { Icon(Icons.Outlined.Phone, contentDescription = null, modifier = Modifier.padding(horizontal = 12.dp)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                     singleLine = true,
                     enabled = !isSaving
@@ -297,7 +297,7 @@ fun GuangYaLoginScreen(
                         modifier = Modifier.weight(1f),
                         label = "短信验证码",
                         useLabelAsPlaceholder = true,
-                        leadingIcon = { Icon(Icons.Outlined.Shield, contentDescription = null) },
+                        leadingIcon = { Icon(Icons.Outlined.Shield, contentDescription = null, modifier = Modifier.padding(horizontal = 12.dp)) },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         singleLine = true,
                         enabled = !isSaving

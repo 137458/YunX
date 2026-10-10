@@ -153,7 +153,7 @@ fun XunleiLoginScreen(
                     onValueChange = { username = it },
                     modifier = Modifier.fillMaxWidth(),
                     label = "手机号 / 邮箱",
-                    leadingIcon = { Icon(Icons.Outlined.Phone, contentDescription = null) },
+                    leadingIcon = { Icon(Icons.Outlined.Phone, contentDescription = null, modifier = Modifier.padding(horizontal = 12.dp)) },
                     singleLine = true
                 )
                 TextField(
@@ -161,7 +161,7 @@ fun XunleiLoginScreen(
                     onValueChange = { password = it },
                     modifier = Modifier.fillMaxWidth(),
                     label = "密码",
-                    leadingIcon = { Icon(Icons.Outlined.Lock, contentDescription = null) },
+                    leadingIcon = { Icon(Icons.Outlined.Lock, contentDescription = null, modifier = Modifier.padding(horizontal = 12.dp)) },
                     trailingIcon = {
                         IconButton(onClick = { passwordVisible = !passwordVisible }) {
                             Icon(
@@ -207,7 +207,7 @@ fun XunleiLoginScreen(
                     onValueChange = { smsCode = it },
                     modifier = Modifier.fillMaxWidth(),
                     label = "短信验证码",
-                    leadingIcon = { Icon(Icons.Outlined.Shield, contentDescription = null) },
+                    leadingIcon = { Icon(Icons.Outlined.Shield, contentDescription = null, modifier = Modifier.padding(horizontal = 12.dp)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true
                 )

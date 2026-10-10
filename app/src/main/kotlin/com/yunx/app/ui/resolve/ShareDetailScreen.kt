@@ -308,7 +308,8 @@ fun ShareDetailScreen(
                                     Icon(
                                         imageVector = Icons.Outlined.Search,
                                         contentDescription = null,
-                                        tint = MiuixTheme.colorScheme.onSurfaceVariantSummary
+                                        tint = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                                        modifier = Modifier.padding(horizontal = 12.dp)
                                     )
                                 },
                                 trailingIcon = if (searchQuery.isNotEmpty()) {
