@@ -48,10 +48,10 @@ android {
 
     defaultConfig {
         applicationId = "com.yunx.app"
-        // minSdk 24：AGP 8.13 的 D8 在 minSdk < 24 时必须脱糖接口静态方法，它把接口的 $default 桥方法
-        // （如 RowScope.weight$default）搬进 $-CC 伴生类，却不改写第三方库字节码里的调用点，
-        // 未混淆（debug）的包渲染 README 表格时必崩 NoSuchMethodError；24 起系统原生支持，不再脱糖。
-        // 原因与实测证据见 Agent.md §3.11，勿降回 23。
+        // minSdk 24 现在有两道硬约束：miuix 0.9.4 的 AAR 清单写的就是 minSdkVersion=24（material3 1.5.0-alpha26 同），
+        // 以及 AGP 8.13 的 D8 脱糖缺陷 —— minSdk < 24 时它把接口的 $default 桥方法（如 RowScope.weight$default）
+        // 搬进 $-CC 伴生类，却不改写第三方库字节码里的调用点，未混淆（debug）的包渲染 README 表格必崩 NoSuchMethodError。
+        // 该缺陷在 AGP 9.1.1 下尚未复验，别按「换了工具链就能降 23」动手；完整原因与实测证据见 AGENTS.md §3.11。
         minSdk = 24
         targetSdk = 34
         versionCode = 13
@@ -161,7 +161,9 @@ dependencies {
     implementation(libs.miuix.blur.android)
     implementation(libs.miuix.preference.android)
     implementation(libs.miuix.icons.android)
-    implementation("androidx.navigationevent:navigationevent-compose:1.1.1")
+    // 版本必须与 miuix 0.9.4 的 pom 对齐（它 requires navigationevent-compose 1.1.2）：Theme.kt 直接使用
+    // rememberNavigationEventDispatcherOwner，声明旧版本只是被 Gradle 取高版本兜住，写死 1.1.1 已成死钉。
+    implementation("androidx.navigationevent:navigationevent-compose:1.1.2")
     implementation(libs.kotlinx.serialization.json)
 
     // kotlin-stdlib 统一到 2.4.20（miuix 0.9.4 的传递依赖要求）：运行时取最高版本，避免

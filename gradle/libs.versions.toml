@@ -1,5 +1,6 @@
 [versions]
-# AGP 9.1：compose 1.12.x（miuix 0.9.4 的编译基线）在 AAR metadata 里强制要求 AGP ≥ 9.1.0，取 9.1 线最新 patch。
+# AGP 9.1：compose 1.12.x（miuix 0.9.4 的编译基线）在 AAR metadata 里强制要求 AGP ≥ 9.1.0（实测 ui/foundation 1.12.1 与
+# material3-android 1.5.0-alpha26 的 minAndroidGradlePluginVersion 都是 9.1.0、minCompileSdk 都是 37），取 9.1 线最新 patch。
 # AGP 9 默认启用 built-in Kotlin，本项目继续用外部 KGP（kotlin-android + compose/serialization 插件 + KSP），
 # 由 gradle.properties 的 android.builtInKotlin=false 显式退出（AGP 9 官方过渡路径）。
 agp = "9.1.1"
@@ -14,11 +15,15 @@ activityCompose = "1.11.0"
 # miuix 0.9.4 以 Compose Multiplatform 1.12.0 编译，BOM 2026.09.00 起内含 compose 1.12.1（runtime/ui/foundation），与之对齐
 composeBom = "2026.09.00"
 # 刻意覆盖 BOM 给的 material3 1.4.0（Expressive 的 ButtonGroup/LoadingIndicator/波浪进度条等组件只在 1.5.0-alpha）。
-# 三条门槛核对结论（2026-10-10，升 BOM 或该 alpha 前按 AGENTS.md §3.10 重核）：
-# ① kotlin-stdlib 要求：1.5.0-alpha 线要求 Kotlin ≥ 2.0，项目 2.3.21 满足（全量编译+单测实证）；
-# ② AAR minCompileSdk：要求 ≥ 36，项目 compileSdk 37 满足（AGP 构建期强校验，不满足直接报错）；
-# ③ manifest minSdk：material3 为 21 ≤ 项目 24。
-material3Expressive = "1.5.0-alpha18"
+# 四条门槛核对结论（2026-10-10 由 alpha18 升到 alpha26，升 BOM 或该 alpha 前按 AGENTS.md §3.10 重核；①②③ 的数值都是从工件里读出来的实测值，不是文档转述）：
+# ① Kotlin metadata：alpha26 的 pom 依赖 kotlin-stdlib 2.1.20（alpha18 同），项目 Kotlin 2.3.21 向后兼容可读；
+# ② AAR 门槛：material3.aar 内 META-INF/com/android/build/gradle/aar-metadata.properties 写 minCompileSdk=37、
+#    minAndroidGradlePluginVersion=9.1.0（alpha18 当年是 35 / 8.6.0），项目 compileSdk 37 + AGP 9.1.1 满足；
+# ③ manifest minSdk=24（alpha18 / alpha22 是 23），与项目 minSdk 24 齐平；
+# ④ compose 编译基线：alpha26 的 pom 依赖 ui/foundation/runtime 1.12.0-beta01，与 BOM 2026.09.00 强制的 1.12.1 同属 1.12 线。
+#    升版就是因为 alpha18 的基线停在 1.11.0-beta02，而 compose 1.12.1 的 aar-metadata 要求 minCompileSdk=37 / AGP ≥ 9.1.0，
+#    等于让 1.11 线编译的 material3 跑在 1.12 线上（混版，Expressive 组件运行时行为无人背书）。
+material3Expressive = "1.5.0-alpha26"
 
 # Room 2.7 起正式支持 KSP2（KSP 2.x 默认走 KSP2 处理器），2.6.1 只兼容 KSP1
 room = "2.8.5"

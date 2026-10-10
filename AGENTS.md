@@ -16,10 +16,11 @@
 | 包名 | `com.yunx.app` |
 | 源码根 | `app/src/main/kotlin/com/yunx/app` |
 | 语言 | Kotlin |
-| UI | Jetpack Compose + Material Design 3 |
-| 持久化 | Room（KSP 注解处理）+ SharedPreferences |
+| UI | Jetpack Compose + **Miuix（HyperOS）**；历史 MD3 页面已整体迁移，仅 Expressive 专属组件仍用 `material3:1.5.0-alpha` |
+| 持久化 | Room 2.8.5（KSP2 注解处理，库版本 19）+ SharedPreferences |
 | 网络 | OkHttp 4.12.0 |
-| minSdk / targetSdk / compileSdk | 24 / 34 / 36 |
+| 工具链 | Kotlin 2.3.21 / AGP 9.1.1 / Gradle 9.3.1 / KSP 2.3.12 / Compose BOM 2026.09.00 |
+| minSdk / targetSdk / compileSdk | 24 / 34 / 37 |
 | JVM target | 17 |
 | 开源协议 | GNU AGPL-3.0 |
 
@@ -169,7 +170,7 @@ speedLimitProvider  = { settings.downloadSpeedLimit }
 
 ### 3.7 Room 迁移：必须写 Migration，禁止破坏性迁移
 
-`AppDatabase.kt` 现为 **version = 16**（v1.2.5 是 10 → v1.2.6 起 13 → 收藏快捷方式 15 → 115 支持 16）。新增表/字段的流程：
+`AppDatabase.kt` 现为 **version = 19**（v1.2.5 是 10 → v1.2.6 起 13 → 收藏快捷方式 15 → 115 支持 16 → 引擎任务 `engineTaskId` 17 → 协作者的三个新网盘 18 → 迅雷 `authType` 19）。新增表/字段的流程：
 
 1. `entities` 数组追加 Entity
 2. `version` +1
@@ -177,14 +178,15 @@ speedLimitProvider  = { settings.downloadSpeedLimit }
 4. 写 `MIGRATION_N_N+1`（新增表用 `CREATE TABLE IF NOT EXISTS`，不动旧表）
 5. 注册到 `.addMigrations(...)`
 
-`fallbackToDestructiveMigrationFrom(1..8)` 仅适用于早期开发版；**v9 起必须保留用户凭证与下载任务**。
+`fallbackToDestructiveMigrationFrom(dropAllTables = false, startVersions = intArrayOf(1..8))` 仅适用于早期开发版（Room 2.8.5 里
+vararg 旧重载已 `@Deprecated`，ReplaceWith 就是显式带 `dropAllTables` 的这一版，两者同实现、语义不变）；**v9 起必须保留用户凭证与下载任务**。
 
 **已知问题（2026-10-03 线上崩溃，决定暂不修）**：在跑过库版本更高构建的设备上再装回旧 APK，磁盘里的库版本会比 APK 声明的高，
 Room 走 `onDowngrade` → 没有向下的迁移路径 → `IllegalStateException: A migration from 15 to 13 was required but not found`。
 崩溃点在 `app/src/main/kotlin/com/yunx/app/ui/MainScreen.kt:287` 的 `AppDatabase.get()` 首次查询开库处，异常无人捕获 ⇒ **之后每次启动都崩**，
 用户只能清应用数据或装回更高的包。触发前提是「版本名与 versionCode 都相同、只有库版本不同」的两个包互装（那段时间库从 13 涨到 16 而 versionCode 一直是 11），
 普通用户碰不到，只有来回装包的开发/协作者会撞上。**要修的话**：builder 加 `.fallbackToDestructiveMigrationOnDowngrade()`
-（Room 2.6.1 已有该 API，降级时清库重建而非抛异常），再用 `RoomDatabase.Callback.onDestructiveMigration()` 给用户一句提示；
+（Room 2.8.5 仍有该 API，降级时清库重建而非抛异常），再用 `RoomDatabase.Callback.onDestructiveMigration()` 给用户一句提示；
 升级路径不受影响，仍然强制走 Migration。
 
 ### 3.8 平台标识：用 `DownloadPlatform` 常量，不要裸字符串
@@ -203,11 +205,20 @@ object DownloadPlatform {
 
 ### 3.10 UI 依赖：material3 显式钉 alpha（Material 3 Expressive，勿"顺手"改回）
 
-版本目录里 `androidx-material3` **自带版本号**（`material3Expressive = "1.5.0-alpha18"`），刻意覆盖 Compose BOM 给的 1.4.0：
+版本目录里 `androidx-material3` **自带版本号**（`material3Expressive`，当前 `1.5.0-alpha26`），刻意覆盖 Compose BOM 给的 1.4.0：
 Expressive 的主题/动效/排版/形状在 1.4.0 已稳定可用，但 ButtonGroup、SplitButton、ToggleButton、LoadingIndicator、
 MaterialShapes、波浪进度条、FloatingToolbar、FAB 菜单等**组件只存在于 1.5.0-alpha** —— 这是有意取舍，不是遗漏或笔误。
-升级 BOM 或该 alpha 前，必须逐条重新核对三条门槛（kotlin-stdlib 要求的 Kotlin 版本 / AAR 的 minCompileSdk ≤ compileSdk /
-manifest 的 minSdk），依据与历史版本对照写在 `gradle/libs.versions.toml` 中 `material3Expressive` 上方。
+
+**升 BOM 或该 alpha 前逐条重核四条门槛**。**数值的唯一真源是 `gradle/libs.versions.toml` 中 `material3Expressive` 上方的注释**
+（那里带历史版本对照），本节只列规则、不抄数值，免得改一次版本要同步四处还漏一处：
+
+- ① **Kotlin metadata**：该 AAR 用哪版 stdlib 编译，项目编译器读得动吗（2.3.x 可读 2.4，别用 `-Xskip-metadata-version-check` 伪造兼容）。
+- ② **AAR 门槛**：`material3.aar` 内 `META-INF/com/android/build/gradle/aar-metadata.properties` 的 `minCompileSdk` ≤ compileSdk、
+  `minAndroidGradlePluginVersion` ≤ AGP。这两条由 AGP 构建期强制校验（历史上那个 `android.dependency.enforceMinimumCompileSdk`
+  在 AGP 8.13 与 9.1.1 的全部 jar 里查无此属性，是无效开关，已删）。
+- ③ **manifest minSdk** ≤ 项目 minSdk。
+- ④ **compose 编译基线**：该 AAR 的 pom 依赖 `ui`/`foundation`/`runtime` 的哪一条线，必须与 BOM 给的运行时同线。
+  跨线就是混版：`alpha18` 基线停在 1.11.0-beta02 却跑在 BOM 2026.09.00 的 1.12.1 上，正是本次升到 `alpha26` 的原因。
 
 **动效规格的读取位置有硬性约束**：`MaterialTheme.motionScheme` 是 `@Composable` 属性，只能在 composable 作用域读取。
 要把它取出的规格传给 `AnimatedContent` 的 `transitionSpec`、`remember {}`、点击回调等**非 @Composable 的 lambda** 时，
@@ -217,7 +228,8 @@ manifest 的 minSdk），依据与历史版本对照写在 `gradle/libs.versions
 
 ### 3.11 minSdk 钉 24（勿降回 23）
 
-`minSdk = 24` 是被 AGP 8.13 的 D8 缺陷逼出来的，不是随手抬的：
+`minSdk = 24` 现在有两道约束，别只记着其中一道：**依赖硬要求**（miuix 0.9.4 的 AAR 清单写的就是 `minSdkVersion=24`，
+`material3:1.5.0-alpha26` 也是 24，低于它就装不上包）与**历史缺陷**（AGP 8.13 的 D8 脱糖 bug 逼出来的，不是随手抬的）：
 
 - `minSdk < 24` 时 D8 必须脱糖接口的静态方法：它把接口上的 `$default` 桥方法（`RowScope.weight$default`、
   `DrawScope.drawLine-…$default` 这类）搬进合成的 `Xxx$-CC` 伴生类，**却不改写第三方库（AAR）字节码里的调用点**，
@@ -232,7 +244,8 @@ manifest 的 minSdk），依据与历史版本对照写在 `gradle/libs.versions
   （AGP 8.13 + `minSdk < 24` 的接口 `$default` 桥，见 getsentry/sentry-java#5302），他们的解法是在自己的
   调用点上显式传参绕开桥；我们改不了第三方 AAR 的字节码，所以抬 minSdk 是代价最小且确定有效的修法。
 
-**降回 23 的前提**：确认 AGP 已修掉该 D8 脱糖缺陷（换版本后用 debug 包打开带表格的 README，实测不崩）。
+**降回 23 的前提（两条都要满足）**：① miuix / material3 等依赖的 AAR 清单先把 minSdk 降到 23（miuix 0.9.4 与 material3 alpha26 都是 24，
+所以现在光凭 AGP 谈这个没有意义）；② 确认 AGP 已修掉该 D8 脱糖缺陷——**AGP 9.1.1 下尚未复验**，复验办法是换版本后用 debug 包打开带表格的 README，实测不崩。
 
 ### 3.12 文件名显示：统一用 `FileNameText`（别再手写 maxLines）
 

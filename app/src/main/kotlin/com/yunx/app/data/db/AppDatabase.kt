@@ -97,7 +97,8 @@ abstract class AppDatabase : RoomDatabase() {
                         MIGRATION_18_19
                     )
                     // 早期开发版（1-8）无可靠 schema；从 v9 起必须保留凭证和下载任务
-                    // dropAllTables = false：与旧重载行为一致，只重建 Room 管理的表，不动库内其它表
+                    // Room 2.8.5 里 vararg 旧重载已 @Deprecated（ReplaceWith 就是带 dropAllTables 的这一版），
+                    // 两者同实现：dropAllTables=false 只重建 Room 管理的表，不动库内其它表，行为不变
                     .fallbackToDestructiveMigrationFrom(dropAllTables = false, startVersions = intArrayOf(1, 2, 3, 4, 5, 6, 7, 8))
                     .addCallback(object : RoomDatabase.Callback() {
                         /** 诊断模式：库建/开时记一条（版本 + 全部业务表），排查「表不存在 / 迁移没跑」最有用 */
