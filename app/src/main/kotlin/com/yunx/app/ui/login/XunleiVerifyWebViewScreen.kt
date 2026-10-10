@@ -36,7 +36,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.ui.unit.dp
-import com.yunx.app.ui.AppSnackbarHost
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -49,7 +48,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import com.yunx.app.data.network.XunleiConstants
-import com.yunx.app.ui.rememberGlobalSnackbarHostState
 import org.json.JSONObject
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
@@ -158,10 +156,8 @@ fun XunleiVerifyWebViewScreen(
 
     DisposableEffect(Unit) { onDispose { webView.destroy() } }
     BackHandler { onBack() }
-    val snackbarHostState = rememberGlobalSnackbarHostState()
 
     Scaffold(
-        snackbarHost = { AppSnackbarHost(snackbarHostState, modifier = Modifier.padding(bottom = 16.dp)) },
         topBar = {
             TopAppBar(
                 title = "迅雷安全验证",

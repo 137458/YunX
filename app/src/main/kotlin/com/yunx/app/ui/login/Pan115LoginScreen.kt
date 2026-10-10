@@ -50,10 +50,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.yunx.app.data.network.Pan115Constants
-import com.yunx.app.ui.AppSnackbarHost
 import com.yunx.app.ui.SnackbarController
 import com.yunx.app.ui.components.YunXWavyLoading
-import com.yunx.app.ui.rememberGlobalSnackbarHostState
 import com.yunx.app.ui.viewmodel.Pan115AccountViewModel
 import com.yunx.app.util.DiagnosticLog
 import kotlinx.coroutines.launch
@@ -164,11 +162,8 @@ fun Pan115LoginScreen(
         onAutoSaved = onSaved
     )
 
-    // 全局 Snackbar 宿主
-    val snackbarHostState = rememberGlobalSnackbarHostState()
 
     Scaffold(
-        snackbarHost = { AppSnackbarHost(snackbarHostState, modifier = Modifier.padding(bottom = 16.dp)) },
         topBar = {
             TopAppBar(
                 title = "115网盘登录",

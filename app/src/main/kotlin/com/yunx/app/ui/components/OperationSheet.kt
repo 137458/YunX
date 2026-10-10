@@ -30,8 +30,6 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
-import com.yunx.app.ui.AppSnackbarHost
-import com.yunx.app.ui.rememberGlobalSnackbarHostState
 import top.yukonga.miuix.kmp.overlay.OverlayBottomSheet
 
 internal val LocalFileOperationBusy = staticCompositionLocalOf { false }
@@ -81,8 +79,6 @@ internal fun OperationSheet(
     ) {
         CompositionLocalProvider(LocalFileOperationBusy provides busy) {
             Column { content() }
-            // 弹窗是独立 Overlay 窗口，需自带 Snackbar 宿主
-            AppSnackbarHost(rememberGlobalSnackbarHostState())
         }
     }
 }

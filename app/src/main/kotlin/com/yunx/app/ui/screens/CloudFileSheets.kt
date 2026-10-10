@@ -67,7 +67,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.yunx.app.data.network.model.ShareFile
+import com.yunx.app.ui.AppSnackbarHost
 import com.yunx.app.ui.SnackbarController
+import com.yunx.app.ui.rememberGlobalSnackbarHostState
 import com.yunx.app.ui.components.BreadcrumbBar
 import com.yunx.app.ui.components.BreadcrumbItem
 // CloudStepHeader / DrivePickerErrorPane 已下沉为 ui/drive 通用件（唯一实现）
@@ -620,6 +622,7 @@ private fun DeleteStep(
                 }
             }
         }
+        AppSnackbarHost(rememberGlobalSnackbarHostState())
     }
 }
 
@@ -698,6 +701,7 @@ internal fun ShareResultDialog(
                 }
             }
         }
+        AppSnackbarHost(rememberGlobalSnackbarHostState())
     }
 }
 
@@ -1134,5 +1138,6 @@ private fun BatchDeleteStep(
                 }
             }
         }
+        AppSnackbarHost(rememberGlobalSnackbarHostState())
     }
 }

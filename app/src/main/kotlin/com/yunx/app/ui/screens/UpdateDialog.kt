@@ -51,6 +51,8 @@ import com.yunx.app.data.db.DownloadTaskEntity
 import com.yunx.app.data.download.DownloadStats
 import com.yunx.app.data.update.UpdateChecker
 import com.yunx.app.util.ByteFormat
+import com.yunx.app.ui.rememberGlobalSnackbarHostState
+import com.yunx.app.ui.AppSnackbarHost
 import com.yunx.app.ui.components.MarkdownText
 import kotlinx.coroutines.flow.StateFlow
 import top.yukonga.miuix.kmp.basic.Button
@@ -194,6 +196,7 @@ fun UpdateDialog(
                 )
             }
         }
+        AppSnackbarHost(rememberGlobalSnackbarHostState())
     }
 }
 

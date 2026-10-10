@@ -48,10 +48,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.yunx.app.data.network.XunleiWebCredential
-import com.yunx.app.ui.AppSnackbarHost
 import com.yunx.app.ui.SnackbarController
 import com.yunx.app.ui.components.YunXWavyLoading
-import com.yunx.app.ui.rememberGlobalSnackbarHostState
 import com.yunx.app.ui.viewmodel.XunleiAccountViewModel
 import com.yunx.app.util.DiagnosticLog
 import kotlinx.coroutines.launch
@@ -155,10 +153,8 @@ fun XunleiWebLoginScreen(
         onAutoSaved = onSaved
     )
 
-    val snackbarHostState = rememberGlobalSnackbarHostState()
 
     Scaffold(
-        snackbarHost = { AppSnackbarHost(snackbarHostState, modifier = Modifier.padding(bottom = 16.dp)) },
         topBar = {
             TopAppBar(
                 title = "迅雷网页登录",

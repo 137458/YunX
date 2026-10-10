@@ -52,9 +52,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import com.yunx.app.ui.AppSnackbarHost
 import com.yunx.app.ui.SnackbarController
-import com.yunx.app.ui.rememberGlobalSnackbarHostState
 import com.yunx.app.ui.viewmodel.ILanzouAccountViewModel
 import kotlinx.coroutines.launch
 import top.yukonga.miuix.kmp.basic.Button
@@ -88,11 +86,9 @@ fun ILanzouLoginScreen(
     var showTutorial by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { showTutorial = true }
 
-    val snackbarHostState = rememberGlobalSnackbarHostState()
     BackHandler(enabled = !isSaving) { onBack() }
 
     Scaffold(
-        snackbarHost = { AppSnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = "蓝奏云优享版登录",

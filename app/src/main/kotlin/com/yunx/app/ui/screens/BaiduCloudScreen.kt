@@ -39,6 +39,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.unit.dp
 import com.yunx.app.data.prefs.SettingsRepository
+import com.yunx.app.ui.rememberGlobalSnackbarHostState
+import com.yunx.app.ui.AppSnackbarHost
 import com.yunx.app.ui.drive.CloudDriveBrowser
 import com.yunx.app.ui.drive.CloudDriveUiState
 import com.yunx.app.ui.drive.DriveActions
@@ -214,6 +216,7 @@ fun BaiduCloudScreen(
                     }
                 }
             }
+            AppSnackbarHost(rememberGlobalSnackbarHostState())
         }
     }
 }

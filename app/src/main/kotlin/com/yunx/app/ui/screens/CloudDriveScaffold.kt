@@ -73,6 +73,8 @@ import com.yunx.app.data.network.model.ShareFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
+import com.yunx.app.ui.rememberGlobalSnackbarHostState
+import com.yunx.app.ui.AppSnackbarHost
 import com.yunx.app.ui.components.BreadcrumbBar
 // CloudStepHeader / DrivePickerErrorPane 已下沉为 ui/drive 通用件；
 // 此处别名引入，保持同包调用点（CloudDriveScreen.kt）不变
@@ -489,6 +491,7 @@ fun CloudDriveDeleteDialog(
                 }
             }
         }
+        AppSnackbarHost(rememberGlobalSnackbarHostState())
     }
 }
 
@@ -542,6 +545,7 @@ fun CloudDriveRenameDialog(
                 }
             }
         }
+        AppSnackbarHost(rememberGlobalSnackbarHostState())
     }
 }
 

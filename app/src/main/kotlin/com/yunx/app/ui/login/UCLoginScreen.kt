@@ -44,9 +44,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.yunx.app.data.network.UCConstants
 import com.yunx.app.data.repository.SaveResult
-import com.yunx.app.ui.AppSnackbarHost
 import com.yunx.app.ui.SnackbarController
-import com.yunx.app.ui.rememberGlobalSnackbarHostState
 import com.yunx.app.ui.viewmodel.UCAccountViewModel
 import kotlinx.coroutines.launch
 import top.yukonga.miuix.kmp.basic.Button
@@ -107,11 +105,8 @@ fun UCLoginScreen(
     // 系统返回键：优先回退网页历史（登录流程多跳转），无历史才退出登录页
     BackHandler { if (!controller.goBack()) exitLogin() }
 
-    // 全局 Snackbar 宿主
-    val snackbarHostState = rememberGlobalSnackbarHostState()
 
     Scaffold(
-        snackbarHost = { AppSnackbarHost(snackbarHostState, modifier = Modifier.padding(bottom = 16.dp)) },
         topBar = {
             TopAppBar(
                 title = "UC 网盘登录",

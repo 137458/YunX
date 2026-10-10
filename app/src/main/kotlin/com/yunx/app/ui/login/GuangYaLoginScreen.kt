@@ -56,9 +56,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import com.yunx.app.ui.AppSnackbarHost
 import com.yunx.app.ui.SnackbarController
-import com.yunx.app.ui.rememberGlobalSnackbarHostState
 import com.yunx.app.ui.viewmodel.GuangYaAccountViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -119,7 +117,6 @@ fun GuangYaLoginScreen(
         }
     }
 
-    val snackbarHostState = rememberGlobalSnackbarHostState()
 
     BackHandler(enabled = !isSaving && !isSendingSms) { onBack() }
 
@@ -142,7 +139,6 @@ fun GuangYaLoginScreen(
     }
 
     Scaffold(
-        snackbarHost = { AppSnackbarHost(snackbarHostState, modifier = Modifier.padding(bottom = 16.dp)) },
         topBar = {
             TopAppBar(
                 title = "光鸭云盘登录",

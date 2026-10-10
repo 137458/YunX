@@ -53,9 +53,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.yunx.app.data.db.ILanzouAccountEntity
-import com.yunx.app.ui.AppSnackbarHost
 import com.yunx.app.ui.SnackbarController
-import com.yunx.app.ui.rememberGlobalSnackbarHostState
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Card
@@ -96,7 +94,6 @@ fun ILanzouAccountSheet(
     // 账号可能是手机号/邮箱等敏感信息，展示时脱敏（与其它网盘一致，不明文列出账号）
     val displayName = maskAccount(account.nickname.ifBlank { account.account }).ifBlank { "蓝奏优享用户" }
 
-    val snackbarHostState = rememberGlobalSnackbarHostState()
     val scrollState = rememberScrollState()
 
     OverlayBottomSheet(
@@ -222,8 +219,6 @@ fun ILanzouAccountSheet(
                 Spacer(modifier = Modifier.width(8.dp))
                 Text("退出登录", style = MiuixTheme.textStyles.button)
             }
-
-            AppSnackbarHost(snackbarHostState)
         }
     }
 

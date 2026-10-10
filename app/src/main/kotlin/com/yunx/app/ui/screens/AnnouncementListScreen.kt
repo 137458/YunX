@@ -59,10 +59,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.yunx.app.data.announcement.AnnouncementApi
 import com.yunx.app.data.announcement.relativeTime
-import com.yunx.app.ui.AppSnackbarHost
 import com.yunx.app.ui.components.RemoteImage
 import com.yunx.app.ui.components.YunXLoading
-import com.yunx.app.ui.rememberGlobalSnackbarHostState
 import com.yunx.app.ui.theme.ListGroupGap
 import com.yunx.app.ui.theme.listGroupShape
 import com.yunx.app.ui.viewmodel.AnnouncementViewModel
@@ -106,12 +104,9 @@ fun AnnouncementListPage(
     onOpen: (AnnouncementApi.Announcement) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // 独立全屏覆盖页：自带 Snackbar 宿主（覆盖层会遮挡主页 Scaffold 的 SnackbarHost）
-    val snackbarHostState = rememberGlobalSnackbarHostState()
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
-        snackbarHost = { AppSnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = "公告",

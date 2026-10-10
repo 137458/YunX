@@ -82,7 +82,7 @@ internal class SnackbarEventQueue {
     }.distinctUntilChanged()
 }
 
-/** 全局入口保持不变；连续调用按顺序排队，弹窗和覆盖页接管提示宿主。 */
+/** 全局入口保持不变；连续调用按顺序排队。全应用唯一宿主在 MainScreen 最外层 Box 末尾（画在一切覆盖层之上）。 */
 object SnackbarController {
     internal val queue = SnackbarEventQueue()
 

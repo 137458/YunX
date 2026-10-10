@@ -78,6 +78,8 @@ import com.yunx.app.data.db.BookmarkEntity
 import com.yunx.app.data.network.model.ShareFile
 import com.yunx.app.data.network.model.ShareSession
 import com.yunx.app.data.prefs.SettingsRepository
+import com.yunx.app.ui.rememberGlobalSnackbarHostState
+import com.yunx.app.ui.AppSnackbarHost
 import com.yunx.app.ui.components.LocalScaffoldPadding
 import com.yunx.app.ui.components.ScrollToTopButton
 import com.yunx.app.ui.items.MultiSelectAction
@@ -487,6 +489,7 @@ fun ShareDetailScreen(
                     }
                 }
             }
+            AppSnackbarHost(rememberGlobalSnackbarHostState())
         }
     }
 
@@ -527,6 +530,7 @@ fun ShareDetailScreen(
                     )
                 }
             }
+            AppSnackbarHost(rememberGlobalSnackbarHostState())
         }
     }
 

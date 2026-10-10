@@ -69,7 +69,9 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.yunx.app.data.network.ShareLinkParser
 import com.yunx.app.data.network.SharePlatform
+import com.yunx.app.ui.AppSnackbarHost
 import com.yunx.app.ui.SnackbarController
+import com.yunx.app.ui.rememberGlobalSnackbarHostState
 import com.yunx.app.ui.components.LocalScaffoldPadding
 import com.yunx.app.ui.resolve.DownloadLinkDialog
 import com.yunx.app.ui.resolve.ShareDetailScreen
@@ -313,6 +315,7 @@ fun ResolveScreen(
                 color = MiuixTheme.colorScheme.onSurface
             )
         }
+        AppSnackbarHost(rememberGlobalSnackbarHostState())
     }
 
     // 下载直链弹窗

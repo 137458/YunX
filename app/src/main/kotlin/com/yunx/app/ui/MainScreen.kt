@@ -18,6 +18,7 @@
 
 package com.yunx.app.ui
 
+import com.yunx.app.ui.rememberGlobalSnackbarHostState
 import com.yunx.app.ui.theme.useNavigationRail
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
@@ -753,7 +754,8 @@ fun MainScreen(
     // 折叠标题状态提升到本层：跨页面共享，页面切换时折叠/展开状态保持不变
     val scrollBehavior = MiuixScrollBehavior()
 
-    // 全局提示条宿主（Miuix 原生 Snackbar，经 SnackbarController 广播事件）
+    // 全局提示条状态（Miuix 原生 Snackbar，经 SnackbarController 广播事件）；
+    // 宿主渲染在最外层 Box 的末尾（见函数收尾处），是全应用唯一宿主
     val snackbarHostState = rememberGlobalSnackbarHostState()
 
     // 主框架与全屏覆盖层（关于页）放在同一 Box：覆盖层带过渡动画
@@ -903,20 +905,6 @@ fun MainScreen(
                 }
             },
             floatingToolbarPosition = ToolbarPosition.BottomCenter,
-            snackbarHost = {
-                val floatingBarBottomPadding =
-                    if (!isWideScreen && bottomBarStyle.isFloating) {
-                        floatingBarDesiredClearance + FloatingBarSnackbarExtraMargin
-                    } else {
-                        16.dp
-                    }
-                AppSnackbarHost(
-                    hostState = snackbarHostState,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = floatingBarBottomPadding)
-                )
-            }
         ) { innerPadding ->
             val layoutDirection = LocalLayoutDirection.current
             // 悬浮底栏的内容避让：Miuix Scaffold 会把 floatingToolbar 的高度 + FloatingToolbarSpacing
@@ -1021,6 +1009,24 @@ fun MainScreen(
             }
         )
     }
+        // 全局提示条宿主：放在最外层 Box 的最后，画在主界面、覆盖层与弹窗之后。
+        // Overlay 系弹窗（OverlayDialog / OverlayBottomSheet / OperationSheet）与各覆盖层
+        // 都画在本 Box 内、先于本宿主组合，提示不会被它们遮挡；Window 系独立窗口弹窗
+        // （WindowDialog，如更新弹窗）盖不住本宿主，由各弹窗内容自带宿主接管（见各调用点）。
+        val snackbarBottomPadding =
+            if (!isWideScreen && bottomBarStyle.isFloating) {
+                floatingBarDesiredClearance + FloatingBarSnackbarExtraMargin
+            } else {
+                16.dp
+            }
+        AppSnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.BottomCenter)
+                .padding(bottom = snackbarBottomPadding)
+        )
+
     }
 
     // 首次下载引导：加入「忽略电池优化」白名单（锁屏保持下载生效的前提，Miuix WindowDialog 规范）
@@ -1065,6 +1071,7 @@ fun MainScreen(
                     }
                 }
             }
+            AppSnackbarHost(rememberGlobalSnackbarHostState())
         }
     }
 
@@ -1116,6 +1123,7 @@ fun MainScreen(
                 }
             )
         }
+
     }
 }
 

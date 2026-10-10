@@ -40,7 +40,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.yunx.app.ui.AppSnackbarHost
 import com.yunx.app.ui.SnackbarController
+import com.yunx.app.ui.rememberGlobalSnackbarHostState
 import com.yunx.app.util.TextCipher
 import kotlinx.coroutines.delay
 import top.yukonga.miuix.kmp.basic.Button
@@ -146,6 +148,7 @@ fun SafetyNoticeDialog() {
                 }
             }
         }
+        AppSnackbarHost(rememberGlobalSnackbarHostState())
     }
 }
 

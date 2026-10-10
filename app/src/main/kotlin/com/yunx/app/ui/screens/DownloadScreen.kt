@@ -89,7 +89,9 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.yunx.app.data.db.DownloadTaskEntity
 import com.yunx.app.data.download.DownloadStats
+import com.yunx.app.ui.AppSnackbarHost
 import com.yunx.app.ui.SnackbarController
+import com.yunx.app.ui.rememberGlobalSnackbarHostState
 import com.yunx.app.ui.components.LocalScaffoldPadding
 import com.yunx.app.ui.theme.SquircleShape
 import com.yunx.app.ui.util.installApk
@@ -356,6 +358,7 @@ fun DownloadScreen(
                     }
                 }
             }
+            AppSnackbarHost(rememberGlobalSnackbarHostState())
         }
     }
 }
@@ -471,6 +474,7 @@ private fun DeleteConfirmDialog(
                 }
             }
         }
+        AppSnackbarHost(rememberGlobalSnackbarHostState())
     }
 }
 
@@ -856,6 +860,7 @@ private fun DownloadSubTaskRow(
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
+                AppSnackbarHost(rememberGlobalSnackbarHostState())
             }
         }
     }
@@ -1084,6 +1089,7 @@ private fun DownloadTaskCard(
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
+                AppSnackbarHost(rememberGlobalSnackbarHostState())
             }
         }
     }
@@ -1194,5 +1200,6 @@ private fun AddDownloadDialog(
                 }
             }
         }
+        AppSnackbarHost(rememberGlobalSnackbarHostState())
     }
 }

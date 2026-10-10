@@ -63,12 +63,10 @@ import com.yunx.app.data.announcement.AnnouncementApi
 import com.yunx.app.data.announcement.formatLocalDateTime
 import com.yunx.app.data.announcement.parseIsoMillis
 import com.yunx.app.data.announcement.relativeTime
-import com.yunx.app.ui.AppSnackbarHost
 import com.yunx.app.ui.components.GitHubMarkdownImageTransformer
 import com.yunx.app.ui.components.RemoteImage
 import com.yunx.app.ui.components.YunXLoading
 import com.yunx.app.ui.components.compactMarkdownTypography
-import com.yunx.app.ui.rememberGlobalSnackbarHostState
 import com.yunx.app.ui.theme.effectsDefault
 import com.yunx.app.ui.viewmodel.AnnouncementViewModel
 import top.yukonga.miuix.kmp.basic.Button
@@ -110,12 +108,9 @@ fun AnnouncementDetailPage(
     onImageClick: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // 独立全屏覆盖页：自带 Snackbar 宿主（覆盖层会遮挡主页 Scaffold 的 SnackbarHost）
-    val snackbarHostState = rememberGlobalSnackbarHostState()
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
-        snackbarHost = { AppSnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = "公告详情",
