@@ -129,6 +129,8 @@ internal fun CloudDriveScaffold(
     onFileMoreClick: ((ShareFile) -> Unit)? = null,
     onFileLongClick: ((ShareFile) -> Unit)? = null,
     multiSelectActions: List<MultiSelectAction>,
+    /** 批量操作执行中：禁用多选工具栏按钮，防止连点重复入队 */
+    multiSelectBusy: Boolean = false,
     listState: LazyListState = rememberLazyListState(),
     scrollPositions: MutableMap<String, Int> = remember { mutableStateMapOf() },
     modifier: Modifier = Modifier
@@ -358,7 +360,7 @@ internal fun CloudDriveScaffold(
                 .align(Alignment.BottomCenter)
                 .padding(bottom = scaffoldPadding.calculateBottomPadding())
         ) {
-            MultiSelectBar(actions = multiSelectActions)
+            MultiSelectBar(actions = multiSelectActions, busy = multiSelectBusy)
         }
     }
 }

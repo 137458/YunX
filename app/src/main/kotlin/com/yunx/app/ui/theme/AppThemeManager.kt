@@ -57,6 +57,10 @@ object AppThemeManager {
     var fileNameMultiLine by mutableStateOf(false)
         private set
 
+    /** 下载调试：开启后下载页长按任务可查看「调试信息」（默认关闭；关闭会清空全部调试日志） */
+    var downloadDebug by mutableStateOf(false)
+        private set
+
     private var initialized = false
 
     /** 复用同一个仓储实例，避免每次读写都重建 SharedPreferences 包装 */
@@ -96,6 +100,7 @@ object AppThemeManager {
         bottomBarStyle = s.bottomBarStyle
         isAmoled = s.isAmoled
         fileNameMultiLine = s.fileNameMultiLine
+        downloadDebug = s.downloadDebug
         syncedVersion = SettingsRepository.changeVersion
     }
 
@@ -148,6 +153,16 @@ object AppThemeManager {
     fun setFileNameMultiLine(context: Context, value: Boolean) {
         fileNameMultiLine = value
         repo(context).fileNameMultiLine = value
+        markSynced()
+    }
+
+    /**
+     * 设置下载调试开关并持久化。**关闭会清空全部调试日志**，所以清空与提示由调用方负责
+     * （设置页关开关前会先弹二次确认，确认后调用 `DownloadDebugLog.setEnabled`）。
+     */
+    fun setDownloadDebug(context: Context, value: Boolean) {
+        downloadDebug = value
+        repo(context).downloadDebug = value
         markSynced()
     }
 }

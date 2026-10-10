@@ -18,6 +18,7 @@
 
 package com.yunx.app.ui
 
+import com.yunx.app.ui.theme.useNavigationRail
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -192,9 +193,6 @@ private val FloatingBarSpacing = 4.dp
 /** 提示条避让：在内容避让值之上再抬 8dp，避免提示条与悬浮底栏贴边。 */
 private val FloatingBarSnackbarExtraMargin = 8.dp
 
-/** 宽屏断点（dp）：达到后主界面改用侧边 NavigationRail 而不是底部导航栏 */
-private const val WIDE_SCREEN_MIN_WIDTH_DP = 600
-
 /**
  * 主页框架（Miuix 架构）：
  * - 统一外层骨架为 Miuix Scaffold；
@@ -205,8 +203,21 @@ private const val WIDE_SCREEN_MIN_WIDTH_DP = 600
  * - 全屏覆盖层（关于页、主题页、登录页等）平滑过渡展示。
  */
 @Composable
-fun MainScreen() {
+fun MainScreen(
+    /** 外部来源请求直接打开的 Tab（如点击实况通知 → 下载页）；null = 用默认「解析」页 */
+    openTab: MainTab? = null,
+    /** [openTab] 被消费后回调：调用方负责清空它，避免旋转/重组时重复切页 */
+    onOpenTabConsumed: () -> Unit = {}
+) {
     var currentTab by rememberSaveable { mutableStateOf(MainTab.Resolve) }
+
+    // 实况通知等外部来源请求切 Tab：读一次即消费（清空由调用方做）
+    LaunchedEffect(openTab) {
+        if (openTab != null) {
+            currentTab = openTab
+            onOpenTabConsumed()
+        }
+    }
     var showQuarkLogin by rememberSaveable { mutableStateOf(false) }
     var showUCLogin by rememberSaveable { mutableStateOf(false) }
     var showXunleiLogin by rememberSaveable { mutableStateOf(false) }
@@ -226,9 +237,10 @@ fun MainScreen() {
     val scope = rememberCoroutineScope()
     // 设置仓储：引导页/忽略版本号等 UI 状态也统一从这里读写（构造时会迁移旧的 yunx_prefs 值）
     val settings = remember { SettingsRepository(context) }
-    // 宽屏（≥600dp）使用侧边导航栏（NavigationRail），否则按用户选择的底栏样式渲染。
-    // 用宽度而不是 orientation 判断：这样平板竖屏、折叠屏展开态也能命中，横屏手机同样命中。
-    val isWideScreen = LocalConfiguration.current.screenWidthDp >= WIDE_SCREEN_MIN_WIDTH_DP
+    // 按可用窗口宽高选择导航（≥600dp 宽窗，或紧凑高度的横向窗口）：支持分屏与平板窗口。
+    // 命中时使用侧边导航栏（NavigationRail），否则按用户选择的底栏样式渲染。
+    val windowConfiguration = LocalConfiguration.current
+    val isWideScreen = useNavigationRail(windowConfiguration.screenWidthDp, windowConfiguration.screenHeightDp)
     // 底栏样式由「主题与外观」页写入，经 AppThemeManager 的内存态即时响应
     val bottomBarStyle = BottomBarStyle.fromPersisted(AppThemeManager.bottomBarStyle)
     val blurBackdrop = rememberBlurBackdrop()
@@ -825,7 +837,12 @@ fun MainScreen() {
                         onPan123Login = { showPan123Login = true },
                         onPan123Logout = { pan123ViewModel.logout() }
                     )
-                    MainTab.Download -> DownloadScreen(scrollBehavior, downloadViewModel)
+                    MainTab.Download -> DownloadScreen(
+                        scrollBehavior,
+                        downloadViewModel,
+                        // 下载调试开关（开发调试菜单）：开启后下载页长按任务可进「调试信息」页
+                        downloadDebug = AppThemeManager.downloadDebug
+                    )
                     MainTab.Settings -> SettingsScreen(
                         scrollBehavior = scrollBehavior,
                         onThemeClick = { showTheme = true },

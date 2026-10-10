@@ -27,7 +27,7 @@ import androidx.activity.result.contract.ActivityResultContract
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.TopAppBarDefaults
+import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.assertIsDisplayed
@@ -75,7 +75,10 @@ class SettingsDirectoryPickerTest {
                 database.rawBaiduAccountDao(),
                 database.rawC139AccountDao(),
                 database.rawPan123AccountDao(),
-                database.rawPan115AccountDao()
+                database.rawPan115AccountDao(),
+                database.rawGuangYaAccountDao(),
+                database.rawILanzouAccountDao(),
+                database.rawLanzouAccountDao()
             )
             val owner = object : ActivityResultRegistryOwner {
                 override val activityResultRegistry = object : ActivityResultRegistry() {
@@ -94,13 +97,13 @@ class SettingsDirectoryPickerTest {
                     CompositionLocalProvider(LocalActivityResultRegistryOwner provides owner) {
                         Box(Modifier.fillMaxSize()) {
                             SettingsScreen(
-                                scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(),
+                                scrollBehavior = MiuixScrollBehavior(),
                                 onThemeClick = {},
                                 onAboutClick = {},
                                 onSupportClick = {},
                                 backupManager = backupManager,
                                 onCheckUpdate = {},
-                                onPreviewUpdateSheet = {}
+                                onPreviewUpdateDialog = {}
                             )
                             GlobalSnackbarHost()
                         }

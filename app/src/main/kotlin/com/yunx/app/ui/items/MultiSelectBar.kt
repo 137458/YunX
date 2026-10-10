@@ -41,6 +41,7 @@ import androidx.compose.material.icons.outlined.SelectAll
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -68,10 +69,13 @@ internal data class MultiSelectAction(
 /**
  * 多选模式悬浮胶囊工具栏（Miuix FloatingToolbar 架构）。
  * 放置全选、下载、移动、删除（错误色）、转存等操作按钮。
+ *
+ * @param busy 批量操作执行中：禁用全部按钮，防止连点重复入队
  */
 @Composable
 internal fun MultiSelectBar(
     actions: List<MultiSelectAction>,
+    busy: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     Box(
@@ -106,8 +110,9 @@ internal fun MultiSelectBar(
                             // 保证 48dp 命中区：2 字标签时实际宽度约 44dp，低于无障碍下限
                             .defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
                             .clip(CircleShape)
-                            .clickable(onClick = action.onClick)
+                            .clickable(enabled = !busy, onClick = action.onClick)
                             .padding(horizontal = 10.dp, vertical = 6.dp)
+                            .alpha(if (busy) 0.38f else 1f)
                     ) {
                         Icon(
                             imageVector = action.icon,
@@ -140,6 +145,7 @@ internal fun MultiSelectBar(
     onMove: (() -> Unit)? = null,
     onSave: (() -> Unit)? = null,
     onDelete: (() -> Unit)? = null,
+    busy: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     val actions = buildList {
@@ -195,5 +201,5 @@ internal fun MultiSelectBar(
             )
         }
     }
-    MultiSelectBar(actions = actions, modifier = modifier)
+    MultiSelectBar(actions = actions, busy = busy, modifier = modifier)
 }

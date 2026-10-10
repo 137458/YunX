@@ -100,6 +100,7 @@ fun DownloadLinkDialog(
                             // 长按复制保留为快捷方式，但不再是唯一入口
                             .combinedClickable(
                                 onClick = {},
+                                onLongClickLabel = "复制下载链接",
                                 onLongClick = {
                                     copyToClipboard(context, link.downloadUrl)
                                     SnackbarController.show("下载链接已复制")

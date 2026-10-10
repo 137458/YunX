@@ -51,6 +51,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
@@ -78,6 +80,9 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -87,6 +92,7 @@ import androidx.compose.ui.unit.dp
 import com.yunx.app.R
 import com.yunx.app.data.prefs.SettingsRepository
 import com.yunx.app.ui.theme.AppThemeManager
+import com.yunx.app.ui.theme.readableSeedForeground
 import com.yunx.app.ui.theme.SquircleShape
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import com.yunx.app.ui.components.BlurredBar
@@ -238,7 +244,7 @@ fun ThemeScreen(
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth().selectableGroup(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         val modes = listOf("跟随系统", "浅色", "深色")
@@ -361,7 +367,7 @@ fun ThemeScreen(
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth().selectableGroup(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         bottomBarStyleOptions.forEachIndexed { index, label ->
@@ -575,7 +581,7 @@ private fun PreviewSwatch(
 
 /** 预置色圆点（Squircle 形状 + 名称，选中高亮并显示对勾） */
 @Composable
-private fun ColorSelectionItem(
+internal fun ColorSelectionItem(
     color: Long,
     name: String,
     isSelected: Boolean,
@@ -583,7 +589,9 @@ private fun ColorSelectionItem(
     modifier: Modifier = Modifier
 ) {
     Column(
-        modifier = modifier,
+        modifier = modifier
+            .selectable(selected = isSelected, role = Role.RadioButton, onClick = onClick)
+            .semantics(mergeDescendants = true) { contentDescription = name },
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Box(
@@ -603,7 +611,7 @@ private fun ColorSelectionItem(
                 Icon(
                     imageVector = Icons.Outlined.Check,
                     contentDescription = null,
-                    tint = Color.White,
+                    tint = readableSeedForeground(Color(color.toInt())),
                     modifier = Modifier.size(22.dp)
                 )
             }
@@ -626,7 +634,9 @@ private fun CustomColorButton(
     modifier: Modifier = Modifier
 ) {
     Column(
-        modifier = modifier,
+        modifier = modifier
+            .selectable(selected = isSelected, role = Role.RadioButton, onClick = onClick)
+            .semantics(mergeDescendants = true) { contentDescription = "自定义" },
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Box(
@@ -664,7 +674,7 @@ private fun CustomColorButton(
 // ================= 调色盘 Dialog（Miuix OverlayDialog + Miuix ColorPicker） =================
 
 @Composable
-private fun ColorPickerDialog(
+internal fun ColorPickerDialog(
     initialColor: Long,
     onDismiss: () -> Unit,
     onColorSelected: (Long) -> Unit
@@ -778,7 +788,11 @@ private fun AppIconOption(
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(
+        modifier = Modifier.selectable(selected = isSelected, role = Role.RadioButton, onClick = onClick)
+            .semantics(mergeDescendants = true) {},
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
         Box(
             modifier = Modifier
                 .size(72.dp)

@@ -166,6 +166,7 @@ fun CloudDriveScreen(
                         onRefresh = { viewModel.refresh() },
                         multiSelectMode = viewModel.multiSelectMode,
                         selectedFiles = viewModel.selected.toSet(),
+                        multiSelectBusy = viewModel.isOperating,
                         scrollBehavior = scrollBehavior,
                         onExit = onExit,
                         onBackToParent = { viewModel.back() },

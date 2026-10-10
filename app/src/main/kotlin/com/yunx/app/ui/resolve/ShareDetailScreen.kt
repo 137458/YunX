@@ -402,6 +402,7 @@ fun ShareDetailScreen(
         // 多选模式：底部批量操作栏（转存/下载）
         if (viewModel.multiSelectMode) {
             MultiSelectBar(
+                busy = viewModel.isSaving || viewModel.batchProgress != null,
                 actions = buildList {
                     // 转存仅夸克分享支持
                     if (viewModel.canSave) {

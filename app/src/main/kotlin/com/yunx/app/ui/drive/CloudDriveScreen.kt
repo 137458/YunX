@@ -231,6 +231,7 @@ fun CloudDriveBrowser(
                         onFileMoreClick = { file -> openActions(file) },
                         onFileLongClick = actions.enterMultiSelect,
                         multiSelectActions = multiSelectActions,
+                        multiSelectBusy = operating,
                         scrollPositions = scrollPositions
                     )
                 }

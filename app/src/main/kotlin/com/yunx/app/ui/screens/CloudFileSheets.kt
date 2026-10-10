@@ -204,6 +204,7 @@ private fun ActionMenu(
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .verticalScroll(rememberScrollState())
             .padding(start = 24.dp, end = 24.dp, top = 4.dp, bottom = 32.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -422,6 +423,7 @@ private fun ShareStep(
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .verticalScroll(rememberScrollState())
             .padding(start = 24.dp, end = 24.dp, top = 4.dp, bottom = 32.dp)
     ) {
         CloudStepHeader(title = "分享文件", subtitle = file.fname, onBack = onBack)
@@ -505,6 +507,23 @@ private fun ShareStep(
 
 /** 重命名输入 */
 @Composable
+/**
+ * 云盘文件/文件夹名称校验（创建与重命名共用）：非空、不是 `.`/`..`、不含 `/` `\` 与控制字符、不超过 255 字符。
+ *
+ * @return 不合法的原因（给用户看）；合法返回 null
+ */
+internal fun cloudNameError(raw: String): String? {
+    val name = raw.trim()
+    return when {
+        name.isEmpty() -> "名称不能为空"
+        name == "." || name == ".." -> "名称不能是 . 或 .."
+        name.length > 255 -> "名称最多 255 个字符"
+        name.any { it == '/' || it == '\\' || it.code < 0x20 } -> "名称不能含 / \\ 或控制字符"
+        else -> null
+    }
+}
+
+@Composable
 private fun RenameStep(
     file: ShareFile,
     viewModel: QuarkCloudViewModel,
@@ -513,9 +532,11 @@ private fun RenameStep(
     onDone: () -> Unit
 ) {
     var name by remember { mutableStateOf(file.fname) }
+    val nameError = cloudNameError(name)
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .verticalScroll(rememberScrollState())
             .padding(start = 24.dp, end = 24.dp, top = 4.dp, bottom = 32.dp)
     ) {
         CloudStepHeader(title = "重命名", subtitle = file.fname, onBack = onBack)
@@ -528,23 +549,28 @@ private fun RenameStep(
             useLabelAsPlaceholder = true,
             singleLine = true
         )
+        // 名称不合法时给出原因（与创建文件夹同一套校验规则）
+        if (nameError != null) {
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = nameError,
+                style = MiuixTheme.textStyles.footnote1,
+                color = MiuixTheme.colorScheme.error
+            )
+        }
         Spacer(modifier = Modifier.height(20.dp))
         Button(
             onClick = {
-                if (name.isNotBlank() && name != file.fname) {
-                    viewModel.renameFile(name.trim())
-                    onDone()
-                } else {
-                    onBack()
-                }
+                viewModel.renameFile(name.trim())
+                onDone()
             },
-            enabled = !operating && name.isNotBlank(),
+            enabled = !operating && nameError == null && name.trim() != file.fname,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp),
             colors = ButtonDefaults.buttonColorsPrimary()
         ) {
-            Text("确认重命名", style = MiuixTheme.textStyles.button)
+            Text(if (operating) "重命名中…" else "确认重命名", style = MiuixTheme.textStyles.button)
         }
     }
 }
@@ -779,6 +805,7 @@ private fun BatchMenu(
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .verticalScroll(rememberScrollState())
             .padding(start = 24.dp, end = 24.dp, top = 4.dp, bottom = 32.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
