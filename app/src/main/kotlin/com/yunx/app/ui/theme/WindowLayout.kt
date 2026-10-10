@@ -18,6 +18,39 @@
 
 package com.yunx.app.ui.theme
 
-/** 宽窗口使用侧栏；紧凑高度的横向窗口也保留侧栏，给正文让出空间。 */
-internal fun useNavigationRail(widthDp: Int, heightDp: Int): Boolean =
-    widthDp >= 600 || (heightDp < 480 && widthDp > heightDp)
+/** 宽窗口断点：容器可用宽度达到该值即视为大屏。 */
+internal const val WIDE_SCREEN_MIN_WIDTH_DP = 600
+
+/** 悬浮底栏的宽度夹取范围：窄屏铺满、宽屏不至于拉成一整条。 */
+internal const val FLOATING_BAR_MIN_WIDTH_DP = 320
+internal const val FLOATING_BAR_MAX_WIDTH_DP = 540
+
+/**
+ * 主界面列表为底部导航预留的内容避让（不含系统栏 inset，底栏外壳自己处理 inset）。
+ *
+ * 取固定值而不是实测栏高：避让只要「够大不遮住末项」即可，实测值会让布局多一轮
+ * 测量-回传-重组，首帧还会闪一下。二级页面没有底栏，回落到 [com.yunx.app.ui.components.LocalScaffoldPadding] 的默认值。
+ */
+internal const val BOTTOM_BAR_CONTENT_PADDING_DP = 100
+
+/**
+ * 是否按宽窗口布局。
+ *
+ * 只看宽度、不看高度与横竖屏：旧判据里「紧凑高度的横向窗口也用侧栏」那一条会让矮横屏手机
+ * 同时长出侧边栏与底栏，纵向空间被双重挤占。手机横屏仍然用底栏，正文宽度并没有宽到需要侧栏。
+ */
+internal fun isWideWindow(widthDp: Int): Boolean = widthDp >= WIDE_SCREEN_MIN_WIDTH_DP
+
+/**
+ * 是否显示侧边导航栏（NavigationRail）。
+ *
+ * 与 [shouldShowBottomBar] 严格互补，任何输入下二者有且仅有一个为真：
+ * 只有「宽窗口 + 用户选了贴底标准栏」时侧边栏才取代底栏；
+ * 宽窗口下用户选了悬浮形态则尊重该选择，侧边栏让位。
+ */
+internal fun shouldShowNavigationRail(isWideWindow: Boolean, useFloatingBottomBar: Boolean): Boolean =
+    isWideWindow && !useFloatingBottomBar
+
+/** 是否显示底部导航栏，判据见 [shouldShowNavigationRail]。 */
+internal fun shouldShowBottomBar(isWideWindow: Boolean, useFloatingBottomBar: Boolean): Boolean =
+    !isWideWindow || useFloatingBottomBar

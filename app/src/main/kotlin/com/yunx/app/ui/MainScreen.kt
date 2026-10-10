@@ -19,7 +19,10 @@
 package com.yunx.app.ui
 
 import com.yunx.app.ui.rememberGlobalSnackbarHostState
-import com.yunx.app.ui.theme.useNavigationRail
+import com.yunx.app.ui.theme.BOTTOM_BAR_CONTENT_PADDING_DP
+import com.yunx.app.ui.theme.isWideWindow
+import com.yunx.app.ui.theme.shouldShowBottomBar
+import com.yunx.app.ui.theme.shouldShowNavigationRail
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -32,6 +35,7 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -62,19 +66,14 @@ import top.yukonga.miuix.kmp.basic.NavigationRailItem
 import top.yukonga.miuix.kmp.basic.rememberNavigationRailState
 import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.basic.Text
-import top.yukonga.miuix.kmp.basic.ToolbarPosition
 import top.yukonga.miuix.kmp.basic.TopAppBar
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import androidx.compose.ui.graphics.Color
 import com.yunx.app.ui.components.BlurredBar
-import com.yunx.app.ui.components.FadeEdge
-import com.yunx.app.ui.components.FadeEdgeMask
 import com.yunx.app.ui.components.blurBackdropSource
 import com.yunx.app.ui.components.rememberBlurBackdrop
-import com.yunx.app.ui.components.AppFloatingBottomBar
-import com.yunx.app.ui.components.AppStandardBottomBar
+import com.yunx.app.ui.components.AppBottomBar
 import com.yunx.app.ui.components.liquid.BottomBarStyle
-import com.yunx.app.ui.components.liquid.FloatingBottomBarMinHeight
 import com.yunx.app.ui.theme.AppThemeManager
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -88,7 +87,6 @@ import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -183,25 +181,21 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.yunx.app.data.network.HttpClients
 
-/**
- * 悬浮底栏与屏幕底边的视觉间距（不含底栏本体高度）。
- * 底栏本体高度不写死（见 [FloatingBottomBarMinHeight]），避让值由实测高度 + 该间距得出。
- */
-private val FloatingBarBottomMargin = 16.dp
-
-/** Miuix Scaffold 为 floatingToolbar 预留的间距，底栏上沿 = 该间距 + 底栏本体高度。 */
-private val FloatingBarSpacing = 4.dp
-
-/** 提示条避让：在内容避让值之上再抬 8dp，避免提示条与悬浮底栏贴边。 */
-private val FloatingBarSnackbarExtraMargin = 8.dp
+/** 提示条避让：在底栏的内容避让之上再抬一点，避免提示条贴着底栏上沿。 */
+private val SnackbarExtraBottomMargin = 8.dp
 
 /**
  * 主页框架（Miuix 架构）：
- * - 统一外层骨架为 Miuix Scaffold；
+ * - 外层骨架仍是 Miuix Scaffold，但**只用它的 topBar 槽**：顶栏大标题要折叠、
+ *   且全应用 100+ 处 Overlay 系弹窗（OverlayDialog / OverlayBottomSheet / OperationSheet）
+ *   需要 Scaffold 的 Popup 图层当宿主，这两件事离不开它。
  * - 顶部大标题（TopAppBar），切换 Tab 时标题文字随 Tab 变化；
- * - 导航 Tab（解析 / 网盘 / 下载 / 设置）：底部导航栏按「主题与外观」页选择的样式渲染
- *   （液态玻璃悬浮 / 毛玻璃悬浮 / Miuix 标准底栏），所有窗口尺寸一致生效；
- *   宽窗口（≥600dp 宽，或紧凑高度的横向窗口）额外在左侧显示 Miuix 可展开侧边导航栏（NavigationRail）。
+ * - 导航 Tab（解析 / 网盘 / 下载 / 设置）：**底部导航栏不占 Scaffold 任何槽位**，
+ *   而是作为内容 Box 的兄弟节点 `align(BottomCenter)` 叠上去，inset 避让由
+ *   [com.yunx.app.ui.components.AppBottomBar] 各自的实现负责。内容层挂 `blurBackdropSource`
+ *   当采样源，悬浮档的液态玻璃才有东西可折射（采样方向是「内容 → 底栏」，所以内容必须先布局）。
+ * - 侧边导航栏（NavigationRail）与底部导航栏**严格互斥**，判据见
+ *   [com.yunx.app.ui.theme.shouldShowNavigationRail] / [com.yunx.app.ui.theme.shouldShowBottomBar]；
  * - 通过 SaveableStateHolder 保存各页面状态，切换 Tab 再切回来不会重置；
  * - 全屏覆盖层（关于页、主题页、登录页等）平滑过渡展示。
  */
@@ -240,18 +234,9 @@ fun MainScreen(
     val scope = rememberCoroutineScope()
     // 设置仓储：引导页/忽略版本号等 UI 状态也统一从这里读写（构造时会迁移旧的 yunx_prefs 值）
     val settings = remember { SettingsRepository(context) }
-    // 按可用窗口宽高选择导航（≥600dp 宽窗，或紧凑高度的横向窗口）：支持分屏与平板窗口。
-    // 命中时使用侧边导航栏（NavigationRail），否则按用户选择的底栏样式渲染。
-    val windowConfiguration = LocalConfiguration.current
-    val isWideScreen = useNavigationRail(windowConfiguration.screenWidthDp, windowConfiguration.screenHeightDp)
     // 底栏样式由「主题与外观」页写入，经 AppThemeManager 的内存态即时响应
     val bottomBarStyle = BottomBarStyle.fromPersisted(AppThemeManager.bottomBarStyle)
     val blurBackdrop = rememberBlurBackdrop()
-    // 悬浮底栏实测高度：内容自适应后高度不再是固定 64dp，避让与羽化雾带都以实测值为准。
-    // 未测量到之前退回最小高度，保证首帧不闪避让。
-    var floatingBarHeight by remember { mutableStateOf(FloatingBottomBarMinHeight) }
-    // 内容区底部避让目标：底栏本体高度 + 与屏幕底边的视觉间距
-    val floatingBarDesiredClearance = floatingBarHeight + FloatingBarBottomMargin
     // 首次启动引导页：初值同步读取，避免先渲染一帧主界面再被引导页覆盖（启动瞬间闪主页）
     var showOnboarding by remember { mutableStateOf(!settings.onboardingShown) }
 
@@ -760,8 +745,22 @@ fun MainScreen(
     // 宿主渲染在最外层 Box 的末尾（见函数收尾处），是全应用唯一宿主
     val snackbarHostState = rememberGlobalSnackbarHostState()
 
-    // 主框架与全屏覆盖层（关于页）放在同一 Box：覆盖层带过渡动画
-    Box(modifier = Modifier.fillMaxSize()) {
+    // 主框架与全屏覆盖层（关于页）放在同一 Box：覆盖层带过渡动画。
+    // 用 BoxWithConstraints 而不是读 LocalConfiguration：后者给的是整块屏幕的宽高，
+    // 多窗口 / 分屏 / 折叠态下与本应用实际拿到的窗口不一致，会把半屏误判成大屏。
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+    // 侧边栏与底栏严格互斥，判据是纯函数（真值表见 WindowLayoutTest）
+    val isWideScreen = isWideWindow(maxWidth.value.toInt())
+    val useFloatingBottomBar = bottomBarStyle.isFloating
+    val showNavigationRail = shouldShowNavigationRail(isWideScreen, useFloatingBottomBar)
+    val showBottomBar = shouldShowBottomBar(isWideScreen, useFloatingBottomBar)
+    // 系统栏底部 inset：内容避让与提示条避让共用同一份，且与 AppFloatingBottomBar 外壳同源。
+    // 底栏不占 Scaffold 槽位后没人替我们预留这段空间，两处都得显式加上。
+    val bottomInset = WindowInsets.navigationBars
+        .only(WindowInsetsSides.Bottom)
+        .asPaddingValues()
+        .calculateBottomPadding()
+
     // 顶部大标题（竖屏 / 横屏共用）
     val topBarContent: @Composable () -> Unit = {
         TopAppBar(
@@ -865,13 +864,15 @@ fun MainScreen(
     // 宽屏时侧边导航栏整高铺满、顶栏只覆盖右侧内容区；
     // 若把 Rail 塞进 Scaffold 内部，顶栏会横跨整宽而 Rail 挂在顶栏下方，平板上观感是「顶栏悬空」。
     Row(modifier = Modifier.fillMaxSize()) {
-        if (isWideScreen) {
+        if (showNavigationRail) {
             MainNavigationRail(
                 currentTab = currentTab,
                 onTabSelected = { currentTab = it }
             )
         }
 
+        // Scaffold 只保留 topBar 槽：底栏两种形态都改成下面 Box 的兄弟节点，
+        // bottomBar / floatingToolbar 槽一律不用（理由见文件头 KDoc）。
         Scaffold(
             modifier = Modifier
                 .weight(1f)
@@ -884,68 +885,36 @@ fun MainScreen(
                     topBarContent()
                 }
             },
-            bottomBar = {
-                // 标准底栏档位：贴底固定的 Miuix NavigationBar（宽屏同样按用户所选样式渲染）
-                if (bottomBarStyle == BottomBarStyle.MiuixStandard) {
-                    AppStandardBottomBar(
-                        currentTab = currentTab,
-                        onTabSelected = { currentTab = it }
-                    )
-                }
-            },
-            floatingToolbar = {
-                // 悬浮档位（液态玻璃 / 毛玻璃）：Scaffold 已按「导航栏 inset + FloatingToolbarSpacing」
-                // 把底栏抬到底边之上，这里不要再补 bottom padding。
-                // 大屏设备同样允许悬浮导航栏：用户选了悬浮样式就照常渲染（与侧边栏共存，分居两侧）
-                if (bottomBarStyle.isFloating) {
-                    AppFloatingBottomBar(
-                        currentTab = currentTab,
-                        onTabSelected = { currentTab = it },
-                        backdrop = blurBackdrop,
-                        style = bottomBarStyle,
-                        onBarHeightChanged = { floatingBarHeight = it }
-                    )
-                }
-            },
-            floatingToolbarPosition = ToolbarPosition.BottomCenter,
         ) { innerPadding ->
             val layoutDirection = LocalLayoutDirection.current
-            // 悬浮底栏的内容避让：Miuix Scaffold 会把 floatingToolbar 的高度 + FloatingToolbarSpacing
-            // + 底部导航栏 inset 计入 innerPadding。这里只在它没算够时补差额，既不重复预留出
-            // 一大块空白，也不会让最后一项被底栏盖住（两种 Scaffold 行为下都安全）。
-            val floatingBarBottomPadding = if (bottomBarStyle.isFloating) {
-                val desiredClearance = floatingBarDesiredClearance
-                val alreadyReserved = innerPadding.calculateBottomPadding()
-                (desiredClearance - alreadyReserved).coerceAtLeast(0.dp)
-            } else {
-                0.dp
-            }
+            // 内容避让 = 系统栏 inset + 固定常量。常量而非实测栏高：避让只要够大不遮住末项即可，
+            // 实测回传会多一轮测量-回传-重组，首帧还会闪一下。
             val effectiveScaffoldPadding = PaddingValues(
                 start = innerPadding.calculateStartPadding(layoutDirection),
                 top = innerPadding.calculateTopPadding(),
                 end = innerPadding.calculateEndPadding(layoutDirection),
-                bottom = innerPadding.calculateBottomPadding() + floatingBarBottomPadding
+                bottom = if (showBottomBar) BOTTOM_BAR_CONTENT_PADDING_DP.dp + bottomInset else bottomInset
             )
             CompositionLocalProvider(LocalScaffoldPadding provides effectiveScaffoldPadding) {
-                // 内容区占满内容栏（宽屏时右栏），内部列表消费 LocalScaffoldPadding 获得穿透滚动效果；
-                // 挂载 blurBackdropSource 支持顶部 BlurredBar 与底部悬浮栏采样
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .blurBackdropSource(blurBackdrop)
-                ) {
-                    tabContent()
-                    // 列表滚到悬浮底栏下方时用羽化过渡，避免内容被底栏硬切。
-                    // 雾带压在底栏之下：上沿与底栏上沿齐平（导航栏 inset + FloatingToolbarSpacing + 底栏高度），
-                    // 向下渐浓，透过玻璃表现为内容在底栏内渐隐；底栏上方不留可见雾带。
-                    if (bottomBarStyle.isFloating) {
-                        val barHeight = WindowInsets.navigationBars
-                            .only(WindowInsetsSides.Bottom)
-                            .asPaddingValues()
-                            .calculateBottomPadding() + FloatingBarSpacing + floatingBarHeight
-                        FadeEdgeMask(
-                            edge = FadeEdge.Bottom,
-                            height = barHeight
+                // 内容区占满内容栏（宽屏时右栏），内部列表消费 LocalScaffoldPadding 获得穿透滚动效果
+                Box(modifier = Modifier.fillMaxSize()) {
+                    // 内容层必须先于底栏布局并挂采样源：液态玻璃的折射采样方向是「内容 → 底栏」，
+                    // 顺序反了底栏就没有可折射的图层，会退化成半透明纯色
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .blurBackdropSource(blurBackdrop)
+                    ) {
+                        tabContent()
+                    }
+                    // 底部导航栏：与内容同层的兄弟节点，不占 Scaffold 槽位，inset 避让由组件外壳自理
+                    if (showBottomBar) {
+                        AppBottomBar(
+                            currentTab = currentTab,
+                            onTabSelected = { currentTab = it },
+                            style = bottomBarStyle,
+                            backdrop = blurBackdrop,
+                            modifier = Modifier.align(Alignment.BottomCenter)
                         )
                     }
                 }
@@ -1016,11 +985,13 @@ fun MainScreen(
         // Overlay 系弹窗（OverlayDialog / OverlayBottomSheet / OperationSheet）与各覆盖层
         // 都画在本 Box 内、先于本宿主组合，提示不会被它们遮挡；Window 系独立窗口弹窗
         // （WindowDialog，如更新弹窗）盖不住本宿主，由各弹窗内容自带宿主接管（见各调用点）。
+        // 避让口径按「有没有底栏」而不是「底栏是哪一档」：两种形态现在都叠在本 Box 内，
+        // 只要有底栏就得抬到它上方（旧写法对贴底标准档只抬 16dp，提示会被栏体盖住）。
         val snackbarBottomPadding =
-            if (bottomBarStyle.isFloating) {
-                floatingBarDesiredClearance + FloatingBarSnackbarExtraMargin
+            if (showBottomBar) {
+                bottomInset + BOTTOM_BAR_CONTENT_PADDING_DP.dp + SnackbarExtraBottomMargin
             } else {
-                16.dp
+                bottomInset + 16.dp
             }
         AppSnackbarHost(
             hostState = snackbarHostState,

@@ -313,23 +313,27 @@ FileNameText(text = file.fname, style = MaterialTheme.typography.bodyLarge, font
   `BookmarkScreen.onResolve` 与主页快捷方式都要走 GitHub 分支，GitHub 收藏（`platform = "GITHUB"`，即 `currentPlatform.name`）不能在网盘解析里被吞掉。
 - `FileNameText` 增加了带默认值的 `maxLines` / `textAlign` 参数（既有调用不受影响）：需要多行/居中的场景传参，不要绕开组件自己写 `Text`。
 
-### 3.15 叠加页容器变换（关于云析 / 支持开发 / 主题与外观 / 收藏）：源必须真的被移出组合
+### 3.15 叠加页现状：容器变换（Container Transform）机制**已整体移除**
 
-`MainScreen.kt` 里四个叠加页共用一套「容器变换」（Container Transform），改这条链路前先读完本节：
+★ 本节曾经描述的 `SharedTransitionLayout` + `overlayRoute` + `OverlayPage` + `OVERLAY_KEY_*` 那套容器变换，
+在 Miuix 迁移时已整体删掉，`MainScreen.kt` 里这些符号**零命中**。不要再照旧描述去找源侧/目标侧 modifier。
+当前的真实形态：
 
-- **结构**：`SharedTransitionLayout` → 外层 `Box(背景 surface)` → 源 `AnimatedVisibility(visible = overlayRoute == null)`
-  （主界面）与目标 `AnimatedVisibility(visible = overlayRoute != null)`（`OverlayPage`）。
-  两者**互斥**，不是叠加：实测主界面常驻在下面时，叠加页里的 `Card` 底色会整片画不出来（见 `OverlayPage` KDoc）。
-- **源**：谁被点，谁就是源，用 `Modifier.sharedBounds(rememberSharedContentState(KEY), animatedVisibilityScope = sourceScope)`
-  加在那个元素上，并且**必须在源那侧 `AnimatedVisibility` 的 composable 作用域里构造**（`rememberSharedContentState` 是 `@Composable`）。
-  设置页那三行由 `MainScreen` 建好 modifier 传下去（`SettingsScreen` 的三个 row 参数）；
-  收藏页没有卡片，源就是**解析页顶栏的收藏图标**（`IconButton` 的 `modifier`，key `OVERLAY_KEY_BOOKMARKS`）。
-- **目标**：`OverlayPage(modifier = Modifier.sharedBounds(rememberSharedContentState(route), animatedVisibilityScope = targetScope))`，
-  `route` 取 `shownRoute`（**不是** `overlayRoute`：后者在返回瞬间就变 null，退出动画会没内容可渲染）。
-  新增叠加页时不要再写 `if (route == …) Modifier else …` 这类特例，一律走 sharedBounds。
-- **时长**：目标 `AnimatedVisibility` 的 `exit = fadeOut(tween(300))` 必须 ≥ bounds 形变时长（默认弹簧约 300ms），
-  否则退出一结束内容就被移出组合，回收形变被截断，观感像"没做动画"。
-- CSS 式的"共享元素"在这里就是同一把 key 的两侧修饰符；key 定义在 `MainScreen.kt` 的 `internal const val OVERLAY_KEY_*`。
+- **主界面之上的 4 个叠加页**（关于云析 / 支持开发 / 主题与外观 / 收藏）：各自一个
+  `AnimatedVisibility(visible = showXxx, enter = fadeIn+scaleIn(0.96f), exit = fadeOut+scaleOut(0.96f))`，
+  `modifier = Modifier.fillMaxSize()`，直接叠在 `MainScreen` 最外层 Box 内（函数收尾处）。
+  **与主界面是叠加、不是互斥**：主界面（含底栏）照常组合，只是被不透明覆盖层盖住
+  （悬浮底栏的 blur 采样因此仍在跑，属已知开销、不是 bug）。没有共享元素形变，只有淡入淡出 + 轻微缩放。
+- **引导页与 11 个登录页**走另一条路：`if (showXxx) { XxxScreen(...); return }` 提前返回，
+  整棵主框架（Scaffold / 底栏 / Snackbar 宿主）根本不组合。
+- **共享元素现在只活在公告模块内部**：`AnnouncementScreen.kt` 自己套了一层 `SharedTransitionLayout`，
+  「列表项 ↔ 详情页 ↔ 全屏看图」三层形变都在那一层作用域内完成（§3.35 里那套**仍然有效**）。
+  但 §3.35 说的「外层：顶栏公告图标 ↔ 公告整页，key = `OVERLAY_KEY_ANNOUNCEMENTS`」这一层已随本机制移除。
+- ★ **读到 §3.27 / §3.32 / §3.35 里的 `OVERLAY_KEY_GOPEED` / `OVERLAY_KEY_ANNOUNCEMENTS` / `OverlayPage` /
+  `overlayRoute` 时一律按历史描述理解**：那些章节的主体内容（引擎接线、公告口径）仍然准确，
+  只有共享元素那几句作废。真要恢复容器变换，得重新引入 `SharedTransitionLayout` 与一套路由状态，
+  不是改几行 modifier 的事。
+- 叠加页必须自带 `BackHandler { onBack() }`（这条没变）。
 
 ### 3.16 深色模式字体发黑：全屏页必须有 `Surface`（`LocalContentColor` 默认是黑色）
 
@@ -342,8 +346,11 @@ FileNameText(text = file.fname, style = MaterialTheme.typography.bodyLarge, font
 - `ui/screens/OnboardingScreen.kt`：`MainScreen.kt` 里 `if (showOnboarding) { OnboardingScreen(...); return }` 的提前返回全屏覆盖页；
   已用 `Surface(modifier = modifier.fillMaxSize(), color = colorScheme.surface)` 包住整页（底色与 `BlobBackground` 的 base 一致，观感不变），
   第 1 页「云析」与第 2 页「使用前请阅读」另外显式写了 `color = colorScheme.onSurface`。
-- `ui/MainScreen.kt` 的**横屏分支**：手动 `Row(NavigationRail + 内容)`，原先只有 `Box.background(background)`；
-  同样已换成 `Surface(color = colorScheme.background)` 包住内容与 Snackbar（此前横屏 + 深色模式下，列表里没写 color 的文件名会是黑字）。
+- `ui/MainScreen.kt`：**已无「横屏分支」**（Rail 与底栏现在共用同一套结构，判据见 §3.41），
+  且外层 `BoxWithConstraints` → `Row` → `Box` **既没有 `Surface` 也没有 `background`**。
+  内容区安全是因为它落在 `Scaffold` 内（Scaffold 自带 `containerColor` ⇒ `LocalContentColor` 正确）；
+  ★ 但 **Snackbar 宿主挂在那个 Box 的末尾、在 Scaffold 之外**，只靠 `AppSnackbarHost` 自己的容器色兜底。
+  日后往 Scaffold 之外加裸 `Text` 时，深色模式下就会是黑字（本条历史症状会复发）。
 - 其它页面（登录页 / 关于 / 支持 / 主题 / 收藏 / 各 Tab 页）都有 `Scaffold`，或本身就是 `AlertDialog` / `ModalBottomSheet`（自带 Surface），不受影响。
 
 **约定**：
@@ -1699,6 +1706,107 @@ operation = 入队/暂停/删除等用户关键操作。
 产物 `yunx_diagnostic_logs_yyyyMMdd_HHmmss.zip` 放在 `cacheDir/logs`（`file_paths.xml` 的 `cache_logs`
 已经覆盖，FileProvider 能分享；`share()` 按扩展名给 `application/zip`）。入口两处：开发调试菜单里的
 「导出诊断日志（zip）」，以及「导出日志」弹窗里诊断模式开启时多出来的同款按钮。
+
+
+---
+
+### 3.41 底部导航栏：不占 Scaffold 槽位，是内容 Box 的兄弟节点（**别再塞回 floatingToolbar**）
+
+参考实现是 `E:\project\pixez-flutter-MIUIX\compose-miuix`（同栈：Kotlin Compose + miuix 0.9.4），
+对应它的 `RootContent.kt` 的 `MainChildSection`、`MainBottomBar.kt`、`FloatingBottomBar.kt` 的
+`IosLiquidGlassNavigationBar` 外壳。改这条链路前先读完本节。
+
+**① 为什么 Scaffold 留着、但底栏不在它的槽里**
+
+`Scaffold` **只用 `topBar` 槽**，`bottomBar` / `floatingToolbar` / `floatingToolbarPosition` 三个槽一律不用。
+留着 Scaffold 有两个硬理由：全局顶栏 `BlurredBar` 带大标题折叠（高度动态，Scaffold 替你算 inset），
+以及全应用 122 处 Overlay 系弹窗（`OverlayDialog` / `OverlayBottomSheet` / `OperationSheet`，27 个文件）
+需要它的 Popup 图层当宿主——**无 Scaffold 祖先调 Overlay 系列会运行时崩溃**（miuix 规范红线）。
+参考项目能把 Scaffold 完全下沉到各页，是因为它每个二级页面自带一个 Scaffold；我们是一个全局 Scaffold，
+下沉要动 8 个内容页 + 顶栏折叠机制，不在收益范围内。
+
+**② 挂载结构**（`MainScreen.kt`）
+
+```
+BoxWithConstraints(fillMaxSize)            ← 取 maxWidth 当宽屏判据，不读 LocalConfiguration
+└ Row(fillMaxSize)
+  ├ [showNavigationRail] MainNavigationRail
+  └ Scaffold(weight(1f).fillMaxHeight(), topBar = BlurredBar)   ← 只有 topBar 槽
+     └ CompositionLocalProvider(LocalScaffoldPadding = …)
+        └ Box(fillMaxSize)                                       ← 提供 BoxScope 的 align
+           ├ Box(fillMaxSize().blurBackdropSource(blurBackdrop)) ← 内容层，必须先布局
+           │  └ tabContent()
+           └ [showBottomBar] AppBottomBar(…, Modifier.align(Alignment.BottomCenter))
+```
+
+★ **内容层必须先于底栏布局**：液态玻璃的折射采样方向是「内容 → 底栏」，顺序反了底栏没有可折射的图层，
+会退化成半透明纯色。
+★ 判据用 `BoxWithConstraints.maxWidth` 而**不是** `LocalConfiguration.screenWidthDp`：后者给的是整块屏幕的宽高，
+多窗口 / 分屏 / 折叠态下与本应用实际拿到的窗口不一致，会把半屏误判成大屏。
+
+**③ 侧边栏与底栏严格互斥**（`ui/theme/WindowLayout.kt`，纯函数 + 真值表单测 `WindowLayoutTest`）
+
+```kotlin
+isWideWindow(widthDp) = widthDp >= WIDE_SCREEN_MIN_WIDTH_DP        // 600
+shouldShowNavigationRail(isWide, useFloating) = isWide && !useFloating
+shouldShowBottomBar(isWide, useFloating)      = !isWide || useFloating   // 与上一条严格互补
+```
+
+| 宽屏（≥600dp） | 悬浮样式 | Rail | 底栏 |
+|---|---|---|---|
+| 否 | 任意 | ✗ | ✓ |
+| 是 | 是（液态玻璃 / 毛玻璃） | ✗ | ✓ 悬浮 |
+| 是 | 否（Miuix 标准） | ✓ | ✗ |
+
+★ **不要再让二者共存**。历史缺陷：旧判据 `widthDp >= 600 \|\| (heightDp < 480 && widthDp > heightDp)` 的第二条
+会让矮横屏手机（如 560×320）同时长出 Rail 与悬浮底栏，纵向被双重挤占；那条已删，**手机横屏一律用底栏**。
+两条布尔式必须保持互补——`WindowLayoutTest.railAndBottomBarAreMutuallyExclusiveAndExhaustive`
+用双重循环钉住「任何输入下有且仅有一个为真」，改判据时它会先红。
+
+**④ 底栏组件自带外壳，所以能脱离槽位**（`ui/components/AppFloatingBottomBar.kt`）
+
+```kotlin
+val navBarBottomPadding = WindowInsets.navigationBars.only(WindowInsetsSides.Bottom)
+    .asPaddingValues().calculateBottomPadding()
+val bottomPaddingValue = if (navBarBottomPadding != 0.dp) 8.dp + navBarBottomPadding else 20.dp
+Box(modifier.fillMaxWidth().padding(bottom = bottomPaddingValue, start = 24.dp, end = 24.dp),
+    contentAlignment = Alignment.BottomCenter) {
+    Box(Modifier.widthIn(min = FLOATING_BAR_MIN_WIDTH_DP.dp, max = FLOATING_BAR_MAX_WIDTH_DP.dp).fillMaxWidth(),
+        contentAlignment = Alignment.Center) { FloatingBottomBar(…) }
+}
+```
+
+系统栏 inset、左右 24dp 边距、宽度夹取 320..540dp、贴底居中**全部由组件自己负责**，
+调用处只给一个 `Modifier.align(Alignment.BottomCenter)`。
+`ui/components/AppBottomBar.kt` 是统一门面：按 `style.isFloating` 分发到悬浮档或标准档，
+两种形态共用同一个挂载点——**不要再写「标准档在 `bottomBar` 槽、悬浮档在 Box 里」这种双轨结构**。
+门面刻意不收独立的 `isFloating` 参数，只收 `style`：两个来源一旦不一致就会出现
+「按悬浮档预留避让、却渲染了贴底标准栏」的错位。
+`liquid/` 包（`FloatingBottomBar` 三层渲染、SDF 折射、陀螺仪高光）**一行没动**。
+
+**⑤ 避让是常量，不实测栏高**
+
+`BOTTOM_BAR_CONTENT_PADDING_DP = 100`（`WindowLayout.kt`）。`LocalScaffoldPadding` 的 bottom =
+`showBottomBar ? 100.dp + bottomInset : bottomInset`，其中 `bottomInset` 在 `BoxWithConstraints` 开头
+**只算一次**、内容避让与 Snackbar 避让共用（底栏不占槽位后没人替我们预留这段空间，两处都要显式加）。
+Snackbar 避让判据是「有没有底栏」而**不是「底栏是哪一档」**：两种形态现在都叠在同一个 Box 内，
+只要有底栏就得抬到它上方（旧写法对贴底标准档只抬 16dp，提示会被栏体盖住）。
+★ **不要恢复实测栏高回传**（旧代码有 `onBarHeightChanged` → `floatingBarHeight` → 三处共用）：
+避让只要够大不遮住末项即可，实测会多一轮测量-回传-重组，首帧还会闪一下。
+`liquid/FloatingBottomBar` 仍保留 `onBarHeightChanged` 形参（默认 null），但 `AppFloatingBottomBar` 不再传。
+
+**⑥ 已删掉的东西（别恢复）**
+
+- **雾带 `FadeEdgeMask`**：内容滚到悬浮栏下方时的羽化渐隐，组件文件 `ui/components/FadeEdgeMask.kt` 已整体删除
+  （参考实现没有这一层，靠玻璃折射本身融合）。
+- `FloatingBarBottomMargin` / `FloatingBarSpacing`（4dp，那是 `floatingToolbar` 槽专用的间距）/
+  `FloatingBarSnackbarExtraMargin`（改名 `SnackbarExtraBottomMargin`）。
+- 「Scaffold 已预留多少、我只补差额」那套算法（`desiredClearance - alreadyReserved`）：槽位没了就没有重复预留。
+
+**⑦ 回退**：把 `AppBottomBar` 按 `style.isFloating` 拆回 `Scaffold` 的 `bottomBar` / `floatingToolbar` 两个槽、
+恢复 `floatingToolbarPosition = ToolbarPosition.BottomCenter`、避让改回实测栏高 + 差额算法、
+`WindowLayout.kt` 恢复 `useNavigationRail(widthDp, heightDp)` 并把判据换回 `LocalConfiguration`、
+从 git 历史取回 `FadeEdgeMask.kt`。互斥真值表与 `WindowLayoutTest` 要一起改，否则单测会红。
 
 
 ---

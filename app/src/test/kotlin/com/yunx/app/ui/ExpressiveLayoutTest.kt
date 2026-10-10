@@ -21,19 +21,12 @@ package com.yunx.app.ui
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import com.yunx.app.ui.theme.readableSeedForeground
-import com.yunx.app.ui.theme.useNavigationRail
 import org.junit.Assert.*
 import org.junit.Test
 
 class ExpressiveLayoutTest {
-    @Test fun navigationUsesAvailableWindowRatherThanDeviceOrientation() {
-        assertFalse(useNavigationRail(320, 800))
-        assertFalse(useNavigationRail(599, 900))
-        assertTrue(useNavigationRail(600, 900))
-        assertTrue(useNavigationRail(840, 1200))
-        assertTrue(useNavigationRail(560, 320))
-        assertFalse(useNavigationRail(400, 600))
-    }
+    // 导航栏形态判据已移到 WindowLayoutTest：判据从「按窗口宽高」改成「只按可用宽度」，
+    // 旧的矮横屏分支（560×320 也出侧边栏）正是被删掉的那条，留在原处会钉住已废弃的行为。
 
     @Test fun seedIconsKeepReadableContrastAcrossLightAndDarkColors() {
         val colors = listOf(Color.White, Color.Black, Color(0xFFECCB75), Color(0xFF00639A), Color(0xFF888888))
