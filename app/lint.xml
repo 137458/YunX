@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Lint 永久豁免项：每一条都是「有意决策」，不是待还的欠账（理由见各条注释）。
+  与 lint-baseline.xml 的分工：baseline 锁的是「存量、以后再清」的问题快照；
+  这里 ignore 的是「永远正确、别再报」的项目决策。新增有意豁免时必须先在这里补上理由。
+-->
+<lint>
+
+    <!-- 44 条命中全在 SharedPreferences/JSONObject 等调用点：`prefs.edit().putXxx().apply()`
+         是项目既定模式（SettingsRepository 的约定写法），改 ktx 扩展是纯风格噪音，无行为收益。 -->
+    <issue id="UseKtx" severity="ignore" />
+
+    <!-- 登录 WebView（夸克/UC/百度/139/123/115/迅雷）必须启用 JS 才能走网页登录，不存在「不开」的选项。 -->
+    <issue id="SetJavaScriptEnabled" severity="ignore" />
+
+    <!-- AGENTS.md §3.24 有意不加 <queries>：Android 11+ 包可见性会让 resolveActivity() 把
+         「装了 QQ」误判成「没装」，项目统一用隐式 Intent + 捕获 ActivityNotFoundException 判断。 -->
+    <issue id="QueryPermissionsNeeded" severity="ignore" />
+
+    <!-- Gopeed 引擎的运行时 System.load（libgojni.so 由用户导入 AAR 后解出加载，
+         见 AGENTS.md §3.27/§3.28），不是任意动态加载 native 代码。 -->
+    <issue id="UnsafeDynamicallyLoadedCode" severity="ignore" />
+
+</lint>

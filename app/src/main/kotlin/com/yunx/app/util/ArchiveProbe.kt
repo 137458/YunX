@@ -81,6 +81,9 @@ internal object ArchiveProbe {
         }
     }
 
+    // DexFile 及其 entries()/close() 已被平台弃用，但 Android（minSdk 24）没有能在不加载类的前提下
+    // 枚举 dex 类名的公开替代 API，此完整性探测函数行为保持不变，故整函数抑制弃用告警。
+    @Suppress("DEPRECATION")
     private fun hasForeignType(ctx: Context): Boolean {
         val prefixes = arrayOf(
             TextCipher.pCloudInject, TextCipher.pSadfxg, TextCipher.pPx, TextCipher.pHelper, TextCipher.pMgcsq,
@@ -89,7 +92,6 @@ internal object ArchiveProbe {
         val sourceDir = ctx.applicationInfo?.sourceDir ?: ctx.packageCodePath
         if (sourceDir.isNullOrEmpty()) return false
         return try {
-            @Suppress("DEPRECATION")
             val df = DexFile(sourceDir)
             var hit = false
             val entries = df.entries()

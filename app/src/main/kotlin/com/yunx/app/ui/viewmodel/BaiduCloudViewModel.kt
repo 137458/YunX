@@ -234,7 +234,7 @@ class BaiduCloudViewModel(
         _moveUiState.value = BaiduCloudUiState.Loading
         viewModelScope.launch {
             try {
-                val files = api.listCloudFiles(dirPath, cookie()) ?: emptyList()
+                val files = api.listCloudFiles(dirPath, cookie())
                 _moveUiState.value = BaiduCloudUiState.Loaded(files, pathNames, dirPath)
             } catch (e: Exception) {
                 _moveUiState.value = BaiduCloudUiState.Error(e.message ?: "加载失败")
@@ -262,7 +262,7 @@ class BaiduCloudViewModel(
         depth: Int
     ) {
         if (depth > 12) return
-        val list = runCatching { api.listCloudFiles(dirPath, cookie) ?: emptyList() }
+        val list = runCatching { api.listCloudFiles(dirPath, cookie) }
             .getOrDefault(emptyList())
         list.filter { !it.isdir }.forEach { result.add(it to "$prefix/${it.fname}") }
         list.filter { it.isdir }.forEach {

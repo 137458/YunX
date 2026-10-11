@@ -1,0 +1,1166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<issues format="6" by="lint 9.1.1" type="baseline" client="gradle" dependencies="false" name="AGP (9.1.1)" variant="all" version="9.1.1">
+
+    <issue
+        id="CommitPrefEdits"
+        message="`SharedPreferences.edit()` without a corresponding `commit()` or `apply()` call"
+        errorLine1="        prefs.edit().block().apply()"
+        errorLine2="        ~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/data/prefs/SettingsRepository.kt"
+            line="70"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="        return String.format(&quot;%.1f %s&quot;, value, units[i])"
+        errorLine2="               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/data/download/DownloadManager.kt"
+            line="401"
+            column="16"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="        bytes >= 1024L * 1024 * 1024 -> String.format(&quot;%.2fGB&quot;, bytes / 1073741824.0)"
+        errorLine2="                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/data/download/DownloadManager.kt"
+            line="473"
+            column="41"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="        bytes >= 1024L * 1024 -> String.format(&quot;%.1fMB&quot;, bytes / 1048576.0)"
+        errorLine2="                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/data/download/DownloadManager.kt"
+            line="474"
+            column="34"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="        bytes >= 1024L -> String.format(&quot;%.1fKB&quot;, bytes / 1024.0)"
+        errorLine2="                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/data/download/DownloadManager.kt"
+            line="475"
+            column="27"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="    else String.format(&quot;%.1f %s&quot;, value, units[unit])"
+        errorLine2="         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/screens/DriveScreen.kt"
+            line="683"
+            column="10"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="        return String.format(&quot;%.1f %s&quot;, value, units[i])"
+        errorLine2="               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/data/gopeed/KernelProvisioner.kt"
+            line="705"
+            column="16"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="        return String.format(&quot;%.1f %s&quot;, value, units[i])"
+        errorLine2="               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/data/repository/Pan115ResolveRepository.kt"
+            line="286"
+            column="16"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="        val minute = String.format("
+        errorLine2="                     ^">
+        <location
+            file="src/main/kotlin/com/yunx/app/data/network/Pan123Api.kt"
+            line="83"
+            column="22"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="            String.format(&quot;%s%02d:%02d&quot;, sign, abs / 60, abs % 60)"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/viewmodel/Pan123CloudViewModel.kt"
+            line="662"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="        if (mb >= 10) String.format(&quot;%.0f MB/s&quot;, mb) else String.format(&quot;%.1f MB/s&quot;, mb)"
+        errorLine2="                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/screens/SettingsScreen.kt"
+            line="1054"
+            column="23"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="        if (mb >= 10) String.format(&quot;%.0f MB/s&quot;, mb) else String.format(&quot;%.1f MB/s&quot;, mb)"
+        errorLine2="                                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/screens/SettingsScreen.kt"
+            line="1054"
+            column="59"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="    return String.format(&quot;%.1f %s&quot;, value, units[i])"
+        errorLine2="           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/resolve/ShareDetailScreen.kt"
+            line="820"
+            column="12"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 30 (current min is 24): `android.provider.Settings#ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION`"
+        errorLine1="            Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION).setData(packageUri),"
+        errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/util/PermissionState.kt"
+            line="106"
+            column="20"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 30 (current min is 24): `android.provider.Settings#ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION`"
+        errorLine1="            Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION),"
+        errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/util/PermissionState.kt"
+            line="107"
+            column="20"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 26 (current min is 24): `android.provider.Settings#ACTION_APP_NOTIFICATION_SETTINGS`"
+        errorLine1="                Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)"
+        errorLine2="                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/util/PermissionState.kt"
+            line="125"
+            column="24"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 26 (current min is 24): `android.provider.Settings#EXTRA_APP_PACKAGE`"
+        errorLine1="                    .putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)"
+        errorLine2="                              ~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/util/PermissionState.kt"
+            line="126"
+            column="31"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 26 (current min is 24): `android.provider.Settings#ACTION_APP_NOTIFICATION_SETTINGS`"
+        errorLine1="            Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)"
+        errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/screens/SettingsScreen.kt"
+            line="123"
+            column="20"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 26 (current min is 24): `android.provider.Settings#EXTRA_APP_PACKAGE`"
+        errorLine1="                .putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)"
+        errorLine2="                          ~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/screens/SettingsScreen.kt"
+            line="124"
+            column="27"/>
+    </issue>
+
+    <issue
+        id="OldTargetApi"
+        message="Not targeting the latest versions of Android; compatibility modes apply. Consider testing and updating this version. Consult the `android.os.Build.VERSION_CODES` javadoc for details."
+        errorLine1="        targetSdk = 34"
+        errorLine2="        ~~~~~~~~~~~~~~">
+        <location
+            file="build.gradle.kts"
+            line="56"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="UnusedAttribute"
+        message="Attribute `enableOnBackInvokedCallback` is only used in API level 33 and higher (current min is 24)"
+        errorLine1="        android:enableOnBackInvokedCallback=&quot;true&quot;"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/AndroidManifest.xml"
+            line="61"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="BatteryLife"
+        message="Use of `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` violates the Play Store Content Policy regarding acceptable use cases, as described in https://developer.android.com/training/monitoring-device-state/doze-standby.html"
+        errorLine1="                                        Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,"
+        errorLine2="                                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/MainScreen.kt"
+            line="1036"
+            column="50"/>
+    </issue>
+
+    <issue
+        id="BatteryLife"
+        message="Use of `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` violates the Play Store Content Policy regarding acceptable use cases, as described in https://developer.android.com/training/monitoring-device-state/doze-standby.html"
+        errorLine1="                Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)"
+        errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/util/PermissionState.kt"
+            line="135"
+            column="33"/>
+    </issue>
+
+    <issue
+        id="BatteryLife"
+        message="Use of `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` violates the Play Store Content Policy regarding acceptable use cases, as described in https://developer.android.com/training/monitoring-device-state/doze-standby.html"
+        errorLine1="                                    Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,"
+        errorLine2="                                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/screens/SettingsScreen.kt"
+            line="888"
+            column="46"/>
+    </issue>
+
+    <issue
+        id="MissingOnRenderProcessGone"
+        message="WebViewClient should implement `onRenderProcessGone` to handle render process crashes or out-of-memory errors. Otherwise, the app will crash when the render process is shut down."
+        errorLine1="internal open class DiagnosticWebViewClient : WebViewClient() {"
+        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/login/DiagnosticWebViewClient.kt"
+            line="44"
+            column="21"/>
+    </issue>
+
+    <issue
+        id="MissingOnRenderProcessGone"
+        message="WebViewClient should implement `onRenderProcessGone` to handle render process crashes or out-of-memory errors. Otherwise, the app will crash when the render process is shut down."
+        errorLine1="internal open class DiagnosticWebViewClient : WebViewClient() {"
+        errorLine2="                                              ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/login/DiagnosticWebViewClient.kt"
+            line="44"
+            column="47"/>
+    </issue>
+
+    <issue
+        id="MissingOnRenderProcessGone"
+        message="WebViewClient should implement `onRenderProcessGone` to handle render process crashes or out-of-memory errors. Otherwise, the app will crash when the render process is shut down."
+        errorLine1="    private fun buildClient(): WebViewClient = object : WebViewClient() {"
+        errorLine2="                                                        ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/login/LoginWebView.kt"
+            line="185"
+            column="57"/>
+    </issue>
+
+    <issue
+        id="MissingOnRenderProcessGone"
+        message="WebViewClient should implement `onRenderProcessGone` to handle render process crashes or out-of-memory errors. Otherwise, the app will crash when the render process is shut down."
+        errorLine1="            webViewClient = object : DiagnosticWebViewClient() {"
+        errorLine2="                            ~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/login/Pan115LoginScreen.kt"
+            line="112"
+            column="29"/>
+    </issue>
+
+    <issue
+        id="MissingOnRenderProcessGone"
+        message="WebViewClient should implement `onRenderProcessGone` to handle render process crashes or out-of-memory errors. Otherwise, the app will crash when the render process is shut down."
+        errorLine1="            webViewClient = object : DiagnosticWebViewClient() {"
+        errorLine2="                            ~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/login/Pan115LoginScreen.kt"
+            line="112"
+            column="29"/>
+    </issue>
+
+    <issue
+        id="MissingOnRenderProcessGone"
+        message="WebViewClient should implement `onRenderProcessGone` to handle render process crashes or out-of-memory errors. Otherwise, the app will crash when the render process is shut down."
+        errorLine1="            webViewClient = object : WebViewClient() {"
+        errorLine2="                            ~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/login/XunleiVerifyWebViewScreen.kt"
+            line="114"
+            column="29"/>
+    </issue>
+
+    <issue
+        id="MissingOnRenderProcessGone"
+        message="WebViewClient should implement `onRenderProcessGone` to handle render process crashes or out-of-memory errors. Otherwise, the app will crash when the render process is shut down."
+        errorLine1="            webViewClient = object : WebViewClient() {"
+        errorLine2="                            ~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/login/XunleiVerifyWebViewScreen.kt"
+            line="114"
+            column="29"/>
+    </issue>
+
+    <issue
+        id="MissingOnRenderProcessGone"
+        message="WebViewClient should implement `onRenderProcessGone` to handle render process crashes or out-of-memory errors. Otherwise, the app will crash when the render process is shut down."
+        errorLine1="            webViewClient = object : WebViewClient() {"
+        errorLine2="                                     ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/login/XunleiVerifyWebViewScreen.kt"
+            line="114"
+            column="38"/>
+    </issue>
+
+    <issue
+        id="MissingOnRenderProcessGone"
+        message="WebViewClient should implement `onRenderProcessGone` to handle render process crashes or out-of-memory errors. Otherwise, the app will crash when the render process is shut down."
+        errorLine1="            webViewClient = object : WebViewClient() {"
+        errorLine2="                                     ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/login/XunleiVerifyWebViewScreen.kt"
+            line="114"
+            column="38"/>
+    </issue>
+
+    <issue
+        id="MissingOnRenderProcessGone"
+        message="WebViewClient should implement `onRenderProcessGone` to handle render process crashes or out-of-memory errors. Otherwise, the app will crash when the render process is shut down."
+        errorLine1="            webViewClient = object : DiagnosticWebViewClient() {"
+        errorLine2="                            ~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/login/XunleiWebLoginScreen.kt"
+            line="118"
+            column="29"/>
+    </issue>
+
+    <issue
+        id="MissingOnRenderProcessGone"
+        message="WebViewClient should implement `onRenderProcessGone` to handle render process crashes or out-of-memory errors. Otherwise, the app will crash when the render process is shut down."
+        errorLine1="            webViewClient = object : DiagnosticWebViewClient() {"
+        errorLine2="                            ~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/login/XunleiWebLoginScreen.kt"
+            line="118"
+            column="29"/>
+    </issue>
+
+    <issue
+        id="AndroidGradlePluginVersion"
+        message="A newer version of Gradle than 9.3.1 is available: 9.8.1"
+        errorLine1="distributionUrl=https\://services.gradle.org/distributions/gradle-9.3.1-bin.zip"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="../gradle/wrapper/gradle-wrapper.properties"
+            line="6"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of androidx.core:core-ktx than 1.17.0 is available: 1.19.0"
+        errorLine1="coreKtx = &quot;1.17.0&quot;"
+        errorLine2="          ~~~~~~~~">
+        <location
+            file="../gradle/libs.versions.toml"
+            line="14"
+            column="11"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of androidx.lifecycle:lifecycle-runtime-ktx than 2.9.2 is available: 2.11.0"
+        errorLine1="lifecycle = &quot;2.9.2&quot;"
+        errorLine2="            ~~~~~~~">
+        <location
+            file="../gradle/libs.versions.toml"
+            line="18"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of androidx.lifecycle:lifecycle-viewmodel-compose than 2.9.2 is available: 2.11.0"
+        errorLine1="lifecycle = &quot;2.9.2&quot;"
+        errorLine2="            ~~~~~~~">
+        <location
+            file="../gradle/libs.versions.toml"
+            line="18"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of androidx.lifecycle:lifecycle-viewmodel-ktx than 2.9.2 is available: 2.11.0"
+        errorLine1="lifecycle = &quot;2.9.2&quot;"
+        errorLine2="            ~~~~~~~">
+        <location
+            file="../gradle/libs.versions.toml"
+            line="18"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of androidx.activity:activity-compose than 1.11.0 is available: 1.13.0"
+        errorLine1="activityCompose = &quot;1.11.0&quot;"
+        errorLine2="                  ~~~~~~~~">
+        <location
+            file="../gradle/libs.versions.toml"
+            line="19"
+            column="19"/>
+    </issue>
+
+    <issue
+        id="NewerVersionAvailable"
+        message="A newer version of org.jetbrains.kotlin.android than 2.3.21 is available: 2.4.21"
+        errorLine1="kotlin = &quot;2.3.21&quot;"
+        errorLine2="         ~~~~~~~~">
+        <location
+            file="../gradle/libs.versions.toml"
+            line="10"
+            column="10"/>
+    </issue>
+
+    <issue
+        id="NewerVersionAvailable"
+        message="A newer version of org.jetbrains.kotlin.plugin.compose than 2.3.21 is available: 2.4.21"
+        errorLine1="kotlin = &quot;2.3.21&quot;"
+        errorLine2="         ~~~~~~~~">
+        <location
+            file="../gradle/libs.versions.toml"
+            line="10"
+            column="10"/>
+    </issue>
+
+    <issue
+        id="NewerVersionAvailable"
+        message="A newer version of org.jetbrains.kotlin.plugin.serialization than 2.3.21 is available: 2.4.21"
+        errorLine1="kotlin = &quot;2.3.21&quot;"
+        errorLine2="         ~~~~~~~~">
+        <location
+            file="../gradle/libs.versions.toml"
+            line="10"
+            column="10"/>
+    </issue>
+
+    <issue
+        id="NewerVersionAvailable"
+        message="A newer version of com.squareup.okhttp3:okhttp than 4.12.0 is available: 5.5.0"
+        errorLine1="okhttp = &quot;4.12.0&quot;"
+        errorLine2="         ~~~~~~~~">
+        <location
+            file="../gradle/libs.versions.toml"
+            line="20"
+            column="10"/>
+    </issue>
+
+    <issue
+        id="NewerVersionAvailable"
+        message="A newer version of com.mikepenz:multiplatform-markdown-renderer-m3 than 0.35.0 is available: 0.45.0"
+        errorLine1="markdownRenderer = &quot;0.35.0&quot;   # mikepenz/multiplatform-markdown-renderer（GFM 渲染；0.35.0 用 Kotlin 2.1.x 编译，2.3 读 2.1 metadata 向后兼容）"
+        errorLine2="                   ~~~~~~~~">
+        <location
+            file="../gradle/libs.versions.toml"
+            line="44"
+            column="20"/>
+    </issue>
+
+    <issue
+        id="ComposableNaming"
+        message="Composable functions that return Unit should start with an uppercase letter"
+        errorLine1="fun rememberWebLoginAutoDetect("
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/login/WebLoginAutoDetect.kt"
+            line="61"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="ConfigurationScreenWidthHeight"
+        message="Using Configuration.screenHeightDp instead of LocalWindowInfo.current.containerSize"
+        errorLine1="    val maxHeight = if (configuration.screenHeightDp &lt; 480) 130.dp else 230.dp"
+        errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/screens/UpdateDialog.kt"
+            line="300"
+            column="25"/>
+    </issue>
+
+    <issue
+        id="ModifierFactoryExtensionFunction"
+        message="Modifier factory functions should be extensions on Modifier"
+        errorLine1="private fun sheetColumnModifier(): Modifier = Modifier"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/drive/CloudDriveScreen.kt"
+            line="420"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="ModifierParameter"
+        message="Modifier parameter should be the first optional parameter"
+        errorLine1="    modifier: Modifier = Modifier"
+        errorLine2="    ~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/screens/AnnouncementScreen.kt"
+            line="113"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="ModifierParameter"
+        message="Modifier parameter should be named modifier"
+        errorLine1="    boundsModifier: Modifier,"
+        errorLine2="    ~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/screens/AnnouncementScreen.kt"
+            line="286"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="ModifierParameter"
+        message="Modifier parameter should be the first optional parameter"
+        errorLine1="    modifier: Modifier = Modifier"
+        errorLine2="    ~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/screens/BaiduCloudScreen.kt"
+            line="92"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="ModifierParameter"
+        message="Modifier parameter should be the first optional parameter"
+        errorLine1="    modifier: Modifier = Modifier,"
+        errorLine2="    ~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/components/BlurredBar.kt"
+            line="86"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="ModifierParameter"
+        message="Modifier parameter should be the first optional parameter"
+        errorLine1="    modifier: Modifier = Modifier"
+        errorLine2="    ~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/screens/C139CloudScreen.kt"
+            line="59"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="ModifierParameter"
+        message="Modifier parameter should be the first optional parameter"
+        errorLine1="    modifier: Modifier = Modifier"
+        errorLine2="    ~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/screens/CloudDriveScaffold.kt"
+            line="138"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="ModifierParameter"
+        message="Modifier parameter should be the first optional parameter"
+        errorLine1="    modifier: Modifier = Modifier"
+        errorLine2="    ~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/screens/CloudDriveScaffold.kt"
+            line="437"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="ModifierParameter"
+        message="Modifier parameter should be the first optional parameter"
+        errorLine1="    modifier: Modifier = Modifier"
+        errorLine2="    ~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/screens/CloudDriveScreen.kt"
+            line="62"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="ModifierParameter"
+        message="Modifier parameter should be the first optional parameter"
+        errorLine1="    modifier: Modifier = Modifier"
+        errorLine2="    ~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/screens/DownloadScreen.kt"
+            line="128"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="ModifierParameter"
+        message="Modifier parameter should be the first optional parameter"
+        errorLine1="    modifier: Modifier = Modifier"
+        errorLine2="    ~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/screens/DriveScreen.kt"
+            line="148"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="ModifierParameter"
+        message="Modifier parameter should be the first optional parameter"
+        errorLine1="    modifier: Modifier = Modifier"
+        errorLine2="    ~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/screens/GuangYaCloudScreen.kt"
+            line="58"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="ModifierParameter"
+        message="Modifier parameter should be the first optional parameter"
+        errorLine1="    modifier: Modifier = Modifier"
+        errorLine2="    ~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/screens/ILanzouCloudScreen.kt"
+            line="51"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="ModifierParameter"
+        message="Modifier parameter should be the first optional parameter"
+        errorLine1="    modifier: Modifier = Modifier"
+        errorLine2="    ~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/screens/LanzouCloudScreen.kt"
+            line="51"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="ModifierParameter"
+        message="Modifier parameter should be the first optional parameter"
+        errorLine1="    modifier: Modifier = Modifier"
+        errorLine2="    ~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/items/MultiSelectBar.kt"
+            line="79"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="ModifierParameter"
+        message="Modifier parameter should be the first optional parameter"
+        errorLine1="    modifier: Modifier = Modifier"
+        errorLine2="    ~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/items/MultiSelectBar.kt"
+            line="149"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="ModifierParameter"
+        message="Modifier parameter should be the first optional parameter"
+        errorLine1="    modifier: Modifier = Modifier"
+        errorLine2="    ~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/screens/Pan115CloudScreen.kt"
+            line="56"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="ModifierParameter"
+        message="Modifier parameter should be the first optional parameter"
+        errorLine1="    modifier: Modifier = Modifier"
+        errorLine2="    ~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/screens/Pan123CloudScreen.kt"
+            line="59"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="ModifierParameter"
+        message="Modifier parameter should be the first optional parameter"
+        errorLine1="    modifier: Modifier = Modifier"
+        errorLine2="    ~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/resolve/ShareDetailScreen.kt"
+            line="702"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="ModifierParameter"
+        message="Modifier parameter should be the first optional parameter"
+        errorLine1="    modifier: Modifier = Modifier"
+        errorLine2="    ~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/screens/UCCoudScreen.kt"
+            line="58"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="ModifierParameter"
+        message="Modifier parameter should be the first optional parameter"
+        errorLine1="    modifier: Modifier = Modifier"
+        errorLine2="    ~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/screens/XunleiCloudScreen.kt"
+            line="58"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="GetInstance"
+        message="ECB encryption mode should not be used (was &quot;AES/ECB/PKCS5Padding&quot;)"
+        errorLine1="        val cipher = Cipher.getInstance(&quot;AES/ECB/PKCS5Padding&quot;)"
+        errorLine2="                                        ~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/data/network/ILanzouApi.kt"
+            line="589"
+            column="41"/>
+    </issue>
+
+    <issue
+        id="DataExtractionRules"
+        message="The attribute `android:allowBackup` is deprecated from Android 12 and higher and may be removed in future versions. Consider adding the attribute `android:dataExtractionRules` specifying an `@xml` resource which configures cloud backups and device transfers on Android 12 and higher."
+        errorLine1="        android:allowBackup=&quot;false&quot;"
+        errorLine2="                             ~~~~~">
+        <location
+            file="src/main/AndroidManifest.xml"
+            line="54"
+            column="30"/>
+    </issue>
+
+    <issue
+        id="WakelockTimeout"
+        message="Provide a timeout when requesting a wakelock with `PowerManager.Wakelock.acquire(long timeout)`. This will ensure the OS will cleanup any wakelocks that last longer than you intend, and will save your user&apos;s battery."
+        errorLine1="        wakeLock?.let { if (!it.isHeld) it.acquire() }"
+        errorLine2="                                        ~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/data/download/DownloadManager.kt"
+            line="1090"
+            column="41"/>
+    </issue>
+
+    <issue
+        id="ObsoleteSdkInt"
+        message="Unnecessary; `SDK_INT` is always >= 24"
+        errorLine1="        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/data/download/DownloadService.kt"
+            line="78"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="StaticFieldLeak"
+        message="Do not place Android context classes in static fields (static reference to `KernelProvisioner` which has field `keepAliveContext` pointing to `Context`); this is a memory leak"
+        errorLine1="/**"
+        errorLine2="^">
+        <location
+            file="src/main/kotlin/com/yunx/app/data/gopeed/KernelProvisioner.kt"
+            line="62"
+            column="1"/>
+    </issue>
+
+    <issue
+        id="AutoboxingStateCreation"
+        message="Prefer `mutableIntStateOf` instead of `mutableStateOf`"
+        errorLine1="    var viewerIndex by rememberSaveable { mutableStateOf(-1) }"
+        errorLine2="                                          ~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/screens/AnnouncementScreen.kt"
+            line="123"
+            column="43"/>
+    </issue>
+
+    <issue
+        id="AutoboxingStateCreation"
+        message="Prefer `mutableIntStateOf` instead of `mutableStateOf`"
+        errorLine1="    var shownViewerIndex by rememberSaveable { mutableStateOf(-1) }"
+        errorLine2="                                               ~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/screens/AnnouncementScreen.kt"
+            line="124"
+            column="48"/>
+    </issue>
+
+    <issue
+        id="AutoboxingStateCreation"
+        message="Prefer `mutableIntStateOf` instead of `mutableStateOf`"
+        errorLine1="    var darkMode by mutableStateOf(0)"
+        errorLine2="                    ~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/theme/AppThemeManager.kt"
+            line="37"
+            column="21"/>
+    </issue>
+
+    <issue
+        id="AutoboxingStateCreation"
+        message="Prefer `mutableIntStateOf` instead of `mutableStateOf`"
+        errorLine1="    var colorMode by mutableStateOf(0)"
+        errorLine2="                     ~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/theme/AppThemeManager.kt"
+            line="41"
+            column="22"/>
+    </issue>
+
+    <issue
+        id="AutoboxingStateCreation"
+        message="Prefer `mutableLongStateOf` instead of `mutableStateOf`"
+        errorLine1="    var seedColor by mutableStateOf(SettingsRepository.DEFAULT_SEED_COLOR)"
+        errorLine2="                     ~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/theme/AppThemeManager.kt"
+            line="45"
+            column="22"/>
+    </issue>
+
+    <issue
+        id="AutoboxingStateCreation"
+        message="Prefer `mutableIntStateOf` instead of `mutableStateOf`"
+        errorLine1="    var bottomBarStyle by mutableStateOf(SettingsRepository.DEFAULT_BOTTOM_BAR_STYLE)"
+        errorLine2="                          ~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/theme/AppThemeManager.kt"
+            line="49"
+            column="27"/>
+    </issue>
+
+    <issue
+        id="AutoboxingStateCreation"
+        message="Prefer `mutableIntStateOf` instead of `mutableStateOf`"
+        errorLine1="    var downloadTriggered by mutableStateOf(0)"
+        errorLine2="                             ~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/viewmodel/BaiduCloudViewModel.kt"
+            line="83"
+            column="30"/>
+    </issue>
+
+    <issue
+        id="AutoboxingStateCreation"
+        message="Prefer `mutableIntStateOf` instead of `mutableStateOf`"
+        errorLine1="    var downloadTriggered by mutableStateOf(0)"
+        errorLine2="                             ~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/viewmodel/C139CloudViewModel.kt"
+            line="84"
+            column="30"/>
+    </issue>
+
+    <issue
+        id="AutoboxingStateCreation"
+        message="Prefer `mutableIntStateOf` instead of `mutableStateOf`"
+        errorLine1="    var expiredType by remember { mutableStateOf(1) }"
+        errorLine2="                                  ~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/screens/CloudFileSheets.kt"
+            line="423"
+            column="35"/>
+    </issue>
+
+    <issue
+        id="AutoboxingStateCreation"
+        message="Prefer `mutableIntStateOf` instead of `mutableStateOf`"
+        errorLine1="    var expiredType by remember { mutableStateOf(1) }"
+        errorLine2="                                  ~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/screens/CloudFileSheets.kt"
+            line="888"
+            column="35"/>
+    </issue>
+
+    <issue
+        id="AutoboxingStateCreation"
+        message="Prefer `mutableLongStateOf` instead of `mutableStateOf`"
+        errorLine1="    var soBytes by remember { mutableStateOf(0L) }"
+        errorLine2="                              ~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/screens/DownloadEngineScreen.kt"
+            line="142"
+            column="31"/>
+    </issue>
+
+    <issue
+        id="AutoboxingStateCreation"
+        message="Prefer `mutableIntStateOf` instead of `mutableStateOf`"
+        errorLine1="    var downloadTriggered by mutableStateOf(0)"
+        errorLine2="                             ~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/viewmodel/GuangYaCloudViewModel.kt"
+            line="82"
+            column="30"/>
+    </issue>
+
+    <issue
+        id="AutoboxingStateCreation"
+        message="Prefer `mutableIntStateOf` instead of `mutableStateOf`"
+        errorLine1="    var countdown by rememberSaveable { mutableStateOf(0) }"
+        errorLine2="                                        ~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/login/GuangYaLoginScreen.kt"
+            line="109"
+            column="41"/>
+    </issue>
+
+    <issue
+        id="AutoboxingStateCreation"
+        message="Prefer `mutableIntStateOf` instead of `mutableStateOf`"
+        errorLine1="    var downloadTriggered by mutableStateOf(0)"
+        errorLine2="                             ~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/viewmodel/ILanzouCloudViewModel.kt"
+            line="82"
+            column="30"/>
+    </issue>
+
+    <issue
+        id="AutoboxingStateCreation"
+        message="Prefer `mutableIntStateOf` instead of `mutableStateOf`"
+        errorLine1="    var downloadTriggered by mutableStateOf(0)"
+        errorLine2="                             ~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/viewmodel/LanzouCloudViewModel.kt"
+            line="84"
+            column="30"/>
+    </issue>
+
+    <issue
+        id="AutoboxingStateCreation"
+        message="Prefer `mutableIntStateOf` instead of `mutableStateOf`"
+        errorLine1="    var downloadTriggered by mutableStateOf(0)"
+        errorLine2="                             ~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/viewmodel/Pan115CloudViewModel.kt"
+            line="84"
+            column="30"/>
+    </issue>
+
+    <issue
+        id="AutoboxingStateCreation"
+        message="Prefer `mutableIntStateOf` instead of `mutableStateOf`"
+        errorLine1="    var downloadTriggered by mutableStateOf(0)"
+        errorLine2="                             ~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/viewmodel/Pan123CloudViewModel.kt"
+            line="88"
+            column="30"/>
+    </issue>
+
+    <issue
+        id="AutoboxingStateCreation"
+        message="Prefer `mutableIntStateOf` instead of `mutableStateOf`"
+        errorLine1="    var downloadTriggered by mutableStateOf(0)"
+        errorLine2="                             ~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/viewmodel/QuarkCloudViewModel.kt"
+            line="98"
+            column="30"/>
+    </issue>
+
+    <issue
+        id="AutoboxingStateCreation"
+        message="Prefer `mutableIntStateOf` instead of `mutableStateOf`"
+        errorLine1="    var maxConcurrent by remember { mutableStateOf(settingsRepo.maxConcurrentDownloads) }"
+        errorLine2="                                    ~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/screens/SettingsScreen.kt"
+            line="181"
+            column="37"/>
+    </issue>
+
+    <issue
+        id="AutoboxingStateCreation"
+        message="Prefer `mutableLongStateOf` instead of `mutableStateOf`"
+        errorLine1="    var speedLimitBps by remember { mutableStateOf(settingsRepo.downloadSpeedLimit) }"
+        errorLine2="                                    ~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/screens/SettingsScreen.kt"
+            line="182"
+            column="37"/>
+    </issue>
+
+    <issue
+        id="AutoboxingStateCreation"
+        message="Prefer `mutableIntStateOf` instead of `mutableStateOf`"
+        errorLine1="    var retryCount by remember { mutableStateOf(settingsRepo.downloadRetryCount) }"
+        errorLine2="                                 ~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/screens/SettingsScreen.kt"
+            line="183"
+            column="34"/>
+    </issue>
+
+    <issue
+        id="AutoboxingStateCreation"
+        message="Prefer `mutableIntStateOf` instead of `mutableStateOf`"
+        errorLine1="    var appIconVariant by remember { mutableStateOf(settingsRepo.appIconVariant) }"
+        errorLine2="                                     ~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/screens/ThemeScreen.kt"
+            line="176"
+            column="38"/>
+    </issue>
+
+    <issue
+        id="AutoboxingStateCreation"
+        message="Prefer `mutableIntStateOf` instead of `mutableStateOf`"
+        errorLine1="    var downloadTriggered by mutableStateOf(0)"
+        errorLine2="                             ~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/viewmodel/UCCoudViewModel.kt"
+            line="101"
+            column="30"/>
+    </issue>
+
+    <issue
+        id="AutoboxingStateCreation"
+        message="Prefer `mutableLongStateOf` instead of `mutableStateOf`"
+        errorLine1="    var smsCooldownUntil by androidx.compose.runtime.mutableStateOf(0L)"
+        errorLine2="                                                     ~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/viewmodel/XunleiAccountViewModel.kt"
+            line="76"
+            column="54"/>
+    </issue>
+
+    <issue
+        id="AutoboxingStateCreation"
+        message="Prefer `mutableIntStateOf` instead of `mutableStateOf`"
+        errorLine1="    var downloadTriggered by mutableStateOf(0)"
+        errorLine2="                             ~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/ui/viewmodel/XunleiCloudViewModel.kt"
+            line="84"
+            column="30"/>
+    </issue>
+
+    <issue
+        id="IconColors"
+        message="Notification icons must be entirely white">
+        <location
+            file="src/main/res/drawable/icon.png"/>
+        <location
+            file="src/main/kotlin/com/yunx/app/data/download/DownloadService.kt"
+            line="316"
+            column="31"
+            message="Icon used in notification here"/>
+    </issue>
+
+    <issue
+        id="IconLauncherShape"
+        message="Launcher icon used as round icon did not have a circular shape">
+        <location
+            file="src/main/res/drawable/icon.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/icon.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/icon.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/icon2.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/icon2.png"/>
+    </issue>
+
+    <issue
+        id="IconLocation"
+        message="Found bitmap drawable `res/drawable/weixin.png` in densityless folder">
+        <location
+            file="src/main/res/drawable/weixin.png"/>
+    </issue>
+
+    <issue
+        id="UseTomlInstead"
+        message="Use version catalog instead"
+        errorLine1="    implementation(&quot;androidx.compose.material:material-icons-extended&quot;)"
+        errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="build.gradle.kts"
+            line="131"
+            column="20"/>
+    </issue>
+
+    <issue
+        id="UseTomlInstead"
+        message="Use version catalog instead"
+        errorLine1="    androidTestImplementation(&quot;androidx.compose.ui:ui-test-junit4&quot;)"
+        errorLine2="                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="build.gradle.kts"
+            line="164"
+            column="31"/>
+    </issue>
+
+    <issue
+        id="ConstantLocale"
+        message="Assigning `Locale.getDefault()` to a final static field is suspicious; this code will not work correctly if the user changes locale while the app is running"
+        errorLine1="    private val timeFormat = SimpleDateFormat(&quot;HH:mm:ss.SSS&quot;, Locale.getDefault())"
+        errorLine2="                                                              ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/com/yunx/app/data/download/DownloadDebugLog.kt"
+            line="79"
+            column="63"/>
+    </issue>
+
+</issues>

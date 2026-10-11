@@ -62,6 +62,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.pm.PackageInfoCompat
 import com.yunx.app.R
 import com.yunx.app.ui.theme.SquircleShape
 import top.yukonga.miuix.kmp.basic.Card
@@ -98,7 +99,8 @@ fun AboutScreen(
         runCatching { context.packageManager.getPackageInfo(context.packageName, 0) }.getOrNull()
     }
     val versionName = pkgInfo?.versionName ?: "1.0"
-    val versionCode = pkgInfo?.versionCode ?: 1
+    // versionCode 字段已弃用：compat 取 Long 后 toInt() 收窄，仅用于展示，保持 AppHeader 的 Int 签名不变
+    val versionCode = pkgInfo?.let { PackageInfoCompat.getLongVersionCode(it).toInt() } ?: 1
 
     val scrollBehavior = MiuixScrollBehavior()
     val backdrop = rememberBlurBackdrop()

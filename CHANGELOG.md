@@ -3,6 +3,8 @@
 ## [未发布]
 
 ### 修复
+- 修复 CI 从未触发的问题：`ci.yml` 与 nightly 构建工作流的分支口径写死为上游的 `master`，而本仓库默认分支是 `main`，push 校验与每日定时构建从未真正执行过；统一改为 `main` 并同步防重复构建的分支判断
+- 修复干净全量编译失败的问题：`ExpressiveLoading` 使用 material3 Expressive 实验 API 但缺 `@OptIn`，此前一直被增量编译缓存掩盖
 - 修复侧边导航栏不符合 miuix 官方要求的问题：宽屏侧边栏迁移到官方可展开形态（`rememberNavigationRailState`），顶部自带展开/收起开关，展开后条目切换为「图标 + 文字」横排并带选中高亮胶囊，收起为紧凑布局且展开状态跨配置变更保存
 - 修复大屏设备底栏与侧边栏显示逻辑混乱的问题：侧边导航栏与底部导航栏改为严格互斥——宽屏（≥600dp）且用户选了贴底标准栏时才显示侧边栏，其余情况一律显示底栏；宽屏判据改用窗口实际可用宽度（分屏 / 多窗口下不再误判），并删除「矮横屏也用侧边栏」的旧分支，手机横屏不再同时长出侧边栏与悬浮底栏
 - 修复解析页链接输入框连接图标贴着输入框左缘的错位问题：miuix `TextField` 的 `leadingIcon` 槽位不带内边距，按官方示例为图标补 12dp 水平内边距（解析页、分享详情搜索、网盘搜索、迅雷 / 光雅登录页共 8 处同一根因一并修复）
@@ -56,6 +58,11 @@
 - 设置页补充「通用直链 / 手动添加」并发线程配置项，完善网盘并发下载配置覆盖面
 
 ### 优化
+- 建立 Android Lint 静态分析基线并纳入 CI：首跑暴露的 6 处 error 逐一处置（补 `@OptIn`、修正误导性缩进、`KeyStoreException` 判定补 API 33 守卫、受限 API 与权限误报精确压制并注明理由）；有意决策项（登录 WebView 启用 JS、不加 `<queries>`、Gopeed 运行时加载内核等）在 `app/lint.xml` 永久豁免，存量 warning 锁进 `lint-baseline.xml`，CI 的 `lintDebug` 只拦新增问题
+- Kotlin 编译警告从 29 条清零（仅存 1 条工具链过渡期已知项）：迁移 AutoMirrored 图标 6 处、`versionCode` 改用 `PackageInfoCompat`、清理冗余安全调用 / 非空断言 / Elvis 死分支、补 `@OptIn` 与覆写弃用标注
+- 依赖坐标全部收口进 version catalog：lifecycle 三件套统一 2.9.2（此前 runtime 与 viewmodel 版本漂移），okhttp / junit / androidx.test / navigationevent / kotlin-stdlib 约束一并纳入
+- Gradle wrapper 切换官方发行源并锁定 sha256（此前走腾讯镜像且无完整性校验，海外 CI 拉取慢且不可验证）
+- 仓库卫生：移除误提交的 AndroidIDE 工作区文件（workspace.json，含设备绝对路径）与模板遗留的启动图标 / 备份规则资源，`.gitignore` 补充 AndroidIDE Python 运行时目录，新增 `.editorconfig` 固化基础格式
 - Miuix 组件库升级至 0.9.4，下拉刷新与导航栏等组件行为随上游对齐
 - 解析页「收藏」入口由纯图标改为带文字按钮，不再需要用户猜书签图标的含义
 - 登录失败提示不再抛 Cookie 字段名（__pus= / BDUSS= / Os_SSo_Sid= 等），改为「未检测到登录状态，请先在网页中完成登录」；字段名保留在手动填写弹窗与登录教程里

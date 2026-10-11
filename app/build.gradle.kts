@@ -107,6 +107,15 @@ android {
         unitTests.isReturnDefaultValues = true
     }
 
+    lint {
+        // 静态分析基线：存量问题快照锁进 lint-baseline.xml（首次 lintDebug 自动生成），
+        // 之后 CI 的 lintDebug 只拦「新增」问题 —— error 拦构建，warning 留在报告里。
+        // 永久豁免的「有意决策」项在 app/lint.xml（每条带理由），别往 baseline 里塞决策项。
+        baseline = file("lint-baseline.xml")
+        abortOnError = true
+        checkDependencies = false
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -120,9 +129,9 @@ android {
 
 dependencies {
     implementation("androidx.compose.material:material-icons-extended")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation(libs.androidx.lifecycle.viewmodel.ktx)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.okhttp)
     implementation(libs.material)   // 原 libs.material.color.utilities -> 改为官方 Material 主库（含 color.utilities 包）
 
     // Gopeed 内置下载引擎：gomobile 生成的 Java 桥接类（com/gopeed/libgopeed + go，合计 12 KB），
@@ -147,10 +156,10 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-    testImplementation("junit:junit:4.13.2")
+    testImplementation(libs.junit4)
     // 设置页目录选择器仪器测试：runner / JUnit 集成；Compose 测试库版本对齐现有 BOM
-    androidTestImplementation("androidx.test:runner:1.6.2")
-    androidTestImplementation("androidx.test.ext:junit:1.2.1")
+    androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation(libs.androidx.ui.tooling)
@@ -161,14 +170,12 @@ dependencies {
     implementation(libs.miuix.blur.android)
     implementation(libs.miuix.preference.android)
     implementation(libs.miuix.icons.android)
-    // 版本必须与 miuix 0.9.4 的 pom 对齐（它 requires navigationevent-compose 1.1.2）：Theme.kt 直接使用
-    // rememberNavigationEventDispatcherOwner，声明旧版本只是被 Gradle 取高版本兜住，写死 1.1.1 已成死钉。
-    implementation("androidx.navigationevent:navigationevent-compose:1.1.2")
+    // 版本约束见 libs.versions.toml 的 androidx-navigationevent-compose 注释（与 miuix 0.9.4 的 pom 对齐）
+    implementation(libs.androidx.navigationevent.compose)
     implementation(libs.kotlinx.serialization.json)
 
-    // kotlin-stdlib 统一到 2.4.20（miuix 0.9.4 的传递依赖要求）：运行时取最高版本，避免
-    // miuix / compose 1.12 在旧 stdlib 上缺方法；项目 Kotlin 2.3.21 编译器读 2.4 metadata 在官方 +1 兼容窗口内。
+    // kotlin-stdlib 统一约束版本见 libs.versions.toml 的 kotlinStdlib 注释。
     constraints {
-        implementation("org.jetbrains.kotlin:kotlin-stdlib:2.4.20")
+        implementation(libs.kotlin.stdlib)
     }
 }

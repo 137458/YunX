@@ -130,6 +130,7 @@ fun XunleiVerifyWebViewScreen(
                     }
                 }
 
+                @Deprecated("继承自 WebView 的弃用回调，旧 WebView 仍走此签名，需保留覆写")
                 override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
                     if (XunleiVerificationPolicy.isTrustedCallback(url)) {
                         onResult(true, url.orEmpty())

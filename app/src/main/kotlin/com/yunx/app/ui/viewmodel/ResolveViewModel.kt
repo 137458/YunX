@@ -1222,10 +1222,8 @@ class ResolveViewModel(
                     launch {
                         semaphore.withPermit {
                             // 走内存缓存：命中不发请求，失败/限流结果缓存 1 分钟，in-flight 去重
-                            if (api != null) {
-                                GitHubCommitDateCache.get(repo.owner, repo.name, e.path, api)
-                                    ?.let { iso -> timeMap[e.path] = iso }
-                            }
+                            GitHubCommitDateCache.get(repo.owner, repo.name, e.path, api)
+                                ?.let { iso -> timeMap[e.path] = iso }
                         }
                     }
                 }
@@ -1693,7 +1691,7 @@ class ResolveViewModel(
         if (link?.cleanupDirFid != null) {
             viewModelScope.launch {
                 val credential = currentCredential() ?: return@launch
-                link.cleanupDirFid?.let { dirFid ->
+                link.cleanupDirFid.let { dirFid ->
                     currentRepo().cleanupTempDir(dirFid, credential)
                 }
             }

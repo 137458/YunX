@@ -439,7 +439,7 @@ class ChunkDownloader(private val clientProvider: () -> OkHttpClient) {
                         total += read
                     }
                 }
-                if (digest != null) onPartDigest?.invoke(part, digest.digest().toHexDigest())
+                if (digest != null) onPartDigest.invoke(part, digest.digest().toHexDigest())
                 // 该片已完整写入目标，立即释放分片空间（在 use 之后，确保 fd 已关闭）
                 if (!part.delete()) Log.w(TAG, "mergeChunksToStream: 删除分片失败 $part")
                 onProgress?.invoke(total)

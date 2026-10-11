@@ -1,0 +1,17 @@
+# 与 gradle.properties 的 kotlin.code.style=official 配套：编辑器/格式化统一基线。
+# 只固化确定无疑的项，不设行宽等会跟既有代码打架的约束。
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{kt,kts}]
+indent_style = space
+indent_size = 4
+
+[*.{xml,yml,yaml,json,properties}]
+indent_style = space
+indent_size = 2

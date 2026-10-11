@@ -120,7 +120,7 @@ class GuangYaApi(
                     captcha = initCaptcha(device, meta, "POST:/v1/auth/signin")
                 }
             }
-            tokens!!
+            tokens
         }
 
     private fun doSignIn(
@@ -191,7 +191,7 @@ class GuangYaApi(
                     }
                 }
             }
-            challenge!!
+            challenge
         }
 
     private fun doSendSmsCode(phoneNumber: String, captchaToken: String?, device: GuangYaDevice): GuangYaSmsChallenge {

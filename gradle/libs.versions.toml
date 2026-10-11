@@ -8,10 +8,17 @@ agp = "9.1.1"
 # Kotlin 编译器允许读取 metadata 比自身新一个小版本的二进制（+1 窗口，2.3 读 2.4 合法），
 # 选 2.3 线是为了与 KSP 2.3.12（基于 Kotlin 2.3.20 前端）同源，避免跳到 2.4 后 KSP 尚无对应版本。
 kotlin = "2.3.21"
+# kotlin-stdlib 统一约束到 2.4.20（miuix 0.9.4 的传递依赖要求）：运行时取最高版本，避免
+# miuix / compose 1.12 在旧 stdlib 上缺方法；项目 Kotlin 2.3.21 编译器读 2.4 metadata 在官方 +1 兼容窗口内。
+kotlinStdlib = "2.4.20"
 coreKtx = "1.17.0"
 webkit = "1.17.1"   # 登录 WebView：关闭 X-Requested-With + 同步桌面 client hints（UserAgentMetadata）
-lifecycleRuntimeKtx = "2.9.2"
+# androidx.lifecycle 全家桶统一取 2.9.2：runtime-ktx / viewmodel-ktx / viewmodel-compose 同组工件
+# 按 androidx 约定应同版本发布，历史上 runtime 2.9.2 + viewmodel 2.8.7 的混搭纯属漂移。
+lifecycle = "2.9.2"
 activityCompose = "1.11.0"
+okhttp = "4.12.0"
+navigationevent = "1.1.2"   # 必须与 miuix 0.9.4 的 pom 对齐（它 requires navigationevent-compose 1.1.2），见下方依赖注释
 # miuix 0.9.4 以 Compose Multiplatform 1.12.0 编译，BOM 2026.09.00 起内含 compose 1.12.1（runtime/ui/foundation），与之对齐
 composeBom = "2026.09.00"
 # 刻意覆盖 BOM 给的 material3 1.4.0（Expressive 的 ButtonGroup/LoadingIndicator/波浪进度条等组件只在 1.5.0-alpha）。
@@ -36,6 +43,11 @@ miuix = "0.9.4"
 kotlinx-serialization = "1.11.0"
 markdownRenderer = "0.35.0"   # mikepenz/multiplatform-markdown-renderer（GFM 渲染；0.35.0 用 Kotlin 2.1.x 编译，2.3 读 2.1 metadata 向后兼容）
 
+# 测试（测试框架不进 Compose BOM 管理，单独钉版）
+junit = "4.13.2"
+androidxTestRunner = "1.6.2"
+androidxTestExtJunit = "1.2.1"
+
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
@@ -57,8 +69,15 @@ kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-webkit = { group = "androidx.webkit", name = "webkit", version.ref = "webkit" }
-androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
+androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycle" }
+androidx-lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycle" }
+androidx-lifecycle-viewmodel-compose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "lifecycle" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
+# 与 miuix 0.9.4 的 pom 对齐（requires navigationevent-compose 1.1.2）：Theme.kt 直接使用
+# rememberNavigationEventDispatcherOwner，声明旧版本只是被 Gradle 取高版本兜住，写死旧版已成死钉。
+androidx-navigationevent-compose = { group = "androidx.navigationevent", name = "navigationevent-compose", version.ref = "navigationevent" }
+okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
+kotlin-stdlib = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib", version.ref = "kotlinStdlib" }
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
 androidx-ui = { group = "androidx.compose.ui", name = "ui" }
 androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
@@ -66,6 +85,9 @@ androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-toolin
 androidx-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3Expressive" }   # 版本说明见上方 material3Expressive
 androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
 androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
+junit4 = { group = "junit", name = "junit", version.ref = "junit" }
+androidx-test-runner = { group = "androidx.test", name = "runner", version.ref = "androidxTestRunner" }
+androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidxTestExtJunit" }
 room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }

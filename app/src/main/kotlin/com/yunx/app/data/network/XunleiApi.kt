@@ -831,13 +831,14 @@ class XunleiApi(
             .header("Content-Type", "application/json")
             .header("Origin", "https://pan.xunlei.com")
             .header("Referer", "https://pan.xunlei.com/")
-            if (accessToken.isNotBlank()) {
-                // 登录态优先用刷新后的 currentAccessToken，避免闭包里的旧值。
-                // preferCachedToken=false 时只认传进来的 token（校验「另一份还没落库的凭据」时必须这样）
-                val bearer = if (preferCachedToken) currentAccessToken.ifBlank { accessToken } else accessToken
-                builder.header("Authorization", "Bearer $bearer")
-            }
-            if (captchaToken.isNotBlank()) builder.header("X-Captcha-Token", captchaToken)
+
+        if (accessToken.isNotBlank()) {
+            // 登录态优先用刷新后的 currentAccessToken，避免闭包里的旧值。
+            // preferCachedToken=false 时只认传进来的 token（校验「另一份还没落库的凭据」时必须这样）
+            val bearer = if (preferCachedToken) currentAccessToken.ifBlank { accessToken } else accessToken
+            builder.header("Authorization", "Bearer $bearer")
+        }
+        if (captchaToken.isNotBlank()) builder.header("X-Captcha-Token", captchaToken)
         return if (body != null) builder.post(body.toRequestBody(jsonMediaType)).build()
         else builder.get().build()
     }
@@ -859,10 +860,11 @@ class XunleiApi(
             .header("Content-Type", "application/json")
             .header("Origin", "https://pan.xunlei.com")
             .header("Referer", "https://pan.xunlei.com/")
-            if (accessToken.isNotBlank()) {
-                builder.header("Authorization", "Bearer ${currentAccessToken.ifBlank { accessToken }}")
-            }
-            if (captchaToken.isNotBlank()) builder.header("X-Captcha-Token", captchaToken)
+
+        if (accessToken.isNotBlank()) {
+            builder.header("Authorization", "Bearer ${currentAccessToken.ifBlank { accessToken }}")
+        }
+        if (captchaToken.isNotBlank()) builder.header("X-Captcha-Token", captchaToken)
         val rb = body?.toRequestBody(jsonMediaType) ?: "{}".toRequestBody(jsonMediaType)
         return when (method) {
             "PATCH" -> builder.patch(rb).build()

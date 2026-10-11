@@ -115,8 +115,10 @@ class YunXApp : Application() {
      * 内存压力回调：系统回收前先释放「可再生」的内存 —— 空闲 HTTP 连接及其 socket/Conscrypt 缓冲。
      * 分片下载的数据全部流式落盘、不在堆上缓存，所以这里只丢弃空闲连接，不会影响进行中的下载。
      */
+    @Suppress("DEPRECATION")
     override fun onTrimMemory(level: Int) {
         super.onTrimMemory(level)
+        // TRIM_MEMORY_RUNNING_LOW 自 API 34 起被平台弃用，但 targetSdk 34 下 onTrimMemory 仍会回调，minSdk 24 需要该分支
         if (level >= android.content.ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW) {
             com.yunx.app.data.network.HttpClients.evictIdleConnections()
             android.util.Log.w("YunX", "onTrimMemory level=$level：已释放空闲连接")

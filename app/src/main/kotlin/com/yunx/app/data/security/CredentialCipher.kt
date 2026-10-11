@@ -19,6 +19,7 @@
 package com.yunx.app.data.security
 
 import android.content.Context
+import android.os.Build
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.Base64
@@ -373,8 +374,10 @@ internal class AndroidKeystoreCredentialCipher : CredentialCipher {
             // 环境根本不支持算法/填充：换密钥同样不行
             if (error is javax.crypto.NoSuchPaddingException) return false
             if (error is java.security.NoSuchAlgorithmException) return false
-            // AndroidKeyStore provider 侧的密钥故障（Key not found / Invalid key blob 等）
-            if (error is android.security.KeyStoreException) return true
+            // AndroidKeyStore provider 侧的密钥故障（Key not found / Invalid key blob 等）。
+            // 该异常类型 API 33 才进公开 SDK：低版本上 instanceof 恒为 false（ART 语义，等价短路），
+            // 显式守卫既表意也消 lint NewApi（minSdk 24）。
+            if (Build.VERSION.SDK_INT >= 33 && error is android.security.KeyStoreException) return true
             // ProviderException 是 AndroidKeyStore provider 的兜底异常类型
             if (error is java.security.ProviderException) return true
             // java.security 侧：InvalidKey / KeyStore / UnrecoverableKey

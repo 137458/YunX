@@ -27,3 +27,7 @@ keystore.properties
 # JVM 崩溃转储（内存不足等现场，勿提交）
 hs_err_pid*.log
 replay_pid*.log
+
+# AndroidIDE 本地工作区文件（含设备绝对路径）与内置 Python 运行时，均不入仓库
+/workspace.json
+/Python/

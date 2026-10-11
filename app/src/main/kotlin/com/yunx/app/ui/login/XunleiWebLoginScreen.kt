@@ -128,6 +128,7 @@ fun XunleiWebLoginScreen(
                     view?.evaluateJavascript(XunleiWebCredential.DESKTOP_RENDER_FIX_JS, null)
                 }
 
+                @Deprecated("继承自 WebView 的弃用回调，旧 WebView 仍走此签名，需保留覆写")
                 override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
                     // 登录流程会跳 i.xunlei.com / xluser-ssl.xunlei.com，统一放行 *.xunlei.com；
                     // 出了这个域（含 http 明文页）直接拦掉，不给钓鱼页任何机会

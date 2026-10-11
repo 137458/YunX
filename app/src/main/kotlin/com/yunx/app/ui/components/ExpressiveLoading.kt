@@ -18,6 +18,7 @@
 
 package com.yunx.app.ui.components
 
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.runtime.Composable
@@ -39,6 +40,7 @@ import androidx.compose.ui.graphics.Color
  */
 
 /** Expressive 加载指示器（MaterialShapes 形变）。尺寸由 [modifier] 决定，默认 48dp。 */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun YunXLoading(modifier: Modifier = Modifier) {
     LoadingIndicator(modifier = modifier)
@@ -54,6 +56,7 @@ fun YunXLoading(modifier: Modifier = Modifier) {
  *   注意：刚开始下载、进度只有百分之几时，已填充的长度还不足一个波长（约 40dp），
  *   所以前几秒看不到起伏，属于组件本身的绘制逻辑，不是参数问题。
  */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun YunXWavyProgress(
     progress: () -> Float,
@@ -72,6 +75,7 @@ fun YunXWavyProgress(
 }
 
 /** 波浪进度条（不确定进度）：用于"正在加载但无进度"的场景，如 WebView 页面加载。 */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun YunXWavyLoading(modifier: Modifier = Modifier) {
     LinearWavyProgressIndicator(modifier = modifier)

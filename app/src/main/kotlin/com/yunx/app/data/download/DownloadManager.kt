@@ -33,6 +33,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -975,6 +976,7 @@ class DownloadManager(
     }
 
     /** 开始/恢复下载（断点续传） */
+    @OptIn(ExperimentalCoroutinesApi::class)
     fun start(id: Long, headers: Map<String, String> = emptyMap()) {
         // 引擎任务绝不能落到内置分片下载器（会重复下载同一个 URL）：转发 continue 即可
         taskEngineIds[id]?.let { engineId ->

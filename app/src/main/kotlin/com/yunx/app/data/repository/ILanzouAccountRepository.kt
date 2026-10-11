@@ -61,7 +61,7 @@ class ILanzouAccountRepository(
         if (acc.appToken.isNotBlank()) return acc.appToken
         if (acc.password.isBlank()) return null
         val uuid = acc.uuid.takeIf { isValidUuid(it) } ?: return null
-        val token = api.login(acc.account, acc.password, uuid) ?: return null
+        val token = api.login(acc.account, acc.password, uuid)
         dao.upsert(acc.copy(appToken = token, updatedAt = System.currentTimeMillis()))
         return token
     }

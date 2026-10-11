@@ -18,6 +18,7 @@
 
 package com.yunx.app.data.download
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
 import android.net.ConnectivityManager
@@ -25,6 +26,7 @@ import android.net.NetworkCapabilities
 import android.os.Build
 import android.os.PowerManager
 import android.telephony.TelephonyManager
+import androidx.core.content.pm.PackageInfoCompat
 import com.yunx.app.data.db.DownloadTaskEntity
 import com.yunx.app.data.prefs.SettingsRepository
 import com.yunx.app.util.LogRedactor
@@ -165,6 +167,9 @@ object DownloadDebugLog {
     }
 
     /** 蜂窝代际（5G/4G/3G/2G）：Android 11+ 需要 READ_PHONE_STATE，未授权时明说「未区分」而不是猜 */
+    // MissingPermission 是误报：函数入口已做 checkSelfPermission 守卫（见下），lint 的流分析
+    // 跨不过「SDK_INT < R || 已授权」的复合条件，且整段包在 runCatching 里兜底。
+    @SuppressLint("MissingPermission")
     private fun cellularGeneration(context: Context): String = runCatching {
         val granted = Build.VERSION.SDK_INT < Build.VERSION_CODES.R ||
             context.checkSelfPermission(android.Manifest.permission.READ_PHONE_STATE) ==
@@ -283,6 +288,6 @@ object DownloadDebugLog {
 
     private fun appVersion(context: Context): String = runCatching {
         val pkg = context.packageManager.getPackageInfo(context.packageName, 0)
-        "${pkg.versionName}（${pkg.versionCode}）"
+        "${pkg.versionName}（${PackageInfoCompat.getLongVersionCode(pkg)}）"
     }.getOrDefault("-")
 }

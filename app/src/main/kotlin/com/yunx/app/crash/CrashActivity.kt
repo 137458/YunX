@@ -44,9 +44,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ExitToApp
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.outlined.ContentCopy
-import androidx.compose.material.icons.outlined.ExitToApp
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -120,7 +120,7 @@ private fun CrashScreen(crashLog: String) {
             ),
             FabMenuItem(
                 label = "退出应用",
-                icon = Icons.Outlined.ExitToApp,
+                icon = Icons.AutoMirrored.Outlined.ExitToApp,
                 onClick = { exitApp(context) }
             )
         )

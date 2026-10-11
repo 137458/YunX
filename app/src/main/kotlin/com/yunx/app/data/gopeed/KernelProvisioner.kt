@@ -18,6 +18,7 @@
 
 package com.yunx.app.data.gopeed
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.net.Uri
 import android.util.Log
@@ -201,6 +202,8 @@ object KernelProvisioner {
      * 内核下载借内置下载器那套前台服务（[DownloadService]，`foregroundServiceType="dataSync"`）
      * 顶住「退到后台被系统收掉」——下载器本身不带保活，这是它与普通任务唯一的差别。
      */
+    // StaticFieldLeak 误报：本对象是进程级单例、持有的是 applicationContext（与进程同生命周期），见上。
+    @SuppressLint("StaticFieldLeak")
     @Volatile
     private var keepAliveContext: Context? = null
 

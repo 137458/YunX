@@ -18,6 +18,7 @@
 
 package com.yunx.app.ui.login
 
+import android.annotation.SuppressLint
 import android.graphics.Bitmap
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
@@ -97,6 +98,12 @@ internal open class DiagnosticWebViewClient : WebViewClient() {
  * 与 [DiagnosticWebViewClient] 同一目的：8 个登录页（夸克/UC/百度/139/123/115/迅雷×2）统一处理，
  * 避免各自漏改。
  */
+// RestrictedApi + DEPRECATION：该 feature 在 androidx.webkit 里标了 @RestrictTo(LIBRARY_GROUP)；
+// 1.15.0 起弃用不是有了替代 API，而是「移除 X-Requested-With 的 origin trial 已结束」——
+// 现代 WebView 默认已不发送该头，此 API 变成 no-op。保留调用是为了继续覆盖仍发送该头的
+// 旧 WebView（minSdk 24 的老设备），对新 WebView 无副作用。
+@SuppressLint("RestrictedApi")
+@Suppress("DEPRECATION")
 internal fun WebSettings.suppressRequestedWithHeader() {
     if (WebViewFeature.isFeatureSupported(WebViewFeature.REQUESTED_WITH_HEADER_ALLOW_LIST)) {
         WebSettingsCompat.setRequestedWithHeaderOriginAllowList(this, emptySet())

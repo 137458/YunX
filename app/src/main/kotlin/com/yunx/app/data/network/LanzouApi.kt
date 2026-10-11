@@ -527,7 +527,7 @@ class LanzouApi(
             fields += "action" to "downprocess"
             fields += "sign" to sign
             if (withPwd) {
-                fields += "p" to pwd!!
+                fields += "p" to pwd
                 fields += "kd" to "1"
             } else {
                 // 新版无密码协议：websignkey/signs 用 ajaxdata，websign 空，kd 用 kdns
