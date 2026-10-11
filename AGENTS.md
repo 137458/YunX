@@ -943,7 +943,8 @@ Android 10+ 原本那套「保存到公共目录」走 MediaStore/SAF，**不需
 **缺口**：`DownloaderStoreConfig` 里没有限速字段，现有「速度限制」设置项无法平移；重试由引擎自己管。
 
 **风险提示**：`MANAGE_EXTERNAL_STORAGE` 属于特殊权限，Google Play 需要申报用途、
-F-Droid 侧也可能触发审核（本项目已有 fastlane 元数据）；如果哪天因为分发渠道要放弃它，
+F-Droid 侧也可能触发审核（原 fastlane 元数据目录已随「不上 F-Droid 分发」删除，勿重建）；
+如果哪天因为分发渠道要放弃它，
 退回 A 路线（下到私有目录后复制）即可，代码里只影响 `resolveDownloadDir` 与权限 UI 两处。
 
 ---
