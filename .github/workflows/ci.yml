@@ -2,7 +2,9 @@ name: Android CI
 
 on:
   push:
-    branches: [ "master" ]
+    # 本仓库（137458/YunX）的默认分支是 main（上游 CYQawa/YunX 才是 master）：
+    # 之前监听 master 导致 push 到 main 从不触发 CI，已修正。
+    branches: [ "main" ]
     # paths 过滤：仅当构建相关文件变化时才触发，避免空跑 CI（workflow 自身必须在列表内，否则改它不触发）
     paths:
       - '.github/workflows/ci.yml'
@@ -14,7 +16,7 @@ on:
       - 'gradlew'
       - 'gradlew.bat'
   pull_request:
-    branches: [ "master" ]
+    branches: [ "main" ]
 
 jobs:
   build:
@@ -51,6 +53,11 @@ jobs:
 
       - name: Run unit tests
         run: ./gradlew testDebugUnitTest --no-daemon
+
+      # 静态分析基线：error 级问题直接红 CI（abortOnError 默认开启）。
+      # 存量问题由 app/lint-baseline.xml 锁定，只拦新增问题。
+      - name: Android Lint
+        run: ./gradlew lintDebug --no-daemon
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v4

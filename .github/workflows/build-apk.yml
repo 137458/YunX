@@ -1,6 +1,6 @@
 # Nightly 测试包构建：每天北京时间 0 点（UTC 16:00）定时跑一次，另支持手动触发。
 # 按作者要求（PR #113）：不打 tag、不发 GitHub Release，产物仅上传为 Actions Artifacts，
-# 供每日最新 master 的尝鲜测试，不污染正式版本号与更新检测。
+# 供每日最新 main 分支的尝鲜测试，不污染正式版本号与更新检测。
 # 签名：Release 包用仓库 Secrets 里的正式证书签名（KEYSTORE_BASE64 / KEYSTORE_PASSWORD /
 # KEY_ALIAS / KEY_PASSWORD），与正式版同签名 ⇒ 测试包可直接覆盖安装升级；
 # 本地构建没有这些变量，app/build.gradle.kts 会把 release 变体置为未签名（app-release-unsigned.apk）。
@@ -47,21 +47,22 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
 
-      # 防重复：若 master 自上次成功构建以来没有新提交，则跳过本次 nightly，
+      # 防重复：若 main 分支自上次成功构建以来没有新提交，则跳过本次 nightly，
       # 避免每天定时跑出完全相同的包。手动 workflow_dispatch 也会受此保护（无新提交即跳过）。
-      - name: Skip if master has no new commit since last successful build
+      # 本仓库（137458/YunX）默认分支是 main（上游 CYQawa/YunX 才是 master），之前写死 master 会导致 fetch 失败。
+      - name: Skip if main has no new commit since last successful build
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -e
-          git fetch origin master --quiet
-          HEAD_SHA=$(git rev-parse origin/master)
-          echo "当前 master HEAD: $HEAD_SHA"
+          git fetch origin main --quiet
+          HEAD_SHA=$(git rev-parse origin/main)
+          echo "当前 main HEAD: $HEAD_SHA"
 
           # 最近一次本 workflow 成功 run 的 headSha（gh CLI 已预安装并带 GITHUB_TOKEN）
           LAST_SUCCESS=$(gh run list \
             --workflow "${{ github.workflow }}" \
-            --branch master \
+            --branch main \
             --status success \
             --limit 1 \
             --json headSha \
@@ -69,7 +70,7 @@ jobs:
           echo "上次成功构建 SHA: ${LAST_SUCCESS:-（无）}"
 
           if [ -n "$LAST_SUCCESS" ] && [ "$LAST_SUCCESS" = "$HEAD_SHA" ]; then
-            echo "::notice::master 自上次成功构建后无新提交，跳过本次 nightly"
+            echo "::notice::main 自上次成功构建后无新提交，跳过本次 nightly"
             echo "SKIP_BUILD=1" >> "$GITHUB_ENV"
           fi
 

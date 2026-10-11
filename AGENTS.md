@@ -414,7 +414,7 @@ FileNameText(text = file.fname, style = MaterialTheme.typography.bodyLarge, font
 把 `secrets.KEYSTORE_BASE64` 解码到 `$RUNNER_TEMP/yunx-release.jks`、用 `keytool -list` 预校验口令与别名、
 把路径写进 `$GITHUB_ENV` 的 `YUNX_KEYSTORE_FILE`；口令/别名/密钥口令只注入 `Build release APK` 那一步。
 构建后用 `apksigner verify --print-certs` 自检产物确实带正式证书 —— **签名没生效就让 CI 红，而不是发出一堆装不上的包**。
-`ci.yml` 故意不注入这些变量：它只做编译校验，上传的也只有 debug 包。
+`ci.yml` 故意不注入这些变量：它只做编译 + 单测 + Lint 校验（分支口径是本仓库的 `main`，上游 `master` 不会触发；Lint 存量问题锁在 `app/lint-baseline.xml`，只有新增 error 拦 CI），上传的也只有 debug 包。
 
 **装包注意**：
 - 换签名后，之前用 debug 签名装的包（含旧 nightly）与正式签名**互不兼容**，必须先卸载再装，否则 `INSTALL_FAILED_UPDATE_INCOMPATIBLE`。
