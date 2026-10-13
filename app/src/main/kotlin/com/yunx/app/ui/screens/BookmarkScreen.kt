@@ -320,7 +320,7 @@ private fun CategoryChip(
     Surface(
         onClick = onClick,
         shape = SquircleShape(10.dp),
-        color = if (selected) MiuixTheme.colorScheme.primary else MiuixTheme.colorScheme.surfaceVariant
+        color = if (selected) MiuixTheme.colorScheme.primary else MiuixTheme.colorScheme.surfaceContainerHigh
     ) {
         Text(
             text = label,
@@ -351,7 +351,7 @@ private fun BookmarkRow(
                 if (bookmark.platform.isNotBlank()) {
                     Surface(
                         shape = SquircleShape(6.dp),
-                        color = MiuixTheme.colorScheme.surfaceVariant
+                        color = MiuixTheme.colorScheme.surfaceContainerHigh
                     ) {
                         Text(
                             text = bookmarkPlatformLabel(bookmark.platform),
@@ -366,7 +366,7 @@ private fun BookmarkRow(
                     // 分类名由用户自定义，必须限宽 + 单行省略，否则长分类名会撑破卡片行
                     modifier = Modifier.widthIn(max = 120.dp),
                     shape = SquircleShape(6.dp),
-                    color = MiuixTheme.colorScheme.surfaceVariant
+                    color = MiuixTheme.colorScheme.surfaceContainerHigh
                 ) {
                     Text(
                         text = bookmark.category,

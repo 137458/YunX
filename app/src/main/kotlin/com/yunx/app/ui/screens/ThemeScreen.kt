@@ -454,7 +454,7 @@ private fun SmoothFilterChip(
 ) {
     val duration = 200
     val containerColor by animateColorAsState(
-        targetValue = if (selected) MiuixTheme.colorScheme.primary else MiuixTheme.colorScheme.surfaceVariant,
+        targetValue = if (selected) MiuixTheme.colorScheme.primary else MiuixTheme.colorScheme.surfaceContainerHigh,
         animationSpec = tween(durationMillis = duration, easing = LinearEasing),
         label = "chipContainer"
     )
@@ -645,7 +645,7 @@ private fun CustomColorButton(
                 .clip(SquircleShape(14.dp))
                 .background(
                     if (isSelected) Color(customColor.toInt())
-                    else MiuixTheme.colorScheme.surfaceVariant
+                    else MiuixTheme.colorScheme.surfaceContainerHigh
                 )
                 .border(
                     width = if (isSelected) 3.dp else 1.dp,
@@ -735,7 +735,7 @@ internal fun ColorPickerDialog(
                     modifier = Modifier
                         .size(48.dp)
                         .clip(SquircleShape(10.dp))
-                        .background(MiuixTheme.colorScheme.surfaceVariant)
+                        .background(MiuixTheme.colorScheme.surfaceContainerHigh)
                         .border(1.dp, MiuixTheme.colorScheme.dividerLine, SquircleShape(10.dp))
                 ) {
                     Box(

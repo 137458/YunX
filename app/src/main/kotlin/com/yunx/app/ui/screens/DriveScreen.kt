@@ -556,7 +556,7 @@ private fun DriveAccountCardContent(
             color = if (account.isLoggedIn) {
                 MiuixTheme.colorScheme.primary.copy(alpha = 0.12f)
             } else {
-                MiuixTheme.colorScheme.surfaceVariant
+                MiuixTheme.colorScheme.surfaceContainerHigh
             }
         ) {
             Box(contentAlignment = Alignment.Center) {
@@ -641,7 +641,7 @@ private fun QuotaInlineBar(quota: QuotaInfo) {
             height = 4.dp,
             colors = ProgressIndicatorDefaults.progressIndicatorColors(
                 foregroundColor = MiuixTheme.colorScheme.primary,
-                backgroundColor = MiuixTheme.colorScheme.surfaceVariant
+                backgroundColor = MiuixTheme.colorScheme.surfaceContainerHigh
             )
         )
     }

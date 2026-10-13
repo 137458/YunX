@@ -165,7 +165,7 @@ fun SupportScreen(
                         brush = Brush.linearGradient(
                             listOf(
                                 MiuixTheme.colorScheme.primary,
-                                MiuixTheme.colorScheme.surfaceVariant
+                                MiuixTheme.colorScheme.surfaceContainerHigh
                             )
                         ),
                         shape = SquircleShape(24.dp)

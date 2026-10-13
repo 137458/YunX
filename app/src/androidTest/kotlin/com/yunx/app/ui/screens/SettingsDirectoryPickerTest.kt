@@ -26,7 +26,6 @@ import androidx.activity.result.ActivityResultRegistryOwner
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.ExperimentalMaterial3Api
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
@@ -54,7 +53,6 @@ import org.junit.runner.RunWith
  * 注册表在 onLaunch 抛出 [ActivityNotFoundException]，走设置页自己的 catch；没有 catch 时点击会失败。
  */
 @RunWith(AndroidJUnit4::class)
-@OptIn(ExperimentalMaterial3Api::class)
 class SettingsDirectoryPickerTest {
 
     @get:Rule

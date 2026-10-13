@@ -302,7 +302,7 @@ private fun AppHeader(versionName: String, versionCode: Int) {
                     brush = Brush.linearGradient(
                         listOf(
                             MiuixTheme.colorScheme.primary,
-                            MiuixTheme.colorScheme.surfaceVariant
+                            MiuixTheme.colorScheme.surfaceContainerHigh
                         )
                     ),
                     shape = SquircleShape(24.dp)
@@ -359,7 +359,7 @@ private fun PlatformContent() {
             platforms.forEach { (name, icon) ->
                 Surface(
                     shape = SquircleShape(10.dp),
-                    color = MiuixTheme.colorScheme.surfaceVariant
+                    color = MiuixTheme.colorScheme.surfaceContainerHigh
                 ) {
                     Row(
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp),
@@ -435,7 +435,7 @@ private fun TechContent() {
             techs.forEach { name ->
                 Surface(
                     shape = SquircleShape(8.dp),
-                    color = MiuixTheme.colorScheme.surfaceVariant
+                    color = MiuixTheme.colorScheme.surfaceContainerHigh
                 ) {
                     Text(
                         text = name,
@@ -455,7 +455,7 @@ private fun CardIcon(icon: ImageVector) {
     Surface(
         modifier = Modifier.size(40.dp),
         shape = SquircleShape(12.dp),
-        color = MiuixTheme.colorScheme.surfaceVariant
+        color = MiuixTheme.colorScheme.surfaceContainerHigh
     ) {
         Box(contentAlignment = Alignment.Center) {
             Icon(

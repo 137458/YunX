@@ -607,7 +607,7 @@ fun CloudSelectChip(
     Surface(
         onClick = onClick,
         shape = SquircleShape(10.dp),
-        color = if (selected) MiuixTheme.colorScheme.primary else MiuixTheme.colorScheme.surfaceVariant,
+        color = if (selected) MiuixTheme.colorScheme.primary else MiuixTheme.colorScheme.surfaceContainerHigh,
         modifier = modifier
     ) {
         Text(
