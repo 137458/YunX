@@ -120,6 +120,17 @@ object FloatingBottomBarDefaults {
     )
 }
 
+/**
+ * 点击直驱选择器（移植自 pixez-flutter-MIUIX）：
+ * 允许外部在 Tab 点击瞬间直接驱动内部弹簧位移动画，绕过状态回环延迟。
+ */
+class FloatingBottomBarDirectSelector {
+    internal var select: ((Int) -> Unit)? = null
+    operator fun invoke(index: Int) {
+        select?.invoke(index)
+    }
+}
+
 enum class FloatingBottomBarMode {
     LiquidGlass,
     Blur,
@@ -214,6 +225,7 @@ fun FloatingBottomBar(
         FloatingBottomBarMode.Blur
     },
     colors: FloatingBottomBarColors = FloatingBottomBarDefaults.colors(),
+    directSelector: FloatingBottomBarDirectSelector? = null,
     onBarHeightChanged: ((Dp) -> Unit)? = null,
     content: @Composable RowScope.() -> Unit,
 ) {
@@ -261,6 +273,7 @@ fun FloatingBottomBar(
     val holder = remember { DampedDragAnimationHolder() }
     var totalDragPx by remember { mutableFloatStateOf(0f) }
     val touchSlopPx = with(density) { 8.dp.toPx() }
+    var currentDragValue by remember { mutableFloatStateOf(selectedIndex().toFloat()) }
 
     val dampedDragAnimation = remember(animationScope, tabsCount, density, isLtr) {
         DampedDragAnimation(
@@ -286,6 +299,7 @@ fun FloatingBottomBar(
             },
             onDragStarted = {
                 totalDragPx = 0f
+                currentDragValue = value
             },
             onDragStopped = {
                 val dropIndex = targetValue.fastRoundToInt().fastCoerceIn(0, tabsCount - 1)
@@ -304,10 +318,9 @@ fun FloatingBottomBar(
             onDrag = { _, dragAmount ->
                 totalDragPx += abs(dragAmount.x)
                 if (tabWidthPx > 0f) {
-                    updateValue(
-                        (targetValue + dragAmount.x / tabWidthPx * if (isLtr) 1f else -1f)
-                            .fastCoerceIn(0f, (tabsCount - 1).toFloat()),
-                    )
+                    currentDragValue = (currentDragValue + dragAmount.x / tabWidthPx * if (isLtr) 1f else -1f)
+                        .fastCoerceIn(0f, (tabsCount - 1).toFloat())
+                    updateValue(currentDragValue)
                     holder.offsetJob?.cancel()
                     holder.offsetJob = animationScope.launch(start = CoroutineStart.UNDISPATCHED) {
                         offsetAnimation.snapTo(offsetAnimation.value + dragAmount.x)
@@ -323,6 +336,13 @@ fun FloatingBottomBar(
             if (abs(dampedDragAnimation.value - coercedIndex.toFloat()) > 0.001f) {
                 dampedDragAnimation.animateToValue(coercedIndex.toFloat())
             }
+        }
+    }
+
+    // 注册点击直驱：组合期把内部弹簧动画器交给外部 holder，点击处同步调用
+    if (directSelector != null) {
+        directSelector.select = { index ->
+            dampedDragAnimation.animateToValue(index.toFloat())
         }
     }
 

@@ -273,7 +273,7 @@ class SettingsRepository internal constructor(
 
     /** 主题色模式：0=动态色彩（Android12+ 壁纸取色，低版本回退默认蓝），1=默认蓝色，2=自定义种子色 */
     var themeColorMode: Int
-        get() = prefs.getInt("theme_color_mode", 0)
+        get() = prefs.getInt("theme_color_mode", DEFAULT_THEME_COLOR_MODE)
         set(value) {
             write { putInt("theme_color_mode", value.coerceIn(0, 2)) }
         }
@@ -373,6 +373,9 @@ class SettingsRepository internal constructor(
 
         /** 默认主题种子色：Material Blue（与内置默认方案一致） */
         const val DEFAULT_SEED_COLOR = 0xFF415F91L
+
+        /** 默认主题色模式：1=默认蓝色（默认关闭动态色彩） */
+        const val DEFAULT_THEME_COLOR_MODE = 1
 
         /** 底栏样式可选数量（液态玻璃 / 毛玻璃 / Miuix 标准底栏） */
         const val BOTTOM_BAR_STYLE_COUNT = 3

@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.sp
 import com.yunx.app.ui.components.liquid.BottomBarStyle
 import com.yunx.app.ui.components.liquid.FloatingBottomBar
 import com.yunx.app.ui.components.liquid.FloatingBottomBarDefaults
+import com.yunx.app.ui.components.liquid.FloatingBottomBarDirectSelector
 import com.yunx.app.ui.components.liquid.FloatingBottomBarItem
 import com.yunx.app.ui.components.liquid.FloatingBottomBarMode
 import com.yunx.app.ui.components.liquid.LocalFloatingBottomBarContentColor
@@ -78,6 +79,7 @@ fun AppFloatingBottomBar(
 ) {
     val tabs = remember { MainTab.entries }
     val haptics = rememberHaptics()
+    val directSelector = remember { FloatingBottomBarDirectSelector() }
     val colors = FloatingBottomBarDefaults.colors(
         containerColor = MiuixTheme.colorScheme.surfaceContainer,
         indicatorColor = MiuixTheme.colorScheme.primary,
@@ -114,12 +116,14 @@ fun AppFloatingBottomBar(
                 modifier = Modifier.fillMaxWidth(),
                 backdrop = backdrop,
                 mode = style.requestedFloatingMode ?: FloatingBottomBarMode.LiquidGlass,
-                colors = colors
+                colors = colors,
+                directSelector = directSelector,
             ) {
                 tabs.forEachIndexed { index, tab ->
                     val isSelected = currentTab == tab
                     FloatingBottomBarItem(
                         onClick = {
+                            directSelector(index)
                             haptics.tick()
                             onTabSelected(tab)
                         },

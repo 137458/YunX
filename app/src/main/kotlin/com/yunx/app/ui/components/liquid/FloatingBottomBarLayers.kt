@@ -297,6 +297,8 @@ internal fun BottomBarIndicatorLayer(
                     .graphicsLayer {
                         val progressOffset = dampedDragAnimation.value * tabWidthPx
                         translationX = if (isLtr) progressOffset + panelOffsetState.value else -progressOffset + panelOffsetState.value
+                        scaleX = dampedDragAnimation.scaleX
+                        scaleY = dampedDragAnimation.scaleY
                     }
                     .then(dampedDragAnimation.modifier)
                     .clip(pillShape)

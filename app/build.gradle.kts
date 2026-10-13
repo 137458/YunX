@@ -47,7 +47,7 @@ android {
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "com.yunx.app"
+        applicationId = "com.yunx.app.preview"
         // minSdk 24 现在有两道硬约束：miuix 0.9.4 的 AAR 清单写的就是 minSdkVersion=24（material3 1.5.0-alpha26 同），
         // 以及 AGP 8.13 的 D8 脱糖缺陷 —— minSdk < 24 时它把接口的 $default 桥方法（如 RowScope.weight$default）
         // 搬进 $-CC 伴生类，却不改写第三方库字节码里的调用点，未混淆（debug）的包渲染 README 表格必崩 NoSuchMethodError。

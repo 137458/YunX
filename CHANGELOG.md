@@ -6,6 +6,9 @@
 - 收敛 Material 3 残留代码与配色定义：移除设置目录选择器测试中遗留的 `@OptIn(ExperimentalMaterial3Api)` 实验注解；精简未被业务消费的 `Type.kt` 排版定义为最简兜底；将关于页、收藏页、主题页与网盘页等多处芯片与底座色彩统一收敛为 Miuix 标准层级命名（`surfaceContainerHigh`）
 
 ### 修复
+- 修复悬浮底栏手势卡死与点击切换延迟：严格对齐 pixez-flutter-MIUIX 底层实现，移除拖拽事件循环中对消费状态的误判，修复每帧拖拽偏移量未累加导致的抖动跳跃；引入 `FloatingBottomBarDirectSelector` 实现 Tab 点击瞬间直驱动画；补齐降级滑块的阻尼形变缩放
+- 修复默认主题色彩设置：关闭默认动态色彩取色，默认改用固定蓝色主题（`themeColorMode = 1`）
+- 修复 applicationId 导致无法覆盖安装 preview 包并保留用户数据的问题：将构建 `applicationId` 配置为 `com.yunx.app.preview`，实现实机覆盖安装并完整继承原数据
 - 修复 CI 从未触发的问题：`ci.yml` 与 nightly 构建工作流的分支口径写死为上游的 `master`，而本仓库默认分支是 `main`，push 校验与每日定时构建从未真正执行过；统一改为 `main` 并同步防重复构建的分支判断
 - 修复干净全量编译失败的问题：`ExpressiveLoading` 使用 material3 Expressive 实验 API 但缺 `@OptIn`，此前一直被增量编译缓存掩盖
 - 修复侧边导航栏不符合 miuix 官方要求的问题：宽屏侧边栏迁移到官方可展开形态（`rememberNavigationRailState`），顶部自带展开/收起开关，展开后条目切换为「图标 + 文字」横排并带选中高亮胶囊，收起为紧凑布局且展开状态跨配置变更保存
