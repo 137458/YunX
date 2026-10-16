@@ -64,6 +64,7 @@
 - 设置页补充「通用直链 / 手动添加」并发线程配置项，完善网盘并发下载配置覆盖面
 
 ### 优化
+- 悬浮底栏宽度改为按内容自适应：删除 320dp 下限与挂载处的 `fillMaxWidth`，胶囊不再铺满屏宽（此前手机上是「屏宽 - 48dp」，被横向拉长）；每个 Tab 槽位最小宽度由 72dp 收到 56dp，4 个 Tab 时栏宽约 232dp 并随文案 / 字号自然撑宽，540dp 上限仅作兜底
 - 建立 Android Lint 静态分析基线并纳入 CI：首跑暴露的 6 处 error 逐一处置（补 `@OptIn`、修正误导性缩进、`KeyStoreException` 判定补 API 33 守卫、受限 API 与权限误报精确压制并注明理由）；有意决策项（登录 WebView 启用 JS、不加 `<queries>`、Gopeed 运行时加载内核等）在 `app/lint.xml` 永久豁免，存量 warning 锁进 `lint-baseline.xml`，CI 的 `lintDebug` 只拦新增问题
 - Kotlin 编译警告从 29 条清零（仅存 1 条工具链过渡期已知项）：迁移 AutoMirrored 图标 6 处、`versionCode` 改用 `PackageInfoCompat`、清理冗余安全调用 / 非空断言 / Elvis 死分支、补 `@OptIn` 与覆写弃用标注
 - 依赖坐标全部收口进 version catalog：lifecycle 三件套统一 2.9.2（此前 runtime 与 viewmodel 版本漂移），okhttp / junit / androidx.test / navigationevent / kotlin-stdlib 约束一并纳入

@@ -49,8 +49,8 @@ import com.yunx.app.ui.components.liquid.FloatingBottomBarItem
 import com.yunx.app.ui.components.liquid.FloatingBottomBarMode
 import com.yunx.app.ui.components.liquid.LocalFloatingBottomBarContentColor
 import com.yunx.app.ui.navigation.MainTab
+import com.yunx.app.ui.theme.FLOATING_BAR_ITEM_MIN_WIDTH_DP
 import com.yunx.app.ui.theme.FLOATING_BAR_MAX_WIDTH_DP
-import com.yunx.app.ui.theme.FLOATING_BAR_MIN_WIDTH_DP
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.blur.Backdrop
@@ -64,6 +64,9 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
  * 两条路径各派发一次，底栏内部不再重复触发。
  *
  * **本组件自带外壳**：系统栏 inset 避让、左右边距、宽度上限与贴底居中全部在这里处理，
+ * 宽度**按内容自适应**（不设下限，也不再铺满屏宽）：每个 Tab 槽位取
+ * [FLOATING_BAR_ITEM_MIN_WIDTH_DP] 与「图标 + 文案实测宽」中的较大者，
+ * 胶囊因此在窄屏上同样收紧；[FLOATING_BAR_MAX_WIDTH_DP] 只作为超长文案 / 大字号下的兜底上限。
  * 所以它不依赖 `Scaffold` 的任何槽位，可以作为内容 Box 的兄弟节点直接
  * `Modifier.align(Alignment.BottomCenter)` 叠上去（内容层挂 `blurBackdropSource` 当采样源）。
  * 也因此不需要把实测栏高回传给外层算避让——避让是固定常量，见
@@ -101,9 +104,10 @@ fun AppFloatingBottomBar(
         contentAlignment = Alignment.BottomCenter
     ) {
         Box(
+            // 只保留上限，宽度交给 FloatingBottomBar 的 IntrinsicSize.Min 按内容决定；
+            // 一旦在这里写 fillMaxWidth，测量约束会被钉成定值，内容自适应随即失效
             modifier = Modifier
-                .widthIn(min = FLOATING_BAR_MIN_WIDTH_DP.dp, max = FLOATING_BAR_MAX_WIDTH_DP.dp)
-                .fillMaxWidth(),
+                .widthIn(max = FLOATING_BAR_MAX_WIDTH_DP.dp),
             contentAlignment = Alignment.Center
         ) {
             FloatingBottomBar(
@@ -113,7 +117,6 @@ fun AppFloatingBottomBar(
                     onTabSelected(tabs[index.coerceIn(0, tabs.lastIndex)])
                 },
                 tabsCount = tabs.size,
-                modifier = Modifier.fillMaxWidth(),
                 backdrop = backdrop,
                 mode = style.requestedFloatingMode ?: FloatingBottomBarMode.LiquidGlass,
                 colors = colors,
@@ -128,8 +131,9 @@ fun AppFloatingBottomBar(
                             onTabSelected(tab)
                         },
                         // 选中语义注入槽位：底栏不为每个 Tab 生成独立语义节点
+                        // 最小宽度是内容自适应的实际下限：文案更长 / 字号更大时槽位自己撑宽，不压字
                         modifier = Modifier
-                            .defaultMinSize(minWidth = 72.dp)
+                            .defaultMinSize(minWidth = FLOATING_BAR_ITEM_MIN_WIDTH_DP.dp)
                             .semantics { selected = isSelected }
                     ) {
                         // 选中态配色由底栏图层注入：液态玻璃档位下由滑块折射透出，

@@ -21,9 +21,19 @@ package com.yunx.app.ui.theme
 /** 宽窗口断点：容器可用宽度达到该值即视为大屏。 */
 internal const val WIDE_SCREEN_MIN_WIDTH_DP = 600
 
-/** 悬浮底栏的宽度夹取范围：窄屏铺满、宽屏不至于拉成一整条。 */
-internal const val FLOATING_BAR_MIN_WIDTH_DP = 320
+/**
+ * 悬浮底栏的宽度上限：胶囊按内容自适应，正常情况下够不到该值，只作为超长文案 / 大字号下的兜底。
+ * 不设下限——铺满屏宽的观感偏「横向拉长」，窄屏同样按内容收紧。
+ */
 internal const val FLOATING_BAR_MAX_WIDTH_DP = 540
+
+/**
+ * 悬浮底栏每个 Tab 槽位的最小宽度（内容自适应时的实际下限）。
+ *
+ * 槽位宽度 = max(该值, 图标 + 文案实测宽)，所以文案变长或大字号时胶囊会自然撑宽，不会压字；
+ * 该值只决定胶囊在窄屏上的收紧程度：4 个 Tab 时栏宽 ≈ 4 × 该值 + 8dp 内边距。
+ */
+internal const val FLOATING_BAR_ITEM_MIN_WIDTH_DP = 56
 
 /**
  * 主界面列表为底部导航预留的内容避让（不含系统栏 inset，底栏外壳自己处理 inset）。

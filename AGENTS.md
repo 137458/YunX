@@ -1768,13 +1768,23 @@ val navBarBottomPadding = WindowInsets.navigationBars.only(WindowInsetsSides.Bot
 val bottomPaddingValue = if (navBarBottomPadding != 0.dp) 8.dp + navBarBottomPadding else 20.dp
 Box(modifier.fillMaxWidth().padding(bottom = bottomPaddingValue, start = 24.dp, end = 24.dp),
     contentAlignment = Alignment.BottomCenter) {
-    Box(Modifier.widthIn(min = FLOATING_BAR_MIN_WIDTH_DP.dp, max = FLOATING_BAR_MAX_WIDTH_DP.dp).fillMaxWidth(),
-        contentAlignment = Alignment.Center) { FloatingBottomBar(…) }
+    Box(Modifier.widthIn(max = FLOATING_BAR_MAX_WIDTH_DP.dp), contentAlignment = Alignment.Center) {
+        FloatingBottomBar(…)   // 内部 Modifier.width(IntrinsicSize.Min) 按内容决定胶囊宽度
+    }
 }
 ```
 
-系统栏 inset、左右 24dp 边距、宽度夹取 320..540dp、贴底居中**全部由组件自己负责**，
+系统栏 inset、左右 24dp 边距、宽度上限 540dp、贴底居中**全部由组件自己负责**，
 调用处只给一个 `Modifier.align(Alignment.BottomCenter)`。
+
+★ **宽度按内容自适应，不设下限、也不铺满屏宽**。`FloatingBottomBar` 内部的
+`Modifier.width(IntrinsicSize.Min)` 才是唯一宽度来源，实际宽度 ≈ `tabs × max(槽位最小宽度, 图标+文案实测宽)` + 8dp；
+槽位最小宽度是 `FLOATING_BAR_ITEM_MIN_WIDTH_DP = 56`（`WindowLayout.kt`），只影响窄屏上胶囊的收紧程度，
+文案更长 / 大字号时槽位自己撑宽，不会压字。已删除的 `FLOATING_BAR_MIN_WIDTH_DP = 320` 是**反面教材**：
+它把窄屏强行钉成「屏宽 - 48dp」，胶囊被横向拉长。同理**不要在挂载处或 `FloatingBottomBar` 的 `modifier`
+参数上写 `fillMaxWidth`**——测量约束一旦被钉成定值，`IntrinsicSize.Min` 算出的内容宽会被 `constrainWidth`
+夹回去，内容自适应静默失效（这正是 320dp 下限之外的第二处铺满来源）。
+
 `ui/components/AppBottomBar.kt` 是统一门面：按 `style.isFloating` 分发到悬浮档或标准档，
 两种形态共用同一个挂载点——**不要再写「标准档在 `bottomBar` 槽、悬浮档在 Box 里」这种双轨结构**。
 门面刻意不收独立的 `isFloating` 参数，只收 `style`：两个来源一旦不一致就会出现
