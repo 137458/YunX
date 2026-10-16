@@ -56,6 +56,7 @@ import androidx.compose.ui.unit.dp
 import com.yunx.app.data.network.model.DownloadLink
 import com.yunx.app.data.network.model.ShareFile
 import com.yunx.app.data.network.model.ShareInfo
+import com.yunx.app.ui.SnackbarController
 import com.yunx.app.ui.items.MultiSelectAction
 import com.yunx.app.ui.resolve.DownloadLinkDialog
 import com.yunx.app.ui.screens.CloudActionItem
@@ -127,7 +128,10 @@ fun CloudDriveBrowser(
     }
 
     LaunchedEffect(cloudMessage) {
-        cloudMessage?.let { onConsumeMessage() }
+        cloudMessage?.let {
+            SnackbarController.show(it)
+            onConsumeMessage()
+        }
     }
 
     LaunchedEffect(downloadTriggered) {
@@ -159,6 +163,13 @@ fun CloudDriveBrowser(
         step = DriveStep.MENU
         actionFile = null
         actions.dismissActions()
+    }
+    // 只收起本地操作表，**不清 VM 的 actionFile**：下载动作要从 viewModel.actionFile 取到目标文件，
+    // 若先 dismissActions()（把 actionFile 置空），downloadFile()/downloadFolder() 会读到 null 直接
+    // 静默 return —— 用户看到的就是「点下载毫无反应」。下载完成/失败后由 VM 自己收尾 actionFile。
+    val hideSheet = {
+        step = DriveStep.MENU
+        actionFile = null
     }
 
     Surface(
@@ -253,7 +264,7 @@ fun CloudDriveBrowser(
                         tint = MiuixTheme.colorScheme.primary,
                         onClick = {
                             val target = file
-                            closeActions()
+                            hideSheet()
                             requestDownload(listOf(target)) { actions.downloadFile() }
                         }
                     )
@@ -265,7 +276,7 @@ fun CloudDriveBrowser(
                         tint = MiuixTheme.colorScheme.primary,
                         onClick = {
                             val target = file
-                            closeActions()
+                            hideSheet()
                             requestDownload(listOf(target)) { actions.downloadFolder() }
                         }
                     )

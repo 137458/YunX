@@ -499,9 +499,24 @@ class XunleiApi(
             panRequest(url, accessToken, deviceId, t)
         }) { data ->
             val links = data.optJSONObject("links")
+            // optString 在键缺失时返回 "" 而非 null，原先的 ?: 回退因此失效：
+            // application/octet-stream.url 为空时永远不会落到 web_content_link。
+            // 大文件场景下 octet-stream 键可能存在但 url 为空，必须用 takeIf 判空才能正确回退。
             val urlStr = links?.optJSONObject("application/octet-stream")?.optString("url")
-                ?: data.optString("web_content_link")
+                .takeIf { !it.isNullOrBlank() }
+                ?: data.optString("web_content_link").takeIf { it.isNotBlank() }
+                ?: links?.let { pickAnyLinkUrl(it) }
                 ?: ""
+            if (urlStr.isBlank()) {
+                val linkKeys = links?.let { keys ->
+                    buildList { keys.keys().forEach { add(it) } }.joinToString(",")
+                } ?: "<no links>"
+                android.util.Log.w(
+                    "XunleiApi",
+                    "getFileDetail 直链为空 fileId=$fileId size=${data.optLong("size")} " +
+                        "linksKeys=[$linkKeys] name=${data.optString("name")}"
+                )
+            }
             DownloadLink(
                 fid = data.optString("id"),
                 filename = data.optString("name"),
@@ -509,6 +524,17 @@ class XunleiApi(
                 size = data.optLong("size")
             )
         }
+    }
+
+    /** 兜底：从 links 的任意子对象里取第一个非空 url（大文件可能不用 application/octet-stream 键） */
+    private fun pickAnyLinkUrl(links: org.json.JSONObject): String? {
+        val it = links.keys()
+        while (it.hasNext()) {
+            val key = it.next()
+            val obj = links.optJSONObject(key) ?: continue
+            obj.optString("url").takeIf { it.isNotBlank() }?.let { return it }
+        }
+        return null
     }
 
     /** 分享解析（share_id + 可选 pass_code） */

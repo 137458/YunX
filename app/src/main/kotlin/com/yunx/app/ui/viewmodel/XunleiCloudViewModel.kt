@@ -303,6 +303,7 @@ class XunleiCloudViewModel(
                     runCatching {
                         val link = api.getFileDetail(file.fid, c.first, c.second, c.third)
                             ?: return@runCatching
+                        if (link.downloadUrl.isBlank()) return@runCatching
                         downloadManager.enqueue(
                             url = link.downloadUrl,
                             fileName = relPath, // 相对路径：Download/文件夹A/子目录/文件.mp4
@@ -347,6 +348,9 @@ class XunleiCloudViewModel(
                 val c = creds() ?: throw IllegalStateException("请先登录迅雷网盘")
                 val link = api.getFileDetail(file.fid, c.first, c.second, c.third)
                     ?: throw IllegalStateException("获取下载链接失败")
+                if (link.downloadUrl.isBlank()) {
+                    throw IllegalStateException("获取下载链接失败：迅雷未返回该文件的下载地址（大文件可能需要会员）")
+                }
                 pendingDownload = PendingDownload(
                     url = link.downloadUrl,
                     fileName = link.filename.ifBlank { file.fname },
@@ -535,9 +539,10 @@ class XunleiCloudViewModel(
                     // 用户点击「中断」：跳过剩余项（已入队任务保留下载）
                     if (downloadCancelRequested) return@forEachIndexed
                     folderProgress = "正在加入下载 ${index + 1}/${tasks.size}"
-                    runCatching {
+                    val ok = runCatching {
                         val link = api.getFileDetail(file.fid, c.first, c.second, c.third)
-                            ?: return@runCatching
+                            ?: return@runCatching false
+                        if (link.downloadUrl.isBlank()) return@runCatching false
                         downloadManager.enqueue(
                             url = link.downloadUrl,
                             fileName = if (relPath.contains('/')) relPath else link.filename.ifBlank { relPath },
@@ -545,8 +550,9 @@ class XunleiCloudViewModel(
                             platform = DownloadPlatform.XUNLEI,
                             headers = downloadHeaders()
                         )
-                        okCount++
-                    }
+                        true
+                    }.getOrDefault(false)
+                    if (ok) okCount++ else failCount++
                 }
                 if (downloadCancelRequested) {
                     cloudMessage = "已中断批量下载"

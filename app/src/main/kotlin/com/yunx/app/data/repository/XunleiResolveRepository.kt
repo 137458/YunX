@@ -188,6 +188,9 @@ class XunleiResolveRepository(
         val savedFid = transferFile(session, file, dirFid, cookie).getOrThrow()
         val link = api.getFileDetail(savedFid, access(), deviceId(), captcha())
             ?: throw IllegalStateException("获取下载链接失败")
+        if (link.downloadUrl.isBlank()) {
+            throw IllegalStateException("获取下载链接失败：迅雷未返回该文件的下载地址（大文件可能需要会员）")
+        }
         // 拿到直链后立即删除临时转存的文件（对齐官方 batchDelete；失败不阻断下载）
         runCatching { api.batchDelete(listOf(savedFid), access(), deviceId(), captcha()) }
         link

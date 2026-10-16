@@ -6,6 +6,8 @@
 - 收敛 Material 3 残留代码与配色定义：移除设置目录选择器测试中遗留的 `@OptIn(ExperimentalMaterial3Api)` 实验注解；精简未被业务消费的 `Type.kt` 排版定义为最简兜底；将关于页、收藏页、主题页与网盘页等多处芯片与底座色彩统一收敛为 Miuix 标准层级命名（`surfaceContainerHigh`）
 
 ### 修复
+- 修复所有基于 `CloudDriveBrowser` 的网盘（迅雷/百度/115/123/139/蓝奏/光雅）点单文件「下载」无任何反应的问题：操作表在触发下载前先调了 `dismissActions()` 把 `actionFile` 置空，而各网盘 ViewModel 的 `downloadFile()` / `downloadFolder()` 首行都是 `actionFile ?: return`，于是动作被静默跳过（连异常都不抛）；改为只收起操作表本地 UI 状态、保留 `actionFile`，下载动作完成后由 ViewModel 自行收尾
+- 修复迅雷网盘取链失败时完全不提示的问题：`CloudDriveBrowser` 的 `cloudMessage` 只被消费却从未调用 `SnackbarController.show`，导致取链失败等所有操作错误都被静默吞掉；同时修复 `getFileDetail` 直链解析的空字符串回退失效（`optString` 返回 `""` 而非 null，`web_content_link` 兜底永不触发），直链为空时现在会给出明确报错并输出 `links` 键名诊断日志
 - 修复悬浮底栏手势卡死与点击切换延迟：严格对齐 pixez-flutter-MIUIX 底层实现，移除拖拽事件循环中对消费状态的误判，修复每帧拖拽偏移量未累加导致的抖动跳跃；引入 `FloatingBottomBarDirectSelector` 实现 Tab 点击瞬间直驱动画；补齐降级滑块的阻尼形变缩放
 - 修复默认主题色彩设置：关闭默认动态色彩取色，默认改用固定蓝色主题（`themeColorMode = 1`）
 - 修复 applicationId 导致无法覆盖安装 preview 包并保留用户数据的问题：将构建 `applicationId` 配置为 `com.yunx.app.preview`，实现实机覆盖安装并完整继承原数据
