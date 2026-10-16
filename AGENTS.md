@@ -398,25 +398,18 @@ FileNameText(text = file.fname, style = MaterialTheme.typography.bodyLarge, font
 
 ---
 
-### 3.18 发布签名：CI 用 GitHub Secrets，本地构建未签名（**别把证书提交进仓库**）
-
-**证书在哪**：仓库 Settings → Secrets and variables → Actions 的四个 Secrets ——
-`KEYSTORE_BASE64`（.jks 的 base64 文本）、`KEYSTORE_PASSWORD`、`KEY_ALIAS`、`KEY_PASSWORD`。
+### 3.18 发布签名：本地导出环境变量自签名（**别把证书提交进仓库**）
 
 **Gradle 侧**（`app/build.gradle.kts` 顶部）：读四个环境变量
 （`YUNX_KEYSTORE_FILE` / `YUNX_KEYSTORE_PASSWORD` / `YUNX_KEY_ALIAS` / `YUNX_KEY_PASSWORD`），
 **四项齐备且证书文件真实存在**才 `create("release")` 注册签名配置；否则 release 的 `signingConfig = null`
 ⇒ 产物叫 `app-release-unsigned.apk`。
-所以本地与 `ci.yml` 不带变量构建时，`assembleRelease` 照样成功，只是不签名；本地想出自签名包，自己导出这四个变量再构建。
+所以不导出这些变量时 `assembleRelease` 照样成功，只是不签名；想出正式签名包，自己导出这四个变量再构建。
 `debug` 变体不受影响，仍用仓库里的 `debug.keystore`。
-
-**CI 侧**：`ci.yml` 故意不注入这些变量：它只做编译 + 单测 + Lint 校验（分支口径是本仓库的 `main`，上游 `master` 不会触发；Lint 存量问题锁在 `app/lint-baseline.xml`，只有新增 error 拦 CI），上传的也只有 debug 包。
-（原 nightly 工作流 `build-apk.yml` 已删除——fork 不依赖 GitHub Actions 出包，本地自签名即可；那套「Secrets 解码证书 → keytool 预校验 → apksigner 自检」的流程随文件移除，日后要恢复时以上游 CYQawa/YunX 的同名工作流为参考。）
 
 **装包注意**：
 - 换签名后，之前用 debug 签名装的包与正式签名**互不兼容**，必须先卸载再装，否则 `INSTALL_FAILED_UPDATE_INCOMPATIBLE`。
 - `.gitignore` 已挡 `*.jks` / `*.keystore` / `keystore.properties`（`!debug.keystore` 例外）。
-- 生成 `KEYSTORE_BASE64`：Linux/macOS `base64 -w 0 你的.jks`（macOS 若报 `-w` 不支持就用 `base64 -i 你的.jks`），Windows PowerShell `[Convert]::ToBase64String([IO.File]::ReadAllBytes("你的.jks"))`。
 
 ### 3.19 游客模式：列目录不要求登录；夸克/UC 小文件也能直接下载（**别再往列目录加登录拦截**）
 

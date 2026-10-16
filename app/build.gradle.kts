@@ -26,15 +26,15 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
-// ---- 发布签名：CI 从 GitHub Secrets 注入，本地（没有这些变量时）构建未签名包 ----
+// ---- 发布签名：本地导出环境变量自签名，缺变量时构建未签名包 ----
 // 四项环境变量齐备且证书文件真实存在，才注册 release 签名配置：
-//   YUNX_KEYSTORE_FILE      证书文件路径（.github/workflows/build-apk.yml 把 secrets.KEYSTORE_BASE64 解码到 $RUNNER_TEMP）
+//   YUNX_KEYSTORE_FILE      证书文件路径（指向本机 .jks，不要提交进仓库）
 //   YUNX_KEYSTORE_PASSWORD  密钥库口令
 //   YUNX_KEY_ALIAS          密钥别名
 //   YUNX_KEY_PASSWORD       密钥口令
-// 缺任意一项（本地开发、ci.yml 的编译校验）⇒ release 的 signingConfig 为 null，
-// 产物是 app-release-unsigned.apk，本地不需要任何配置就能 `assembleRelease`；
-// 想在本地出正式签名包，自己导出这四个变量再构建即可（证书别提交进仓库，.gitignore 已挡 *.jks）。
+// 缺任意一项 ⇒ release 的 signingConfig 为 null，
+// 产物是 app-release-unsigned.apk，不需要任何配置就能 `assembleRelease`；
+// 想出正式签名包，自己导出这四个变量再构建即可（证书别提交进仓库，.gitignore 已挡 *.jks）。
 val releaseKeystorePath: String? = System.getenv("YUNX_KEYSTORE_FILE")?.takeIf { it.isNotBlank() }
 val releaseSigningReady: Boolean = releaseKeystorePath != null &&
     file(releaseKeystorePath).isFile &&
@@ -67,7 +67,7 @@ android {
             keyAlias = "androiddebugkey"
             keyPassword = "android"
         }
-        // 正式发布签名：只在环境变量齐备时注册（CI nightly 走这里；本地不注册，见文件顶部说明）。
+        // 正式发布签名：只在环境变量齐备时注册（本地不导出时不注册，见文件顶部说明）。
         // 签名方案交给 AGP 按 minSdk 决定（minSdk 24 ⇒ v2 即可，不再显式开关 v1/v2，避免 API 变更踩坑）。
         if (releaseSigningReady) {
             create("release") {
@@ -84,8 +84,8 @@ android {
             signingConfig = signingConfigs.getByName("debug")
         }
         // Release 变体：R8 代码混淆 + 资源压缩瘦身（未使用的代码/资源裁剪）。
-        // 签名：有发布证书就用正式签名（CI nightly / 本地自行导出变量），否则不签名 ⇒
-        // 产物为 app-release-unsigned.apk（本地与 ci.yml 的编译校验都是这条路，不影响构建成功）。
+        // 签名：有发布证书就用正式签名（需自行导出变量），否则不签名 ⇒
+        // 产物为 app-release-unsigned.apk（不影响构建成功）。
         // R8 可能误删反射/序列化类，已在 proguard-rules.pro 补 Room 等 keep 规则。
         getByName("release") {
             isMinifyEnabled = true
@@ -109,7 +109,7 @@ android {
 
     lint {
         // 静态分析基线：存量问题快照锁进 lint-baseline.xml（首次 lintDebug 自动生成），
-        // 之后 CI 的 lintDebug 只拦「新增」问题 —— error 拦构建，warning 留在报告里。
+        // 之后 lintDebug 只拦「新增」问题 —— error 拦构建，warning 留在报告里。
         // 永久豁免的「有意决策」项在 app/lint.xml（每条带理由），别往 baseline 里塞决策项。
         baseline = file("lint-baseline.xml")
         abortOnError = true
