@@ -31,9 +31,10 @@ internal const val FLOATING_BAR_MAX_WIDTH_DP = 540
  * 悬浮底栏每个 Tab 槽位的最小宽度（内容自适应时的实际下限）。
  *
  * 槽位宽度 = max(该值, 图标 + 文案实测宽)，所以文案变长或大字号时胶囊会自然撑宽，不会压字；
- * 该值只决定胶囊在窄屏上的收紧程度：4 个 Tab 时栏宽 ≈ 4 × 该值 + 8dp 内边距。
+ * 该值只决定胶囊的收紧程度：4 个 Tab 时栏宽 ≈ 4 × 该值 + 8dp 内边距（手机上约屏宽的 69%）。
+ * 实测过 56dp（232dp / 54%，观感偏小），故取回 72dp。
  */
-internal const val FLOATING_BAR_ITEM_MIN_WIDTH_DP = 56
+internal const val FLOATING_BAR_ITEM_MIN_WIDTH_DP = 72
 
 /**
  * 主界面列表为底部导航预留的内容避让（不含系统栏 inset，底栏外壳自己处理 inset）。
