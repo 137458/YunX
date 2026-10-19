@@ -45,6 +45,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import com.yunx.app.ui.components.LocalScaffoldPadding
+import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.ScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -140,10 +141,17 @@ private fun openNotificationSettings(context: Context) {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SettingsScreen(
-    scrollBehavior: ScrollBehavior,
+    scrollBehavior: ScrollBehavior = MiuixScrollBehavior(),
     onThemeClick: () -> Unit,
     onAboutClick: () -> Unit,
     onSupportClick: () -> Unit,
+    // 本地已移除容器变换（AGENTS §3.15），这两个修饰符保留参数位以便调用方按上游签名传值；默认值等价于不传
+    linkOpenRowModifier: Modifier = Modifier,
+    multiAccountRowModifier: Modifier = Modifier,
+    /** 打开「链接唤起」页（深链接注册项的逐个开关） */
+    onLinkOpenClick: () -> Unit,
+    /** 打开「多账号下载」页（两个实验性开关：多账号轮流取链 / 单文件多源分片） */
+    onMultiAccountDownloadClick: () -> Unit,
     backupManager: AuthBackupManager,
     /** 检查更新：结果弹窗（含下载进度与安装入口）由 MainScreen 统一承载，这里只发请求 */
     onCheckUpdate: () -> Unit,
@@ -364,6 +372,14 @@ fun SettingsScreen(
                     else -> "仅显示通知（隐藏下载速度）"
                 }
             )
+            // 多账号下载（实验性）：这里只做入口，两个开关在独立页面里改（开启前有二次风险确认）；
+            // 「实验性」徽标只标在里面那两个开关上，入口这一行不重复标
+            ArrowPreference(
+                title = "多账号下载",
+                summary = "实验性：同一网盘多个账号轮流取链 / 单文件多源提速",
+                onClick = onMultiAccountDownloadClick,
+                modifier = multiAccountRowModifier
+            )
         }
 
         // ---------- 分类 2: 外观 ----------
@@ -418,7 +434,22 @@ fun SettingsScreen(
             )
         }
 
-        // ---------- 分类 5: 关于 ----------
+        // ---------- 分类 5: 链接唤起 ----------
+        SmallTitle(text = "链接唤起")
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = CardGap)
+        ) {
+            ArrowPreference(
+                title = "网盘链接一键唤起",
+                summary = "点分享链接（或分享到云析）直接进来解析；可按平台逐个开关",
+                onClick = onLinkOpenClick,
+                modifier = linkOpenRowModifier
+            )
+        }
+
+        // ---------- 分类 6: 关于 ----------
         SmallTitle(text = "关于")
         Card(
             modifier = Modifier

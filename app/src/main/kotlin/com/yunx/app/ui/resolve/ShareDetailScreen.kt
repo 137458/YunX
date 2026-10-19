@@ -45,6 +45,7 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
@@ -54,10 +55,12 @@ import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.FolderOpen
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.automirrored.outlined.InsertDriveFile
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.SaveAlt
 import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -75,6 +78,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.yunx.app.data.db.BookmarkEntity
+import com.yunx.app.data.network.SharePlatform
 import com.yunx.app.data.network.model.ShareFile
 import com.yunx.app.data.network.model.ShareSession
 import com.yunx.app.data.prefs.SettingsRepository
@@ -84,6 +88,7 @@ import com.yunx.app.ui.components.LocalScaffoldPadding
 import com.yunx.app.ui.components.ScrollToTopButton
 import com.yunx.app.ui.items.MultiSelectAction
 import com.yunx.app.ui.items.MultiSelectBar
+import com.yunx.app.ui.preview.PreviewTypes
 import com.yunx.app.ui.screens.AddToBookmarkDialog
 import com.yunx.app.ui.screens.BaiduSaveSheet
 import com.yunx.app.ui.screens.C139SaveSheet
@@ -327,6 +332,11 @@ fun ShareDetailScreen(
                             )
                         }
                     }
+                    // 游客模式提示（未登录也能浏览分享列表；见 AGENTS.md §3.19）
+                    if (viewModel.isGuest) {
+                        Spacer(modifier = Modifier.height(10.dp))
+                        GuestBrowseNotice(viewModel.sharePlatform)
+                    }
                 }
             }
 
@@ -373,6 +383,12 @@ fun ShareDetailScreen(
                         } else {
                             checkBaiduLimit(file) { viewModel.fetchDownloadLink(file) }
                         }
+                    },
+                    // 在线预览：仅「可预览类型且非目录」才给入口（可见性统一由 PreviewTypes 判断）
+                    onPreview = if (!file.isdir && PreviewTypes.kindOf(file.fname) != null) {
+                        { viewModel.openPreview(file) }
+                    } else {
+                        null
                     },
                     // 仅夸克分享显示转存按钮（多选时隐藏）
                     onSave = if (!viewModel.multiSelectMode && viewModel.canSave) {
@@ -586,6 +602,45 @@ fun ShareDetailScreen(
     }
 }
 
+/**
+ * 游客模式提示条：未登录也能浏览分享列表（7 个网盘的列表接口都允许匿名）。
+ * 夸克/UC 还能直接下载（夸克约 50MB 以内的小文件、UC 不限大小），其余平台下载与 7 平台转存都要登录
+ * —— 见 AGENTS.md §3.19。
+ */
+@Composable
+private fun GuestBrowseNotice(platform: SharePlatform) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        color = MiuixTheme.colorScheme.surfaceContainerHighest
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Info,
+                contentDescription = null,
+                tint = MiuixTheme.colorScheme.primary,
+                modifier = Modifier.size(16.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = when (platform) {
+                    SharePlatform.QUARK ->
+                        "未登录浏览：可直接下载约 50MB 以内的小文件；更大的文件和转存需先到「网盘」页登录"
+                    SharePlatform.UC ->
+                        "未登录浏览：可直接下载（不限大小）；转存需先到「网盘」页登录"
+                    else ->
+                        "未登录浏览：可查看文件列表，下载/转存需先到「网盘」页登录"
+                },
+                style = MiuixTheme.textStyles.body2,
+                color = MiuixTheme.colorScheme.onSurfaceVariantSummary
+            )
+        }
+    }
+}
+
 @Composable
 internal fun BackToParentItem(onClick: () -> Unit) {
     Card(
@@ -692,6 +747,8 @@ internal fun ShareFileRow(
     onSave: (() -> Unit)? = null,
     /** 非空时行尾显示「更多」按钮（打开文件操作菜单） */
     onMore: (() -> Unit)? = null,
+    /** 非空时行尾显示「预览」按钮（在线预览；可见性由调用方用 PreviewTypes 判断） */
+    onPreview: (() -> Unit)? = null,
     /** 长按进入多选（多选模式下为 null） */
     onLongClick: (() -> Unit)? = null,
     /** 多选模式：是否选中 */
@@ -776,6 +833,16 @@ internal fun ShareFileRow(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
+            }
+            if (onPreview != null) {
+                IconButton(onClick = onPreview, modifier = Modifier.size(48.dp)) {
+                    Icon(
+                        imageVector = Icons.Outlined.Visibility,
+                        contentDescription = "预览",
+                        modifier = Modifier.size(18.dp),
+                        tint = if (selected) MiuixTheme.colorScheme.onPrimaryContainer else MiuixTheme.colorScheme.onSurfaceVariantActions
+                    )
+                }
             }
             if (onSave != null) {
                 // Miuix 的 IconButton 不会自动扩展命中区（javap 确认无 minimumInteractiveComponentSize），

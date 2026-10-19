@@ -54,8 +54,8 @@ android {
         // 该缺陷在 AGP 9.1.1 下尚未复验，别按「换了工具链就能降 23」动手；完整原因与实测证据见 AGENTS.md §3.11。
         minSdk = 24
         targetSdk = 34
-        versionCode = 13
-        versionName = "1.2.9"
+        versionCode = 14
+        versionName = "1.3.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -147,6 +147,13 @@ dependencies {
     // GitHub README 的 GFM 渲染（表格/嵌套列表/代码高亮/折叠/图片）
     implementation(libs.markdownRenderer)
 
+    // 在线预览/播放：ExoPlayer（可带请求头、支持 HLS）+ 官方 PlayerView
+    implementation(libs.androidx.media3.exoplayer)
+    implementation(libs.androidx.media3.ui)
+    implementation(libs.androidx.media3.hls)
+    // 图片加载（封面/图集；网络走 OkHttp，可逐请求带 Referer/Cookie）
+    implementation(libs.androidx.coil.compose)
+    implementation(libs.androidx.coil.network.okhttp)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.webkit)   // 登录 WebView 关闭 X-Requested-With（见 DiagnosticWebViewClient.suppressRequestedWithHeader）
     implementation(libs.androidx.lifecycle.runtime.ktx)

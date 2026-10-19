@@ -18,9 +18,10 @@
 
 package com.yunx.app.data.repository
 
-import android.webkit.CookieManager
 import com.yunx.app.data.db.BaiduAccountDao
 import com.yunx.app.data.db.BaiduAccountEntity
+import com.yunx.app.data.db.resolveAccountSlot
+import com.yunx.app.data.download.DownloadPlatform
 import com.yunx.app.data.network.BaiduApi
 import com.yunx.app.data.network.BaiduConstants
 import com.yunx.app.data.network.HttpClients
@@ -114,23 +115,20 @@ class BaiduAccountRepository(
 
     suspend fun getAccount(): BaiduAccountEntity? = dao.getAccount()
 
-    /** 退出登录：清理 WebView Cookie + 清除本地记录 */
-    suspend fun logoutBaidu() {
-        withContext(Dispatchers.IO) {
-            runCatching {
-                CookieManager.getInstance().removeAllCookies(null)
-                CookieManager.getInstance().flush()
-            }
-        }
-        dao.clear()
-    }
+    /**
+     * 该平台全部账号的 Cookie（主账号在前）：多账号下载（实验性 C1）轮换取链用。
+     * 百度没有会话刷新接口，直接取各行已存的 Cookie。
+     */
+    suspend fun allCredentials(): List<String> =
+        dao.getAccounts().map { it.cookie }.filter { it.isNotBlank() }
 
     /**
      * 校验 Cookie 有效性（需含 BDUSS）并落库，返回三态结果。
      * 旧实现把「服务端校验失败」也当成登录成功（拿不到昵称就回退默认昵称并返回 true），
      * 会写入无效登录态；现在服务端没返回昵称即视为未通过校验，并区分网络失败。
+     * @param newAccount true = 网盘页「添加账号」进来的，落成新的一行；false = 覆盖当前主账号那一行
      */
-    suspend fun saveBaiduAccountResult(cookie: String): SaveResult {
+    suspend fun saveBaiduAccountResult(cookie: String, newAccount: Boolean = false): SaveResult {
         if (!BaiduConstants.isValidCookie(cookie)) return SaveResult.InvalidCredential
         val nickname = api.fetchNickname(cookie)
         if (nickname == null) {
@@ -141,11 +139,14 @@ class BaiduAccountRepository(
                 transportReachable = probeTransportReachable(BAIDU_PROBE_URL, BaiduConstants.UA_WEB)
             )
         }
+        val slot = resolveAccountSlot(DownloadPlatform.BAIDU, dao.getAccount(), newAccount)
         dao.upsert(
             BaiduAccountEntity(
-                id = "baidu",
+                id = slot.id,
                 cookie = cookie,
-                nickname = nickname
+                nickname = nickname,
+                isPrimary = slot.isPrimary,
+                remark = slot.remark
             )
         )
         return SaveResult.Success
@@ -154,9 +155,10 @@ class BaiduAccountRepository(
     /**
      * Boolean 兼容入口（账号 ViewModel 仍按 Boolean 调用）：
      * 网络失败时抛 [SaveNetworkException]，避免被调用侧误判为「凭证无效」而提示检查 Cookie。
+     * @param newAccount true = 网盘页「添加账号」进来的，落成新的一行；false = 覆盖当前主账号那一行
      */
-    suspend fun saveBaiduAccount(cookie: String): Boolean =
-        when (val result = saveBaiduAccountResult(cookie)) {
+    suspend fun saveBaiduAccount(cookie: String, newAccount: Boolean = false): Boolean =
+        when (val result = saveBaiduAccountResult(cookie, newAccount)) {
             SaveResult.Success -> true
             SaveResult.InvalidCredential -> false
             is SaveResult.NetworkError -> throw SaveNetworkException(result.message)

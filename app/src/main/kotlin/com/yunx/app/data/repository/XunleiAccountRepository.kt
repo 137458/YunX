@@ -18,14 +18,14 @@
 
 package com.yunx.app.data.repository
 
-import android.webkit.CookieManager
-import android.webkit.WebStorage
 import com.yunx.app.data.db.XunleiAccountDao
 import com.yunx.app.data.db.XunleiAccountEntity
+import com.yunx.app.data.db.resolveAccountSlot
+import com.yunx.app.data.download.DownloadPlatform
 import com.yunx.app.data.network.XunleiApi
 import com.yunx.app.data.network.XunleiLoginStep
-import java.io.IOException
 import com.yunx.app.data.network.XunleiWebCredential
+import java.io.IOException
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -39,6 +39,17 @@ class XunleiAccountRepository(
     fun observeAccount(): Flow<XunleiAccountEntity?> = dao.observeAccount()
 
     suspend fun getAccount(): XunleiAccountEntity? = dao.getAccount()
+
+    /** 该平台全部账号（主账号在前）：多账号下载要按 token 反查该账号自己的设备指纹与 captcha */
+    suspend fun getAccounts(): List<XunleiAccountEntity> = dao.getAccounts()
+
+    /**
+     * 该平台全部账号的 access_token（主账号在前）：多账号下载（实验性 C1/C2）轮换取链用。
+     * 取链时 [XunleiResolveRepository] 会用传进去的 token 取该账号自己的设备指纹，
+     * 不能拿主账号的 token 配另一个账号的设备号（迅雷侧会拒）。
+     */
+    suspend fun allCredentials(): List<String> =
+        dao.getAccounts().map { it.accessToken }.filter { it.isNotBlank() }
 
     /** 账号密码登录；返回登录步骤（needSms=true 表示需短信验证，携带 smsCreditKey/smsToken） */
     suspend fun loginWithPassword(
@@ -61,12 +72,14 @@ class XunleiAccountRepository(
      * 短信验证码登录并换取 token，返回三态结果。
      * 迅雷 SDK 接口在网络不通时会直接抛 IOException（与其它平台「吞异常返回 null」不同），
      * 这里统一收敛为「网络失败」态，避免异常冒泡到调用方。
+     * @param newAccount true = 网盘页「添加账号」进来的，落成新的一行；false = 覆盖当前主账号那一行
      */
     suspend fun loginWithSmsResult(
         mobile: String,
         smsCode: String,
         creditKey: String,
-        smsToken: String
+        smsToken: String,
+        newAccount: Boolean = false
     ): SaveResult {
         val deviceId = XunleiApi.newDeviceId()
         return try {
@@ -76,14 +89,17 @@ class XunleiAccountRepository(
             val captchaToken = api.initCaptcha(deviceId, mobile) ?: ""
             val tokens = api.exchangeToken(step.sessionId, deviceId, captchaToken)
                 ?: return SaveResult.InvalidCredential
+            val slot = resolveAccountSlot(DownloadPlatform.XUNLEI, dao.getAccount(), newAccount)
             dao.upsert(
                 XunleiAccountEntity(
-                    id = "xunlei",
+                    id = slot.id,
                     accessToken = tokens.first,
                     refreshToken = tokens.second,
                     deviceId = deviceId,
                     captchaToken = captchaToken,
-                    nickname = step.nickname.ifBlank { "迅雷用户" }
+                    nickname = step.nickname.ifBlank { "迅雷用户" },
+                    isPrimary = slot.isPrimary,
+                    remark = slot.remark
                 )
             )
             SaveResult.Success
@@ -96,18 +112,30 @@ class XunleiAccountRepository(
      * Boolean 兼容入口。
      * 迅雷账号 ViewModel 自行消费结果并直接展示错误文案、且不捕获异常，因此这里不抛
      * [SaveNetworkException]：网络失败同样返回 false，由 ViewModel 的既有提示兜底。
+     * @param newAccount true = 网盘页「添加账号」进来的，落成新的一行；false = 覆盖当前主账号那一行
      */
     suspend fun loginWithSms(
         mobile: String,
         smsCode: String,
         creditKey: String,
-        smsToken: String
-    ): Boolean = loginWithSmsResult(mobile, smsCode, creditKey, smsToken) == SaveResult.Success
+        smsToken: String,
+        newAccount: Boolean = false
+    ): Boolean = loginWithSmsResult(
+        mobile = mobile,
+        smsCode = smsCode,
+        creditKey = creditKey,
+        smsToken = smsToken,
+        newAccount = newAccount
+    ) == SaveResult.Success
 
-    /** 密码登录成功后用 sessionID 换 token 落库，返回三态结果（网络异常收敛为网络失败态） */
+    /**
+     * 密码登录成功后用 sessionID 换 token 落库，返回三态结果（网络异常收敛为网络失败态）。
+     * @param newAccount true = 网盘页「添加账号」进来的，落成新的一行；false = 覆盖当前主账号那一行
+     */
     suspend fun finishLoginResult(
         step: XunleiLoginStep,
-        username: String
+        username: String,
+        newAccount: Boolean = false
     ): SaveResult {
         if (step.sessionId.isBlank()) return SaveResult.InvalidCredential
         val deviceId = XunleiApi.newDeviceId()
@@ -115,14 +143,17 @@ class XunleiAccountRepository(
             val captchaToken = api.initCaptcha(deviceId, username) ?: ""
             val tokens = api.exchangeToken(step.sessionId, deviceId, captchaToken)
                 ?: return SaveResult.InvalidCredential
+            val slot = resolveAccountSlot(DownloadPlatform.XUNLEI, dao.getAccount(), newAccount)
             dao.upsert(
                 XunleiAccountEntity(
-                    id = "xunlei",
+                    id = slot.id,
                     accessToken = tokens.first,
                     refreshToken = tokens.second,
                     deviceId = deviceId,
                     captchaToken = captchaToken,
-                    nickname = step.nickname.ifBlank { "迅雷用户" }
+                    nickname = step.nickname.ifBlank { "迅雷用户" },
+                    isPrimary = slot.isPrimary,
+                    remark = slot.remark
                 )
             )
             SaveResult.Success
@@ -131,11 +162,15 @@ class XunleiAccountRepository(
         }
     }
 
-    /** Boolean 兼容入口（同 [loginWithSms]：不抛异常，网络失败返回 false）。 */
+    /**
+     * Boolean 兼容入口（同 [loginWithSms]：不抛异常，网络失败返回 false）。
+     * @param newAccount true = 网盘页「添加账号」进来的，落成新的一行；false = 覆盖当前主账号那一行
+     */
     suspend fun finishLogin(
         step: XunleiLoginStep,
-        username: String
-    ): Boolean = finishLoginResult(step, username) == SaveResult.Success
+        username: String,
+        newAccount: Boolean = false
+    ): Boolean = finishLoginResult(step, username, newAccount) == SaveResult.Success
 
     /** 刷新 token 后更新 accessToken/refreshToken（deviceId/captchaToken 保持不变） */
     suspend fun updateTokens(accessToken: String, refreshToken: String) {
@@ -149,37 +184,28 @@ class XunleiAccountRepository(
      * 与密码/短信登录的区别只有两点：token 由网页签发，以及刷新时必须换用网页 OAuth 客户端
      * （因此记下 [XunleiWebCredential.AUTH_TYPE]）。返回值直接决定登录页的自动检测是「登录成功」
      * 还是「继续等」——校验不通过（含网络异常）一律 false，绝不把中间态当登录成功。
+     *
+     * @param newAccount true = 网盘页「添加账号」进来的，落成新的一行；false = 覆盖当前主账号那一行
      */
-    suspend fun saveWebCredential(raw: String): Boolean {
+    suspend fun saveWebCredential(raw: String, newAccount: Boolean = false): Boolean {
         val tokens = XunleiWebCredential.parse(raw) ?: return false
         // 网页凭据不带设备指纹，取不到时用本机指纹兜底（云盘接口需要一个 X-Device-Id）
         val deviceId = tokens.deviceId.ifBlank { XunleiApi.newDeviceId() }
         if (!api.verifyAccessToken(tokens.accessToken, deviceId, tokens.captchaToken)) return false
+        val slot = resolveAccountSlot(DownloadPlatform.XUNLEI, dao.getAccount(), newAccount)
         dao.upsert(
             XunleiAccountEntity(
-                id = "xunlei",
+                id = slot.id,
                 accessToken = tokens.accessToken,
                 refreshToken = tokens.refreshToken,
                 deviceId = deviceId,
                 captchaToken = tokens.captchaToken,
                 nickname = tokens.nickname.ifBlank { "迅雷用户" },
-                authType = XunleiWebCredential.AUTH_TYPE
+                authType = XunleiWebCredential.AUTH_TYPE,
+                isPrimary = slot.isPrimary,
+                remark = slot.remark
             )
         )
         return true
-    }
-
-    /**
-     * 退出登录：清库 + 清理网页登录态（Cookie 与 localStorage）。
-     * 网页登录态留在 WebView 里的话，用户再次打开网页登录页时残留凭据会被自动检测直接登回旧账号，
-     * 「退出登录」就形同虚设。Cookie/存储的清理方法须在有 Looper 的线程调用——本方法由 viewModelScope（Main）执行。
-     */
-    suspend fun logout() {
-        runCatching {
-            CookieManager.getInstance().removeAllCookies(null)
-            CookieManager.getInstance().flush()
-        }
-        runCatching { WebStorage.getInstance().deleteAllData() }
-        dao.clear()
     }
 }

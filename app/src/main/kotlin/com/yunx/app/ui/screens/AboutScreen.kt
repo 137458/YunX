@@ -21,6 +21,7 @@ package com.yunx.app.ui.screens
 import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.BackHandler
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -41,13 +42,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Cloud
-import androidx.compose.material.icons.outlined.Code
-import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material.icons.outlined.Shield
-import androidx.compose.material.icons.outlined.Speed
-import androidx.compose.material.icons.outlined.Storage
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -64,7 +60,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.pm.PackageInfoCompat
 import com.yunx.app.R
+import com.yunx.app.data.network.SharePlatform
+import com.yunx.app.data.network.video.VideoPlatform
+import com.yunx.app.ui.items.logoRes
 import com.yunx.app.ui.theme.SquircleShape
+import com.yunx.app.util.AppLinks
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
@@ -168,8 +168,9 @@ fun AboutScreen(
                         )
                         Spacer(modifier = Modifier.height(6.dp))
                         Text(
-                            text = "云析是一款网盘分享链接解析与高速下载工具。" +
-                                "粘贴分享链接，登录网盘账号后即可浏览分享内容并直接高速下载文件。",
+                            text = "云析（YunX）是一款网盘 / 视频分享链接解析与高速下载工具。" +
+                                "粘贴链接即可：网盘分享能浏览内容并高速下载，视频链接能解析出直链与原图，" +
+                                "图片 / 视频 / 音频都支持在线预览播放。",
                             style = MiuixTheme.textStyles.body2,
                             color = MiuixTheme.colorScheme.onSurfaceSecondary,
                             lineHeight = 22.sp
@@ -222,9 +223,9 @@ fun AboutScreen(
                 )
                 ArrowPreference(
                     title = "开源仓库",
-                    summary = "github.com/CYQawa/YunX",
+                    summary = AppLinks.GITHUB_REPO_DISPLAY,
                     onClick = {
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/CYQawa/YunX"))
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(AppLinks.GITHUB_REPO))
                         context.startActivity(intent)
                     }
                 )
@@ -332,52 +333,66 @@ private fun AppHeader(versionName: String, versionCode: Int) {
         )
         Spacer(modifier = Modifier.height(4.dp))
         Text(
-            text = "网盘链接解析与高速下载",
+            text = "网盘 / 视频链接解析与高速下载",
             style = MiuixTheme.textStyles.footnote1,
             color = MiuixTheme.colorScheme.onSurfaceSecondary
         )
     }
 }
 
-/** 支持平台内容 */
+/** 平台胶囊条目：各平台官方 logo 资源 + 展示名（数据来自 SharePlatform / VideoPlatform） */
+private data class PlatformChip(@DrawableRes val logoRes: Int, val name: String)
+
+/** 支持平台内容：网盘来自 SharePlatform（GitHub 不算网盘），视频解析来自 VideoPlatform */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun PlatformContent() {
-    val platforms = listOf(
-        "夸克网盘" to Icons.Outlined.Cloud,
-        "UC 网盘" to Icons.Outlined.Storage,
-        "迅雷网盘" to Icons.Outlined.Speed,
-        "百度网盘" to Icons.Outlined.Link,
-        "139 网盘" to Icons.Outlined.Cloud,
-        "123云盘" to Icons.Outlined.Cloud
-    )
+    val drives = SharePlatform.entries
+        .filter { it != SharePlatform.GITHUB }
+        .map { PlatformChip(it.logoRes(), it.displayName) }
+    val videos = VideoPlatform.entries.map { PlatformChip(it.logoRes(), it.displayName) }
     Column(modifier = Modifier.padding(16.dp)) {
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            platforms.forEach { (name, icon) ->
-                Surface(
-                    shape = SquircleShape(10.dp),
-                    color = MiuixTheme.colorScheme.surfaceContainerHigh
+        PlatformChipGroup(label = "网盘", chips = drives)
+        Spacer(modifier = Modifier.height(12.dp))
+        PlatformChipGroup(label = "视频解析", chips = videos)
+    }
+}
+
+/** 平台分组：分组小标题 + 一组 Miuix 胶囊（官方图标按自身形状原样画，不裁圆、不垫底色） */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun PlatformChipGroup(label: String, chips: List<PlatformChip>) {
+    Text(
+        text = label,
+        style = MiuixTheme.textStyles.footnote1,
+        color = MiuixTheme.colorScheme.onSurfaceSecondary
+    )
+    Spacer(modifier = Modifier.height(8.dp))
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        chips.forEach { chip ->
+            Surface(
+                shape = SquircleShape(10.dp),
+                color = MiuixTheme.colorScheme.surfaceContainerHigh
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = icon,
-                            contentDescription = null,
-                            modifier = Modifier.size(15.dp),
-                            tint = MiuixTheme.colorScheme.primary
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = name,
-                            style = MiuixTheme.textStyles.footnote1,
-                            color = MiuixTheme.colorScheme.onSurface
-                        )
-                    }
+                    Image(
+                        painter = painterResource(chip.logoRes),
+                        contentDescription = null,
+                        modifier = Modifier.size(17.dp),
+                        contentScale = ContentScale.Fit
+                    )
+                    Spacer(modifier = Modifier.width(7.dp))
+                    Text(
+                        text = chip.name,
+                        style = MiuixTheme.textStyles.footnote1,
+                        color = MiuixTheme.colorScheme.onSurface
+                    )
                 }
             }
         }
@@ -388,16 +403,21 @@ private fun PlatformContent() {
 @Composable
 private fun FeatureContent() {
     val features = listOf(
-        "一键解析分享链接" to "夸克 / UC / 迅雷 / 百度 / 139 / 123 分享直链识别",
+        "网盘分享解析" to "夸克 / UC / 迅雷 / 百度 / 139 / 123 / 115 / 光鸭 / 蓝奏云 / 蓝奏云优享版 直链识别",
+        "视频链接解析" to "抖音 / 小红书 / 快手 / 微博 / AcFun 免登录；哔哩哔哩登录后画质更高，" +
+            "Pixiv 未登录只能解析部分公开作品、粘贴浏览器 Cookie 后可解析全部作品",
+        "在线预览与播放" to "图片 / 视频 / 音频在线看（自动带请求头），网盘里的文本文件也能打开",
+        "音视频合轨" to "哔哩哔哩高清是音视频分轨的，应用内部合轨，不需要额外装 ffmpeg",
         "高速分片下载" to "多线程并发 + 断点续传，充分利用带宽",
         "取链即删" to "转存后立即清理，不留残留",
         "凭证本地化" to "Cookie 加密落库，仅存本机"
     )
     Column(modifier = Modifier.padding(16.dp)) {
         features.forEachIndexed { index, (title, desc) ->
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(verticalAlignment = Alignment.Top) {
                 Box(
                     modifier = Modifier
+                        .padding(top = 7.dp)
                         .size(6.dp)
                         .background(MiuixTheme.colorScheme.primary, CircleShape)
                 )
@@ -426,7 +446,10 @@ private fun FeatureContent() {
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun TechContent() {
-    val techs = listOf("Kotlin", "Jetpack Compose", "Miuix", "Room", "OkHttp", "KSP")
+    val techs = listOf(
+        "Kotlin", "Jetpack Compose", "Miuix", "Room", "OkHttp", "KSP",
+        "Media3 ExoPlayer", "Coil 3"
+    )
     Column(modifier = Modifier.padding(16.dp)) {
         FlowRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp),

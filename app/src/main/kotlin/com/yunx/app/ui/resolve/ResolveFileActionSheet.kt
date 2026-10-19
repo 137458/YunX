@@ -32,6 +32,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.SaveAlt
+import androidx.compose.material.icons.outlined.Visibility
 import com.yunx.app.ui.components.rememberOperationSheetState
 import com.yunx.app.ui.components.OperationSheet
 import androidx.compose.runtime.Composable
@@ -87,6 +88,12 @@ internal fun ResolveFileActionSheet(
     saving: Boolean,
     /** 文件：获取下载链接并下载；文件夹不会走到这里 */
     onDownload: () -> Unit,
+    /**
+     * 文件：在线预览（免下载直接查看图片/视频/音频/文本）。
+     * null = 不显示该项 —— 可见性（能否预览）由调用方用 `PreviewTypes.kindOf` 判断好再传进来，
+     * 本弹窗不重复维护一份扩展名列表。
+     */
+    onPreview: (() -> Unit)? = null,
     /** 文件夹：递归下载整个文件夹 */
     onDownloadFolder: () -> Unit,
     /** 点「转存」时准备转存状态（`ResolveViewModel.requestSave`），随后切到转存步骤 */
@@ -149,6 +156,17 @@ internal fun ResolveFileActionSheet(
                             desc = "获取下载链接并保存到本机",
                             tint = MiuixTheme.colorScheme.primary,
                             onClick = { act(onDownload) }
+                        )
+                    }
+
+                    // 在线预览：仅文件、且调用方判定为可预览类型时显示（放在「下载」之后、「转存」之前）
+                    if (!file.isdir && onPreview != null) {
+                        ActionItem(
+                            icon = Icons.Outlined.Visibility,
+                            title = "在线预览",
+                            desc = "不下载，直接在应用内查看",
+                            tint = MiuixTheme.colorScheme.primary,
+                            onClick = { act(onPreview) }
                         )
                     }
 

@@ -37,8 +37,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -54,35 +52,34 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.yunx.app.data.db.Pan115AccountEntity
+import com.yunx.app.data.db.MultiAccountEntity
 import com.yunx.app.data.network.Pan115Constants
 import com.yunx.app.ui.SnackbarController
-import top.yukonga.miuix.kmp.basic.Button
-import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Card
-import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.Surface
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.overlay.OverlayBottomSheet
-import top.yukonga.miuix.kmp.overlay.OverlayDialog
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
 /**
- * 已登录 115 账号的底部弹窗：展示账号信息、登录时间、Cookie（可展开/复制），并提供退出登录。
+ * 已登录 115 账号的底部弹窗：展示账号信息、登录时间、Cookie（可展开/复制），并提供多账号管理（主账号 / 备注 / 退出该账号 / 添加账号）。
  */
 @Composable
 fun Pan115AccountSheet(
     account: Pan115AccountEntity,
-    onLogout: () -> Unit,
+    accounts: List<MultiAccountEntity>,
+    onSetPrimary: (String) -> Unit,
+    onRename: (String, String) -> Unit,
+    onRemove: (String) -> Unit,
+    onAddAccount: () -> Unit,
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
     var showFullCookie by rememberSaveable { mutableStateOf(false) }
-    // 退出登录二次确认
-    var showLogoutConfirm by remember { mutableStateOf(false) }
 
     val cookiePreviewLimit = 200
     val cookieTruncated = account.cookie.length > cookiePreviewLimit
@@ -220,64 +217,15 @@ fun Pan115AccountSheet(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // 退出登录
-            Button(
-                onClick = { showLogoutConfirm = true },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp),
-                colors = ButtonDefaults.buttonColors(
-                    color = MiuixTheme.colorScheme.error,
-                    contentColor = MiuixTheme.colorScheme.onError
-                )
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Outlined.Logout,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp),
-                    tint = MiuixTheme.colorScheme.onError
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("退出登录", style = MiuixTheme.textStyles.button)
-            }
-        }
-    }
-
-    // 退出登录二次确认
-    OverlayDialog(
-        show = showLogoutConfirm,
-        onDismissRequest = { showLogoutConfirm = false },
-        title = "退出登录"
-    ) {
-        Column(modifier = Modifier.fillMaxWidth()) {
-            Text(
-                text = "确定要退出当前 115 账号吗？退出后将清除本地凭证与网页登录状态。",
-                style = MiuixTheme.textStyles.body1,
-                modifier = Modifier.padding(bottom = 16.dp)
+            // 多账号：同一网盘可以同时登录多个账号，这里管理它们（主账号 / 备注 / 退出 / 添加）
+            AccountListSection(
+                accounts = accounts,
+                onSetPrimary = onSetPrimary,
+                onRename = onRename,
+                onRemove = onRemove,
+                onAddAccount = onAddAccount,
+                onEmpty = onDismiss
             )
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                TextButton(
-                    text = "取消",
-                    onClick = { showLogoutConfirm = false },
-                    modifier = Modifier.weight(1f)
-                )
-                Button(
-                    onClick = {
-                        showLogoutConfirm = false
-                        onLogout()
-                    },
-                    modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(
-                        color = MiuixTheme.colorScheme.error,
-                        contentColor = MiuixTheme.colorScheme.onError
-                    )
-                ) {
-                    Text("退出", style = MiuixTheme.textStyles.button)
-                }
-            }
         }
     }
 }

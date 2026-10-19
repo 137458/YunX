@@ -21,6 +21,7 @@ package com.yunx.app.ui.screens
 import android.content.ClipboardManager
 import android.content.Context
 import android.os.Build
+import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -31,6 +32,7 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -61,22 +63,30 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.yunx.app.data.network.GitHubLinkParser
 import com.yunx.app.data.network.ShareLinkParser
 import com.yunx.app.data.network.SharePlatform
+import com.yunx.app.data.network.video.VideoLinkParser
 import com.yunx.app.ui.AppSnackbarHost
 import com.yunx.app.ui.SnackbarController
 import com.yunx.app.ui.rememberGlobalSnackbarHostState
 import com.yunx.app.ui.components.LocalScaffoldPadding
+import com.yunx.app.ui.items.logoRes
 import com.yunx.app.ui.resolve.DownloadLinkDialog
 import com.yunx.app.ui.resolve.ShareDetailScreen
 import com.yunx.app.ui.viewmodel.BaiduCloudViewModel
+import com.yunx.app.ui.viewmodel.BookmarkViewModel
 import com.yunx.app.ui.viewmodel.C139CloudViewModel
+import com.yunx.app.ui.viewmodel.GuangYaCloudViewModel
+import com.yunx.app.ui.viewmodel.Pan115CloudViewModel
 import com.yunx.app.ui.viewmodel.Pan123CloudViewModel
 import com.yunx.app.ui.viewmodel.QuarkCloudViewModel
 import com.yunx.app.ui.viewmodel.ResolveUiState
@@ -116,6 +126,18 @@ fun ResolveScreen(
     ucCloudViewModel: UCCoudViewModel,
     /** 123 云盘浏览 ViewModel（123 分享转存目录选择用） */
     pan123CloudViewModel: Pan123CloudViewModel,
+    /** 115 网盘浏览 ViewModel（115 分享转存目录选择用） */
+    pan115CloudViewModel: Pan115CloudViewModel,
+    /** 光鸭云盘浏览 ViewModel（光鸭分享转存目录选择用） */
+    guangyaCloudViewModel: GuangYaCloudViewModel,
+    /** 收藏 ViewModel：主页快捷方式（已添加到主页的收藏链接）数据源 */
+    bookmarkViewModel: BookmarkViewModel,
+    /** 打开「收藏网盘链接」页（主页快捷方式区块的「管理」入口） */
+    onOpenBookmarks: () -> Unit,
+    /** 深链接 / 外部分享进来的待解析文本（分享链接、中文口令、带链接的文案都行）；null = 没有 */
+    incomingLink: String? = null,
+    /** [incomingLink] 被接手后回调（宿主清空，避免重组时重复解析） */
+    onIncomingLinkConsumed: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val state = viewModel.uiState
@@ -134,6 +156,19 @@ fun ResolveScreen(
     var pwd by rememberSaveable { mutableStateOf("") }
     var pwdEdited by rememberSaveable { mutableStateOf(false) }
 
+    // 深链接 / 外部分享进来：走统一解析入口（先试视频、再试 GitHub / 网盘），
+    // 但**直接发起解析**——用户是明确点了链接/分享了链接，不该再让他手动点一次「解析」。
+    LaunchedEffect(incomingLink) {
+        val text = incomingLink?.trim().orEmpty()
+        if (text.isEmpty()) return@LaunchedEffect
+        val shareParsed = ShareLinkParser.parse(text)
+        link = text
+        pwd = shareParsed?.pwd.orEmpty()
+        pwdEdited = true
+        viewModel.startVideoResolve(text, shareParsed?.pwd)
+        onIncomingLinkConsumed()
+    }
+
     // 剪贴板分享链接提示状态：待提示的剪贴板文本 + 已忽略的文本
     // 用 rememberSaveable：切换 Tab 后返回仍保留（避免「忽略后切页回来又弹」）
     var clipboardSuggestion by rememberSaveable { mutableStateOf<String?>(null) }
@@ -147,7 +182,8 @@ fun ResolveScreen(
             text.isNotBlank() &&
             text != link &&
             text != ignoredClipboard &&
-            ShareLinkParser.parse(text) != null
+            (ShareLinkParser.parse(text) != null || GitHubLinkParser.parse(text) != null ||
+                VideoLinkParser.looksLikeVideoLink(text))
         ) {
             clipboardSuggestion = text
         }
@@ -233,6 +269,14 @@ fun ResolveScreen(
                     onBack = { viewModel.navigateBack() }
                 )
                 is ResolveUiState.Loading -> LoadingContent()
+                // 视频解析结果：顶部返回与 Detail 一致（回到输入页，输入框内容保留）
+                is ResolveUiState.Video -> VideoResultSection(
+                    result = s.result,
+                    onDownloadMedia = { viewModel.downloadVideoMedia(it) },
+                    onDownloadAll = { viewModel.downloadAllVideoMedia() },
+                    onDownloadSelected = { viewModel.downloadVideoMedias(it) },
+                    onBack = { viewModel.backToInput() }
+                )
                 else -> ResolveInputContent(
                     viewModel = viewModel,
                     scrollBehavior = scrollBehavior,
@@ -275,15 +319,31 @@ fun ResolveScreen(
                 .padding(horizontal = 16.dp)
         ) {
             animatedSuggestion?.let { suggestion ->
-                val parsed = ShareLinkParser.parse(suggestion)
+                val shareParsed = ShareLinkParser.parse(suggestion)
+                val githubParsed = GitHubLinkParser.parse(suggestion)
+                val videoParsed = VideoLinkParser.parse(suggestion)
+                val platformName = when {
+                    videoParsed != null -> videoParsed.platform.displayName
+                    githubParsed != null -> "GitHub"
+                    shareParsed != null -> shareParsed.platform.displayName
+                    else -> "网盘"
+                }
+                val platformLogo = when {
+                    videoParsed != null -> videoParsed.platform.logoRes()
+                    githubParsed != null -> SharePlatform.GITHUB.logoRes()
+                    shareParsed != null -> shareParsed.platform.logoRes()
+                    else -> null
+                }
                 ClipboardSuggestCard(
-                    platformName = parsed?.platform?.let { platformLabel(it) } ?: "网盘",
+                    platformName = platformName,
+                    platformLogo = platformLogo,
                     onPaste = {
                         link = suggestion
-                        pwd = parsed?.pwd.orEmpty()
+                        pwd = shareParsed?.pwd.orEmpty()
                         pwdEdited = true
                         clipboardSuggestion = null
-                        viewModel.startResolve(suggestion, parsed?.pwd)
+                        // 统一入口：先试视频、再试 GitHub、最后网盘
+                        viewModel.startVideoResolve(suggestion, shareParsed?.pwd)
                     },
                     onDismiss = {
                         ignoredClipboard = suggestion
@@ -414,7 +474,10 @@ private fun ResolveInputContent(
         )
 
         Button(
-            onClick = { viewModel.startResolve(link, pwd) },
+            onClick = {
+                // 统一入口：先试视频、再试 GitHub / 网盘（分流在 ViewModel 内完成）
+                viewModel.startVideoResolve(link, pwd)
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(48.dp),
@@ -495,25 +558,12 @@ private fun readClipboardSafely(context: Context): String? = runCatching {
         ?.toString()
 }.getOrNull()
 
-/** 平台名称（提示卡片展示） */
-private fun platformLabel(platform: SharePlatform): String = when (platform) {
-    SharePlatform.QUARK -> "夸克网盘"
-    SharePlatform.UC -> "UC 网盘"
-    SharePlatform.XUNLEI -> "迅雷网盘"
-    SharePlatform.BAIDU -> "百度网盘"
-    SharePlatform.C139 -> "139 网盘"
-    SharePlatform.PAN123 -> "123云盘"
-    SharePlatform.PAN115 -> "115 网盘"
-    SharePlatform.GUANGYA -> "广雅网盘"
-    SharePlatform.ILANZOU -> "爱蓝奏"
-    SharePlatform.LANZOU -> "蓝奏云"
-    SharePlatform.GITHUB -> "GitHub"
-}
-
 /** 剪贴板分享链接提示卡片：检测到分享链接时，询问是否粘贴解析 */
 @Composable
 private fun ClipboardSuggestCard(
     platformName: String,
+    /** 平台 Logo；识别不出平台时为 null，退回原来的链接图标 */
+    @DrawableRes platformLogo: Int?,
     onPaste: () -> Unit,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier
@@ -526,11 +576,20 @@ private fun ClipboardSuggestCard(
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = Icons.Outlined.Link,
-                    contentDescription = null,
-                    tint = MiuixTheme.colorScheme.onPrimaryContainer
-                )
+                if (platformLogo != null) {
+                    Image(
+                        painter = painterResource(platformLogo),
+                        contentDescription = null,
+                        modifier = Modifier.size(32.dp),
+                        contentScale = ContentScale.Fit
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Outlined.Link,
+                        contentDescription = null,
+                        tint = MiuixTheme.colorScheme.onPrimaryContainer
+                    )
+                }
                 Spacer(modifier = Modifier.width(10.dp))
                 Column {
                     Text(

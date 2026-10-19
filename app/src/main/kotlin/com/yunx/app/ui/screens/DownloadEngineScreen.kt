@@ -1024,6 +1024,8 @@ private fun EngineSectionHeader(
             modifier = Modifier.weight(1f)
         )
         if (badge != null) {
+            // 本地 Miuix 实现：上游把这段收口到 ExperimentalBadge（MD3 样式），
+            // 本地保留 Miuix 颜色/字号实现，避免视觉退回 Material 3。
             Surface(
                 color = MiuixTheme.colorScheme.primaryContainer,
                 contentColor = MiuixTheme.colorScheme.onPrimaryContainer,

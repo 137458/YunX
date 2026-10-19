@@ -77,6 +77,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.yunx.app.R
 import com.yunx.app.ui.theme.SquircleShape
+import com.yunx.app.util.AppLinks
 import com.yunx.app.util.PermissionState
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.Card
@@ -182,9 +183,10 @@ fun OnboardingScreen(
             )
             Spacer(modifier = Modifier.height(6.dp))
             Text(
-                text = "网盘分享链接解析与高速下载",
+                text = "网盘与视频链接解析 · 在线预览 · 高速下载",
                 style = MiuixTheme.textStyles.body1,
-                color = MiuixTheme.colorScheme.onSurfaceSecondary
+                color = MiuixTheme.colorScheme.onSurfaceSecondary,
+                textAlign = TextAlign.Center
             )
 
             Spacer(modifier = Modifier.height(36.dp))
@@ -193,7 +195,14 @@ fun OnboardingScreen(
             OnboardingFeature(
                 icon = Icons.Outlined.Link,
                 title = "一键解析分享链接",
-                description = "夸克 / UC / 迅雷 / 百度 / 139 / 123 分享链接自动识别，登录网盘账号后即可解析与下载"
+                description = "夸克 / UC / 迅雷 / 百度 / 139 / 123 / 115 / 光鸭 / 蓝奏云 等 10 个网盘分享链接自动识别，" +
+                    "登录网盘账号后即可解析与下载"
+            )
+            OnboardingFeature(
+                icon = Icons.AutoMirrored.Outlined.OpenInNew,
+                title = "视频链接解析",
+                description = "抖音 / 小红书 / 快手 / 微博 / AcFun 免登录，哔哩哔哩登录后画质更高；" +
+                    "7 大视频平台链接解析直链，图片 / 视频 / 音频都能在线预览"
             )
             OnboardingFeature(
                 icon = Icons.Outlined.Speed,
@@ -380,7 +389,7 @@ private fun OnboardingFeature(
 private fun GitHubCard(context: android.content.Context) {
     Card(
         onClick = {
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/CYQawa/YunX"))
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(AppLinks.GITHUB_REPO))
             context.startActivity(intent)
         },
         modifier = Modifier.fillMaxWidth(),
@@ -415,7 +424,7 @@ private fun GitHubCard(context: android.content.Context) {
                     color = MiuixTheme.colorScheme.onSurface
                 )
                 Text(
-                    text = "github.com/CYQawa/YunX",
+                    text = AppLinks.GITHUB_REPO_DISPLAY,
                     style = MiuixTheme.textStyles.footnote1,
                     color = MiuixTheme.colorScheme.onSurfaceSecondary
                 )

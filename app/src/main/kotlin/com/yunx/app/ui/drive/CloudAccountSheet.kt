@@ -37,12 +37,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -54,26 +51,21 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.yunx.app.ui.SnackbarController
-import top.yukonga.miuix.kmp.basic.Button
-import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Card
-import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.Surface
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.overlay.OverlayBottomSheet
-import top.yukonga.miuix.kmp.overlay.OverlayDialog
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /** 账号抽屉「登录信息」里的一行 */
 data class CloudInfoRow(val label: String, val value: String)
 
 /**
- * 账号抽屉通用件：头像首字 + 昵称 + 平台标签 + 信息行 + 密钥行（可展开/复制）+ 退出登录（二次确认）。
+ * 账号抽屉通用件：头像首字 + 昵称 + 平台标签 + 信息行 + 密钥行（可展开/复制）。
  *
- * 退出登录确认沿用 OverlayDialog：六个账号抽屉原本都用 OverlayDialog，
- * 且账号抽屉自身是 OverlayBottomSheet、内部不再嵌套其它 Overlay，
- * 不存在「删除确认」那种抽屉内嵌套 Overlay 的冲突，换 WindowDialog 只会改变观感与返回键行为。
+ * 多账号管理（主账号 / 备注 / 退出该账号 / 添加账号）由各账号抽屉里的 AccountListSection 承担，
+ * 抽屉本身不再提供「退出登录」按钮 —— 上游已删除单账号 logout 体系（见 AGENTS.md §3.42–§3.45）。
  */
 @Composable
 fun CloudAccountSheet(
@@ -82,16 +74,12 @@ fun CloudAccountSheet(
     infoRows: List<CloudInfoRow>,
     secretLabel: String,
     secretValue: String,
-    /** 退出登录确认文案：各平台对清除对象的描述不同（Cookie / Token） */
-    logoutMessage: String,
-    onLogout: () -> Unit,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
     secretVisible: Boolean = true
 ) {
     val context = LocalContext.current
     var showFullSecret by rememberSaveable { mutableStateOf(false) }
-    var showLogoutConfirm by remember { mutableStateOf(false) }
 
     val secretTruncated = secretVisible && secretValue.length > SECRET_PREVIEW_LIMIT
     val displaySecret = if (showFullSecret || !secretTruncated) {
@@ -106,7 +94,6 @@ fun CloudAccountSheet(
         show = true,
         onDismissRequest = {
             showFullSecret = false
-            showLogoutConfirm = false
             onDismiss()
         }
     ) {
@@ -142,7 +129,7 @@ fun CloudAccountSheet(
                 }
                 Spacer(modifier = Modifier.width(16.dp))
                 Column(modifier = Modifier.weight(1f)) {
-                    // 昵称可能很长，限 2 行省略，避免把退出登录按钮顶出可视区
+                    // 昵称可能很长，限 2 行省略，避免撑破抽屉头部区域
                     Text(
                         text = nickname,
                         style = MiuixTheme.textStyles.title4,
@@ -225,66 +212,6 @@ fun CloudAccountSheet(
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Button(
-                onClick = { showLogoutConfirm = true },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp),
-                colors = ButtonDefaults.buttonColors(
-                    color = MiuixTheme.colorScheme.error,
-                    contentColor = MiuixTheme.colorScheme.onError
-                )
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Outlined.Logout,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp),
-                    tint = MiuixTheme.colorScheme.onError
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("退出登录", style = MiuixTheme.textStyles.button)
-            }
-        }
-    }
-
-    if (showLogoutConfirm) {
-        OverlayDialog(
-            show = showLogoutConfirm,
-            onDismissRequest = { showLogoutConfirm = false },
-            title = "退出登录"
-        ) {
-            Column(modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    text = logoutMessage,
-                    style = MiuixTheme.textStyles.body1,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    TextButton(
-                        text = "取消",
-                        onClick = { showLogoutConfirm = false },
-                        modifier = Modifier.weight(1f)
-                    )
-                    Button(
-                        onClick = {
-                            showLogoutConfirm = false
-                            onLogout()
-                        },
-                        modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.buttonColors(
-                            color = MiuixTheme.colorScheme.error,
-                            contentColor = MiuixTheme.colorScheme.onError
-                        )
-                    ) {
-                        Text("退出", style = MiuixTheme.textStyles.button)
-                    }
-                }
-            }
         }
     }
 }
