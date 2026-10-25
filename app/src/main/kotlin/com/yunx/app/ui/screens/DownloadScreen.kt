@@ -52,6 +52,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -341,7 +342,9 @@ fun DownloadScreen(
                 )
                 if (hasCompletedFile) {
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { deleteAllLocal = !deleteAllLocal },
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Checkbox(
@@ -454,7 +457,9 @@ private fun DeleteConfirmDialog(
             )
             if (hasLocalFile) {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { deleteLocal = !deleteLocal },
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Checkbox(

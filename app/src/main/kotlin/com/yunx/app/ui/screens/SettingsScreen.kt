@@ -19,6 +19,8 @@
 package com.yunx.app.ui.screens
 
 import android.Manifest
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -45,6 +47,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import com.yunx.app.ui.components.LocalScaffoldPadding
+import com.yunx.app.util.AppLinks
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.ScrollBehavior
 import androidx.compose.runtime.Composable
@@ -135,7 +138,7 @@ private fun openNotificationSettings(context: Context) {
 }
 
 /**
- * 设置页：下载策略 + 主题外观 + 检查更新 + 日志与网盘认证。
+ * 设置页：下载策略 + 主题外观 + 检查更新 + 日志与认证备份。
  * 基于 Miuix 规范重构：Card 分组包裹，miuix-preference 驱动，SliderPreference 内嵌策略控制。
  */
 @OptIn(ExperimentalFoundationApi::class)
@@ -161,9 +164,9 @@ fun SettingsScreen(
 ) {
     var showThreadsDialog by remember { mutableStateOf(false) }
     var showLogDialog by remember { mutableStateOf(false) }
-    // 网盘认证导出弹窗（AES 加密 + 导出范围）
+    // 认证信息导出弹窗（AES 加密 + 导出范围）
     var showExportAuthDialog by remember { mutableStateOf(false) }
-    // 网盘认证导入：加密文件内容（非空时弹解密密码框）
+    // 认证信息导入：加密文件内容（非空时弹解密密码框）
     var pendingImportContent by remember { mutableStateOf<String?>(null) }
     var showImportAuthDialog by remember { mutableStateOf(false) }
     // 导出/导入处理中（PBKDF2 21万次迭代派生密钥，偶发 1~3s，期间显示加载弹窗）
@@ -176,6 +179,8 @@ fun SettingsScreen(
     val scope = rememberCoroutineScope()
     // 下载保存目录（SAF）：本地状态驱动 UI 刷新，同时同步 SharedPreferences
     val settingsRepo = remember { SettingsRepository(context) }
+    var clipboardSuggest by remember { mutableStateOf(settingsRepo.clipboardSuggestEnabled) }
+    var acceptPrerelease by remember { mutableStateOf(settingsRepo.acceptPrereleaseUpdate) }
     var downloadDirUri by remember { mutableStateOf(settingsRepo.downloadDirUri) }
     var showDevMenu by remember { mutableStateOf(false) }
     // 诊断模式开关（开发调试菜单里）：本地状态驱动 UI，运行态在 DiagnosticLog 里（改完立刻生效）
@@ -228,7 +233,7 @@ fun SettingsScreen(
             SnackbarController.show("下载保存目录已更新")
         }
     }
-    // 导入网盘认证文件选择器
+    // 导入认证信息文件选择器：选择后先判断是否加密备份，加密则弹密码框
     val importLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.OpenDocument()
     ) { uri ->
@@ -403,10 +408,28 @@ fun SettingsScreen(
                 .fillMaxWidth()
                 .padding(bottom = CardGap)
         ) {
+            SwitchPreference(
+                checked = clipboardSuggest,
+                onCheckedChange = { checked ->
+                    clipboardSuggest = checked
+                    settingsRepo.clipboardSuggestEnabled = checked
+                },
+                title = "自动识别剪贴板",
+                summary = if (clipboardSuggest) "复制分享链接后自动提示解析" else "已关闭，应用不再读取剪贴板"
+            )
             ArrowPreference(
                 title = "检查更新",
                 summary = "检查 GitHub 是否有新版本可用",
                 onClick = onCheckUpdate
+            )
+            SwitchPreference(
+                checked = acceptPrerelease,
+                onCheckedChange = { checked ->
+                    acceptPrerelease = checked
+                    settingsRepo.acceptPrereleaseUpdate = checked
+                },
+                title = "接受预发布版更新",
+                summary = if (acceptPrerelease) "检查更新时包含 GitHub Pre-release（可能不稳定）" else "只接收正式版更新"
             )
             ArrowPreference(
                 title = "导出日志",
@@ -415,21 +438,21 @@ fun SettingsScreen(
             )
         }
 
-        // ---------- 分类 4: 网盘认证 ----------
-        SmallTitle(text = "网盘认证")
+        // ---------- 分类 4: 认证备份 ----------
+        SmallTitle(text = "认证备份")
         Card(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = CardGap)
         ) {
             ArrowPreference(
-                title = "导出网盘认证",
-                summary = "使用至少 8 位口令加密 Cookie/JWT 后导出",
+                title = "导出认证信息",
+                summary = "使用至少 8 位口令加密网盘与视频平台的 Cookie/JWT 后导出",
                 onClick = { showExportAuthDialog = true }
             )
             ArrowPreference(
-                title = "导入网盘认证",
-                summary = "选择加密或明文的认证备份文件，恢复网盘登录",
+                title = "导入认证信息",
+                summary = "选择加密或明文的认证备份文件，恢复网盘与视频平台登录",
                 onClick = { importLauncher.launch(arrayOf("application/json", "application/octet-stream", "*/*")) }
             )
         }
@@ -469,6 +492,44 @@ fun SettingsScreen(
                 title = "支持开发",
                 summary = "微信扫码捐赠，支持项目持续维护",
                 onClick = onSupportClick
+            )
+            ArrowPreference(
+                title = "QQ 交流群",
+                summary = "群号 ${AppLinks.QQ_GROUP}（点击加入群聊，长按复制群号）",
+                onClick = {
+                    if (!AppLinks.openQQGroup(context)) {
+                        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                        clipboard.setPrimaryClip(ClipData.newPlainText("qq_group", AppLinks.QQ_GROUP))
+                        SnackbarController.show("未安装 QQ，群号已复制：${AppLinks.QQ_GROUP}")
+                    }
+                },
+                modifier = Modifier.combinedClickable(
+                    onClick = {
+                        if (!AppLinks.openQQGroup(context)) {
+                            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                            clipboard.setPrimaryClip(ClipData.newPlainText("qq_group", AppLinks.QQ_GROUP))
+                            SnackbarController.show("未安装 QQ，群号已复制：${AppLinks.QQ_GROUP}")
+                        }
+                    },
+                    onLongClick = {
+                        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                        clipboard.setPrimaryClip(ClipData.newPlainText("qq_group", AppLinks.QQ_GROUP))
+                        SnackbarController.show("群号已复制：${AppLinks.QQ_GROUP}")
+                    }
+                )
+            )
+            ArrowPreference(
+                title = "GitHub 仓库",
+                summary = "${AppLinks.GITHUB_REPO_DISPLAY} · 查看源码与反馈问题",
+                onClick = {
+                    runCatching {
+                        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(AppLinks.GITHUB_REPO)))
+                    }.onFailure {
+                        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                        clipboard.setPrimaryClip(ClipData.newPlainText("github_repo", AppLinks.GITHUB_REPO))
+                        SnackbarController.show("未找到浏览器，链接已复制：${AppLinks.GITHUB_REPO}")
+                    }
+                }
             )
         }
     }
@@ -813,7 +874,7 @@ fun SettingsScreen(
         }
     }
 
-    // 导出网盘认证弹窗（AES 加密密码 + 导出范围）
+    // 导出认证信息弹窗（AES 加密密码 + 导出范围）
     ExportAuthDialog(
         show = showExportAuthDialog,
         onDismiss = { showExportAuthDialog = false },
@@ -931,7 +992,7 @@ fun SettingsScreen(
     }
 }
 
-/** 导出网盘认证弹窗：AES 加密密码 + 导出范围（仅已登录 / 全部绑定） */
+/** 导出认证弹窗：AES 加密密码 + 导出范围（仅已登录 / 全部绑定） */
 @Composable
 private fun ExportAuthDialog(
     show: Boolean,
@@ -942,7 +1003,7 @@ private fun ExportAuthDialog(
     var onlyLoggedIn by remember { mutableStateOf(true) }
     OverlayDialog(
         show = show,
-        title = "导出网盘认证",
+        title = "导出认证信息",
         onDismissRequest = onDismiss
     ) {
         Column(
@@ -972,12 +1033,12 @@ private fun ExportAuthDialog(
             )
             // 导出范围改用 miuix-preference 单选行：整行即命中区，交互与主题样式由组件统一负责
             RadioButtonPreference(
-                title = "仅导出当前已登录的网盘",
+                title = "仅导出当前已登录的账号",
                 selected = onlyLoggedIn,
                 onClick = { onlyLoggedIn = true }
             )
             RadioButtonPreference(
-                title = "导出全部绑定的网盘",
+                title = "导出全部绑定的账号",
                 selected = !onlyLoggedIn,
                 onClick = { onlyLoggedIn = false }
             )
@@ -1013,7 +1074,7 @@ private fun ImportAuthDialog(
     var password by remember { mutableStateOf("") }
     OverlayDialog(
         show = show,
-        title = "导入网盘认证",
+        title = "导入认证信息",
         onDismissRequest = onDismiss
     ) {
         Column(

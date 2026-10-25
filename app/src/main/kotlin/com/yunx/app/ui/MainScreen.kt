@@ -201,7 +201,6 @@ import com.yunx.app.data.network.GitHubLinkParser
 import com.yunx.app.data.network.GitHubTokenStore
 import com.yunx.app.data.network.TokenCheck
 import com.yunx.app.data.network.video.VideoPlatform
-import com.yunx.app.data.security.CredentialStore
 import com.yunx.app.ui.login.GuangYaLoginScreen
 import com.yunx.app.ui.login.ILanzouLoginScreen
 import com.yunx.app.ui.login.LanzouLoginScreen
@@ -339,8 +338,6 @@ fun MainScreen(
     val ilanzouApi = remember { ILanzouApi() }
     val lanzouApi = remember { LanzouApi() }
     val db = remember { AppDatabase.get(context) }
-    // 本机密钥失效提示：只在「真的丢了密钥、凭证已被清空」时弹一次（标记由数据层写入）
-    var credentialLostNotice by remember { mutableStateOf(CredentialStore.hasKeyLostNotice(context)) }
 
     // 应用内公告：列表接口有副作用（会更新服务端曝光计数），只在本页启动时检查一次，不轮询
     val announcementReadStore = remember { AnnouncementReadStore(context) }
@@ -351,7 +348,7 @@ fun MainScreen(
     val popupAnnouncement by announcementViewModel.popup.collectAsState()
     LaunchedEffect(Unit) { announcementViewModel.checkStartup() }
 
-    // GitHub API：Token 经 Keystore 加密存储；被 GitHub 拒绝（401）时自动清除并回退匿名限额
+    // GitHub API：Token 存储在 GitHubTokenStore；被 GitHub 拒绝（401）时自动清除并回退匿名限额
     val githubApi = remember { GitHubApi(tokenProvider = { GitHubTokenStore.getToken(context) }) }
     var githubHasTokenState by remember { mutableStateOf(GitHubTokenStore.hasToken(context)) }
     LaunchedEffect(githubApi) {
@@ -395,7 +392,7 @@ fun MainScreen(
     }
     // 光鸭云盘设备标识：业务 API 的 did 头要同步取值，故由仓库缓存、API 惰性读取
     guangyaApi.deviceIdProvider = { guangyaRepository.cachedDeviceId() }
-    // 网盘认证备份：打包/恢复各平台凭证
+    // 认证备份：打包/恢复各平台凭证（网盘 + 视频解析平台）
     val backupManager = remember {
         AuthBackupManager(
             db.quarkAccountDao(),
@@ -407,7 +404,8 @@ fun MainScreen(
             db.pan115AccountDao(),
             db.guangyaAccountDao(),
             db.ilanzouAccountDao(),
-            db.lanzouAccountDao()
+            db.lanzouAccountDao(),
+            db.videoAccountDao()
         )
     }
     // 下载管理器：OkHttp 分片下载器 + Room 任务持久化 + 可配置线程数（设置页动态生效）
@@ -534,6 +532,10 @@ fun MainScreen(
         else xunleiApi.refreshToken(acc.refreshToken, deviceId)?.also { (at, nrt) ->
             xunleiRepository.updateTokens(at, nrt)
         }
+    }
+    // 网页登录的 captcha：本地 9 盐签名现换（快、后台可用），签名被拒才回退网页会话
+    xunleiApi.webCaptchaRefresher = { deviceId, action ->
+        xunleiRepository.refreshWebCaptcha(deviceId, action)
     }
     // 迅雷云盘浏览：点击已登录的迅雷卡片打开（access_token/设备指纹/captcha 从数据库读取）
     val xunleiCloudViewModel: XunleiCloudViewModel = viewModel(
@@ -1334,7 +1336,6 @@ fun MainScreen(
         }
     }
 
-
     // 关于云析：叠加覆盖层（淡入 + 轻微缩放过渡）
     AnimatedVisibility(
         visible = showAbout,
@@ -1461,32 +1462,6 @@ fun MainScreen(
 
 
 
-    // 本机密钥失效提示：只在「真的丢了密钥、凭证已被清空」时弹一次（标记由数据层写入）
-    if (credentialLostNotice) {
-        WindowDialog(
-            show = true,
-            onDismissRequest = { },
-            title = CredentialStore.LOST_TITLE
-        ) {
-            Column(modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    text = CredentialStore.LOST_MESSAGE,
-                    style = MiuixTheme.textStyles.body1,
-                    color = MiuixTheme.colorScheme.onSurface,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-                Button(
-                    onClick = {
-                        CredentialStore.consumeKeyLostNotice(context)
-                        credentialLostNotice = false
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("知道了")
-                }
-            }
-        }
-    }
 
     // 启动公告弹窗：展示未读的置顶公告（没有则最新未读）。两个出口都算已读，见 AnnouncementViewModel.consumePopup
     popupAnnouncement?.let { announcement ->

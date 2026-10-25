@@ -24,14 +24,13 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
-import com.yunx.app.data.security.AndroidKeystoreCredentialCipher
 import com.yunx.app.data.security.CredentialCipher
-import com.yunx.app.data.security.CredentialStore
+import com.yunx.app.data.security.PlaintextCredentialCipher
 import com.yunx.app.util.DiagnosticLog
 
 @Database(
     entities = [QuarkAccountEntity::class, DownloadTaskEntity::class, UCAccountEntity::class, XunleiAccountEntity::class, BaiduAccountEntity::class, C139AccountEntity::class, Pan123AccountEntity::class, Pan115AccountEntity::class, GuangYaAccountEntity::class, ILanzouAccountEntity::class, LanzouAccountEntity::class, BookmarkEntity::class, VideoAccountEntity::class],
-    version = 22,
+    version = 23,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -60,7 +59,7 @@ abstract class AppDatabase : RoomDatabase() {
 
     abstract fun bookmarkDao(): BookmarkDao
 
-    /** 视频解析账号：原始 DAO（未加密），对外请用 [videoAccountDao] */
+    /** 视频解析账号：原始 DAO（未解密包装），对外请用 [videoAccountDao] */
     abstract fun rawVideoAccountDao(): VideoAccountDao
 
     private lateinit var credentialCipher: CredentialCipher
@@ -76,7 +75,7 @@ abstract class AppDatabase : RoomDatabase() {
     fun ilanzouAccountDao(): ILanzouAccountDao = SecureAccountDaos.ilanzou(rawILanzouAccountDao(), credentialCipher)
     fun lanzouAccountDao(): LanzouAccountDao = SecureAccountDaos.lanzou(rawLanzouAccountDao(), credentialCipher)
 
-    /** 视频解析账号：Cookie 与网盘凭证同等加密后落库 */
+    /** 视频解析账号：与网盘凭证同一套读写口径（明文落库 + 旧密文兼容读取） */
     fun videoAccountDao(): VideoAccountDao = SecureAccountDaos.videoAccount(rawVideoAccountDao(), credentialCipher)
 
     companion object {
@@ -103,7 +102,8 @@ abstract class AppDatabase : RoomDatabase() {
                         MIGRATION_18_19,
                         MIGRATION_19_20,
                         MIGRATION_20_21,
-                        MIGRATION_21_22
+                        MIGRATION_21_22,
+                        MIGRATION_22_23
                     )
                     // 早期开发版（1-8）无可靠 schema；从 v9 起必须保留凭证和下载任务
                     // Room 2.8.5 里 vararg 旧重载已 @Deprecated（ReplaceWith 就是带 dropAllTables 的这一版），
@@ -150,14 +150,8 @@ abstract class AppDatabase : RoomDatabase() {
                     })
                     .build()
                     .also { database ->
-                        database.credentialCipher = AndroidKeystoreCredentialCipher.shared
-                        // 密钥若是「新建」的，说明此前存下的密文必然由另一把（已失效的）密钥加密。
-                        // 这里只**记录**这件事（写一个 SharedPreferences 标记），不删任何数据：
-                        // 各存储路径自己按「解密失败 → 清掉这一条」自愈（DAO 的 decryptGuarded、
-                        // GitHubTokenStore.getToken、DownloadManager.loadPersistedHeaders），
-                        // 在这里无差别清空账号表风险太大——判断稍有偏差就会白白抹掉用户的登录态。
-                        // 主装配点在 YunXApp.onCreate（必须早于任何凭证读写），这里再兜一次。
-                        CredentialStore.installRecovery(context)
+                        // 凭证不再加密：写入直通，读取时兼容旧 Keystore 密文并明文回写
+                        database.credentialCipher = PlaintextCredentialCipher.shared
                         instance = database
                     }
             }
@@ -348,6 +342,18 @@ abstract class AppDatabase : RoomDatabase() {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE `download_task` ADD COLUMN `mergeAudioUrl` TEXT NOT NULL DEFAULT ''")
                 db.execSQL("ALTER TABLE `download_task` ADD COLUMN `mergeAudioHeadersJson` TEXT NOT NULL DEFAULT ''")
+            }
+        }
+
+        /**
+         * v23：动图（Live Photo）合成。
+         *
+         * 微博 / 抖音的动图是「静图 + 一段视频」，要合成一张「动态照片」得把那段视频的直链
+         * 也随任务带走（见 `MotionPhotoWriter`）。默认空 = 普通单文件下载，既有任务不受影响。
+         */
+        private val MIGRATION_22_23 = object : Migration(22, 23) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE `download_task` ADD COLUMN `motionUrl` TEXT NOT NULL DEFAULT ''")
             }
         }
     }
