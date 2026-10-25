@@ -43,17 +43,15 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.Download
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import com.yunx.app.ui.AppSnackbarHost
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
+import top.yukonga.miuix.kmp.basic.HorizontalDivider
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.Scaffold
+import top.yukonga.miuix.kmp.basic.Surface
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.basic.TopAppBar
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -109,7 +107,6 @@ import kotlinx.coroutines.CancellationException
  * 2. **失败不静默**：统一走 [SnackbarController]（本页是全屏页，宿主就是本页的 [rememberGlobalSnackbarHostState]）。
  * 3. **退出即释放**：播放器 `release()`，图片请求随组合销毁。
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MediaPreviewScreen(
     request: PreviewRequest,
@@ -130,19 +127,13 @@ fun MediaPreviewScreen(
     Scaffold(
         modifier = modifier.fillMaxSize(),
         // ★ 底色必须显式给 surface：不给的话叠加在其它页面之上时，深色模式下会露出系统的黑底
-        containerColor = MaterialTheme.colorScheme.surface,
+        containerColor = MiuixTheme.colorScheme.surface,
         snackbarHost = { AppSnackbarHost(snackbarHostState) },
         topBar = {
             if (!immersive) {
                 TopAppBar(
-                    title = {
-                        Text(
-                            text = title,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                    },
+                    title = title,
+                    color = MiuixTheme.colorScheme.surface,
                     navigationIcon = {
                         IconButton(onClick = onClose) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
@@ -154,10 +145,7 @@ fun MediaPreviewScreen(
                                 Icon(Icons.Outlined.Download, contentDescription = "下载")
                             }
                         }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.surface
-                    )
+                    }
                 )
             }
         }
@@ -251,13 +239,13 @@ private fun MediaPager(
                     .align(Alignment.BottomCenter)
                     .padding(bottom = 20.dp),
                 shape = RoundedCornerShape(50),
-                color = MaterialTheme.colorScheme.surfaceContainerHighest
+                color = MiuixTheme.colorScheme.surfaceContainerHighest
             ) {
                 Text(
                     text = "${pagerState.currentPage + 1} / ${media.size}",
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    style = MiuixTheme.textStyles.footnote1,
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                 )
             }
         }
@@ -528,16 +516,16 @@ private fun TextPreviewPane(request: PreviewRequest, modifier: Modifier = Modifi
                 Spacer(modifier = Modifier.size(12.dp))
                 Text(
                     text = "正在读取前 512KB…",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    style = MiuixTheme.textStyles.footnote2,
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                 )
             }
         }
         is TextPreviewState.Failed -> Box(modifier = modifier, contentAlignment = Alignment.Center) {
             Text(
                 text = current.message,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.error,
+                style = MiuixTheme.textStyles.body2,
+                color = MiuixTheme.colorScheme.error,
                 modifier = Modifier.padding(horizontal = 32.dp)
             )
         }
@@ -566,19 +554,19 @@ private fun TextContentPane(
         ) {
             Text(
                 text = request.textFileName.ifBlank { "文本文件" },
-                style = MaterialTheme.typography.titleSmall,
+                style = MiuixTheme.textStyles.title4,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
             if (content.truncated) {
                 Text(
                     text = "已截断，完整内容请下载后查看（仅读取前 512KB）",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.tertiary
+                    style = MiuixTheme.textStyles.footnote2,
+                    color = MiuixTheme.colorScheme.primary
                 )
             }
         }
-        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+        HorizontalDivider(color = MiuixTheme.colorScheme.dividerLine)
 
         if (PreviewTypes.isMarkdown(request.textFileName)) {
             // Markdown 用项目已有的 mikepenz GFM 渲染器（与 README / 公告详情同一套排版与图片加载）
@@ -605,7 +593,7 @@ private fun TextContentPane(
                         .verticalScroll(scrollState)
                         .padding(16.dp),
                     fontFamily = FontFamily.Monospace,
-                    style = MaterialTheme.typography.bodySmall
+                    style = MiuixTheme.textStyles.body2
                 )
             }
         }
@@ -650,8 +638,8 @@ private fun EmptyPreview(
     Box(modifier = modifier, contentAlignment = Alignment.Center) {
         Text(
             text = message,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            style = MiuixTheme.textStyles.body1,
+            color = MiuixTheme.colorScheme.onSurfaceVariantSummary
         )
     }
 }

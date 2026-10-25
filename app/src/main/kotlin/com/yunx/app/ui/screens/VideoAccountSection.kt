@@ -27,11 +27,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -45,20 +40,20 @@ import com.yunx.app.data.db.VideoAccountEntity
 import com.yunx.app.data.network.video.VideoParsers
 import com.yunx.app.data.network.video.VideoPlatform
 import com.yunx.app.ui.items.logoRes
+import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.SmallTitle
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.basic.TextButton
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /**
- * 账号页分组小标题。
- *
- * ★ 没有复用 SettingsScreen 里的同名函数：那个是 `private`，跨文件不可见；这里照它的样式重写一份，
- *   只为「网盘账号 / 视频解析」两个分组标题服务，不去动 SettingsScreen。
+ * 账号页分组小标题：遵循 Miuix 规范使用 [SmallTitle]。
  */
 @Composable
 internal fun AccountSectionLabel(text: String) {
-    Text(
+    SmallTitle(
         text = text,
-        style = MaterialTheme.typography.labelMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(start = 4.dp, bottom = 8.dp)
+        modifier = Modifier.padding(start = 4.dp, bottom = 4.dp)
     )
 }
 
@@ -82,9 +77,7 @@ internal fun VideoAccountSection(
     // 每个平台已登录的账号数：只有多账号时才需要在状态里补「共 N 个账号」
     val counts = remember(accounts) { accounts.groupingBy { it.platform }.eachCount() }
 
-    // ★ 一个平台一张卡片（与「网盘账号」区的 DriveAccountCard 同款：一样的 shape / 底色 / 边距 / 字号）。
-    //   早先是「全部平台挤在一张卡片里、用分隔线隔开」，两个区上下相邻，一眼就能看出不统一。
-    //   卡片之间的 12dp 与 DriveScreen 里 LazyColumn 的 item 间距相同，所以整页节奏一致。
+    // ★ 一个平台一张卡片（与「网盘账号」区的 DriveAccountCard 同款：一样的 Miuix Card / 边距 / 字号）。
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         platforms.forEach { platform ->
             VideoPlatformCard(
@@ -99,9 +92,7 @@ internal fun VideoAccountSection(
 }
 
 /**
- * 单个视频平台的卡片外壳：刻意与 [com.yunx.app.ui.screens.DriveScreen] 里的 `DriveAccountCard` 同款
- * （shape = large、containerColor = surfaceContainerLow、可点则用带 onClick 的 Card）。
- * 免登录平台没有任何可操作项，所以用不带 onClick 的 Card（不是「可点但无动作」）。
+ * 单个视频平台的卡片外壳：与 [com.yunx.app.ui.screens.DriveScreen] 里的 `DriveAccountCard` 同款。
  */
 @Composable
 private fun VideoPlatformCard(
@@ -116,10 +107,6 @@ private fun VideoPlatformCard(
         account != null -> { { onManage(platform) } }
         else -> { { onLogin(platform) } }
     }
-    val cardShape = MaterialTheme.shapes.large
-    val cardColors = CardDefaults.cardColors(
-        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-    )
     val content: @Composable () -> Unit = {
         VideoPlatformCardContent(
             platform = platform,
@@ -133,15 +120,11 @@ private fun VideoPlatformCard(
     if (onClick != null) {
         Card(
             onClick = onClick,
-            modifier = Modifier.fillMaxWidth(),
-            shape = cardShape,
-            colors = cardColors
+            modifier = Modifier.fillMaxWidth()
         ) { content() }
     } else {
         Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = cardShape,
-            colors = cardColors
+            modifier = Modifier.fillMaxWidth()
         ) { content() }
     }
 }
@@ -158,8 +141,6 @@ private fun VideoPlatformCardContent(
     val enabled = platform.needsLogin
 
     Row(
-        // ★ 与网盘卡片一致：整行 16dp 内边距（原来是 top/bottom 10dp，比网盘那张紧一档）。
-        // ★ 这里不再自己 clickable：点击手势由外层 Card 承担，否则会叠出两层涟漪。
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp),
@@ -176,8 +157,6 @@ private fun VideoPlatformCardContent(
             contentScale = ContentScale.Fit
         )
 
-        // ★ 与网盘卡片一致：文字列左右各 16dp（原来靠一个 14dp 的 Spacer 顶开），字号也统一到
-        //   titleMedium / bodyMedium —— 两种卡片同页混排才不会一大一小。
         Column(
             modifier = Modifier
                 .weight(1f)
@@ -185,21 +164,21 @@ private fun VideoPlatformCardContent(
         ) {
             Text(
                 text = platform.displayName,
-                style = MaterialTheme.typography.titleMedium,
+                style = MiuixTheme.textStyles.title3,
                 fontWeight = FontWeight.Medium
             )
             Spacer(modifier = Modifier.height(2.dp))
             Text(
                 text = videoStatusText(platform, account, accountCount),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                style = MiuixTheme.textStyles.body2,
+                color = MiuixTheme.colorScheme.onSurfaceVariantSummary
             )
         }
 
         when {
             !enabled -> Unit
-            account != null -> TextButton(onClick = { onManage(platform) }) { Text("管理") }
-            else -> TextButton(onClick = { onLogin(platform) }) { Text("登录") }
+            account != null -> TextButton(text = "管理", onClick = { onManage(platform) })
+            else -> TextButton(text = "登录", onClick = { onLogin(platform) })
         }
     }
 }

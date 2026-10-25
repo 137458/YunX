@@ -19,6 +19,7 @@
 package com.yunx.app.ui.screens
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -32,19 +33,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.outlined.MoreVert
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -56,6 +46,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.yunx.app.data.db.MultiAccountEntity
+import com.yunx.app.ui.AppSnackbarHost
+import com.yunx.app.ui.rememberGlobalSnackbarHostState
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.ButtonDefaults
+import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.SmallTitle
+import top.yukonga.miuix.kmp.basic.Surface
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.basic.TextButton
+import top.yukonga.miuix.kmp.basic.TextField
+import top.yukonga.miuix.kmp.theme.MiuixTheme
+import top.yukonga.miuix.kmp.window.WindowDialog
 
 /**
  * 账号列表（多账号）：同一平台的多个账号、设主账号 / 改备注 / 退出，以及「添加账号」。
@@ -80,59 +84,44 @@ internal fun AccountListSection(
     // 最后一个账号被退出后弹窗没有内容可展示了，自动关闭
     LaunchedEffect(accounts.isEmpty()) { if (accounts.isEmpty()) onEmpty() }
 
-    Text(
-        text = "账号（${accounts.size}）",
-        style = MaterialTheme.typography.labelMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant
-    )
-    Spacer(modifier = Modifier.height(8.dp))
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.large,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-        )
-    ) {
-        Column {
-            accounts.forEachIndexed { index, account ->
-                if (index > 0) HorizontalDivider()
-                AccountRow(
-                    account = account,
-                    onSetPrimary = onSetPrimary,
-                    onRename = onRename,
-                    onRemove = onRemove
-                )
-            }
-            HorizontalDivider()
-            // 添加账号：复用该平台原来的登录入口（网页登录 / 账号密码登录），只是落成新的一行
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable(onClick = onAddAccount)
-                    .padding(horizontal = 16.dp, vertical = 14.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Add,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                Text(
-                    text = "添加账号",
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
+    SmallTitle(text = "账号（${accounts.size}）")
+    Card(modifier = Modifier.fillMaxWidth()) {
+        accounts.forEach { account ->
+            AccountRow(
+                account = account,
+                onSetPrimary = onSetPrimary,
+                onRename = onRename,
+                onRemove = onRemove
+            )
+        }
+        // 添加账号：复用该平台原来的登录入口（网页登录 / 账号密码登录），作为 Card 的直接子项自动带分割线
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onAddAccount)
+                .padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Filled.Add,
+                contentDescription = null,
+                tint = MiuixTheme.colorScheme.primary,
+                modifier = Modifier.size(20.dp)
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Text(
+                text = "添加账号",
+                style = MiuixTheme.textStyles.title4,
+                color = MiuixTheme.colorScheme.primary
+            )
         }
     }
-    Spacer(modifier = Modifier.height(8.dp))
     Text(
         text = "主账号用于列目录、转存、上传等需要单一身份的操作；" +
             "开启「多账号下载」后，下载会自动用上同一网盘的其他账号。",
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant
+        style = MiuixTheme.textStyles.footnote1,
+        color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
     )
 }
 
@@ -160,28 +149,28 @@ private fun AccountRow(
         Surface(
             modifier = Modifier.size(36.dp),
             shape = CircleShape,
-            color = MaterialTheme.colorScheme.primaryContainer
+            color = MiuixTheme.colorScheme.primaryContainer
         ) {
             Box(contentAlignment = Alignment.Center) {
                 Text(
                     text = displayName.take(1),
-                    style = MaterialTheme.typography.labelLarge,
+                    style = MiuixTheme.textStyles.title4,
                     fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                    color = MiuixTheme.colorScheme.onPrimaryContainer
                 )
             }
         }
         Spacer(modifier = Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(text = displayName, style = MaterialTheme.typography.bodyLarge)
+            Text(text = displayName, style = MiuixTheme.textStyles.body1)
             Spacer(modifier = Modifier.height(2.dp))
             Text(
                 text = if (account.isPrimary) "主账号" else "点一下设为主账号",
-                style = MaterialTheme.typography.labelSmall,
+                style = MiuixTheme.textStyles.footnote1,
                 color = if (account.isPrimary) {
-                    MaterialTheme.colorScheme.primary
+                    MiuixTheme.colorScheme.primary
                 } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant
+                    MiuixTheme.colorScheme.onSurfaceVariantSummary
                 }
             )
         }
@@ -190,19 +179,19 @@ private fun AccountRow(
                 Icon(
                     imageVector = Icons.Outlined.MoreVert,
                     contentDescription = "账号操作",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    tint = MiuixTheme.colorScheme.onSurfaceSecondary
                 )
             }
             DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
                 DropdownMenuItem(
-                    text = { Text("重命名备注") },
+                    text = { Text("重命名备注", style = MiuixTheme.textStyles.body1) },
                     onClick = {
                         menuExpanded = false
                         showRename = true
                     }
                 )
                 DropdownMenuItem(
-                    text = { Text("退出该账号") },
+                    text = { Text("退出该账号", style = MiuixTheme.textStyles.body1) },
                     onClick = {
                         menuExpanded = false
                         showRemove = true
@@ -214,58 +203,90 @@ private fun AccountRow(
 
     if (showRename) {
         var input by remember(account.id) { mutableStateOf(account.remark) }
-        AlertDialog(
+        WindowDialog(
+            show = showRename,
             onDismissRequest = { showRename = false },
-            title = { Text("重命名备注") },
-            text = {
-                Column {
-                    OutlinedTextField(
-                        value = input,
-                        onValueChange = { input = it },
-                        singleLine = true,
-                        label = { Text("备注") },
-                        placeholder = { Text(account.nickname.ifBlank { "留空则显示昵称" }) },
-                        modifier = Modifier.fillMaxWidth()
+            title = "重命名备注"
+        ) {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                TextField(
+                    value = input,
+                    onValueChange = { input = it },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp),
+                    label = "备注",
+                    useLabelAsPlaceholder = true,
+                    singleLine = true
+                )
+                Text(
+                    text = "同一网盘登录多个账号时，备注能帮你区分（清空备注则显示昵称）。",
+                    style = MiuixTheme.textStyles.footnote1,
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    TextButton(
+                        text = "取消",
+                        onClick = { showRename = false },
+                        modifier = Modifier.weight(1f)
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "同一网盘登录多个账号时，备注能帮你区分（清空备注则显示昵称）。",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showRename = false
-                        onRename(account.id, input)
+                    Button(
+                        onClick = {
+                            showRename = false
+                            onRename(account.id, input)
+                        },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("保存", style = MiuixTheme.textStyles.button)
                     }
-                ) { Text("保存") }
-            },
-            dismissButton = { TextButton(onClick = { showRename = false }) { Text("取消") } }
-        )
+                }
+            }
+            AppSnackbarHost(rememberGlobalSnackbarHostState())
+        }
     }
 
     if (showRemove) {
-        AlertDialog(
+        WindowDialog(
+            show = showRemove,
             onDismissRequest = { showRemove = false },
-            title = { Text("退出该账号") },
-            text = {
-                Text("确定要退出「$displayName」吗？只清除这一个账号在本机的登录凭证，其他账号不受影响。")
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showRemove = false
-                        onRemove(account.id)
-                    }
+            title = "退出该账号"
+        ) {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = "确定要退出「$displayName」吗？只清除这一个账号在本机的登录凭证，其他账号不受影响。",
+                    style = MiuixTheme.textStyles.body1,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Text("退出", color = MaterialTheme.colorScheme.error)
+                    TextButton(
+                        text = "取消",
+                        onClick = { showRemove = false },
+                        modifier = Modifier.weight(1f)
+                    )
+                    Button(
+                        onClick = {
+                            showRemove = false
+                            onRemove(account.id)
+                        },
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(
+                            color = MiuixTheme.colorScheme.error,
+                            contentColor = MiuixTheme.colorScheme.onError
+                        )
+                    ) {
+                        Text("退出", style = MiuixTheme.textStyles.button)
+                    }
                 }
-            },
-            dismissButton = { TextButton(onClick = { showRemove = false }) { Text("取消") } }
-        )
+            }
+            AppSnackbarHost(rememberGlobalSnackbarHostState())
+        }
     }
 }
 

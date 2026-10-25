@@ -33,6 +33,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -43,23 +44,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.ContentPaste
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Refresh
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import com.yunx.app.ui.AppSnackbarHost
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -68,8 +52,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -78,13 +62,26 @@ import androidx.compose.ui.viewinterop.AndroidView
 import com.yunx.app.data.network.video.VideoPlatform
 import com.yunx.app.ui.SnackbarController
 import com.yunx.app.ui.components.YunXWavyLoading
-import com.yunx.app.ui.rememberGlobalSnackbarHostState
 import com.yunx.app.ui.viewmodel.VideoAccountViewModel
 import com.yunx.app.util.DiagnosticLog
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.ButtonDefaults
+import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.CircularProgressIndicator
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.Scaffold
+import top.yukonga.miuix.kmp.basic.Surface
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.basic.TextButton
+import top.yukonga.miuix.kmp.basic.TextField
+import top.yukonga.miuix.kmp.basic.TopAppBar
+import top.yukonga.miuix.kmp.overlay.OverlayDialog
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /**
  * 视频平台通用登录页：WebView 打开平台官网，登录完成后自动提取 Cookie 并保存。
@@ -98,7 +95,6 @@ import org.json.JSONObject
  *   入参是 **URL**（需要 scheme），而 [VideoPlatform.cookieDomain] 存的是裸域（如 `bilibili.com`），
  *   直接传会读不到任何 Cookie，自动检测就永远不会触发。
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VideoLoginScreen(
     platform: VideoPlatform,
@@ -269,16 +265,10 @@ fun VideoLoginScreen(
     // 系统返回键 → 返回上一页（保存中禁用）
     BackHandler(enabled = !isSaving && !isSavingManual) { onBack() }
 
-    // 全局 Snackbar 宿主
-    val snackbarHostState = rememberGlobalSnackbarHostState()
-
     Scaffold(
-        snackbarHost = { AppSnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = {
-                    Text("${platform.displayName} 登录", style = MaterialTheme.typography.titleLarge)
-                },
+                title = "${platform.displayName} 登录",
                 navigationIcon = {
                     IconButton(onClick = { if (!isSaving && !isSavingManual) onBack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
@@ -298,9 +288,9 @@ fun VideoLoginScreen(
                         enabled = !isSaving && !isSavingManual
                     ) {
                         Icon(
-                            Icons.Outlined.Refresh,
+                            imageVector = Icons.Outlined.Refresh,
                             contentDescription = "刷新网页",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            tint = MiuixTheme.colorScheme.onSurfaceVariantActions
                         )
                     }
                     // 手动输入 Cookie
@@ -309,41 +299,39 @@ fun VideoLoginScreen(
                         enabled = !isSaving && !isSavingManual
                     ) {
                         Icon(
-                            Icons.Outlined.ContentPaste,
+                            imageVector = Icons.Outlined.ContentPaste,
                             contentDescription = "手动输入 Cookie",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            tint = MiuixTheme.colorScheme.onSurfaceVariantActions
                         )
                     }
-                    TextButton(
-                        onClick = {
-                            scope.launch {
-                                isSaving = true
-                                val cookie = CookieManager.getInstance().getCookie(cookieUrl).orEmpty()
-                                val saved = viewModel.save(platform, cookie, newAccount) != null
-                                isSaving = false
-                                if (saved) {
-                                    SnackbarController.show("登录成功")
-                                    onSaved()
-                                } else {
-                                    SnackbarController.show("未检测到登录态，请先完成登录")
+                    if (isSaving) {
+                        CircularProgressIndicator(
+                            modifier = Modifier
+                                .padding(horizontal = 12.dp)
+                                .size(20.dp),
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        TextButton(
+                            text = "保存",
+                            onClick = {
+                                scope.launch {
+                                    isSaving = true
+                                    val cookie = CookieManager.getInstance().getCookie(cookieUrl).orEmpty()
+                                    val saved = viewModel.save(platform, cookie, newAccount) != null
+                                    isSaving = false
+                                    if (saved) {
+                                        SnackbarController.show("登录成功")
+                                        onSaved()
+                                    } else {
+                                        SnackbarController.show("未检测到登录态，请先完成登录")
+                                    }
                                 }
-                            }
-                        },
-                        enabled = !isSaving && !isSavingManual
-                    ) {
-                        if (isSaving) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(18.dp),
-                                strokeWidth = 2.dp
-                            )
-                        } else {
-                            Text("保存")
-                        }
+                            },
+                            enabled = !isSavingManual
+                        )
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
+                }
             )
         }
     ) { innerPadding ->
@@ -351,6 +339,7 @@ fun VideoLoginScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                .imePadding()
         ) {
             AndroidView(
                 factory = { webView },
@@ -366,9 +355,8 @@ fun VideoLoginScreen(
                     modifier = Modifier
                         .align(Alignment.Center)
                         .padding(28.dp),
-                    shape = MaterialTheme.shapes.large,
-                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    shadowElevation = 6.dp
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
+                    color = MiuixTheme.colorScheme.surfaceContainerHigh
                 ) {
                     Column(
                         modifier = Modifier.padding(20.dp),
@@ -376,21 +364,21 @@ fun VideoLoginScreen(
                     ) {
                         Text(
                             text = "网页加载失败",
-                            style = MaterialTheme.typography.titleMedium,
+                            style = MiuixTheme.textStyles.title3,
                             fontWeight = FontWeight.Medium
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
                             text = message,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = MiuixTheme.textStyles.body2,
+                            color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                             textAlign = TextAlign.Center
                         )
                         Spacer(modifier = Modifier.height(6.dp))
                         Text(
                             text = "若这个平台在本地访问不了（例如被墙的境外站点），请先连上代理再重试",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = MiuixTheme.textStyles.body2,
+                            color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                             textAlign = TextAlign.Center
                         )
                         Spacer(modifier = Modifier.height(14.dp))
@@ -400,104 +388,112 @@ fun VideoLoginScreen(
                                 isLoading = true
                                 webView.loadUrl(platform.loginUrl)
                             }
-                        ) { Text("重试") }
+                        ) {
+                            Text("重试")
+                        }
                     }
                 }
             }
         }
-    }
 
-    // 登录教程弹窗
-    if (showTutorial) {
-        AlertDialog(
-            onDismissRequest = { showTutorial = false },
-            icon = { Icon(Icons.Outlined.Info, contentDescription = null) },
-            title = { Text("登录教程") },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(
-                        text = "1. 在下方网页中登录${platform.displayName}账号",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Text(
-                        text = "2. 登录成功后会自动检测并保存，无需手动操作",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Text(
-                        text = "3. 若没有自动保存，点右上角「保存」；也可点「粘贴」图标手动输入 Cookie",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Text(
-                        text = "4. Cookie 会加密保存在本机，失效后需重新登录",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = { showTutorial = false }) { Text("知道了") }
+        // 登录教程弹窗
+        OverlayDialog(
+            show = showTutorial,
+            title = "登录教程",
+            onDismissRequest = { showTutorial = false }
+        ) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = "1. 在下方网页中登录${platform.displayName}账号",
+                    style = MiuixTheme.textStyles.body1,
+                    color = MiuixTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = "2. 登录成功后会自动检测并保存，无需手动操作",
+                    style = MiuixTheme.textStyles.body1,
+                    color = MiuixTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = "3. 若没有自动保存，点右上角「保存」；也可点「粘贴」图标手动输入 Cookie",
+                    style = MiuixTheme.textStyles.body1,
+                    color = MiuixTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = "4. Cookie 会加密保存在本机，失效后需重新登录",
+                    style = MiuixTheme.textStyles.footnote1,
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                TextButton(
+                    text = "知道了",
+                    onClick = { showTutorial = false },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.textButtonColorsPrimary()
+                )
             }
-        )
-    }
+        }
 
-    // 手动输入 Cookie 弹窗
-    if (showCookieDialog) {
-        AlertDialog(
-            onDismissRequest = { if (!isSavingManual) showCookieDialog = false },
-            title = { Text("手动输入 Cookie") },
-            text = {
-                Column {
-                    Text(
-                        text = "从浏览器或抓包工具复制完整的 Cookie 后粘贴到这里",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    OutlinedTextField(
-                        value = cookieInput,
-                        onValueChange = { cookieInput = it },
-                        modifier = Modifier.fillMaxWidth(),
-                        placeholder = { Text("粘贴 Cookie…") },
-                        minLines = 4,
-                        maxLines = 8
-                    )
-                }
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        scope.launch {
-                            isSavingManual = true
-                            val saved = viewModel.save(platform, normalizePastedCookie(cookieInput), newAccount) != null
-                            isSavingManual = false
-                            if (saved) {
-                                SnackbarController.show("登录成功")
-                                showCookieDialog = false
-                                onSaved()
-                            } else {
-                                SnackbarController.show("Cookie 无效或已过期，请重新复制")
-                            }
-                        }
-                    },
-                    enabled = cookieInput.isNotBlank() && !isSavingManual
+        // 手动输入 Cookie 弹窗
+        OverlayDialog(
+            show = showCookieDialog,
+            title = "手动输入 Cookie",
+            onDismissRequest = { if (!isSavingManual) showCookieDialog = false }
+        ) {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = "从浏览器或抓包工具复制完整的 Cookie 后粘贴到这里",
+                    style = MiuixTheme.textStyles.body2,
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                    modifier = Modifier.padding(bottom = 12.dp)
+                )
+                TextField(
+                    value = cookieInput,
+                    onValueChange = { cookieInput = it },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp),
+                    label = "粘贴 Cookie…",
+                    useLabelAsPlaceholder = true,
+                    minLines = 4,
+                    maxLines = 8
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    if (isSavingManual) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(18.dp),
-                            strokeWidth = 2.dp
-                        )
-                    } else {
-                        Text("保存")
+                    TextButton(
+                        text = "取消",
+                        onClick = { if (!isSavingManual) showCookieDialog = false },
+                        modifier = Modifier.weight(1f),
+                        enabled = !isSavingManual
+                    )
+                    Button(
+                        onClick = {
+                            scope.launch {
+                                isSavingManual = true
+                                val saved = viewModel.save(platform, normalizePastedCookie(cookieInput), newAccount) != null
+                                isSavingManual = false
+                                if (saved) {
+                                    SnackbarController.show("登录成功")
+                                    showCookieDialog = false
+                                    onSaved()
+                                } else {
+                                    SnackbarController.show("Cookie 无效或已过期，请重新复制")
+                                }
+                            }
+                        },
+                        modifier = Modifier.weight(1f),
+                        enabled = cookieInput.isNotBlank() && !isSavingManual
+                    ) {
+                        Text(if (isSavingManual) "保存中…" else "保存")
                     }
                 }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = { if (!isSavingManual) showCookieDialog = false },
-                    enabled = !isSavingManual
-                ) { Text("取消") }
             }
-        )
+        }
     }
 }
 
@@ -538,7 +534,6 @@ private fun desktopViewportScript(width: Int): String =
  * ★ 校验与落库走的仍是**与网页登录完全相同**的那条路（`VideoAccountViewModel.save` 内部会调解析器的
  *   `validateCookie`），所以「粘进来的 Cookie 有没有效」由解析器说了算，这里不做第二套判断。
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ManualCookieLoginScreen(
     platform: VideoPlatform,
@@ -554,23 +549,15 @@ private fun ManualCookieLoginScreen(
     // 系统返回键 → 返回上一页（保存中禁用）
     BackHandler(enabled = !isSaving) { onBack() }
 
-    val snackbarHostState = rememberGlobalSnackbarHostState()
-
     Scaffold(
-        snackbarHost = { AppSnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = {
-                    Text("${platform.displayName} 登录", style = MaterialTheme.typography.titleLarge)
-                },
+                title = "${platform.displayName} 登录",
                 navigationIcon = {
                     IconButton(onClick = { if (!isSaving) onBack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
+                }
             )
         }
     ) { innerPadding ->
@@ -582,25 +569,19 @@ private fun ManualCookieLoginScreen(
                 .padding(20.dp)
         ) {
             // 先把「为什么没有网页登录」讲清楚，否则用户会以为功能坏了
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = MaterialTheme.shapes.large,
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-                )
-            ) {
+            Card(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             imageVector = Icons.Outlined.Info,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
+                            tint = MiuixTheme.colorScheme.primary,
                             modifier = Modifier.size(20.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = "为什么没有网页登录",
-                            style = MaterialTheme.typography.titleSmall,
+                            style = MiuixTheme.textStyles.title4,
                             fontWeight = FontWeight.Medium
                         )
                     }
@@ -608,8 +589,8 @@ private fun ManualCookieLoginScreen(
                     Text(
                         text = "${platform.displayName} 的登录页带有风控验证（reCAPTCHA），在 App 内置网页里" +
                             "无法完成登录，因此这里不再提供网页登录，改为直接粘贴 Cookie。",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        style = MiuixTheme.textStyles.body2,
+                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                     )
                 }
             }
@@ -618,15 +599,16 @@ private fun ManualCookieLoginScreen(
 
             Text(
                 text = "Cookie",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                style = MiuixTheme.textStyles.footnote1,
+                color = MiuixTheme.colorScheme.onSurfaceVariantSummary
             )
             Spacer(modifier = Modifier.height(8.dp))
-            OutlinedTextField(
+            TextField(
                 value = input,
                 onValueChange = { input = it },
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("粘贴 Cookie…") },
+                label = "粘贴 Cookie…",
+                useLabelAsPlaceholder = true,
                 minLines = 4,
                 maxLines = 12
             )
@@ -634,8 +616,8 @@ private fun ManualCookieLoginScreen(
             Text(
                 text = "获取方法：在电脑浏览器登录 ${platform.displayName} 后打开开发者工具（F12）→ " +
                     "Application / 存储 → Cookies，复制该站点下的整条 Cookie。",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                style = MiuixTheme.textStyles.footnote1,
+                color = MiuixTheme.colorScheme.onSurfaceVariantSummary
             )
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -657,11 +639,7 @@ private fun ManualCookieLoginScreen(
                 modifier = Modifier.fillMaxWidth(),
                 enabled = input.isNotBlank() && !isSaving
             ) {
-                if (isSaving) {
-                    CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
-                } else {
-                    Text("保存")
-                }
+                Text(if (isSaving) "保存中…" else "保存")
             }
         }
     }
@@ -688,37 +666,40 @@ private fun normalizePastedCookie(raw: String): String {
     return withoutPrefix
 }
 
-/** 尝试把 JSON 格式的 Cookie 解析成 `name=value` 列表；不是可解析的 JSON 时返回 null */
+/**
+ * 尝试把整段 JSON 解析成 Cookie 键值对列表（形如 `["k=v", ...]`）。
+ *
+ * 识别两类常见格式：
+ * - JSON 对象：`{"a":"b", "c":"d"}` → `["a=b", "c=d"]`；
+ * - JSON 数组（EditThisCookie 插件导出）：`[{"name":"a","value":"b"},...]`。
+ *
+ * 只要不是有效的 JSON、或者不符合上述结构，立刻返回 null 走回退逻辑。
+ */
 private fun cookiePairsFromJson(text: String): List<String>? {
     val trimmed = text.trim()
-    // JSON 对象：{"name":"value",...}
-    if (trimmed.startsWith("{")) {
-        val obj = runCatching { JSONObject(trimmed) }.getOrNull() ?: return null
-        return buildList {
-            obj.keys().forEach { key ->
-                cookieScalarText(obj.opt(key))?.let { add("$key=$it") }
+    if (!trimmed.startsWith("{") && !trimmed.startsWith("[")) return null
+    return runCatching {
+        if (trimmed.startsWith("{")) {
+            val obj = JSONObject(trimmed)
+            val list = mutableListOf<String>()
+            val keys = obj.keys()
+            while (keys.hasNext()) {
+                val k = keys.next()
+                if (obj.isNull(k)) continue
+                val v = obj.optString(k)
+                if (k.isNotBlank() && v.isNotBlank()) list += "$k=$v"
             }
-        }
-    }
-    // JSON 数组：[{"name":"...","value":"...",...},...]
-    if (trimmed.startsWith("[")) {
-        val arr = runCatching { JSONArray(trimmed) }.getOrNull() ?: return null
-        return buildList {
+            list.takeIf { it.isNotEmpty() }
+        } else {
+            val arr = JSONArray(trimmed)
+            val list = mutableListOf<String>()
             for (i in 0 until arr.length()) {
                 val item = arr.optJSONObject(i) ?: continue
-                val name = item.optString("name")
-                if (name.isBlank()) continue
-                cookieScalarText(item.opt("value"))?.let { add("$name=$it") }
+                val name = item.optString("name", "").trim()
+                val value = item.optString("value", "").trim()
+                if (name.isNotBlank() && value.isNotBlank()) list += "$name=$value"
             }
+            list.takeIf { it.isNotEmpty() }
         }
-    }
-    return null
-}
-
-/** Cookie 值只接受标量（字符串/数字/布尔）：null、嵌套对象、数组都跳过 */
-private fun cookieScalarText(value: Any?): String? = when (value) {
-    is String -> value
-    is Number -> value.toString()
-    is Boolean -> if (value) "true" else "false"
-    else -> null
+    }.getOrNull()
 }

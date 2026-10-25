@@ -77,7 +77,7 @@ import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.Surface
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
-import top.yukonga.miuix.kmp.overlay.OverlayDialog
+import top.yukonga.miuix.kmp.window.WindowDialog
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /** 公告的共享元素 key：列表项（源）与详情页容器（目标）必须用同一个 key，形变才会发生 */
@@ -451,8 +451,8 @@ internal fun AnnouncementUnreadBadge(count: Int, modifier: Modifier = Modifier) 
  * 启动弹窗：展示「未读的置顶公告」，没有置顶则展示「最新的一条未读」（候选逻辑见
  * `AnnouncementViewModel.pickPopupCandidate`）。
  *
- * 用居中弹窗（miuix `OverlayDialog`）而不是底部弹窗：它需要被明确看到（置顶公告相当于官方通知），
- * 也与「发现新版本」的更新弹窗（UpdateDialog）在观感上区分开。
+ * 用居中弹窗（miuix `WindowDialog`）而不是底部弹窗：它需要被明确看到（置顶公告相当于官方通知），
+ * 脱离 Scaffold 作用域直接以原生 Window 居中弹出，保证在任何覆盖层之上都能正常展示。
  * 两个出口都算已读：点「查看详情」进详情页、点「知道了」/ 点空白关掉。
  */
 @Composable
@@ -467,11 +467,11 @@ fun AnnouncementPopupDialog(
         relativeTime(announcement.effectiveMillis).takeIf { it.isNotBlank() }
     ).joinToString(" · ")
 
-    // OverlayDialog 需要 Boolean 的 show 状态：本弹窗「被组合即在展示」（是否弹出由调用方
+    // WindowDialog 需要 Boolean 的 show 状态：本弹窗「被组合即在展示」（是否弹出由调用方
     // 持有的 announcement 决定），这里用本地状态镜像它，收起时置 false 走组件自己的退场。
     var show by remember { mutableStateOf(true) }
 
-    OverlayDialog(
+    WindowDialog(
         show = show,
         title = announcement.title,
         onDismissRequest = {

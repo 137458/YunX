@@ -225,7 +225,7 @@ import com.yunx.app.ui.viewmodel.Pan115CloudViewModel
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.TextField
-import top.yukonga.miuix.kmp.overlay.OverlayDialog
+import top.yukonga.miuix.kmp.window.WindowDialog
 
 /** 提示条避让：在底栏的内容避让之上再抬一点，避免提示条贴着底栏上沿。 */
 private val SnackbarExtraBottomMargin = 8.dp
@@ -1483,7 +1483,7 @@ fun MainScreen(
         var passwordVisible by remember { mutableStateOf(false) }
         // 校验失败提示，修改输入即清除
         var tokenError by remember { mutableStateOf<String?>(null) }
-        OverlayDialog(
+        WindowDialog(
             show = true,
             title = "GitHub Token",
             onDismissRequest = { showGitHubTokenDialog = false }
@@ -1595,7 +1595,7 @@ fun MainScreen(
 
     // 清除 GitHub Token 二次确认（网盘页更多菜单）
     if (showGitHubClearConfirm) {
-        OverlayDialog(
+        WindowDialog(
             show = true,
             title = "清除 GitHub Token？",
             onDismissRequest = { showGitHubClearConfirm = false }

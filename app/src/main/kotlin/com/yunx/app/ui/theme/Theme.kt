@@ -149,9 +149,8 @@ fun ComposeEmptyActivityTheme(
         // 控制器解析后的实际方案（动态取色与种子色都在这一步生效）
         val baseColors = MiuixTheme.colorScheme
         // AMOLED：Monet 动态取色模式下 ThemeController 会忽略传入的 darkColors，
-        // 所以这里基于实际方案再叠一层纯黑，并用公开的 MiuixTheme(colors = ...) 重载重新注入。
-        // 注意以「实际取到的颜色值」而不是 Colors 对象身份做 key：MiuixTheme 内部的 Colors
-        // 是原地更新的（身份不变、内容会变），用对象身份会缓存到过期快照。
+        // 这里仅在 AMOLED 且深色模式时对 baseColors 叠加纯黑，并通过 LocalColors 精准覆盖，
+        // 避免嵌套第二层 MiuixTheme 导致反模式与重复提供全局对象。
         val colors = remember(
             baseColors.background,
             baseColors.surface,
@@ -164,68 +163,75 @@ fun ComposeEmptyActivityTheme(
         ) {
             if (isAmoled && isDark) amoledColors(baseColors) else baseColors
         }
-        MiuixTheme(colors = colors) {
-            val md3Colors = remember(colors, isDark) {
-                val primary = colors.primary
-                val onPrimary = colors.onPrimary
-                val surface = colors.surface
-                val onSurface = colors.onSurface
-                val background = colors.background
-                val onBackground = colors.onBackground
-                val surfaceVariant = colors.surfaceVariant
-                val onSurfaceVariant = colors.onSurfaceSecondary
-                val outline = colors.dividerLine
-                val error = colors.error
-                val onError = colors.onError
 
-                if (isDark) {
-                    darkColorScheme(
-                        primary = primary,
-                        onPrimary = onPrimary,
-                        primaryContainer = colors.primaryContainer,
-                        onPrimaryContainer = colors.onPrimaryContainer,
-                        secondary = primary,
-                        onSecondary = onPrimary,
-                        surface = surface,
-                        onSurface = onSurface,
-                        surfaceVariant = surfaceVariant,
-                        onSurfaceVariant = onSurfaceVariant,
-                        background = background,
-                        onBackground = onBackground,
-                        outline = outline,
-                        error = error,
-                        onError = onError
-                    )
-                } else {
-                    lightColorScheme(
-                        primary = primary,
-                        onPrimary = onPrimary,
-                        primaryContainer = colors.primaryContainer,
-                        onPrimaryContainer = colors.onPrimaryContainer,
-                        secondary = primary,
-                        onSecondary = onPrimary,
-                        surface = surface,
-                        onSurface = onSurface,
-                        surfaceVariant = surfaceVariant,
-                        onSurfaceVariant = onSurfaceVariant,
-                        background = background,
-                        onBackground = onBackground,
-                        outline = outline,
-                        error = error,
-                        onError = onError
-                    )
-                }
+        val md3Colors = remember(colors, isDark) {
+            val primary = colors.primary
+            val onPrimary = colors.onPrimary
+            val surface = colors.surface
+            val onSurface = colors.onSurface
+            val background = colors.background
+            val onBackground = colors.onBackground
+            val surfaceVariant = colors.surfaceVariant
+            val onSurfaceVariant = colors.onSurfaceSecondary
+            val outline = colors.dividerLine
+            val error = colors.error
+            val onError = colors.onError
+
+            if (isDark) {
+                darkColorScheme(
+                    primary = primary,
+                    onPrimary = onPrimary,
+                    primaryContainer = colors.primaryContainer,
+                    onPrimaryContainer = colors.onPrimaryContainer,
+                    secondary = primary,
+                    onSecondary = onPrimary,
+                    surface = surface,
+                    onSurface = onSurface,
+                    surfaceVariant = surfaceVariant,
+                    onSurfaceVariant = onSurfaceVariant,
+                    background = background,
+                    onBackground = onBackground,
+                    outline = outline,
+                    error = error,
+                    onError = onError
+                )
+            } else {
+                lightColorScheme(
+                    primary = primary,
+                    onPrimary = onPrimary,
+                    primaryContainer = colors.primaryContainer,
+                    onPrimaryContainer = colors.onPrimaryContainer,
+                    secondary = primary,
+                    onSecondary = onPrimary,
+                    surface = surface,
+                    onSurface = onSurface,
+                    surfaceVariant = surfaceVariant,
+                    onSurfaceVariant = onSurfaceVariant,
+                    background = background,
+                    onBackground = onBackground,
+                    outline = outline,
+                    error = error,
+                    onError = onError
+                )
             }
+        }
 
-            CompositionLocalProvider(
-                LocalNavigationEventDispatcherOwner provides navOwner
-            ) {
+        val contentWrapper = @Composable {
+            CompositionLocalProvider(LocalNavigationEventDispatcherOwner provides navOwner) {
                 MaterialTheme(
                     colorScheme = md3Colors,
                     typography = Typography,
                     content = content
                 )
             }
+        }
+
+        if (isAmoled && isDark) {
+            MiuixTheme(colors = colors) {
+                contentWrapper()
+            }
+        } else {
+            contentWrapper()
         }
     }
 }

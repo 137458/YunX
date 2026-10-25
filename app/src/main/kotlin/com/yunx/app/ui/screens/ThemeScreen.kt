@@ -282,38 +282,21 @@ fun ThemeScreen(
                     .fillMaxWidth()
                     .padding(bottom = 16.dp)
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    // 动态色彩开关（仅 Android 12+）
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = "动态色彩",
-                                    style = MiuixTheme.textStyles.subtitle,
-                                    color = MiuixTheme.colorScheme.onSurface
-                                )
-                                Text(
-                                    text = "从系统壁纸自动取色",
-                                    style = MiuixTheme.textStyles.body2,
-                                    color = MiuixTheme.colorScheme.onSurfaceSecondary
-                                )
-                            }
-                            Switch(
-                                checked = AppThemeManager.colorMode == 0,
-                                onCheckedChange = { on ->
-                                    AppThemeManager.setColorMode(context, if (on) 0 else 1)
-                                }
-                            )
+                // 动态色彩开关（仅 Android 12+）：Miuix 规范使用 SwitchPreference
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    SwitchPreference(
+                        title = "动态色彩",
+                        summary = "从系统壁纸自动取色",
+                        checked = AppThemeManager.colorMode == 0,
+                        onCheckedChange = { on ->
+                            AppThemeManager.setColorMode(context, if (on) 0 else 1)
                         }
-                    }
+                    )
+                }
 
-                    // 主题色选择（动态色彩开启时折叠）
-                    AnimatedVisibility(visible = effectiveColorMode != 0) {
-                        Column(modifier = Modifier.padding(top = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) 16.dp else 0.dp)) {
+                // 主题色选择（动态色彩开启时折叠）
+                AnimatedVisibility(visible = effectiveColorMode != 0) {
+                    Column(modifier = Modifier.padding(16.dp)) {
                             Text(
                                 text = "推荐颜色",
                                 style = MiuixTheme.textStyles.body2,
@@ -349,7 +332,6 @@ fun ThemeScreen(
                             }
                         }
                     }
-                }
             }
 
             // ---------- 底部导航栏 ----------

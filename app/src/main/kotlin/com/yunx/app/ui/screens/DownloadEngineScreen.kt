@@ -89,7 +89,6 @@ import kotlinx.coroutines.withContext
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.CircularProgressIndicator
 import top.yukonga.miuix.kmp.basic.Card
-import top.yukonga.miuix.kmp.basic.HorizontalDivider
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.Scaffold
@@ -343,44 +342,37 @@ fun DownloadEngineScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
                     modifier = Modifier.fillMaxWidth(),
                     cornerRadius = 20.dp
                 ) {
-                    Column(modifier = Modifier.fillMaxWidth()) {
-                        // ---------- 第 1 段：内置分片下载器 ----------
-                        Column(
-                            modifier = Modifier.fillMaxWidth().padding(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            EngineSectionHeader(
-                                icon = Icons.Outlined.Download,
-                                title = "内置分片下载器",
-                                badge = null,
-                                highlighted = !engineOn
-                            )
-                            Text(
-                                "项目自带的下载器：按网盘分片并发、断点续传，保存位置走系统 SAF / MediaStore" +
-                                    "（Android 10+ 不需要任何存储权限）。",
-                                style = MiuixTheme.textStyles.footnote1,
-                                color = MiuixTheme.colorScheme.onSurfaceVariantSummary
-                            )
-                            EngineActionButton(
-                                selected = !engineOn,
-                                icon = Icons.Outlined.SwapHoriz,
-                                label = if (engineOn) "切换到此引擎" else "使用中",
-                                enabled = engineOn,
-                                onClick = { chooseEngine(SettingsRepository.ENGINE_BUILTIN) }
-                            )
-                        }
-
-                        HorizontalDivider(
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            thickness = 1.dp,
-                            color = MiuixTheme.colorScheme.dividerLine
+                    // ---------- 第 1 段：内置分片下载器 ----------
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        EngineSectionHeader(
+                            icon = Icons.Outlined.Download,
+                            title = "内置分片下载器",
+                            badge = null,
+                            highlighted = !engineOn
                         )
+                        Text(
+                            "项目自带的下载器：按网盘分片并发、断点续传，保存位置走系统 SAF / MediaStore" +
+                                "（Android 10+ 不需要任何存储权限）。",
+                            style = MiuixTheme.textStyles.footnote1,
+                            color = MiuixTheme.colorScheme.onSurfaceVariantSummary
+                        )
+                        EngineActionButton(
+                            selected = !engineOn,
+                            icon = Icons.Outlined.SwapHoriz,
+                            label = if (engineOn) "切换到此引擎" else "使用中",
+                            enabled = engineOn,
+                            onClick = { chooseEngine(SettingsRepository.ENGINE_BUILTIN) }
+                        )
+                    }
 
-                        // ---------- 第 2 段：Gopeed 引擎 ----------
-                        Column(
-                            modifier = Modifier.fillMaxWidth().padding(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
+                    // ---------- 第 2 段：Gopeed 引擎 ----------
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
                             EngineSectionHeader(
                                 icon = Icons.Outlined.SwapHoriz,
                                 title = "Gopeed 引擎",
@@ -589,7 +581,6 @@ fun DownloadEngineScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
                                 }
                             }
                         }
-                    }
                 }
             }
         }
