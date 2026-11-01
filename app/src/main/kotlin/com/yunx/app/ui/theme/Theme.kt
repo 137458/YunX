@@ -143,95 +143,85 @@ fun ComposeEmptyActivityTheme(
         )
     }
 
-    // 2. 将 MiuixTheme 作为唯一色彩根，并派生兼容 MaterialTheme
-    MiuixTheme(controller = miuixController) {
-        val navOwner = rememberNavigationEventDispatcherOwner(parent = null)
-        // 控制器解析后的实际方案（动态取色与种子色都在这一步生效）
-        val baseColors = MiuixTheme.colorScheme
-        // AMOLED：Monet 动态取色模式下 ThemeController 会忽略传入的 darkColors，
-        // 这里仅在 AMOLED 且深色模式时对 baseColors 叠加纯黑，并通过 LocalColors 精准覆盖，
-        // 避免嵌套第二层 MiuixTheme 导致反模式与重复提供全局对象。
-        val colors = remember(
-            baseColors.background,
-            baseColors.surface,
-            baseColors.surfaceVariant,
-            baseColors.surfaceContainer,
-            baseColors.surfaceContainerHigh,
-            baseColors.surfaceContainerHighest,
-            isAmoled,
-            isDark
-        ) {
-            if (isAmoled && isDark) amoledColors(baseColors) else baseColors
-        }
+    // 2. 在根层解析 Miuix 实际色彩方案（Monet 动态取色、种子色在此阶段求值）
+    val baseColors = miuixController.currentColors()
+    // AMOLED：在 AMOLED 且深色模式下，将背景与主要表面压到纯黑
+    val colors = remember(
+        baseColors.background,
+        baseColors.surface,
+        baseColors.surfaceVariant,
+        baseColors.surfaceContainer,
+        baseColors.surfaceContainerHigh,
+        baseColors.surfaceContainerHighest,
+        isAmoled,
+        isDark
+    ) {
+        if (isAmoled && isDark) amoledColors(baseColors) else baseColors
+    }
 
-        val md3Colors = remember(colors, isDark) {
-            val primary = colors.primary
-            val onPrimary = colors.onPrimary
-            val surface = colors.surface
-            val onSurface = colors.onSurface
-            val background = colors.background
-            val onBackground = colors.onBackground
-            val surfaceVariant = colors.surfaceVariant
-            val onSurfaceVariant = colors.onSurfaceSecondary
-            val outline = colors.dividerLine
-            val error = colors.error
-            val onError = colors.onError
+    val md3Colors = remember(colors, isDark) {
+        val primary = colors.primary
+        val onPrimary = colors.onPrimary
+        val surface = colors.surface
+        val onSurface = colors.onSurface
+        val background = colors.background
+        val onBackground = colors.onBackground
+        val surfaceVariant = colors.surfaceVariant
+        val onSurfaceVariant = colors.onSurfaceSecondary
+        val outline = colors.dividerLine
+        val error = colors.error
+        val onError = colors.onError
 
-            if (isDark) {
-                darkColorScheme(
-                    primary = primary,
-                    onPrimary = onPrimary,
-                    primaryContainer = colors.primaryContainer,
-                    onPrimaryContainer = colors.onPrimaryContainer,
-                    secondary = primary,
-                    onSecondary = onPrimary,
-                    surface = surface,
-                    onSurface = onSurface,
-                    surfaceVariant = surfaceVariant,
-                    onSurfaceVariant = onSurfaceVariant,
-                    background = background,
-                    onBackground = onBackground,
-                    outline = outline,
-                    error = error,
-                    onError = onError
-                )
-            } else {
-                lightColorScheme(
-                    primary = primary,
-                    onPrimary = onPrimary,
-                    primaryContainer = colors.primaryContainer,
-                    onPrimaryContainer = colors.onPrimaryContainer,
-                    secondary = primary,
-                    onSecondary = onPrimary,
-                    surface = surface,
-                    onSurface = onSurface,
-                    surfaceVariant = surfaceVariant,
-                    onSurfaceVariant = onSurfaceVariant,
-                    background = background,
-                    onBackground = onBackground,
-                    outline = outline,
-                    error = error,
-                    onError = onError
-                )
-            }
-        }
-
-        val contentWrapper = @Composable {
-            CompositionLocalProvider(LocalNavigationEventDispatcherOwner provides navOwner) {
-                MaterialTheme(
-                    colorScheme = md3Colors,
-                    typography = Typography,
-                    content = content
-                )
-            }
-        }
-
-        if (isAmoled && isDark) {
-            MiuixTheme(colors = colors) {
-                contentWrapper()
-            }
+        if (isDark) {
+            darkColorScheme(
+                primary = primary,
+                onPrimary = onPrimary,
+                primaryContainer = colors.primaryContainer,
+                onPrimaryContainer = colors.onPrimaryContainer,
+                secondary = primary,
+                onSecondary = onPrimary,
+                surface = surface,
+                onSurface = onSurface,
+                surfaceVariant = surfaceVariant,
+                onSurfaceVariant = onSurfaceVariant,
+                background = background,
+                onBackground = onBackground,
+                outline = outline,
+                error = error,
+                onError = onError
+            )
         } else {
-            contentWrapper()
+            lightColorScheme(
+                primary = primary,
+                onPrimary = onPrimary,
+                primaryContainer = colors.primaryContainer,
+                onPrimaryContainer = colors.onPrimaryContainer,
+                secondary = primary,
+                onSecondary = onPrimary,
+                surface = surface,
+                onSurface = onSurface,
+                surfaceVariant = surfaceVariant,
+                onSurfaceVariant = onSurfaceVariant,
+                background = background,
+                onBackground = onBackground,
+                outline = outline,
+                error = error,
+                onError = onError
+            )
+        }
+    }
+
+    // 3. 将 MiuixTheme 作为唯一全局主题根节点，单根传递最终 colors，彻底消除双层嵌套
+    MiuixTheme(colors = colors) {
+        val navOwner = rememberNavigationEventDispatcherOwner(parent = null)
+        CompositionLocalProvider(
+            LocalNavigationEventDispatcherOwner provides navOwner
+        ) {
+            MaterialTheme(
+                colorScheme = md3Colors,
+                typography = Typography,
+                content = content
+            )
         }
     }
 }

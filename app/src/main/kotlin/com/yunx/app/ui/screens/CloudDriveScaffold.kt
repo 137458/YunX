@@ -49,8 +49,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.outlined.CreateNewFolder
 import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.Upload
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -100,6 +103,7 @@ import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.basic.TextField
 import top.yukonga.miuix.kmp.basic.rememberPullToRefreshState
+import top.yukonga.miuix.kmp.overlay.OverlayBottomSheet
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.window.WindowDialog
 
@@ -133,6 +137,10 @@ internal fun CloudDriveScaffold(
     multiSelectActions: List<MultiSelectAction>,
     /** 批量操作执行中：禁用多选工具栏按钮，防止连点重复入队 */
     multiSelectBusy: Boolean = false,
+    /** 点「+」→「新建文件夹」；与 [onUploadFile] 同为 null 时不显示「+」入口 */
+    onCreateFolder: ((String) -> Unit)? = null,
+    /** 点「+」→「上传文件」（选文件器由调用方弹，选中后回调）；null 时该项不显示 */
+    onUploadFile: (() -> Unit)? = null,
     listState: LazyListState = rememberLazyListState(),
     scrollPositions: MutableMap<String, Int> = remember { mutableStateMapOf() },
     modifier: Modifier = Modifier
@@ -142,6 +150,9 @@ internal fun CloudDriveScaffold(
 
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var showSearch by rememberSaveable { mutableStateOf(false) }
+    // 「+」菜单与「新建文件夹」输入弹窗的开合状态
+    var showAddMenu by remember { mutableStateOf(false) }
+    var showCreateFolder by remember { mutableStateOf(false) }
 
     // 搜索过滤放到 Default 调度器并做 120ms 防抖：云盘目录动辄上千条，
     // 在组合期同步 filter 会让每次输入都掉帧。
@@ -236,6 +247,16 @@ internal fun CloudDriveScaffold(
                                         style = MiuixTheme.textStyles.footnote1,
                                         color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                                     )
+                                }
+                                // 「+」：新建文件夹 / 上传文件（与上游各平台页的位置一致，放在搜索左边）
+                                if (onCreateFolder != null || onUploadFile != null) {
+                                    IconButton(onClick = { showAddMenu = true }) {
+                                        Icon(
+                                            imageVector = Icons.Filled.Add,
+                                            contentDescription = "新建或上传",
+                                            tint = MiuixTheme.colorScheme.onSurface
+                                        )
+                                    }
                                 }
                                 IconButton(onClick = { showSearch = !showSearch }) {
                                     Icon(
@@ -365,6 +386,55 @@ internal fun CloudDriveScaffold(
         ) {
             MultiSelectBar(actions = multiSelectActions, busy = multiSelectBusy)
         }
+
+        // 「+」菜单：新建文件夹 / 上传文件（底部抽屉，与文件操作抽屉同一套视觉）
+        if (showAddMenu) {
+            OverlayBottomSheet(show = true, onDismissRequest = { showAddMenu = false }) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 24.dp, end = 24.dp, top = 4.dp, bottom = 32.dp)
+                ) {
+                    if (onCreateFolder != null) {
+                        CloudActionItem(
+                            icon = Icons.Outlined.CreateNewFolder,
+                            title = "新建文件夹",
+                            desc = "在当前目录下创建新文件夹",
+                            tint = MiuixTheme.colorScheme.primary,
+                            onClick = {
+                                showAddMenu = false
+                                showCreateFolder = true
+                            }
+                        )
+                    }
+                    if (onUploadFile != null) {
+                        CloudActionItem(
+                            icon = Icons.Outlined.Upload,
+                            title = "上传文件",
+                            desc = "从本机选择文件上传到当前目录",
+                            tint = MiuixTheme.colorScheme.primary,
+                            onClick = {
+                                showAddMenu = false
+                                onUploadFile()
+                            }
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    // 「新建文件夹」输入弹窗：复用重命名弹窗，只改标题与占位文案
+    val createFolder = onCreateFolder
+    if (createFolder != null) {
+        CloudDriveRenameDialog(
+            show = showCreateFolder,
+            initialName = "",
+            onConfirm = { name -> createFolder(name) },
+            onDismiss = { showCreateFolder = false },
+            title = "新建文件夹",
+            label = "文件夹名称"
+        )
     }
 }
 
@@ -502,14 +572,18 @@ fun CloudDriveRenameDialog(
     show: Boolean,
     initialName: String,
     onConfirm: (String) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    /** 弹窗标题；新建文件夹时传「新建文件夹」即可复用本弹窗 */
+    title: String = "重命名",
+    /** 输入框占位文案 */
+    label: String = "新文件名",
 ) {
     if (!show) return
     var name by remember(initialName) { mutableStateOf(initialName) }
     WindowDialog(
         show = show,
         onDismissRequest = onDismiss,
-        title = "重命名"
+        title = title
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             TextField(
@@ -518,7 +592,7 @@ fun CloudDriveRenameDialog(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 16.dp),
-                label = "新文件名",
+                label = label,
                 useLabelAsPlaceholder = true,
                 singleLine = true
             )

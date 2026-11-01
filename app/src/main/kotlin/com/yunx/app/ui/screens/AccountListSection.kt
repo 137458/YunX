@@ -33,8 +33,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.outlined.MoreVert
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -46,13 +44,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.yunx.app.data.db.MultiAccountEntity
-import com.yunx.app.ui.AppSnackbarHost
-import com.yunx.app.ui.rememberGlobalSnackbarHostState
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.DropdownImpl
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.ListPopupColumn
 import top.yukonga.miuix.kmp.basic.SmallTitle
 import top.yukonga.miuix.kmp.basic.Surface
 import top.yukonga.miuix.kmp.basic.Text
@@ -60,6 +58,7 @@ import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.basic.TextField
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.window.WindowDialog
+import top.yukonga.miuix.kmp.window.WindowListPopup
 
 /**
  * 账号列表（多账号）：同一平台的多个账号、设主账号 / 改备注 / 退出，以及「添加账号」。
@@ -127,7 +126,7 @@ internal fun AccountListSection(
 
 /** 单条账号：昵称/备注 + 主账号徽标（点整行可切换），右侧菜单改名 / 退出 */
 @Composable
-private fun AccountRow(
+internal fun AccountRow(
     account: MultiAccountEntity,
     onSetPrimary: (String) -> Unit,
     onRename: (String, String) -> Unit,
@@ -182,21 +181,32 @@ private fun AccountRow(
                     tint = MiuixTheme.colorScheme.onSurfaceSecondary
                 )
             }
-            DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
-                DropdownMenuItem(
-                    text = { Text("重命名备注", style = MiuixTheme.textStyles.body1) },
-                    onClick = {
-                        menuExpanded = false
-                        showRename = true
-                    }
-                )
-                DropdownMenuItem(
-                    text = { Text("退出该账号", style = MiuixTheme.textStyles.body1) },
-                    onClick = {
-                        menuExpanded = false
-                        showRemove = true
-                    }
-                )
+            WindowListPopup(
+                show = menuExpanded,
+                onDismissRequest = { menuExpanded = false }
+            ) {
+                ListPopupColumn {
+                    DropdownImpl(
+                        text = "重命名备注",
+                        optionSize = 2,
+                        isSelected = false,
+                        index = 0,
+                        onSelectedIndexChange = {
+                            menuExpanded = false
+                            showRename = true
+                        }
+                    )
+                    DropdownImpl(
+                        text = "退出该账号",
+                        optionSize = 2,
+                        isSelected = false,
+                        index = 1,
+                        onSelectedIndexChange = {
+                            menuExpanded = false
+                            showRemove = true
+                        }
+                    )
+                }
             }
         }
     }
@@ -220,7 +230,7 @@ private fun AccountRow(
                     singleLine = true
                 )
                 Text(
-                    text = "同一网盘登录多个账号时，备注能帮你区分（清空备注则显示昵称）。",
+                    text = "同一平台登录多个账号时，备注能帮你区分（清空备注则显示昵称）。",
                     style = MiuixTheme.textStyles.footnote1,
                     color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                     modifier = Modifier.padding(bottom = 16.dp)
@@ -245,7 +255,6 @@ private fun AccountRow(
                     }
                 }
             }
-            AppSnackbarHost(rememberGlobalSnackbarHostState())
         }
     }
 
@@ -285,7 +294,6 @@ private fun AccountRow(
                     }
                 }
             }
-            AppSnackbarHost(rememberGlobalSnackbarHostState())
         }
     }
 }

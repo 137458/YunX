@@ -39,6 +39,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import com.yunx.app.ui.SnackbarController
 import com.yunx.app.ui.items.MultiSelectAction
 import com.yunx.app.ui.resolve.DownloadLinkDialog
@@ -62,6 +63,8 @@ fun CloudDriveScreen(
     modifier: Modifier = Modifier
 ) {
     val state by viewModel.uiState.collectAsState()
+    // 上传要读 ContentResolver：共享层只回传选中的 uri，实际读取由 ViewModel 完成
+    val context = LocalContext.current
 
     // 系统返回键：多选模式下先退出多选；否则子目录返回上一级，根目录返回账号列表
     BackHandler {
@@ -80,6 +83,13 @@ fun CloudDriveScreen(
     var batchInitial by remember { mutableStateOf(BatchStep.MENU) }
     // 批量删除二次确认
     var showDeleteConfirm by remember { mutableStateOf(false) }
+    // 「+」菜单的「新建文件夹」弹窗（上传项由 pickUpload 直接拉起系统选文件器）
+    var showCreateFolder by remember { mutableStateOf(false) }
+
+    // 「+」菜单的上传：系统多选文件 → 交给 ViewModel 依次上传到当前目录
+    val pickUpload = rememberUploadPicker { uris ->
+        viewModel.uploadFiles(context.contentResolver, uris)
+    }
 
     // 操作结果 Toast
     LaunchedEffect(viewModel.cloudMessage) {
@@ -185,7 +195,10 @@ fun CloudDriveScreen(
                         onFileMoreClick = { file -> viewModel.openActions(file) },
                         onFileLongClick = { file -> viewModel.enterMultiSelect(file) },
                         multiSelectActions = multiSelectActions,
-                        scrollPositions = scrollPositions
+                        scrollPositions = scrollPositions,
+                        // 上传 / 新建文件夹：弹窗与系统选文件器都由 CloudDriveScaffold 内部处理，这里只接 VM
+                        onCreateFolder = { name -> viewModel.createFolder(name) },
+                        onUploadFile = pickUpload
                     )
                 }
             }
@@ -197,7 +210,8 @@ fun CloudDriveScreen(
         FileActionSheet(
             file = file,
             viewModel = viewModel,
-            onDismiss = { viewModel.dismissActions() }
+            onDismiss = { viewModel.dismissActions() },
+            onPreview = { viewModel.openPreview() }
         )
     }
 
@@ -218,4 +232,9 @@ fun CloudDriveScreen(
         message = "确定要删除选中的 ${viewModel.selected.size} 项吗？删除后将移入回收站。",
         onConfirm = { viewModel.deleteSelected() }
     )
+
+    // 上传进度弹窗：点外部不关闭，「取消」会打断正在发的那一段
+    viewModel.uploadProgress?.let { progress ->
+        UploadProgressDialog(progress = progress, onCancel = { viewModel.cancelUpload() })
+    }
 }

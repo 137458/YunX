@@ -159,6 +159,12 @@ fun BaiduCloudScreen(
                 proceed()
             }
         },
+        // 上传 / 新建文件夹 / 在线预览：弹窗与系统选文件器都在共享层内部，这里只接 VM
+        onCreateFolder = { name -> viewModel.createFolder(name) },
+        onUploadFiles = { uris -> viewModel.uploadFiles(context.contentResolver, uris) },
+        uploadProgress = viewModel.uploadProgress,
+        onCancelUpload = { viewModel.cancelUpload() },
+        onPreview = { viewModel.openPreview() },
         modifier = modifier
     )
 

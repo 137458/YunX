@@ -20,15 +20,18 @@ package com.yunx.app.ui.login
 
 import android.webkit.CookieManager
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.ContentPaste
@@ -39,7 +42,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.yunx.app.data.network.BaiduConstants
@@ -49,6 +54,7 @@ import com.yunx.app.ui.viewmodel.BaiduAccountViewModel
 import kotlinx.coroutines.launch
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
+import top.yukonga.miuix.kmp.basic.Checkbox
 import top.yukonga.miuix.kmp.basic.CircularProgressIndicator
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
@@ -82,6 +88,8 @@ fun BaiduLoginScreen(
     var showTutorial by remember { mutableStateOf(false) }
     // 进入登录页先弹风控提示，确认后再弹登录教程（避免两个弹窗叠层）
     var showRiskDialog by remember { mutableStateOf(true) }
+    // 风控提示必须勾选「已阅读」才能继续（未勾选时「继续」不可点、点外部也关不掉）
+    var riskAcknowledged by remember { mutableStateOf(false) }
 
     // 统一 WebView：关闭文件访问 / 禁止混合内容 / 允许第三方 Cookie / 错误与超时回调 / 失败重试
     val controller = rememberLoginWebView(
@@ -193,10 +201,11 @@ fun BaiduLoginScreen(
         }
 
         // 风控温馨提示弹窗（进入登录页优先展示）
+        // 上游 v1.3.1 起：必须勾选「我已阅读并了解上述风险」才能继续，且不允许点外部/返回键关闭
         OverlayDialog(
             show = showRiskDialog,
-            title = "温馨提示",
-            onDismissRequest = { showRiskDialog = false }
+            title = "使用前请阅读",
+            onDismissRequest = {}
         ) {
             Column(
                 modifier = Modifier.padding(bottom = 16.dp),
@@ -208,18 +217,43 @@ fun BaiduLoginScreen(
                     color = MiuixTheme.colorScheme.onSurface
                 )
                 Text(
-                    text = "请勿高频操作（频繁解析/转存/下载），如遇异常建议降低使用频率或稍后再试。",
+                    text = "以下情况通常都是风控导致，不是软件故障：\n· 获取 bdstoken 失败\n· 个人网盘文件列表加载不出来",
                     style = MiuixTheme.textStyles.body2,
                     color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                 )
+                Text(
+                    text = "请勿高频操作（频繁解析/转存/下载/上传），如遇异常建议降低使用频率或稍后再试。",
+                    style = MiuixTheme.textStyles.body2,
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary
+                )
+                // 勾选行整行可点（只点小方框对小屏不友好）
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { riskAcknowledged = !riskAcknowledged }
+                        .padding(vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Checkbox(
+                        state = ToggleableState(riskAcknowledged),
+                        onClick = { riskAcknowledged = !riskAcknowledged }
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "我已阅读并了解上述风险",
+                        style = MiuixTheme.textStyles.body2,
+                        color = MiuixTheme.colorScheme.onSurface
+                    )
+                }
             }
             TextButton(
-                text = "我知道了",
+                text = "继续",
                 onClick = {
                     showRiskDialog = false
                     showTutorial = true
                 },
                 modifier = Modifier.fillMaxWidth(),
+                enabled = riskAcknowledged,
                 colors = ButtonDefaults.textButtonColorsPrimary()
             )
         }

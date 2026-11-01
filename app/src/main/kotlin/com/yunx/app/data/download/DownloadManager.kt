@@ -21,6 +21,7 @@ package com.yunx.app.data.download
 import android.content.Context
 import android.util.Log
 import com.yunx.app.util.DiagnosticLog
+import com.yunx.app.util.DownloadFileNames
 import com.yunx.app.util.LogRedactor
 import com.yunx.app.data.db.DownloadTaskDao
 import com.yunx.app.data.db.DownloadTaskEntity
@@ -705,6 +706,11 @@ class DownloadManager(
          * 带动图的任务同样**强制走内置下载器**（引擎不支持合成）。
          */
         motionUrl: String = "",
+        /**
+         * **只要音频**：下完整个视频后把音轨抽出来，产物是 `.m4a`（见 `AudioExtractor`）。
+         * [fileName] 应当已经是 `.m4a` 名字。带这个标记的任务**强制走内置下载器**（引擎没有后处理能力）。
+         */
+        audioOnly: Boolean = false,
         /** 下载成功完成后的清理回调（如删除网盘临时转存文件）；失败/取消不触发。
          * 注意：必须是最后一个参数（调用点有大量尾随 lambda 用法，放它之后会编译失败）。 */
         onComplete: suspend () -> Unit = {}
@@ -714,7 +720,7 @@ class DownloadManager(
         val taskPlatform = if (isMagnet) DownloadPlatform.MAGNET else platform
         // 文件名兜底：空白时从 URL 推导，避免保存时变成时间戳。
         // 磁力链接走 dn= 里自带的显示名（元数据到手后再换成真正的种子名，见 completeEngineTask）
-        val safeName = fileName.ifBlank {
+        val rawName = fileName.ifBlank {
             if (isMagnet) {
                 MagnetLink.displayName(url)
             } else {
@@ -722,6 +728,10 @@ class DownloadManager(
                     .ifBlank { "download_${System.currentTimeMillis()}" }
             }
         }
+        // ★ 全应用唯一的文件名归一化点（issue #215）：任务文件名都从这里进库，所以内置下载器与
+        //   Gopeed 引擎两条路径一起修。上游会把「同名冲突」写成 `x.apk (1)`（后缀被顶到最后，
+        //   系统按末尾后缀认类型 ⇒ 安装器打不开），也会把 MIME 兜底扩展名叠上去变成 `x.md.txt`。
+        val safeName = DownloadFileNames.normalize(rawName)
         Log.d(TAG, "enqueue: origin=${LogRedactor.url(url)} fileName=$safeName headers=${headers.keys} size=$size")
         val id = DiagnosticLog.dbOp("download_task", "insert", rowsOf = { 1 }) {
             dao.insert(
@@ -733,6 +743,7 @@ class DownloadManager(
                     mergeAudioUrl = mergeAudioUrl,
                     mergeAudioHeadersJson = if (mergeAudioUrl.isNotBlank()) encodeHeaders(mergeAudioHeaders) else "",
                     motionUrl = motionUrl,
+                    audioOnly = audioOnly,
                     platform = taskPlatform
                 )
             )
@@ -780,7 +791,11 @@ class DownloadManager(
             )
             return id
         }
-        if (shouldUseEngine(taskPlatform, needMerge = mergeAudioUrl.isNotBlank() || motionUrl.isNotBlank())) {
+        if (shouldUseEngine(
+                taskPlatform,
+                needMerge = mergeAudioUrl.isNotBlank() || motionUrl.isNotBlank() || audioOnly
+            )
+        ) {
             // 任务登记、下载页展示、完成清理回调都与内置下载器完全一致，只有「执行」交给 Gopeed 引擎
             startViaEngine(id, url, safeName, headers, taskPlatform)
         } else {
@@ -791,7 +806,7 @@ class DownloadManager(
 
     /**
      * 是否把任务交给 Gopeed 引擎：设置里选了引擎 + 引擎已导入；GitHub 走镜像回退（引擎不支持），
-     * **需要本地后处理的任务**（DASH 合轨、动图合成 —— 引擎都没有这些能力）也始终用内置下载器。
+     * **需要本地后处理的任务**（DASH 合轨、动图合成、抽取音轨 —— 引擎都没有这些能力）也始终用内置下载器。
      */
     private fun shouldUseEngine(platform: String, needMerge: Boolean = false): Boolean =
         !needMerge &&
@@ -1445,6 +1460,14 @@ class DownloadManager(
         // 下载调试：记下开始时的网络/电源环境（网络类型、信号、省电模式），后面靠看门狗检测「是否切换网络」
         if (DownloadDebugLog.isEnabled()) {
             DownloadDebugLog.record(id, "网络环境", DownloadDebugLog.environmentSnapshot(context))
+        }
+
+        // 仅下载音频：下完整段视频后抽出音轨写成 .m4a（见 AudioExtractor），不走 Range 分片
+        // ★ 必须排在合轨判断之前：DASH 任务也可能被要求「只要音频」，那时要下的是音轨而不是合轨
+        if (task.audioOnly) {
+            Log.d(TAG, "runTask: id=$id 仅音频 来源=${LogRedactor.url(task.url)}")
+            audioOnlyDownload(id, task, headers)
+            return
         }
 
         // DASH 分轨合轨（哔哩哔哩高清）：视频轨 + 音轨各自下载 → 合轨（DashMuxer），不走 Range 分片
@@ -2139,6 +2162,82 @@ class DownloadManager(
             _stats.update { it - id }
         } finally {
             // 成功、失败、取消一律清临时文件：几份完整轨道占的空间很可观
+            workDir.deleteRecursively()
+        }
+    }
+
+    /**
+     * 仅下载音频：下完整段视频 → 抽出音轨写成 `.m4a`（见 [AudioExtractor]）→ 保存 → 完成回调。
+     *
+     * ★ 为什么必须下整段视频：单文件平台（抖音/快手/小红书/微博）只下发**一条整段直链**，
+     *   音频样本在 mp4 里与视频样本交错存放，没有「只取音频」的请求方式；真要少下流量，只能靠
+     *   平台自己给出独立音轨（哔哩哔哩 DASH 那种由解析层直接下音轨，不走这个任务）。
+     * ★ 为什么产物统一 `.m4a`：[MediaMuxer] 只能写 MP4 容器，写不出 mp3；AAC 码流原样搬运，
+     *   音质与视频里的完全一致，且手机、电脑播放器都认这个后缀。
+     * ★ 与 [dashMergeDownload] 同样的取舍：**单连接流式下载**（不切片）、全程只在 cache 临时目录
+     *   操作、成功保存后才清理；任何一步失败都抛错，由上层落成带原因的失败任务，绝不把半个文件
+     *   当成品留在下载目录。
+     */
+    private suspend fun audioOnlyDownload(id: Long, task: DownloadTaskEntity, headers: Map<String, String>) {
+        if (!isTaskActive()) return
+        _stats.update { it + (id to DownloadStats(0L, -1L, 1)) }
+        val workDir = File(context.cacheDir, "audio_$id")
+        workDir.deleteRecursively()
+        if (!workDir.mkdirs()) throw IllegalStateException("无法创建抽音频临时目录")
+        val source = File(workDir, "source")
+        val audioFile = File(workDir, "audio.m4a")
+        val progress = AtomicLong(0L)
+        val lastAt = AtomicLong(0L)
+        val totalBytes = AtomicLong(0L)
+        val streamRecorder = SpeedRecorder()
+        try {
+            if (task.url.contains(".m3u8", true) || task.url.contains(".m3u", true)) {
+                // HLS（AcFun）：先把分片合成一个临时文件，再从它里面抽音轨
+                val downloaded = AtomicLong(0L)
+                val hlsLastAt = AtomicLong(0L)
+                val hlsOk = HlsDownloader.download(task.url, headers, source) { bytes ->
+                    speedLimiter.awaitAllow(bytes)
+                    val new = downloaded.addAndGet(bytes)
+                    persistProgressIfDue(id, new, 0, force = false, lastAt = hlsLastAt)
+                    notifyProgress(id, task.fileName, new, 0)
+                }
+                if (!hlsOk) throw IllegalStateException("HLS 转码流下载失败，无法提取音频")
+            } else {
+                streamUrlToFile(task.url, headers, source, id, task.fileName, progress, lastAt, totalBytes, streamRecorder)
+            }
+            // 抽取阶段单独报状态：此时下载进度已经是 100%，不说明的话用户看到的就是「下完了却不动」
+            val extractLastAt = AtomicLong(0L)
+            val extractOk = withContext(Dispatchers.IO) {
+                AudioExtractor.extract(source, audioFile) { percent ->
+                    val now = System.currentTimeMillis()
+                    if (now - extractLastAt.get() >= notifyThrottleMs) {
+                        extractLastAt.set(now)
+                        DownloadService.update(
+                            context, task.fileName, percent, DownloadService.AUDIO_TEXT, showSpeedProvider()
+                        )
+                    }
+                }
+            }
+            if (!extractOk) {
+                throw IllegalStateException("没有可提取的音轨（可能是静音视频，或音轨编码不受支持）")
+            }
+            // Android 9- 保存前检查存储权限（动态申请，授权后继续；无权限则报错提示）
+            if (!storagePermissionProvider()) {
+                throw IllegalStateException("未授予存储权限，无法保存到下载目录")
+            }
+            val savedPath = withContext(Dispatchers.IO) {
+                DownloadSaver.save(context, task.fileName, audioFile, saveDirProvider())
+            } ?: throw IllegalStateException("保存到下载目录失败")
+            val total = audioFile.length()
+            completeWithAvg(id, savedPath, total)
+            Log.d(TAG, "audioOnlyDownload: id=$id 抽取完成 savedPath=$savedPath size=$total")
+            DownloadService.notifyResult(
+                context, id, task.fileName, success = true, promote = showSpeedProvider()
+            )
+            taskCallbacks.remove(id)?.let { cb -> runCatching { cb() } }
+            _stats.update { it - id }
+        } finally {
+            // 成功、失败、取消一律清临时文件：源视频是完整文件，占的空间很可观
             workDir.deleteRecursively()
         }
     }

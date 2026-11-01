@@ -408,6 +408,20 @@ fun SettingsScreen(
                 .fillMaxWidth()
                 .padding(bottom = CardGap)
         ) {
+            // 上游 v1.3.1 新增「列表缩略图」：关掉后列表行退回文件图标，且不再向网盘发取图请求。
+            // 读 AppThemeManager 的 Compose 内存态（改动即时反映到已打开的文件列表），写回同一管理器做持久化。
+            SwitchPreference(
+                checked = AppThemeManager.cloudThumbnails,
+                onCheckedChange = { checked ->
+                    AppThemeManager.setCloudThumbnails(context, checked)
+                },
+                title = "列表缩略图",
+                summary = if (AppThemeManager.cloudThumbnails) {
+                    "图片文件在列表里显示小图（需要向网盘取图，会多花一点流量）"
+                } else {
+                    "已关闭，列表只显示文件图标（不发取图请求）"
+                }
+            )
             SwitchPreference(
                 checked = clipboardSuggest,
                 onCheckedChange = { checked ->

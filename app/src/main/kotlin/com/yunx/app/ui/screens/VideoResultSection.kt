@@ -18,6 +18,10 @@
 
 package com.yunx.app.ui.screens
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -36,9 +40,12 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.ContentCopy
+import androidx.compose.material.icons.outlined.MusicNote
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.runtime.Composable
@@ -46,12 +53,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -59,7 +68,9 @@ import androidx.compose.ui.unit.dp
 import com.yunx.app.data.network.video.VideoMedia
 import com.yunx.app.data.network.video.VideoMediaKind
 import com.yunx.app.data.network.video.VideoParseResult
+import com.yunx.app.ui.SnackbarController
 import com.yunx.app.ui.components.RemoteImage
+import com.yunx.app.ui.theme.SquircleShape
 import com.yunx.app.ui.preview.MediaPlayerPane
 import com.yunx.app.ui.preview.PreviewKind
 import com.yunx.app.ui.preview.PreviewLauncher
@@ -93,6 +104,8 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 fun VideoResultSection(
     result: VideoParseResult,
     onDownloadMedia: (VideoMedia) -> Unit,
+    /** 「仅下载音频」：产物是 `.m4a`，对视频行才显示入口 */
+    onDownloadAudio: (VideoMedia) -> Unit,
     onDownloadAll: () -> Unit,
     onDownloadSelected: (List<VideoMedia>) -> Unit,
     onBack: () -> Unit,
@@ -113,6 +126,7 @@ fun VideoResultSection(
             modifier = modifier
         )
     } else {
+        BackHandler { onBack() }
         Column(modifier = modifier.fillMaxWidth()) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -128,7 +142,7 @@ fun VideoResultSection(
                 )
                 IconButton(onClick = onBack) {
                     Icon(
-                        imageVector = Icons.Outlined.Refresh,
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "返回",
                         tint = MiuixTheme.colorScheme.onSurfaceSecondary
                     )
@@ -140,7 +154,8 @@ fun VideoResultSection(
 
             VideoMediaListLayout(
                 result = result,
-                onDownloadMedia = onDownloadMedia
+                onDownloadMedia = onDownloadMedia,
+                onDownloadAudio = onDownloadAudio
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -157,6 +172,7 @@ fun VideoResultSection(
 private fun VideoMediaListLayout(
     result: VideoParseResult,
     onDownloadMedia: (VideoMedia) -> Unit,
+    onDownloadAudio: (VideoMedia) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val firstVideo = firstVideoOf(result)
@@ -171,6 +187,7 @@ private fun VideoMediaListLayout(
                     index = 0,
                     media = firstVideo,
                     onDownload = { onDownloadMedia(firstVideo) },
+                    onDownloadAudio = { onDownloadAudio(firstVideo) },
                     onPreview = {
                         openMediaPreview(
                             result = result,
@@ -189,6 +206,7 @@ private fun VideoMediaListLayout(
                     index = index,
                     media = media,
                     onDownload = { onDownloadMedia(media) },
+                    onDownloadAudio = { onDownloadAudio(media) },
                     onPreview = {
                         openMediaPreview(
                             result = result,
@@ -235,6 +253,15 @@ private fun VideoMediaGridLayout(
         }
     }
 
+    BackHandler {
+        if (multiSelectMode) {
+            selectedMedias.clear()
+            multiSelectMode = false
+        } else {
+            onBack()
+        }
+    }
+
     Column(modifier = modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -250,7 +277,7 @@ private fun VideoMediaGridLayout(
             )
             IconButton(onClick = onBack) {
                 Icon(
-                    imageVector = Icons.Outlined.Refresh,
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "返回",
                     tint = MiuixTheme.colorScheme.onSurfaceSecondary
                 )
@@ -424,7 +451,7 @@ private fun MediaGridCell(
                         .size(24.dp)
                         .align(Alignment.TopEnd)
                         .padding(4.dp),
-                    shape = RoundedCornerShape(50),
+                    shape = CircleShape,
                     color = MiuixTheme.colorScheme.primaryContainer
                 ) {
                     Icon(
@@ -444,7 +471,7 @@ private fun MediaGridCell(
 private fun CellBadge(text: String, modifier: Modifier = Modifier) {
     Surface(
         modifier = modifier,
-        shape = RoundedCornerShape(50),
+        shape = CircleShape,
         color = MiuixTheme.colorScheme.surfaceContainerHighest
     ) {
         Text(
@@ -473,9 +500,11 @@ private fun DownloadAllBar(result: VideoParseResult, onDownloadAll: () -> Unit) 
     }
 }
 
-/** 作品信息块：作者、发布时间、正文（超长折叠，点击展开） */
+/** 作品信息块：作者、发布时间、正文/文案（超长折叠，点击展开，可一键复制原文） */
 @Composable
 private fun VideoMetaBlock(result: VideoParseResult, modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+    // 元信息行：作者 / 发布时间（时间戳为 0 表示未知，不显示）
     val metaLine = buildList {
         if (result.author.isNotBlank()) add(result.author)
         val date = formatVideoDate(result.timestampSeconds)
@@ -491,11 +520,15 @@ private fun VideoMetaBlock(result: VideoParseResult, modifier: Modifier = Modifi
                 color = MiuixTheme.colorScheme.onSurfaceVariantSummary
             )
         }
-        if (result.text.isNotBlank()) {
-            var expanded by remember(result.text) { mutableStateOf(false) }
-            val canExpand = result.text.length > 60
+        // 文案：抖音/快手的分享文案、小红书笔记正文、B站简介都落在这里。
+        // 个别平台的「文案」就是标题本身（解析器把它同时写进 text），此时仍照常展示，
+        // 因为顶栏标题最多两行、必然会被截断，这里才是完整的原文。
+        val caption = result.text.ifBlank { result.title }
+        if (caption.isNotBlank()) {
+            var expanded by remember(caption) { mutableStateOf(false) }
+            val canExpand = caption.length > 60
             Text(
-                text = result.text,
+                text = caption,
                 style = MiuixTheme.textStyles.body2,
                 maxLines = if (expanded) Int.MAX_VALUE else 3,
                 overflow = TextOverflow.Ellipsis,
@@ -503,15 +536,35 @@ private fun VideoMetaBlock(result: VideoParseResult, modifier: Modifier = Modifi
                     .padding(top = if (metaLine.isNotBlank()) 6.dp else 0.dp)
                     .clickable(enabled = canExpand) { expanded = !expanded }
             )
-            if (canExpand) {
-                Text(
-                    text = if (expanded) "收起" else "展开",
-                    style = MiuixTheme.textStyles.footnote1,
-                    color = MiuixTheme.colorScheme.primary,
-                    modifier = Modifier
-                        .padding(top = 2.dp)
-                        .clickable { expanded = !expanded }
-                )
+            Row(modifier = Modifier.padding(top = 2.dp), verticalAlignment = Alignment.CenterVertically) {
+                if (canExpand) {
+                    Text(
+                        text = if (expanded) "收起" else "展开",
+                        style = MiuixTheme.textStyles.footnote1,
+                        color = MiuixTheme.colorScheme.primary,
+                        modifier = Modifier
+                            .padding(end = 16.dp)
+                            .clickable { expanded = !expanded }
+                    )
+                }
+                // 复制原文而不是折叠后的显示文本：长文案正是最需要复制出去的（上游 v1.3.1 新增）
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.clickable { copyVideoCaption(context, caption) }
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.ContentCopy,
+                        contentDescription = null,
+                        modifier = Modifier.size(14.dp),
+                        tint = MiuixTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = "复制文案",
+                        style = MiuixTheme.textStyles.footnote1,
+                        color = MiuixTheme.colorScheme.primary,
+                        modifier = Modifier.padding(start = 4.dp)
+                    )
+                }
             }
         }
     }
@@ -528,7 +581,7 @@ private fun InlineVideoPlayer(media: PreviewMedia, modifier: Modifier = Modifier
         modifier = modifier
             .fillMaxWidth()
             .aspectRatio(16f / 9f)
-            .clip(RoundedCornerShape(16.dp)),
+            .clip(SquircleShape(16.dp)),
         color = MiuixTheme.colorScheme.surfaceContainer
     ) {
         MediaPlayerPane(
@@ -541,12 +594,13 @@ private fun InlineVideoPlayer(media: PreviewMedia, modifier: Modifier = Modifier
     }
 }
 
-/** 单条媒体行：Miuix 原生 Row 布局 */
+/** 单条媒体行：Miuix 原生 Row 布局（视频行额外给「仅下载音频」入口） */
 @Composable
 private fun VideoMediaRow(
     index: Int,
     media: VideoMedia,
     onDownload: () -> Unit,
+    onDownloadAudio: () -> Unit,
     onPreview: () -> Unit
 ) {
     val subtitle = buildList {
@@ -587,6 +641,17 @@ private fun VideoMediaRow(
                     tint = MiuixTheme.colorScheme.primary
                 )
             }
+            // 仅下载音频（上游 v1.3.1 新增）：只有视频才有音轨（图片没有，音频本身就是音频）
+            if (media.kind == VideoMediaKind.VIDEO) {
+                IconButton(onClick = onDownloadAudio, modifier = Modifier.size(36.dp)) {
+                    Icon(
+                        imageVector = Icons.Outlined.MusicNote,
+                        contentDescription = "仅下载音频",
+                        modifier = Modifier.size(20.dp),
+                        tint = MiuixTheme.colorScheme.primary
+                    )
+                }
+            }
             TextButton(
                 text = "下载",
                 onClick = onDownload
@@ -608,6 +673,21 @@ private fun formatVideoDate(timestampSeconds: Long): String {
     return runCatching {
         SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(timestampSeconds * 1000L))
     }.getOrDefault("")
+}
+
+/**
+ * 复制作品文案（复制的是**完整原文**，不是折叠后的显示文本 —— 长文案正是最需要复制出去的）。
+ *
+ * 走系统剪贴板 + 全局 Snackbar，与本应用其它「已复制」入口保持一致；Android 13 起系统自己会弹
+ * 复制预览，这里仍给一句提示（系统提示可能被用户关掉）。
+ */
+private fun copyVideoCaption(context: Context, text: String) {
+    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager ?: return
+    runCatching {
+        clipboard.setPrimaryClip(ClipData.newPlainText("yunx_video_caption", text))
+    }.onSuccess {
+        SnackbarController.show("文案已复制")
+    }
 }
 
 /** 点「预览」/点缩略图 */

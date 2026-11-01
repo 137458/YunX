@@ -21,11 +21,15 @@ package com.yunx.app.ui.screens
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -50,6 +54,7 @@ import androidx.compose.material.icons.automirrored.outlined.DriveFileMove
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -59,6 +64,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -67,6 +73,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.yunx.app.data.network.model.ShareFile
+import com.yunx.app.data.upload.UploadPhase
+import com.yunx.app.data.upload.UploadProgress
 import com.yunx.app.ui.AppSnackbarHost
 import com.yunx.app.ui.SnackbarController
 import com.yunx.app.ui.rememberGlobalSnackbarHostState
@@ -75,7 +83,9 @@ import com.yunx.app.ui.components.BreadcrumbItem
 // CloudStepHeader / DrivePickerErrorPane 已下沉为 ui/drive 通用件（唯一实现）
 import com.yunx.app.ui.drive.CloudStepHeader
 import com.yunx.app.ui.drive.DrivePickerErrorPane
+import com.yunx.app.ui.preview.CloudPreview
 import com.yunx.app.ui.resolve.BackToParentItem
+import com.yunx.app.ui.resolve.formatSize
 import com.yunx.app.ui.resolve.ShareFileRow
 import com.yunx.app.ui.theme.SquircleShape
 import com.yunx.app.ui.viewmodel.QuarkCloudUiState
@@ -112,7 +122,9 @@ private val expireOptions = listOf(
 fun FileActionSheet(
     file: ShareFile,
     viewModel: QuarkCloudViewModel,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    /** 非空时菜单里出现「在线预览」（文件本身不支持预览时自动隐藏），一般传 `viewModel::openPreview` */
+    onPreview: (() -> Unit)? = null
 ) {
     var step by remember { mutableStateOf(ActionStep.MENU) }
     val moveState by viewModel.moveUiState.collectAsState()
@@ -124,6 +136,16 @@ fun FileActionSheet(
             onDismiss()
         }
     }
+
+    // 「在线预览」：只有文件本身可预览时出现；点开后先关弹窗再进预览页
+    val previewAction = onPreview
+        ?.takeIf { !file.isdir && CloudPreview.canPreview(file) }
+        ?.let { callback ->
+            {
+                callback()
+                closeSheet()
+            }
+        }
 
     OverlayBottomSheet(
         show = true,
@@ -140,6 +162,7 @@ fun FileActionSheet(
                     viewModel.downloadFolder()
                     closeSheet()
                 },
+                onPreview = previewAction,
                 onShare = { step = ActionStep.SHARE },
                 onMove = {
                     viewModel.openMoveRoot()
@@ -198,6 +221,8 @@ private fun ActionMenu(
     file: ShareFile,
     onDownload: () -> Unit,
     onDownloadFolder: (() -> Unit)? = null,
+    /** 非空时在「下载」之后显示「在线预览」（已由 [FileActionSheet] 按 [CloudPreview.canPreview] 过滤） */
+    onPreview: (() -> Unit)? = null,
     onShare: () -> Unit,
     onMove: () -> Unit,
     onRename: () -> Unit,
@@ -260,6 +285,17 @@ private fun ActionMenu(
                 onClick = onDownloadFolder
             )
         }
+        val previewCallback = onPreview
+        if (previewCallback != null) {
+            CloudActionItem(
+                icon = Icons.Outlined.Visibility,
+                title = "在线预览",
+                desc = "不下载，直接在应用内查看",
+                tint = MiuixTheme.colorScheme.primary,
+                onClick = previewCallback
+            )
+        }
+
         CloudActionItem(
             icon = Icons.Outlined.Share,
             title = "分享",
@@ -1139,5 +1175,102 @@ private fun BatchDeleteStep(
             }
         }
         AppSnackbarHost(rememberGlobalSnackbarHostState())
+    }
+}
+
+/**
+ * 「上传文件」的选文件器：封装系统多选文件对话框，选完把 uri 列表交给 [onPicked]。
+ *
+ * 用 `OpenMultipleDocuments` 而不是 `GetContent`：前者给的是可长期读取的 uri，
+ * 一次选多个文件后逐个上传期间都不会出现「授权已失效」；后者是单次临时授权。
+ */
+@Composable
+internal fun rememberUploadPicker(onPicked: (List<Uri>) -> Unit): () -> Unit {
+    val launcher = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenMultipleDocuments()
+    ) { uris -> if (uris.isNotEmpty()) onPicked(uris) }
+    return remember(launcher) {
+        { launcher.launch(arrayOf("*/*")) }
+    }
+}
+
+/**
+ * 上传进度弹窗：第几个/共几个、文件名、字节进度与阶段，只留一个「取消」。
+ *
+ * 点外部不关闭、没有「确定」——上传是真在后台跑的，随手关掉弹窗会让人误以为停了。
+ * 进度条用 miuix 表面色自绘（`LinearProgressIndicator` 的进度态在 miuix 里没有稳定 API，
+ * 这里只画一条 4dp 的圆角进度轨，观感与设置页的进度条一致）。
+ */
+@Composable
+internal fun UploadProgressDialog(progress: UploadProgress, onCancel: () -> Unit) {
+    WindowDialog(
+        show = true,
+        // 上传在后台真跑，随手关弹窗会让人误以为停了：仅「取消」能结束
+        onDismissRequest = { },
+        title = if (progress.count > 1) {
+            "正在上传（${progress.index}/${progress.count}）"
+        } else {
+            "正在上传"
+        }
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Text(
+                text = progress.name,
+                style = MiuixTheme.textStyles.body1,
+                fontWeight = FontWeight.Medium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            // 进度轨：底色 + 按 fraction 铺满的前景色
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(4.dp)
+                    .clip(SquircleShape(2.dp))
+                    .background(MiuixTheme.colorScheme.onSurfaceVariantSummary.copy(alpha = 0.2f))
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(progress.fraction)
+                        .height(4.dp)
+                        .clip(SquircleShape(2.dp))
+                        .background(MiuixTheme.colorScheme.primary)
+                )
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = when (progress.phase) {
+                        UploadPhase.PREPARING -> "正在校验文件…"
+                        UploadPhase.UPLOADING -> "正在上传"
+                        UploadPhase.FINISHING -> "等待网盘确认…"
+                    },
+                    style = MiuixTheme.textStyles.footnote1,
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary
+                )
+                Text(
+                    text = formatSize(progress.sent) + " / " + formatSize(progress.size),
+                    style = MiuixTheme.textStyles.footnote1,
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary
+                )
+            }
+            Spacer(modifier = Modifier.height(2.dp))
+            Button(
+                onClick = onCancel,
+                enabled = !progress.cancelling,
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColorsPrimary()
+            ) {
+                Text(
+                    text = if (progress.cancelling) "正在取消…" else "取消上传",
+                    style = MiuixTheme.textStyles.button
+                )
+            }
+        }
     }
 }

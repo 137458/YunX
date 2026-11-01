@@ -101,15 +101,12 @@ fun Pan115AccountSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .then(
-                    if (showFullCookie) {
-                        Modifier
-                            .fillMaxHeight()
-                            .verticalScroll(scrollState)
-                    } else {
-                        Modifier
-                    }
-                )
+                .then(if (showFullCookie) Modifier.fillMaxHeight() else Modifier)
+                // 纵向滚动无条件挂载：上游把 verticalScroll 从「展开全部」分支里提出来，修横屏等高度不足时
+                // 内容在屏幕外又滑不动的问题；内容不足一屏时仍按内容包裹，观感不变。
+                // （上游另在 ModalBottomSheet 的 sheetState 上挂了嵌套滚动；本地弹窗是 Miuix OverlayBottomSheet、
+                //  没有 sheetState，故未引入。）
+                .verticalScroll(scrollState)
                 .padding(start = 24.dp, end = 24.dp, top = 4.dp, bottom = 32.dp)
         ) {
             // 用户信息

@@ -97,8 +97,9 @@ class XunleiAccountRepository(
         return try {
             val step = api.smsLogin(mobile, smsCode, creditKey, smsToken, deviceId)
             if (step.sessionId.isBlank()) return SaveResult.InvalidCredential
-            // 换 token 前先 initCaptcha 拿 captcha_token（官方时序：smslogin → captcha/init → signin/token）
-            val captchaToken = api.initCaptcha(deviceId, mobile) ?: ""
+            // 换 token 前先 initCaptcha 拿 captcha_token（官方时序：smslogin → captcha/init → signin/token）。
+            // userID 取 smslogin 响应里的真实值：首次登录时进程里还没有缓存的用户 ID，传空会拿到降级 token
+            val captchaToken = api.initCaptcha(deviceId, mobile, userId = step.userID) ?: ""
             val tokens = api.exchangeToken(step.sessionId, deviceId, captchaToken)
                 ?: return SaveResult.InvalidCredential
             val slot = resolveAccountSlot(DownloadPlatform.XUNLEI, dao.getAccount(), newAccount)
@@ -152,7 +153,9 @@ class XunleiAccountRepository(
         if (step.sessionId.isBlank()) return SaveResult.InvalidCredential
         val deviceId = XunleiApi.newDeviceId()
         return try {
-            val captchaToken = api.initCaptcha(deviceId, username) ?: ""
+            // 换 token 前先 initCaptcha 拿 captcha_token（官方时序：v3/login → captcha/init → signin/token）。
+            // userID 用响应里的真实值：首次登录时进程里还没有缓存的用户 ID，传空会拿到降级 token
+            val captchaToken = api.initCaptcha(deviceId, username, userId = step.userID) ?: ""
             val tokens = api.exchangeToken(step.sessionId, deviceId, captchaToken)
                 ?: return SaveResult.InvalidCredential
             val slot = resolveAccountSlot(DownloadPlatform.XUNLEI, dao.getAccount(), newAccount)

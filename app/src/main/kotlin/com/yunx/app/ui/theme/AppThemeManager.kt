@@ -25,8 +25,8 @@ import androidx.compose.runtime.setValue
 import com.yunx.app.data.prefs.SettingsRepository
 
 /**
- * 应用本地主题设置管理器（单例）：
- * - 内存中持有主题设置（mutableStateOf），修改后 Compose 自动重组、主题即时生效；
+ * 应用本地主题与显示设置管理器（单例）：
+ * - 内存中持有主题设置与「列表缩略图」这类纯显示开关（mutableStateOf），修改后 Compose 自动重组、主题即时生效；
  * - 读写同时同步 SharedPreferences 持久化；
  * - 由 ComposeEmptyActivityTheme 初始化（幂等），确保任何入口（主界面/崩溃页）都能读到；
  * - 订阅 SettingsRepository.changeVersion，任何一处设置写入都会重新同步内存状态。
@@ -55,6 +55,21 @@ object AppThemeManager {
 
     /** 文件名是否多行显示 */
     var fileNameMultiLine by mutableStateOf(false)
+        private set
+
+    /**
+     * 列表缩略图：网盘/分享文件列表里给图片显示小图（默认开启）。
+     * 关掉后列表行退回文件图标，**不发任何取图请求**（见 `ShareFileRow` / `FileThumbnail`）。
+     */
+    var cloudThumbnails by mutableStateOf(true)
+        private set
+
+    /** 自动识别剪贴板分享链接：关闭后不再读取剪贴板（默认开启） */
+    var clipboardSuggestEnabled by mutableStateOf(true)
+        private set
+
+    /** 接受预发布版更新：检查更新时包含 GitHub Pre-release（默认关闭） */
+    var acceptPrereleaseUpdate by mutableStateOf(false)
         private set
 
     /** 下载调试：开启后下载页长按任务可查看「调试信息」（默认关闭；关闭会清空全部调试日志） */
@@ -100,6 +115,9 @@ object AppThemeManager {
         bottomBarStyle = s.bottomBarStyle
         isAmoled = s.isAmoled
         fileNameMultiLine = s.fileNameMultiLine
+        cloudThumbnails = s.cloudThumbnails
+        clipboardSuggestEnabled = s.clipboardSuggestEnabled
+        acceptPrereleaseUpdate = s.acceptPrereleaseUpdate
         downloadDebug = s.downloadDebug
         syncedVersion = SettingsRepository.changeVersion
     }
@@ -153,6 +171,27 @@ object AppThemeManager {
     fun setFileNameMultiLine(context: Context, value: Boolean) {
         fileNameMultiLine = value
         repo(context).fileNameMultiLine = value
+        markSynced()
+    }
+
+    /** 设置列表缩略图开关并持久化（关掉后列表立刻退回文件图标） */
+    fun setCloudThumbnails(context: Context, value: Boolean) {
+        cloudThumbnails = value
+        repo(context).cloudThumbnails = value
+        markSynced()
+    }
+
+    /** 设置是否自动识别剪贴板分享链接并持久化 */
+    fun setClipboardSuggestEnabled(context: Context, value: Boolean) {
+        clipboardSuggestEnabled = value
+        repo(context).clipboardSuggestEnabled = value
+        markSynced()
+    }
+
+    /** 设置是否接受预发布版更新并持久化 */
+    fun setAcceptPrereleaseUpdate(context: Context, value: Boolean) {
+        acceptPrereleaseUpdate = value
+        repo(context).acceptPrereleaseUpdate = value
         markSynced()
     }
 

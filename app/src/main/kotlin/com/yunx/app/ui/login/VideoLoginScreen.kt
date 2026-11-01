@@ -62,6 +62,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import com.yunx.app.data.network.video.VideoPlatform
 import com.yunx.app.ui.SnackbarController
 import com.yunx.app.ui.components.YunXWavyLoading
+import com.yunx.app.ui.theme.SquircleShape
 import com.yunx.app.ui.viewmodel.VideoAccountViewModel
 import com.yunx.app.util.DiagnosticLog
 import kotlinx.coroutines.delay
@@ -355,7 +356,7 @@ fun VideoLoginScreen(
                     modifier = Modifier
                         .align(Alignment.Center)
                         .padding(28.dp),
-                    shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
+                    shape = SquircleShape(16.dp),
                     color = MiuixTheme.colorScheme.surfaceContainerHigh
                 ) {
                     Column(

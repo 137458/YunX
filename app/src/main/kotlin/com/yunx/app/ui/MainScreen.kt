@@ -91,6 +91,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.viewmodel.compose.viewModel
 import android.Manifest
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -109,6 +111,7 @@ import com.yunx.app.data.download.DownloadPlatform
 import com.yunx.app.data.backup.AuthBackupManager
 import com.yunx.app.data.network.BaiduApi
 import com.yunx.app.data.network.C139Api
+import com.yunx.app.data.network.C139DeviceInfo
 import com.yunx.app.data.network.Pan115Api
 import com.yunx.app.data.network.Pan123Api
 import com.yunx.app.data.network.QuarkApi
@@ -187,6 +190,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.yunx.app.data.network.HttpClients
+import com.yunx.app.util.AppLinks
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -262,6 +266,12 @@ fun MainScreen(
 ) {
     var currentTab by rememberSaveable { mutableStateOf(MainTab.Resolve) }
 
+    // 账号页顶栏「排序」：弹窗和网盘列表都在 DriveScreen，但入口按钮画在全局顶栏，
+    // 所以开关状态提升到本层（弹窗内容由 DriveScreen 渲染）。
+    var showDriveSort by rememberSaveable { mutableStateOf(false) }
+    // 账号页是否正停在某个网盘的浏览子页：子页打开时排序按钮（它只属于账号列表）要让位
+    var driveSubPageOpen by rememberSaveable { mutableStateOf(false) }
+
     // 实况通知等外部来源请求切 Tab：读一次即消费（清空由调用方做）
     LaunchedEffect(openTab) {
         if (openTab != null) {
@@ -331,7 +341,12 @@ fun MainScreen(
     val ucApi = remember { UCApi() }
     val xunleiApi = remember { XunleiApi() }
     val baiduApi = remember { BaiduApi() }
-    val c139Api = remember { C139Api() }
+    // 139 的口令 XML 接口要带 x-DeviceInfo / x-yun-user-agent 两枚设备头，字段由系统 API 与
+    // 本机安装 ID 动态生成（不读 IMEI / ANDROID_ID，见 C139DeviceInfo KDoc）；不注入就会退化成占位值。
+    val appContext = context.applicationContext
+    val c139Api = remember(appContext) {
+        C139Api(deviceInfoProvider = { C139DeviceInfo.from(appContext) })
+    }
     val pan123Api = remember { Pan123Api() }
     val pan115Api = remember { Pan115Api() }
     val guangyaApi = remember { GuangYaApi() }
@@ -1072,6 +1087,16 @@ fun MainScreen(
                         onClick = { showBookmarks = true }
                     )
                 }
+                // 账号页标题右上角：网盘列表排序 / 隐藏未登录。
+                // ★ 只在账号列表上显示：进了某个网盘的浏览子页时排序没有意义，
+                //   由 DriveScreen 通过 onSubPageChange 通知本层隐藏。
+                // 与上面「收藏」同样用带文字的按钮：排序是低频入口，纯图标认不出含义。
+                if (currentTab == MainTab.Drive && !driveSubPageOpen) {
+                    TextButton(
+                        text = "排序",
+                        onClick = { showDriveSort = true }
+                    )
+                }
             }
         )
     }
@@ -1247,7 +1272,11 @@ fun MainScreen(
                         onVideoRemove = { id -> videoAccountViewModel.remove(id) },
                         onVideoRemoveAll = { platform ->
                             videoAccountViewModel.removeAll(platform)
-                        }
+                        },
+                        // 顶栏「排序」入口：弹窗内容、顺序与隐藏未登录开关都由 DriveScreen 渲染
+                        showSortDialog = showDriveSort,
+                        onDismissSortDialog = { showDriveSort = false },
+                        onSubPageChange = { driveSubPageOpen = it }
                     )
                     MainTab.Download -> DownloadScreen(
                         scrollBehavior,
@@ -1510,6 +1539,18 @@ fun MainScreen(
                     style = MiuixTheme.textStyles.body2,
                     color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                 )
+                // 上面四步是电脑上的翻页路径，手机上一路点下来很容易翻丢 —— 直接给一个直达入口，
+                // 链接里已预填 public_repo 权限与说明，生成后复制回来粘到下方输入框即可。
+                TextButton(
+                    text = "↗ 从 GitHub 获取 Token",
+                    onClick = {
+                        // 与设置页「GitHub 仓库」同一口径：没有可用浏览器就复制链接，不静默失败
+                        if (!AppLinks.openGitHubTokenPage(context)) {
+                            copyToClipboard(context, AppLinks.GITHUB_TOKEN_PAGE)
+                            SnackbarController.show("未找到可用浏览器，链接已复制")
+                        }
+                    }
+                )
                 Text(
                     text = "安全提示：仅给最小权限，勿勾选删除/管理类权限；Token 不明文保存、不上传，清除只需清空后保存。",
                     style = MiuixTheme.textStyles.body2,
@@ -1590,6 +1631,9 @@ fun MainScreen(
                     Text("保存")
                 }
             }
+
+            // WindowDialog 是独立窗口，全局 Snackbar 宿主盖不住它 ⇒ 本弹窗自带一个（同 UpdateDialog）
+            AppSnackbarHost(rememberGlobalSnackbarHostState())
         }
     }
 
@@ -1682,6 +1726,17 @@ fun MainScreen(
         }
 
     }
+}
+
+/**
+ * 复制文本到剪贴板（写剪贴板不受「自动识别剪贴板」开关约束，见 AGENTS.md §3.22）。
+ *
+ * 从上游 v1.3.1 接过：GitHub Token 弹窗在「没有可用浏览器」时要把令牌生成页链接给到用户，
+ * 复制是打开浏览器失败后的唯一出口，所以不能静默失败。
+ */
+private fun copyToClipboard(context: Context, text: String) {
+    val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+    cm.setPrimaryClip(ClipData.newPlainText("yunx_link", text))
 }
 
 /**

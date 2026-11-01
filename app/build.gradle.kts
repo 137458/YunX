@@ -54,8 +54,8 @@ android {
         // 该缺陷在 AGP 9.1.1 下尚未复验，别按「换了工具链就能降 23」动手；完整原因与实测证据见 AGENTS.md §3.11。
         minSdk = 24
         targetSdk = 34
-        versionCode = 14
-        versionName = "1.3.0"
+        versionCode = 15
+        versionName = "1.3.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

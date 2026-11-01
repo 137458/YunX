@@ -23,6 +23,7 @@ import androidx.compose.material.icons.automirrored.outlined.DriveFileMove
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
 import com.yunx.app.ui.drive.CloudDriveBrowser
 import com.yunx.app.ui.drive.CloudDriveUiState
@@ -99,6 +100,9 @@ fun UCCoudScreen(
         downloadSelected = { viewModel.downloadSelected() }
     )
 
+
+    // 上传要读 ContentResolver：共享层只回传选中的 uri，实际读取由 ViewModel 完成
+    val context = LocalContext.current
     CloudDriveBrowser(
         spec = ucDriveSpec,
         state = state.toUCDriveState(),
@@ -121,6 +125,12 @@ fun UCCoudScreen(
         onConsumeDownloadTriggered = { viewModel.consumeDownloadTriggered() },
         onDismissShareResult = { viewModel.dismissShareResult() },
         requestDownload = { _, proceed -> proceed() },
+        // 上传 / 新建文件夹 / 在线预览：弹窗与系统选文件器都在共享层内部，这里只接 VM
+        onCreateFolder = { name -> viewModel.createFolder(name) },
+        onUploadFiles = { uris -> viewModel.uploadFiles(context.contentResolver, uris) },
+        uploadProgress = viewModel.uploadProgress,
+        onCancelUpload = { viewModel.cancelUpload() },
+        onPreview = { viewModel.openPreview() },
         modifier = modifier
     )
 }

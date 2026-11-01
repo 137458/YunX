@@ -18,6 +18,7 @@
 
 package com.yunx.app.ui.drive
 
+import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
@@ -39,7 +40,10 @@ import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.automirrored.outlined.DriveFileMove
 import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.CreateNewFolder
 import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material.icons.outlined.Upload
+import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -56,8 +60,10 @@ import androidx.compose.ui.unit.dp
 import com.yunx.app.data.network.model.DownloadLink
 import com.yunx.app.data.network.model.ShareFile
 import com.yunx.app.data.network.model.ShareInfo
+import com.yunx.app.data.upload.UploadProgress
 import com.yunx.app.ui.SnackbarController
 import com.yunx.app.ui.items.MultiSelectAction
+import com.yunx.app.ui.preview.CloudPreview
 import com.yunx.app.ui.resolve.DownloadLinkDialog
 import com.yunx.app.ui.screens.CloudActionItem
 import com.yunx.app.ui.screens.CloudDriveDeleteDialog
@@ -66,6 +72,8 @@ import com.yunx.app.ui.screens.CloudDriveLoadingView
 import com.yunx.app.ui.screens.CloudDriveRenameDialog
 import com.yunx.app.ui.screens.CloudDriveScaffold
 import com.yunx.app.ui.screens.ShareResultDialog
+import com.yunx.app.ui.screens.UploadProgressDialog
+import com.yunx.app.ui.screens.rememberUploadPicker
 import com.yunx.app.ui.theme.SquircleShape
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.ScrollBehavior
@@ -110,11 +118,24 @@ fun CloudDriveBrowser(
     onConsumeDownloadTriggered: () -> Unit,
     onDismissShareResult: () -> Unit,
     requestDownload: (files: List<ShareFile>, proceed: () -> Unit) -> Unit,
+    /** 「+」→「新建文件夹」确认回调（参数是用户输入的名字）；null 时不显示该入口 */
+    onCreateFolder: ((String) -> Unit)? = null,
+    /** 「+」→「上传文件」：选完文件后把 uri 列表交回；null 时不显示该入口 */
+    onUploadFiles: ((List<Uri>) -> Unit)? = null,
+    /** 当前上传进度；非空时展示不可外点关闭的进度弹窗 */
+    uploadProgress: UploadProgress? = null,
+    onCancelUpload: () -> Unit = {},
+    /** 文件操作抽屉里的「在线预览」；null 时整项不显示（是否可预览另由 CloudPreview 判定） */
+    onPreview: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     var step by remember { mutableStateOf(DriveStep.MENU) }
     var actionFile by remember { mutableStateOf<ShareFile?>(null) }
     var showDeleteConfirm by remember { mutableStateOf(false) }
+    var showAddSheet by remember { mutableStateOf(false) }
+    var showCreateFolder by remember { mutableStateOf(false) }
+    // 上传选文件器：选完把 uri 列表交回调用方（由各平台 VM 逐个上传）
+    val launchUploadPicker = rememberUploadPicker { uris -> onUploadFiles?.invoke(uris) }
     val scrollPositions = remember { mutableStateMapOf<String, Int>() }
 
     // 系统返回键：多选模式下先退出多选；否则子目录返回上一级，根目录返回账号列表
@@ -243,7 +264,10 @@ fun CloudDriveBrowser(
                         onFileLongClick = actions.enterMultiSelect,
                         multiSelectActions = multiSelectActions,
                         multiSelectBusy = operating,
-                        scrollPositions = scrollPositions
+                        scrollPositions = scrollPositions,
+                        onCreateFolder = onCreateFolder,
+                        // 上传入口：选文件器在这里弹，选中后回调给调用方
+                        onUploadFile = if (onUploadFiles != null) ({ launchUploadPicker() }) else null,
                     )
                 }
             }
@@ -278,6 +302,21 @@ fun CloudDriveBrowser(
                             val target = file
                             hideSheet()
                             requestDownload(listOf(target)) { actions.downloadFolder() }
+                        }
+                    )
+                }
+                // 在线预览：仅当调用方提供了回调且该文件类型可预览时才出现
+                // （hideSheet 只收起弹窗、不清 VM 的 actionFile，openPreview 正是读它）
+                val preview = onPreview
+                if (!file.isdir && preview != null && CloudPreview.canPreview(file)) {
+                    CloudActionItem(
+                        icon = Icons.Outlined.Visibility,
+                        title = "在线预览",
+                        desc = "不下载，直接在应用内查看",
+                        tint = MiuixTheme.colorScheme.primary,
+                        onClick = {
+                            hideSheet()
+                            preview()
                         }
                     )
                 }
@@ -389,6 +428,54 @@ fun CloudDriveBrowser(
     shareResult?.let { info ->
         ShareResultDialog(info = info, onDismiss = onDismissShareResult)
     }
+
+    // 「+」菜单：新建文件夹 / 上传文件（与文件操作抽屉同一套视觉，独立于 actionFile）
+    if (showAddSheet) {
+        OverlayBottomSheet(show = true, onDismissRequest = { showAddSheet = false }) {
+            Column(modifier = sheetColumnModifier()) {
+                if (onCreateFolder != null) {
+                    CloudActionItem(
+                        icon = Icons.Outlined.CreateNewFolder,
+                        title = "新建文件夹",
+                        desc = "在当前目录下创建新文件夹",
+                        tint = MiuixTheme.colorScheme.primary,
+                        onClick = {
+                            showAddSheet = false
+                            showCreateFolder = true
+                        }
+                    )
+                }
+                if (onUploadFiles != null) {
+                    CloudActionItem(
+                        icon = Icons.Outlined.Upload,
+                        title = "上传文件",
+                        desc = "从本机选择文件上传到当前目录",
+                        tint = MiuixTheme.colorScheme.primary,
+                        onClick = {
+                            showAddSheet = false
+                            launchUploadPicker()
+                        }
+                    )
+                }
+            }
+        }
+    }
+
+    // 「新建文件夹」输入弹窗：复用重命名弹窗
+    val createFolder = onCreateFolder
+    if (createFolder != null) {
+        CloudDriveRenameDialog(
+            show = showCreateFolder,
+            initialName = "",
+            onConfirm = { name -> createFolder(name) },
+            onDismiss = { showCreateFolder = false },
+            title = "新建文件夹",
+            label = "文件夹名称"
+        )
+    }
+
+    // 上传进度：不可外点关闭，只能「取消上传」
+    uploadProgress?.let { UploadProgressDialog(progress = it, onCancel = onCancelUpload) }
 }
 
 /** 操作抽屉头部：40dp 图标底板 + 文件名 + 文件/文件夹标签 */
