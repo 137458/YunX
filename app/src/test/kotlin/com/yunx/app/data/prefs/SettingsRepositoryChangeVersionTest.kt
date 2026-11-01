@@ -108,8 +108,8 @@ class SettingsRepositoryChangeVersionTest {
     }
 }
 
-/** 内存版 SharedPreferences：只实现仓储真正使用到的读写语义 */
-private class InMemorySharedPreferences : SharedPreferences {
+/** 内存版 SharedPreferences：只实现仓储真正使用到的读写语义（internal 供同包测试复用） */
+internal class InMemorySharedPreferences : SharedPreferences {
 
     private val values = mutableMapOf<String, Any?>()
 
@@ -144,7 +144,7 @@ private class InMemorySharedPreferences : SharedPreferences {
 }
 
 /** 内存版 Editor：apply/commit 时把待写入内容合并进底层 Map */
-private class InMemoryEditor(private val values: MutableMap<String, Any?>) : SharedPreferences.Editor {
+internal class InMemoryEditor(private val values: MutableMap<String, Any?>) : SharedPreferences.Editor {
 
     private val pending = mutableMapOf<String, Any?>()
     private val removed = mutableSetOf<String>()

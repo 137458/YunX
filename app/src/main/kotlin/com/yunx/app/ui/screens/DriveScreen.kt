@@ -495,22 +495,13 @@ fun DriveScreen(
 
     // 排序归一化：先按用户保存的名次排；不在保存顺序里的项（新增平台 / 从没排过）
     // 名次并到末尾，且保持它们在默认列表里的前后关系（稳定排序）。
-    val rank = driveOrder.withIndex().associate { (index, id) -> id to index }
-    // sortedBy 是稳定排序：没保存过名次的项（新增平台）都拿 Int.MAX_VALUE，
-    // 会按默认顺序稳定地排在有名字的项后面，不需要再用第二关键字。
-    val orderedDriveItems = driveItems.withIndex()
-        .sortedBy { rank[it.value.account.id] ?: Int.MAX_VALUE }
-        .map { it.value }
-    val visibleDriveItems = if (hideUnloggedDrives) {
-        orderedDriveItems.filter { it.account.isLoggedIn }
-    } else {
-        orderedDriveItems
-    }
-    val hiddenUnloggedCount = if (hideUnloggedDrives) {
-        orderedDriveItems.count { !it.account.isLoggedIn }
-    } else {
-        0
-    }
+    // 纯计算全部在 DriveOrder 里（规则由 DriveOrderTest 钉住），这里只做接线。
+    val rank = DriveOrder.rank(driveOrder)
+    val orderedDriveItems = DriveOrder.sort(driveItems, rank) { it.account.id }
+    val visibleDriveItems =
+        DriveOrder.visible(orderedDriveItems, hideUnloggedDrives) { it.account.isLoggedIn }
+    val hiddenUnloggedCount =
+        DriveOrder.hiddenCount(orderedDriveItems, hideUnloggedDrives) { it.account.isLoggedIn }
     // 视频解析区共用同一个「隐藏未登录」开关：需要登录且还没登录的平台会被藏起来；
     // 免登录平台不藏（藏了等于把可用功能删掉），所以这里也只统计 needsLogin 的。
     val hiddenVideoCount = if (hideUnloggedDrives) {
@@ -937,12 +928,12 @@ fun DriveScreen(
             accounts = orderedDriveItems.map { it.account },
             hideUnlogged = hideUnloggedDrives,
             onMove = { from, to ->
-                val ids = orderedDriveItems.map { it.account.id }.toMutableList()
-                if (from in ids.indices && to in ids.indices && from != to) {
-                    val moved = ids.removeAt(from)
-                    ids.add(to, moved)
-                    driveOrder = ids
-                    settings.driveAccountOrder = ids
+                val ids = orderedDriveItems.map { it.account.id }
+                val moved = DriveOrder.move(ids, from, to)
+                // 越界或原地不动时 move 原样返回：不写设置，免得白白推进 changeVersion
+                if (moved != ids) {
+                    driveOrder = moved
+                    settings.driveAccountOrder = moved
                 }
             },
             onToggleHide = { enabled ->
