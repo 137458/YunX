@@ -40,7 +40,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import com.yunx.app.ui.theme.SquircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.runtime.Composable
@@ -499,7 +499,7 @@ fun AnnouncementPopupDialog(
                 RemoteImage(
                     url = cover,
                     contentDescription = null,
-                    shape = RoundedCornerShape(12.dp),
+                    shape = SquircleShape(12.dp),
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .fillMaxWidth()

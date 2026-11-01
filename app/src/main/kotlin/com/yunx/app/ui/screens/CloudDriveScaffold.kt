@@ -78,12 +78,12 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import com.yunx.app.ui.rememberGlobalSnackbarHostState
 import com.yunx.app.ui.AppSnackbarHost
-import com.yunx.app.ui.components.BreadcrumbBar
+import top.yukonga.miuix.kmp.basic.BreadcrumbBar
+import top.yukonga.miuix.kmp.basic.BreadcrumbItem
 // CloudStepHeader / DrivePickerErrorPane 已下沉为 ui/drive 通用件；
 // 此处别名引入，保持同包调用点（CloudDriveScreen.kt）不变
 import com.yunx.app.ui.drive.CloudStepHeader as CloudStepHeader
 import com.yunx.app.ui.drive.DrivePickerErrorPane as DrivePickerErrorPane
-import com.yunx.app.ui.components.BreadcrumbItem
 import com.yunx.app.ui.components.LocalScaffoldPadding
 import com.yunx.app.ui.components.ScrollToTopButton
 import com.yunx.app.ui.items.MultiSelectAction

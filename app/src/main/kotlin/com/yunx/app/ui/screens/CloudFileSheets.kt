@@ -78,8 +78,8 @@ import com.yunx.app.data.upload.UploadProgress
 import com.yunx.app.ui.AppSnackbarHost
 import com.yunx.app.ui.SnackbarController
 import com.yunx.app.ui.rememberGlobalSnackbarHostState
-import com.yunx.app.ui.components.BreadcrumbBar
-import com.yunx.app.ui.components.BreadcrumbItem
+import top.yukonga.miuix.kmp.basic.BreadcrumbBar
+import top.yukonga.miuix.kmp.basic.BreadcrumbItem
 // CloudStepHeader / DrivePickerErrorPane 已下沉为 ui/drive 通用件（唯一实现）
 import com.yunx.app.ui.drive.CloudStepHeader
 import com.yunx.app.ui.drive.DrivePickerErrorPane

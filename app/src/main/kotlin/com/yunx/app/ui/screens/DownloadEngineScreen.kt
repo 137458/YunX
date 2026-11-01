@@ -43,7 +43,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -340,8 +339,7 @@ fun DownloadEngineScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
                 )
 
                 Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    cornerRadius = 20.dp
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     // ---------- 第 1 段：内置分片下载器 ----------
                     Column(
@@ -1007,7 +1005,7 @@ private fun EngineSectionHeader(
         Box(
             modifier = Modifier
                 .size(40.dp)
-                .clip(RoundedCornerShape(12.dp))
+                .clip(SquircleShape(12.dp))
                 .background(container),
             contentAlignment = Alignment.Center
         ) {
@@ -1021,12 +1019,10 @@ private fun EngineSectionHeader(
             modifier = Modifier.weight(1f)
         )
         if (badge != null) {
-            // 本地 Miuix 实现：上游把这段收口到 ExperimentalBadge（MD3 样式），
-            // 本地保留 Miuix 颜色/字号实现，避免视觉退回 Material 3。
             Surface(
                 color = MiuixTheme.colorScheme.primaryContainer,
                 contentColor = MiuixTheme.colorScheme.onPrimaryContainer,
-                shape = RoundedCornerShape(6.dp)
+                shape = SquircleShape(6.dp)
             ) {
                 Text(
                     badge,

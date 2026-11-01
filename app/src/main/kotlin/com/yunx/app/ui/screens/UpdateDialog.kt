@@ -34,7 +34,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import com.yunx.app.ui.theme.SquircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -190,7 +190,7 @@ fun UpdateDialog(
                     textAlign = TextAlign.Center,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(6.dp))
+                        .clip(SquircleShape(6.dp))
                         .clickable(onClick = onOpenReleasePage)
                         .padding(vertical = 4.dp)
                 )
@@ -206,7 +206,7 @@ private fun VersionBanner(currentVersion: String, newVersion: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
+            .clip(SquircleShape(12.dp))
             .background(MiuixTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f))
             .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -226,7 +226,7 @@ private fun VersionBanner(currentVersion: String, newVersion: String) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(4.dp),
             modifier = Modifier
-                .clip(RoundedCornerShape(8.dp))
+                .clip(SquircleShape(8.dp))
                 .background(MiuixTheme.colorScheme.primary.copy(alpha = 0.14f))
                 .padding(horizontal = 8.dp, vertical = 3.dp)
         ) {
@@ -237,7 +237,7 @@ private fun VersionBanner(currentVersion: String, newVersion: String) {
             )
             Box(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(4.dp))
+                    .clip(SquircleShape(4.dp))
                     .background(MiuixTheme.colorScheme.primary)
                     .padding(horizontal = 4.dp, vertical = 1.dp)
             ) {
@@ -280,7 +280,7 @@ private fun MetaCapsuleRow(release: UpdateChecker.Release) {
 private fun MetaCapsule(text: String) {
     Box(
         modifier = Modifier
-            .clip(RoundedCornerShape(6.dp))
+            .clip(SquircleShape(6.dp))
             .background(MiuixTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
             .padding(horizontal = 8.dp, vertical = 2.dp)
     ) {
@@ -302,12 +302,12 @@ private fun ChangelogViewport(body: String) {
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = 60.dp, max = maxHeight)
-            .clip(RoundedCornerShape(14.dp))
+            .clip(SquircleShape(14.dp))
             .background(MiuixTheme.colorScheme.surfaceVariant.copy(alpha = 0.40f))
             .border(
                 0.5.dp,
                 MiuixTheme.colorScheme.dividerLine.copy(alpha = 0.25f),
-                RoundedCornerShape(14.dp)
+                SquircleShape(14.dp)
             )
             .padding(horizontal = 14.dp, vertical = 12.dp)
             .verticalScroll(rememberScrollState())
@@ -327,7 +327,7 @@ private fun DownloadStatusSection(download: UpdateDownloadState) {
         download.isFailed -> Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
+                .clip(SquircleShape(12.dp))
                 .background(MiuixTheme.colorScheme.error.copy(alpha = 0.10f))
                 .padding(12.dp)
         ) {
@@ -347,7 +347,7 @@ private fun DownloadStatusSection(download: UpdateDownloadState) {
         download.isFinished -> Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
+                .clip(SquircleShape(12.dp))
                 .background(MiuixTheme.colorScheme.primary.copy(alpha = 0.10f))
                 .padding(horizontal = 12.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -370,7 +370,7 @@ private fun DownloadStatusSection(download: UpdateDownloadState) {
         download.isPaused -> Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
+                .clip(SquircleShape(12.dp))
                 .background(MiuixTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f))
                 .padding(12.dp)
         ) {
@@ -406,7 +406,7 @@ private fun DownloadStatusSection(download: UpdateDownloadState) {
         else -> Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
+                .clip(SquircleShape(12.dp))
                 .background(MiuixTheme.colorScheme.primary.copy(alpha = 0.08f))
                 .padding(12.dp)
         ) {
@@ -580,7 +580,7 @@ private fun UpdateActionBar(
                 textAlign = TextAlign.Center,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(6.dp))
+                    .clip(SquircleShape(6.dp))
                     .clickable(onClick = mirrorDownload)
                     .padding(vertical = 6.dp)
             )

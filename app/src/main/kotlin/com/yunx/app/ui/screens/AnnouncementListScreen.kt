@@ -38,7 +38,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import com.yunx.app.ui.theme.SquircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.Campaign
@@ -301,7 +301,7 @@ private fun AnnouncementRow(
                 RemoteImage(
                     url = cover,
                     contentDescription = null,
-                    shape = RoundedCornerShape(12.dp),
+                    shape = SquircleShape(12.dp),
                     modifier = Modifier.size(72.dp)
                 )
             }
@@ -319,7 +319,7 @@ internal fun AnnouncementChip(
 ) {
     Surface(
         modifier = modifier,
-        shape = RoundedCornerShape(6.dp),
+        shape = SquircleShape(6.dp),
         color = containerColor,
         contentColor = contentColor
     ) {

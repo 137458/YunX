@@ -47,8 +47,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.yunx.app.ui.components.BreadcrumbBar
-import com.yunx.app.ui.components.BreadcrumbItem
+import top.yukonga.miuix.kmp.basic.BreadcrumbBar
+import top.yukonga.miuix.kmp.basic.BreadcrumbItem
 import com.yunx.app.ui.resolve.BackToParentItem
 import com.yunx.app.ui.resolve.ShareFileRow
 import top.yukonga.miuix.kmp.basic.Button

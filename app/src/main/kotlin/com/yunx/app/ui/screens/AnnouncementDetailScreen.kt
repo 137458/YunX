@@ -41,7 +41,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
+import com.yunx.app.ui.theme.SquircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.ErrorOutline
@@ -432,8 +432,8 @@ private fun AnnouncementGalleryImage(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // miuix 没有 M3 那套 shapes 令牌：large = 16dp、medium = 12dp（与 M3 默认值同口径）
-    val shape = if (hero) RoundedCornerShape(16.dp) else RoundedCornerShape(12.dp)
+    // Miuix 超椭圆平滑连续曲率：large = 16dp、medium = 12dp
+    val shape = if (hero) SquircleShape(16.dp) else SquircleShape(12.dp)
     Box(modifier = modifier) {
         AnimatedVisibility(
             visible = !open,

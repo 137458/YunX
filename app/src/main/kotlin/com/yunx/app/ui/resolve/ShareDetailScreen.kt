@@ -46,7 +46,7 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import com.yunx.app.ui.theme.SquircleShape
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -626,7 +626,7 @@ fun ShareDetailScreen(
 private fun GuestBrowseNotice(platform: SharePlatform) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
+        shape = SquircleShape(12.dp),
         color = MiuixTheme.colorScheme.surfaceContainerHighest
     ) {
         Row(
@@ -901,7 +901,7 @@ private fun FileLeadingIcon(file: ShareFile) {
     Box(
         modifier = Modifier
             .size(40.dp)
-            .clip(RoundedCornerShape(9.dp))
+            .clip(SquircleShape(9.dp))
             .background(MiuixTheme.colorScheme.surfaceContainerHighest),
         contentAlignment = Alignment.Center
     ) {
