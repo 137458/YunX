@@ -165,7 +165,8 @@ import com.yunx.app.ui.screens.SettingsScreen
 import com.yunx.app.ui.screens.SupportScreen
 import com.yunx.app.ui.screens.ThemeScreen
 import com.yunx.app.ui.screens.UpdateDialog
-import com.yunx.app.ui.screens.rememberUpdateDownloadState
+import com.yunx.app.ui.screens.rememberUpdateDialogState
+import com.yunx.app.ui.screens.UpdateDialogState
 import com.yunx.app.ui.util.installApk
 import com.yunx.app.ui.viewmodel.BaiduAccountViewModel
 import com.yunx.app.ui.viewmodel.BaiduCloudViewModel
@@ -729,12 +730,14 @@ fun MainScreen(
     val downloadViewModel: DownloadViewModel = viewModel(
         factory = DownloadViewModel.Factory(downloadManager)
     )
-    // 更新包下载任务：弹窗内直接展示进度与安装入口；任务被用户在下载页删除时进度态自动消失
+    // 更新包下载任务：弹窗只消费 Idle / Downloading / Done / Failed 四态，任务 id 留在这一层
     var updateTaskId by remember { mutableStateOf<Long?>(null) }
-    val updateDownload = rememberUpdateDownloadState(
+    val updateState = rememberUpdateDialogState(
         tasks = downloadViewModel.tasks,
         stats = downloadViewModel.stats,
-        taskId = updateTaskId
+        taskId = updateTaskId,
+        // 落盘后的 SHA-256 校验用当前弹窗这个版本的 asset digest；没有 digest 字段则内部跳过
+        digest = pendingRelease?.apkAsset?.digest.orEmpty()
     )
 
     /** 打开更新弹窗：清掉上一次的下载任务绑定，避免旧进度直接回填到新弹窗 */
@@ -753,6 +756,12 @@ fun MainScreen(
         }
         val url = if (mirror) UpdateChecker.mirrorUrl(apk.downloadUrl) else apk.downloadUrl
         scope.launch { updateTaskId = downloadManager.enqueue(url = url, fileName = apk.name) }
+    }
+
+    /** 弹窗「取消下载」：删除任务与已下载分片，弹窗退回 Idle，可重新选择镜像或稍后再下 */
+    fun cancelUpdateDownload() {
+        updateTaskId?.let { downloadManager.remove(it, deleteLocal = true) }
+        updateTaskId = null
     }
 
     /** 检查更新（设置页入口）：有新版才弹窗；preview=true 为隐藏调试菜单的强制预览 */
@@ -1683,19 +1692,20 @@ fun MainScreen(
             UpdateDialog(
                 currentVersion = UpdateChecker.currentVersion(context),
                 release = release,
-                download = updateDownload,
+                download = updateState,
                 onDownload = { enqueueUpdateApk(release, mirror = false) },
                 onDownloadMirror = { enqueueUpdateApk(release, mirror = true) },
-                // savePath 为空 = 任务标记完成但落盘路径丢失（如用户在下载页删过文件），
-                // 此时装不出来，直接提示而不是拉起一个空安装器
+                // 弹窗只在 SHA-256 校验通过后才报 Done，拿不到 Done 就不会走到这里；
+                // savePath 为空仍兜底提示，避免拉起空安装器
                 onInstall = {
-                    val path = updateDownload?.savePath
+                    val path = (updateState as? UpdateDialogState.Done)?.savePath
                     if (path.isNullOrBlank()) {
                         SnackbarController.show("安装包不存在，请重新下载")
                     } else {
                         installApk(context, path)
                     }
                 },
+                onCancelDownload = { cancelUpdateDownload() },
                 onOpenDownloadPage = {
                     showUpdateDialog = false
                     currentTab = MainTab.Download

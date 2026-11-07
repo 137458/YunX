@@ -34,11 +34,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -61,6 +66,8 @@ fun MarkdownText(
     baseFontSize: Int = 13,
 ) {
     val blocks = remember(markdown) { parseMarkdownBlocks(markdown) }
+    // 链接配色取主题主色，跨主题切换后重新着色（解析结果不缓存颜色）
+    val linkColor = MiuixTheme.colorScheme.primary
 
     Column(
         modifier = modifier,
@@ -71,7 +78,7 @@ fun MarkdownText(
                 is MarkdownBlock.Heading -> {
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = buildAnnotatedContent(block.text),
+                        text = buildAnnotatedContent(block.text, linkColor),
                         style = when (block.level) {
                             1 -> MiuixTheme.textStyles.title3.copy(
                                 fontWeight = FontWeight.Bold,
@@ -105,7 +112,7 @@ fun MarkdownText(
                                 .background(MiuixTheme.colorScheme.primary),
                         )
                         Text(
-                            text = buildAnnotatedContent(block.text),
+                            text = buildAnnotatedContent(block.text, linkColor),
                             style = MiuixTheme.textStyles.body2.copy(
                                 fontSize = baseFontSize.sp,
                                 lineHeight = (baseFontSize + 6).sp,
@@ -132,7 +139,7 @@ fun MarkdownText(
                             color = MiuixTheme.colorScheme.primary,
                         )
                         Text(
-                            text = buildAnnotatedContent(block.text),
+                            text = buildAnnotatedContent(block.text, linkColor),
                             style = MiuixTheme.textStyles.body2.copy(
                                 fontSize = baseFontSize.sp,
                                 lineHeight = (baseFontSize + 6).sp,
@@ -144,7 +151,7 @@ fun MarkdownText(
 
                 is MarkdownBlock.Paragraph -> {
                     Text(
-                        text = buildAnnotatedContent(block.text),
+                        text = buildAnnotatedContent(block.text, linkColor),
                         style = MiuixTheme.textStyles.body2.copy(
                             fontSize = baseFontSize.sp,
                             lineHeight = (baseFontSize + 6).sp,
@@ -217,13 +224,50 @@ private fun parseMarkdownBlocks(markdown: String): List<MarkdownBlock> {
     return blocks
 }
 
-/** 行内样式：**加粗** 与 `行内代码`，其余按普通文本追加 */
-private fun buildAnnotatedContent(rawText: String): AnnotatedString {
+/**
+ * 行内样式：`[文字](链接)`、**加粗** 与 `行内代码`，其余按普通文本追加。
+ *
+ * 链接用 [LinkAnnotation.Url] 交给 Compose 自己处理点击，更新说明里的
+ * 「网盘下载」「Releases」这类条目才点得动；只认成对出现的标记，未闭合按原文输出。
+ */
+private fun buildAnnotatedContent(rawText: String, linkColor: Color): AnnotatedString {
     return buildAnnotatedString {
         var i = 0
         val len = rawText.length
 
         while (i < len) {
+            // [文字](链接)
+            if (rawText[i] == '[') {
+                val bracket = rawText.indexOf(']', i + 1)
+                val paren = if (
+                    bracket > i + 1 &&
+                    bracket + 1 < len &&
+                    rawText[bracket + 1] == '('
+                ) {
+                    rawText.indexOf(')', bracket + 2)
+                } else {
+                    -1
+                }
+                if (bracket > i + 1 && paren > bracket + 2) {
+                    val url = rawText.substring(bracket + 2, paren)
+                    withLink(
+                        LinkAnnotation.Url(
+                            url = url,
+                            styles = TextLinkStyles(
+                                style = SpanStyle(
+                                    color = linkColor,
+                                    textDecoration = TextDecoration.Underline,
+                                ),
+                            ),
+                        ),
+                    ) {
+                        append(rawText.substring(i + 1, bracket))
+                    }
+                    i = paren + 1
+                    continue
+                }
+            }
+
             // **加粗**
             if (rawText.startsWith("**", i)) {
                 val end = rawText.indexOf("**", i + 2)
