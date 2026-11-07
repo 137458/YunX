@@ -21,14 +21,18 @@ package com.yunx.app.data.network.video
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.Application
+import android.os.Build
 import android.os.Bundle
 import android.view.ViewGroup
+import android.webkit.RenderProcessGoneDetail
 import android.webkit.ValueCallback
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.annotation.RequiresApi
 import com.yunx.app.ui.login.alignClientHintsWith
+import com.yunx.app.ui.login.handleRendererProcessGone
 import com.yunx.app.util.DiagnosticLog
 import com.yunx.app.util.LogRedactor
 import androidx.webkit.WebViewCompat
@@ -150,20 +154,13 @@ object HeadlessWebView {
                 WebViewCompat.addDocumentStartJavaScript(webView, script, setOf("*"))
             }
         }
-        webView.webViewClient = object : WebViewClient() {
-            override fun onReceivedError(
-                view: WebView?,
-                request: WebResourceRequest?,
-                error: WebResourceError?
-            ) {
-                if (request?.isForMainFrame != true) return
-                DiagnosticLog.webview("headless_error", request.url?.toString(), code = error?.errorCode)
-            }
-        }
+        // 渲染进程崩溃时提前收工：崩溃后 evaluateJavascript 永远拿不到回调，继续轮询只会干等到超时
+        val client = HeadlessWebClient()
+        webView.webViewClient = client
         try {
             webView.loadUrl(url)
             val deadline = started + timeoutMs
-            while (System.currentTimeMillis() < deadline) {
+            while (!client.rendererGone && System.currentTimeMillis() < deadline) {
                 delay(pollIntervalMs)
                 if (webView.evaluate(readyCheckJs) == "true") {
                     val extracted = webView.evaluate(extractJs)
@@ -221,5 +218,44 @@ object HeadlessWebView {
                 else -> raw
             }
         }.getOrDefault(raw)
+    }
+}
+
+/**
+ * 无头 WebView 的客户端：加载错误落诊断日志 + 渲染进程崩溃兜底。
+ *
+ * ★ 为什么必须兜渲染进程崩溃：不覆写 `onRenderProcessGone`（或返回 false）时，系统会把**整个应用进程**
+ *   一起杀掉 —— 解析视频这种常规路径上闪退，比解析失败更糟。返回 true 后当前 WebView 不可再用，
+ *   必须摘下销毁，并让轮询循环提前收工（[rendererGone]）。
+ * ★ 抑制 `MissingOnRenderProcessGone` 是误报：告警要求的覆写就在本类里，实测 lint 的检测器对
+ *   这里的匹配失败（登录页那批改由基类 `DiagnosticWebViewClient` 统一实现，没有此误报）。
+ */
+@SuppressLint("MissingOnRenderProcessGone")
+private class HeadlessWebClient : WebViewClient() {
+
+    /** 渲染进程崩溃后置 true：崩溃后 `evaluateJavascript` 的回调不会再来，轮询继续跑只是空等超时。 */
+    var rendererGone = false
+        private set
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    override fun onRenderProcessGone(view: WebView?, detail: RenderProcessGoneDetail?): Boolean {
+        rendererGone = true
+        DiagnosticLog.warn(
+            DiagnosticLog.NETWORK,
+            "headless_render_gone",
+            "didCrash=${detail?.didCrash()} url=${LogRedactor.url(view?.url.orEmpty())}"
+        )
+        handleRendererProcessGone(view)
+        return true
+    }
+
+    override fun onReceivedError(
+        view: WebView?,
+        request: WebResourceRequest?,
+        error: WebResourceError?
+    ) {
+        // 只看主文档：子资源（图片/脚本）失败不影响页面是否真的把数据渲染出来
+        if (request?.isForMainFrame != true) return
+        DiagnosticLog.webview("headless_error", request.url?.toString(), code = error?.errorCode)
     }
 }

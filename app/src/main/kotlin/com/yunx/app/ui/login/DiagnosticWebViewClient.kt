@@ -20,8 +20,11 @@ package com.yunx.app.ui.login
 
 import android.annotation.SuppressLint
 import android.graphics.Bitmap
+import android.os.Build
 import android.util.Log
+import android.view.ViewGroup
 import android.webkit.ConsoleMessage
+import android.webkit.RenderProcessGoneDetail
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
@@ -29,14 +32,19 @@ import android.webkit.WebResourceResponse
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.annotation.RequiresApi
 import androidx.webkit.UserAgentMetadata
 import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
 import com.yunx.app.util.DiagnosticLog
+import com.yunx.app.util.LogRedactor
 
 /**
- * 登录页 WebView 的诊断版客户端：**只记日志、不改变任何行为**（每个回调都先/后调 `super`）。
+ * 登录页 WebView 的诊断版客户端：**其余回调只记日志、不改变行为**（每个回调都先/后调 `super`）。
+ *
+ * 唯一例外是渲染进程崩溃：[onRenderProcessGone] 会把崩溃的 WebView 摘下销毁并回调
+ * [onRendererGone]，避免系统连托管进程一起杀掉（不覆写时宿主必被杀）。
  *
  * 为什么做成基类而不是在每个页面里各插一行：8 个登录页（夸克/UC/百度/139/123/115/迅雷×2）各自
  * 匿名继承了 `WebViewClient`，想统一记「加载 URL、页面状态、错误」就得改 8 处 —— 那样下次再加网盘
@@ -96,10 +104,46 @@ internal open class DiagnosticWebViewClient : WebViewClient() {
         }
     }
 
+    /**
+     * 渲染进程崩溃/被回收时的兜底。
+     *
+     * ★ 为什么必须有：`onRenderProcessGone` **不覆写（或返回 false）时，系统会把整个应用进程一起杀掉** ——
+     *   用户正在填验证码的页面崩一下，App 就整体闪退。返回 true 表示「已处理」，代价是当前 WebView
+     *   实例不可再用，必须摘下并销毁（[handleRendererProcessGone]），由子类在 [onRendererGone] 里重建。
+     */
+    @RequiresApi(Build.VERSION_CODES.O)
+    override fun onRenderProcessGone(view: WebView?, detail: RenderProcessGoneDetail?): Boolean {
+        DiagnosticLog.webview("render_gone", view?.url, summary = "didCrash=${detail?.didCrash()}")
+        Log.w(TAG, "render_gone didCrash=${detail?.didCrash()} url=${LogRedactor.url(view?.url.orEmpty())}")
+        handleRendererProcessGone(view)
+        onRendererGone()
+        return true
+    }
+
+    /**
+     * 渲染进程崩溃后的回调（基类已把 WebView 从视图树摘下并销毁）。
+     * 子类要恢复页面只能**重建一个新的 WebView**，对旧实例做任何操作（`reload()` 等）都无效。
+     */
+    protected open fun onRendererGone() = Unit
+
     private companion object {
         const val TAG = "YunX-WebView"
     }
 }
+
+/**
+ * 渲染进程崩溃后的收尾：把 WebView 从视图树摘下并销毁。
+ *
+ * ★ 必须在 `onRenderProcessGone` 返回 true 之前调用：不销毁的话，崩溃的渲染进程会一直挂在这个
+ *   不可用的 WebView 上，每次绘制都可能再次拖垮宿主；而销毁是官方在返回 true 之后要求的动作。
+ */
+internal fun handleRendererProcessGone(view: WebView?) {
+    runCatching { (view?.parent as? ViewGroup)?.removeView(view) }
+    runCatching { view?.destroy() }
+}
+
+/** 渲染进程崩溃后各登录页展示的提示文案（集中一处，避免措辞漂移）。 */
+internal const val RENDER_PROCESS_GONE_MESSAGE = "页面渲染进程已崩溃，请点「重试」重新加载"
 
 /**
  * 登录页 WebView 的**诊断版 WebChromeClient**：把页面的 JS 控制台消息（**只记 WARN / ERROR**，

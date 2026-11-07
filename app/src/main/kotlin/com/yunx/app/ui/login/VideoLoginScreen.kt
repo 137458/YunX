@@ -48,6 +48,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -118,6 +120,9 @@ fun VideoLoginScreen(
     var isLoading by remember { mutableStateOf(true) }
     // 主文档加载失败的原因（非空时盖一张错误卡片）：网络不通/被墙在部分平台是常态，必须让用户看见
     var loadError by remember { mutableStateOf<String?>(null) }
+    // 渲染进程崩溃后旧 WebView 不可再用，只能重建：epoch 变化时 remember 会造一个新的
+    var webViewEpoch by remember { mutableIntStateOf(0) }
+    var rendererGone by remember { mutableStateOf(false) }
     /**
      * 「游客基线」Cookie：页面刚打开时服务端会先种一批**游客**凭证
      * （小红书会自己种下游客态 `web_session`），它们只说明「有过会话」。
@@ -160,7 +165,7 @@ fun VideoLoginScreen(
     }
 
     // 以 platform 为 key：同一个组合位置换平台时不能沿用上一个平台的 WebView 与已加载页面
-    val webView = remember(platform) {
+    val webView = remember(platform, webViewEpoch) {
         WebView(context).apply {
             settings.javaScriptEnabled = true
             settings.domStorageEnabled = true
@@ -238,6 +243,12 @@ fun VideoLoginScreen(
                         else -> error?.description?.toString().orEmpty().ifBlank { "未知错误" }
                     }
                 }
+
+                override fun onRendererGone() {
+                    isLoading = false
+                    loadError = null
+                    rendererGone = true
+                }
             }
             // 诊断版 WebChromeClient：把页面 JS 控制台里的警告/错误落进诊断日志 + logcat。
             // 登录失败的真因常只出现在控制台里（WebViewClient 的加载回调看不到）。
@@ -258,9 +269,9 @@ fun VideoLoginScreen(
         onAutoSaved = onSaved
     )
 
-    // 页面销毁时释放 WebView
-    DisposableEffect(platform) {
-        onDispose { webView.destroy() }
+    // 页面销毁时释放 WebView（渲染进程崩溃时基类已先销毁过，这里可能重复销毁，故兜一层异常）
+    DisposableEffect(platform, webView) {
+        onDispose { runCatching { webView.destroy() } }
     }
 
     // 系统返回键 → 返回上一页（保存中禁用）
@@ -283,7 +294,13 @@ fun VideoLoginScreen(
                             if (!isSaving && !isSavingManual) {
                                 loadError = null
                                 isLoading = true
-                                webView.reload()
+                                // 渲染进程崩溃过的 WebView 已经销毁，reload 无效，只能重建
+                                if (rendererGone) {
+                                    rendererGone = false
+                                    webViewEpoch++
+                                } else {
+                                    webView.reload()
+                                }
                             }
                         },
                         enabled = !isSaving && !isSavingManual
@@ -342,10 +359,12 @@ fun VideoLoginScreen(
                 .padding(innerPadding)
                 .imePadding()
         ) {
-            AndroidView(
-                factory = { webView },
-                modifier = Modifier.fillMaxSize()
-            )
+            key(webViewEpoch) {
+                AndroidView(
+                    factory = { webView },
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
             if (isLoading) {
                 // 首次加载白屏时给个波浪进度提示（深色模式下同样可见）
                 YunXWavyLoading(modifier = Modifier.fillMaxWidth())
@@ -394,6 +413,17 @@ fun VideoLoginScreen(
                         }
                     }
                 }
+            }
+            // 渲染进程崩溃（基类已销毁旧 WebView）：覆盖在主文档错误卡片之上，只能重建页面
+            if (rendererGone) {
+                LoginLoadFailureOverlay(
+                    message = RENDER_PROCESS_GONE_MESSAGE,
+                    onRetry = {
+                        rendererGone = false
+                        isLoading = true
+                        webViewEpoch++
+                    }
+                )
             }
         }
 

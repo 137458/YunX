@@ -41,6 +41,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -85,6 +87,9 @@ fun Pan115LoginScreen(
     val scope = rememberCoroutineScope()
     var isSaving by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(true) }
+    // 渲染进程崩溃后旧 WebView 不可再用，只能重建：epoch 变化时 remember 会造一个新的
+    var webViewEpoch by remember { mutableIntStateOf(0) }
+    var rendererGone by remember { mutableStateOf(false) }
 
     // 手动输入 Cookie 弹窗状态
     var showCookieDialog by remember { mutableStateOf(false) }
@@ -95,7 +100,7 @@ fun Pan115LoginScreen(
     var showTutorial by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { showTutorial = true }
 
-    val webView = remember {
+    val webView = remember(webViewEpoch) {
         WebView(context).apply {
             settings.javaScriptEnabled = true
             settings.domStorageEnabled = true
@@ -136,15 +141,19 @@ fun Pan115LoginScreen(
                         null
                     )
                 }
+                override fun onRendererGone() {
+                    isLoading = false
+                    rendererGone = true
+                }
             }
             webChromeClient = WebChromeClient()
             loadUrl(Pan115Constants.WEB_LOGIN_URL)
         }
     }
 
-    // 页面销毁时释放 WebView
-    DisposableEffect(Unit) {
-        onDispose { webView.destroy() }
+    // 页面销毁时释放 WebView（渲染进程崩溃时基类已先销毁过，这里可能重复销毁，故兜一层异常）
+    DisposableEffect(webView) {
+        onDispose { runCatching { webView.destroy() } }
     }
 
     // 系统返回键 → 返回主页（保存中禁用）
@@ -229,12 +238,24 @@ fun Pan115LoginScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            AndroidView(
-                factory = { webView },
-                modifier = Modifier.fillMaxSize()
-            )
+            key(webViewEpoch) {
+                AndroidView(
+                    factory = { webView },
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
             if (isLoading) {
                 YunXWavyLoading(modifier = Modifier.fillMaxWidth())
+            }
+            if (rendererGone) {
+                LoginLoadFailureOverlay(
+                    message = RENDER_PROCESS_GONE_MESSAGE,
+                    onRetry = {
+                        rendererGone = false
+                        isLoading = true
+                        webViewEpoch++
+                    }
+                )
             }
         }
     }
