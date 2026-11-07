@@ -27,7 +27,7 @@ import com.yunx.app.data.network.model.ShareFile
  * 网盘平台差异的数据载体。
  *
  * 各平台只有文案、图标、有效期编码与提取码策略不同，界面结构完全一致；
- * 把这些差异集中到本类，通用实现（CloudDriveScreen / ShareFormSheet / CloudPickerSheet）
+ * 把这些差异集中到本类，通用实现（CloudDriveBrowser / ShareFormSheet / CloudPickerSheet）
  * 就不再需要任何平台分支。
  */
 data class DriveSpec(

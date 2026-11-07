@@ -574,7 +574,7 @@ class QuarkCloudViewModel(
                 val info = api.getShareInfo(shareId, cookie)
                     ?: throw IllegalStateException("获取分享链接失败")
                 shareResult = info
-                // 注意：不置空 actionFile —— FileActionSheet 依赖它存活，
+                // 注意：不置空 actionFile —— 网盘页操作弹窗依赖它存活，
                 // 才能在其内部弹出 ShareResultDialog（置空会导致弹窗销毁、分享结果延迟显示）
             } catch (e: Exception) {
                 cloudMessage = e.message ?: "分享失败"

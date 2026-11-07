@@ -60,7 +60,7 @@ app/src/main/kotlin/com/yunx/app/
     ├── SnackbarController.kt ★ 全局 Snackbar 通道
     ├── navigation/MainTab.kt 底部 4 Tab 枚举
     ├── screens/              一级/二级页面 + 各平台 *CloudScreen / *AccountSheet / *SaveSheet + CloudDriveScaffold（★ 网盘页共享骨架）
-    ├── drive/                网盘页共享件（CloudDriveScreen 浏览主体 / CloudAccountSheet / CloudPickerSheet / DriveDirPicker / ShareFormSheet）
+    ├── drive/                网盘页共享件（CloudDriveBrowser 浏览主体 / CloudAccountSheet / CloudPickerSheet / DriveDirPicker / ShareFormSheet）
     ├── resolve/              解析结果页（ShareDetailScreen / ResolveFileActionSheet / DownloadLinkDialog）
     ├── login/                各平台登录页（WebView Cookie / 账密 / 手动 Cookie）
     ├── preview/              在线预览（CloudPreview / MediaPreviewScreen / PreviewLauncher / PreviewTextLoader）
@@ -129,7 +129,7 @@ app/src/main/kotlin/com/yunx/app/
 **禁止**：调用处再写 `maxLines` / `overflow` / `basicMarquee`。面包屑、对话框标题、收藏页分享标题**不是**文件名，不走它。
 
 ### 3.13 文件操作弹窗：解析页与网盘页同一套
-操作统一收进底部弹窗，行内不放操作图标（`ShareFileRow` 只剩 `onClick` / `onMore` / `onLongClick`）。共享组件 `FileActionSheet` / `FileSheetHeader` / `ActionItem` 都在 `ui/screens/CloudFileSheets.kt`，改样式只改这些。
+操作统一收进底部弹窗，行内不放操作图标（`ShareFileRow` 只剩 `onClick` / `onMore` / `onLongClick`）。网盘页十家平台共用 `CloudDriveBrowser` 内的文件操作弹窗，改样式只改这一处；上传进度弹窗与分享结果弹窗在 `ui/screens/CloudFileSheets.kt`。
 转存是**同一弹窗内的二级步骤**（`ActionStep{MENU,SAVE}` + `AnimatedContent`），外壳用 `SaveStepScaffold(title, subtitle, onBack, content)`；**禁止**另写 `ModalBottomSheet` + 自绘标题行或另抄一份菜单行。
 转存成功判定：`ResolveViewModel.saveTarget` 由非空变 `null`（失败/未登录保留原值让用户重试）；`saving` 期间禁止下滑关闭与返回菜单。
 只有「下载 / 下载文件夹」这类要另开弹窗的动作才先 `sheetState.hide()` 播完退场再执行；同弹窗内的步骤切换不关弹窗。

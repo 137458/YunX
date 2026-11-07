@@ -566,6 +566,22 @@ fun CloudDriveDeleteDialog(
     }
 }
 
+/**
+ * 云盘文件/文件夹名称校验（创建与重命名共用）：非空、不是 `.`/`..`、不含 `/` `\` 与控制字符、不超过 255 字符。
+ *
+ * @return 不合法的原因（给用户看）；合法返回 null
+ */
+internal fun cloudNameError(raw: String): String? {
+    val name = raw.trim()
+    return when {
+        name.isEmpty() -> "名称不能为空"
+        name == "." || name == ".." -> "名称不能是 . 或 .."
+        name.length > 255 -> "名称最多 255 个字符"
+        name.any { it == '/' || it == '\\' || it.code < 0x20 } -> "名称不能含 / \\ 或控制字符"
+        else -> null
+    }
+}
+
 /** 通用重命名弹窗（WindowDialog + Miuix TextField） */
 @Composable
 fun CloudDriveRenameDialog(
@@ -580,6 +596,8 @@ fun CloudDriveRenameDialog(
 ) {
     if (!show) return
     var name by remember(initialName) { mutableStateOf(initialName) }
+    var nameEdited by remember(initialName) { mutableStateOf(false) }
+    val nameError = cloudNameError(name)
     WindowDialog(
         show = show,
         onDismissRequest = onDismiss,
@@ -588,14 +606,25 @@ fun CloudDriveRenameDialog(
         Column(modifier = Modifier.fillMaxWidth()) {
             TextField(
                 value = name,
-                onValueChange = { name = it },
+                onValueChange = {
+                    name = it
+                    nameEdited = true
+                },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 16.dp),
+                    .padding(bottom = if (nameError == null || !nameEdited) 16.dp else 6.dp),
                 label = label,
                 useLabelAsPlaceholder = true,
                 singleLine = true
             )
+            if (nameError != null && nameEdited) {
+                Text(
+                    text = nameError,
+                    style = MiuixTheme.textStyles.footnote1,
+                    color = MiuixTheme.colorScheme.error,
+                    modifier = Modifier.padding(bottom = 10.dp)
+                )
+            }
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -608,11 +637,11 @@ fun CloudDriveRenameDialog(
                 Button(
                     onClick = {
                         onDismiss()
-                        if (name.isNotBlank() && name != initialName) {
+                        if (nameError == null && name.trim() != initialName) {
                             onConfirm(name.trim())
                         }
                     },
-                    enabled = name.isNotBlank(),
+                    enabled = nameError == null && name.trim() != initialName,
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColorsPrimary()
                 ) {

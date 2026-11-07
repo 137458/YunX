@@ -600,7 +600,7 @@ class UCCoudViewModel(
                 val info = api.getShareInfo(shareId, cookie)
                     ?: throw IllegalStateException("获取分享链接失败")
                 shareResult = info
-                // 保留 actionFile：FileActionSheet 存活才能弹出 ShareResultDialog
+                // 保留 actionFile：网盘页操作弹窗依赖它存活才能弹出 ShareResultDialog
             } catch (e: Exception) {
                 cloudMessage = e.message ?: "分享失败"
             } finally {

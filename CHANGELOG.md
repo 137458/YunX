@@ -3,6 +3,7 @@
 ## [未发布]
 
 ### 重构
+- 夸克网盘浏览页从专用 `CloudDriveScreen` / `FileActionSheet` / `BatchActionSheet` 迁到通用 `CloudDriveBrowser`：十家网盘页至此共用同一套文件操作表、上传进度、新建文件夹与在线预览接线，删除约 1200 行重复实现；`ui/screens/CloudFileSheets.kt` 只保留分享结果弹窗、上传选文件器与上传进度弹窗
 - 更新弹窗整体对齐 jm3 整合版：标题下只保留一行「当前 X → 最新 Y · 日期」摘要，移除正文自绘的版本跃迁横幅与三联元信息胶囊栏，说明区成为弹窗内唯一滚动容器（12 行折叠、240dp 限高、上下 40dp 羽化，羽化层贴在滚动容器外侧），外层不再挂 `verticalScroll`
 - 更新弹窗下载态收敛为 Idle / Downloading / Done / Failed 四态：任务 id、暂停恢复、镜像切换与引擎句柄留在界面层之外，暂停不再衍生出第五态；动作全部由状态推导（主按钮「立即下载 / 安装更新 / 重试」，次按钮「稍后」，下载中禁用主按钮并显示百分比，另给「取消下载」「后台下载」），「忽略此版本」降为说明下方文字链且保留撤销，镜像入口与「转到下载任务」常驻
 - 更新包新增 SHA-256 完整性校验：任务完成、文件落盘之后、对外报 Done 之前解析 asset 的 `digest` 校验，缺失则跳过；不匹配时删除坏包并按失败态提示重新下载
@@ -12,6 +13,7 @@
 - WebView 平台级助手（崩溃收尾 `handleRendererProcessGone`、幂等销毁 `destroyWebView`、UA 客户端提示对齐 `alignClientHintsWith`）从 `ui/login` 迁到 `util/webview`：无头解析通道在数据层，原先反向 import UI 包，数据层因此被 UI 编译期绑死
 
 ### 修复
+- 修复九个非夸克平台的重命名 / 新建文件夹弹窗不做名称校验的问题：`cloudNameError` 从夸克专用重命名步骤上移到共享 `CloudDriveRenameDialog`，空名、`.`/`..`、含 `/` `\` 或控制字符、超过 255 字符的名称在本地即被拦下（规则由 `CloudNameErrorTest` 钉住）
 - 修复登录页与无头解析 WebView 在渲染进程崩溃时连带杀掉整个应用的问题：不覆写 `onRenderProcessGone` 时系统会直接结束宿主进程（填验证码 / 解析视频途中闪退）。登录页统一由 `DiagnosticWebViewClient` 处理：摘下并销毁崩溃的 WebView、返回 `true`，页面展示「渲染进程已崩溃」并在重试时重建 WebView（旧实例已不可用，`reload()` 无效）；走 `LoginWebViewController` 的 5 个页面同样改为崩溃后重建而非 reload；无头解析通道自行处置并提前收工，不再陪着轮询空等到超时
 - 修复 Android 9 及以下（API 24–28）设备上解析与合并音视频时崩溃的问题：`MediaFormat#getInteger(key, fallback)` 自 API 29 才提供，`AudioExtractor` 与 `DashMuxer` 的四处调用在旧系统上会抛 `NoSuchMethodError`；改为经 `MediaFormatCompat` 统一取值，旧系统回落到单参取值并在缺键时使用默认值
 - 修复所有基于 `CloudDriveBrowser` 的网盘（迅雷/百度/115/123/139/蓝奏/光雅）点单文件「下载」无任何反应的问题：操作表在触发下载前先调了 `dismissActions()` 把 `actionFile` 置空，而各网盘 ViewModel 的 `downloadFile()` / `downloadFolder()` 首行都是 `actionFile ?: return`，于是动作被静默跳过（连异常都不抛）；改为只收起操作表本地 UI 状态、保留 `actionFile`，下载动作完成后由 ViewModel 自行收尾

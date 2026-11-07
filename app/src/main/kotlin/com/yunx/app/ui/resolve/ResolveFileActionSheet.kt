@@ -69,7 +69,7 @@ private enum class ResolveActionStep { MENU, SAVE }
 /**
  * 解析页文件操作弹窗（点击文件行打开；文件夹行由行尾「更多」按钮打开）。
  *
- * 与网盘页的 [com.yunx.app.ui.screens.FileActionSheet] 保持同一形态与过渡：
+ * 与网盘页的文件操作弹窗（[com.yunx.app.ui.drive.CloudDriveBrowser] 内）保持同一形态与过渡：
  * 同为底部操作抽屉（外壳 [OperationSheet]）+ 顶部文件信息（[FileSheetHeader]）+ [ActionItem] 操作项，
  * 区别只在可做的事 —— 分享里的文件不属于自己，没有分享/移动/重命名/删除。
  *
