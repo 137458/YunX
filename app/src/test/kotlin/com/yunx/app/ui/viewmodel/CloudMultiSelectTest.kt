@@ -69,14 +69,14 @@ class CloudMultiSelectTest {
     }
 
     @Test
-    fun toggle_isIdempotentForRepeatedSelection() {
+    fun toggle_returnsToOriginalSelectionWhenToggledTwice() {
         val state = CloudMultiSelect()
         state.enter(a)
 
-        state.toggle(a)
+        state.toggle(b)
+        state.toggle(b)
 
-        assertEquals(emptyList<String>(), state.selected.map { it.fname })
-        assertEquals(0, state.selected.size)
+        assertEquals(listOf("a"), state.selected.map { it.fname })
     }
 
     @Test
@@ -103,6 +103,7 @@ class CloudMultiSelectTest {
     @Test
     fun toggleAll_onEmptyListClearsSelection() {
         val state = CloudMultiSelect()
+        state.enter(a)
 
         state.toggleAll(emptyList())
 

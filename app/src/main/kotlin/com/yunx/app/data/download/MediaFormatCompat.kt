@@ -35,7 +35,6 @@ object MediaFormatCompat {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             format.getInteger(key, fallback)
         } else {
-            @Suppress("DEPRECATION")
             runCatching { format.getInteger(key) }.getOrDefault(fallback)
         }
 }
