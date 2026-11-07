@@ -19,7 +19,6 @@
 package com.yunx.app.ui.viewmodel
 
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
@@ -418,11 +417,10 @@ class ResolveViewModel(
     // ---------- 长按多选（解析页文件列表） ----------
 
     /** 多选模式（长按进入） */
-    var multiSelectMode by mutableStateOf(false)
-        private set
+    private val multiSelect = CloudMultiSelect()
+    val multiSelectMode: Boolean get() = multiSelect.isActive
 
-    private val _selected = mutableStateListOf<ShareFile>()
-    val selected: List<ShareFile> get() = _selected
+    val selected: List<ShareFile> get() = multiSelect.selected
 
     /** 批量处理中（UI 显示加载弹窗） */
     var isBatchWorking by mutableStateOf(false)
@@ -440,32 +438,17 @@ class ResolveViewModel(
         batchCancelRequested = true
     }
 
-    fun enterMultiSelect(file: ShareFile) {
-        multiSelectMode = true
-        _selected.clear()
-        _selected.add(file)
-    }
+    fun enterMultiSelect(file: ShareFile) = multiSelect.enter(file)
 
-    fun toggleSelect(file: ShareFile) {
-        if (_selected.contains(file)) _selected.remove(file) else _selected.add(file)
-    }
+    fun toggleSelect(file: ShareFile) = multiSelect.toggle(file)
 
-    fun toggleSelectAll(files: List<ShareFile>) {
-        if (_selected.size == files.size) _selected.clear()
-        else {
-            _selected.clear()
-            _selected.addAll(files)
-        }
-    }
+    fun toggleSelectAll(files: List<ShareFile>) = multiSelect.toggleAll(files)
 
-    fun exitMultiSelect() {
-        multiSelectMode = false
-        _selected.clear()
-    }
+    fun exitMultiSelect() = multiSelect.exit()
 
     /** 批量转存到网盘根目录（夸克 / 迅雷 / 百度分平台；仅支持转存的平台） */
     fun batchSaveToCloud() {
-        val files = _selected.toList()
+        val files = multiSelect.selected.toList()
         val s = session ?: return
         viewModelScope.launch {
             isBatchWorking = true
@@ -538,7 +521,7 @@ class ResolveViewModel(
     }
 
     /** 批量下载（多选栏）：逐个取直链入队（选中文件夹时递归下载整个文件夹并保持目录结构，全部获取完再统一切到下载页） */
-    fun batchDownload() = downloadFiles(_selected.toList())
+    fun batchDownload() = downloadFiles(multiSelect.selected.toList())
 
     /**
      * 解析页文件操作弹窗：下载单个文件夹（递归收集整个文件夹后逐个入队，与批量下载同一条链路）。

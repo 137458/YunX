@@ -24,7 +24,6 @@ import com.yunx.app.data.network.HttpClients
 import com.yunx.app.data.upload.UploadProgress
 import com.yunx.app.data.upload.UploadRunner
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
@@ -91,10 +90,9 @@ class XunleiCloudViewModel(
         private set
     var shareResult by mutableStateOf<ShareInfo?>(null)
         private set
-    var multiSelectMode by mutableStateOf(false)
-        private set
-    private val _selected = mutableStateListOf<ShareFile>()
-    val selected: List<ShareFile> get() = _selected
+    private val multiSelect = CloudMultiSelect()
+    val multiSelectMode: Boolean get() = multiSelect.isActive
+    val selected: List<ShareFile> get() = multiSelect.selected
 
     private val dirStack = ArrayDeque<String>()
     private val nameStack = ArrayDeque<String>()
@@ -159,28 +157,13 @@ class XunleiCloudViewModel(
 
     // ---------- 多选 ----------
 
-    fun enterMultiSelect(file: ShareFile) {
-        multiSelectMode = true
-        _selected.clear()
-        _selected.add(file)
-    }
+    fun enterMultiSelect(file: ShareFile) = multiSelect.enter(file)
 
-    fun toggleSelect(file: ShareFile) {
-        if (_selected.contains(file)) _selected.remove(file) else _selected.add(file)
-    }
+    fun toggleSelect(file: ShareFile) = multiSelect.toggle(file)
 
-    fun toggleSelectAll(files: List<ShareFile>) {
-        if (_selected.size == files.size) _selected.clear()
-        else {
-            _selected.clear()
-            _selected.addAll(files)
-        }
-    }
+    fun toggleSelectAll(files: List<ShareFile>) = multiSelect.toggleAll(files)
 
-    fun exitMultiSelect() {
-        multiSelectMode = false
-        _selected.clear()
-    }
+    fun exitMultiSelect() = multiSelect.exit()
 
     fun openActions(file: ShareFile) {
         actionFile = file
@@ -541,7 +524,7 @@ class XunleiCloudViewModel(
 
     /** 批量下载（不切页，保持处理中弹窗；选中文件夹时递归下载整个文件夹并保持目录结构） */
     fun downloadSelected() {
-        val files = _selected.toList()
+        val files = multiSelect.selected.toList()
         if (files.isEmpty()) return
         viewModelScope.launch {
             isOperating = true
@@ -607,7 +590,7 @@ class XunleiCloudViewModel(
 
     /** 批量分享（@param expiredType UI 中性码，转换见 [shareFile]） */
     fun shareSelected(expiredType: Int, passCode: String = "") {
-        val files = _selected.toList()
+        val files = multiSelect.selected.toList()
         if (files.isEmpty()) return
         viewModelScope.launch {
             isOperating = true
@@ -630,7 +613,7 @@ class XunleiCloudViewModel(
 
     /** 批量移动 */
     fun moveSelected(toDirFid: String) {
-        val files = _selected.toList()
+        val files = multiSelect.selected.toList()
         if (files.isEmpty()) return
         viewModelScope.launch {
             isOperating = true
@@ -651,7 +634,7 @@ class XunleiCloudViewModel(
 
     /** 批量删除 */
     fun deleteSelected() {
-        val files = _selected.toList()
+        val files = multiSelect.selected.toList()
         if (files.isEmpty()) return
         viewModelScope.launch {
             isOperating = true

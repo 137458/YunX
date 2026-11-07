@@ -8,6 +8,7 @@
 - 更新包新增 SHA-256 完整性校验：任务完成、文件落盘之后、对外报 Done 之前解析 asset 的 `digest` 校验，缺失则跳过；不匹配时删除坏包并按失败态提示重新下载
 - 收敛 Material 3 残留代码与配色定义：移除设置目录选择器测试中遗留的 `@OptIn(ExperimentalMaterial3Api)` 实验注解；精简未被业务消费的 `Type.kt` 排版定义为最简兜底；将关于页、收藏页、主题页与网盘页等多处芯片与底座色彩统一收敛为 Miuix 标准层级命名（`surfaceContainerHigh`）
 - 账号页排序与过滤的纯计算从 `DriveScreen` 抽成 `ui/screens/DriveOrder.kt`（排序归一化 / 过滤 / 隐藏计数 / 移动），规则由 `DriveOrderTest` 钉住；上游新增设置键（列表缩略图 / 隐藏未登录 / 账号排序 / 剪贴板与预发布开关）补 `SettingsDriveSettingsTest`，锁键名、默认值与序列化往返格式
+- 网盘与解析页的长按多选状态从 11 个 ViewModel 逐份复制的实现收敛为 `ui/viewmodel/CloudMultiSelect.kt`：进入 / 切换 / 全选 / 退出四条规则只保留一份，由 `CloudMultiSelectTest` 钉住（含全选「按数量判满」的既有语义）；ViewModel 对外属性与函数签名不变
 
 ### 修复
 - 修复所有基于 `CloudDriveBrowser` 的网盘（迅雷/百度/115/123/139/蓝奏/光雅）点单文件「下载」无任何反应的问题：操作表在触发下载前先调了 `dismissActions()` 把 `actionFile` 置空，而各网盘 ViewModel 的 `downloadFile()` / `downloadFolder()` 首行都是 `actionFile ?: return`，于是动作被静默跳过（连异常都不抛）；改为只收起操作表本地 UI 状态、保留 `actionFile`，下载动作完成后由 ViewModel 自行收尾

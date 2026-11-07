@@ -24,7 +24,6 @@ import com.yunx.app.data.network.HttpClients
 import com.yunx.app.data.upload.UploadProgress
 import com.yunx.app.data.upload.UploadRunner
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
@@ -227,37 +226,21 @@ class QuarkCloudViewModel(
     // ---------- 文件操作 ----------
 
     /** 多选模式（长按进入） */
-    var multiSelectMode by mutableStateOf(false)
-        private set
+    private val multiSelect = CloudMultiSelect()
+    val multiSelectMode: Boolean get() = multiSelect.isActive
 
-    private val _selected = mutableStateListOf<ShareFile>()
-    val selected: List<ShareFile> get() = _selected
+    val selected: List<ShareFile> get() = multiSelect.selected
 
     /** 长按进入多选并选中该文件 */
-    fun enterMultiSelect(file: ShareFile) {
-        multiSelectMode = true
-        _selected.clear()
-        _selected.add(file)
-    }
+    fun enterMultiSelect(file: ShareFile) = multiSelect.enter(file)
 
     /** 切换选中状态 */
-    fun toggleSelect(file: ShareFile) {
-        if (_selected.contains(file)) _selected.remove(file) else _selected.add(file)
-    }
+    fun toggleSelect(file: ShareFile) = multiSelect.toggle(file)
 
     /** 全选/取消全选当前目录 */
-    fun toggleSelectAll(files: List<ShareFile>) {
-        if (_selected.size == files.size) _selected.clear()
-        else {
-            _selected.clear()
-            _selected.addAll(files)
-        }
-    }
+    fun toggleSelectAll(files: List<ShareFile>) = multiSelect.toggleAll(files)
 
-    fun exitMultiSelect() {
-        multiSelectMode = false
-        _selected.clear()
-    }
+    fun exitMultiSelect() = multiSelect.exit()
 
     /** 打开文件操作菜单 */
     fun openActions(file: ShareFile) {
@@ -605,7 +588,7 @@ class QuarkCloudViewModel(
 
     /** 批量下载：逐个取直链加入下载队列（选中文件夹时递归下载整个文件夹并保持目录结构） */
     fun downloadSelected() {
-        val files = _selected.toList()
+        val files = multiSelect.selected.toList()
         if (files.isEmpty()) return
         viewModelScope.launch {
             isOperating = true
@@ -674,7 +657,7 @@ class QuarkCloudViewModel(
 
     /** 批量分享选中文件 */
     fun shareSelected(urlType: Int, passcode: String, expiredType: Int) {
-        val files = _selected.toList()
+        val files = multiSelect.selected.toList()
         if (files.isEmpty()) return
         viewModelScope.launch {
             isOperating = true
@@ -706,7 +689,7 @@ class QuarkCloudViewModel(
 
     /** 批量移动到指定目录 */
     fun moveSelected(toDirFid: String) {
-        val files = _selected.toList()
+        val files = multiSelect.selected.toList()
         if (files.isEmpty()) return
         viewModelScope.launch {
             isOperating = true
@@ -733,7 +716,7 @@ class QuarkCloudViewModel(
 
     /** 批量删除（二次确认由 UI 层负责） */
     fun deleteSelected() {
-        val files = _selected.toList()
+        val files = multiSelect.selected.toList()
         if (files.isEmpty()) return
         viewModelScope.launch {
             isOperating = true
