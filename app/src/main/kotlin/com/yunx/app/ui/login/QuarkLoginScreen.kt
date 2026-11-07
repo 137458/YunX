@@ -35,6 +35,7 @@ import androidx.compose.material.icons.outlined.ContentPaste
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -183,10 +184,13 @@ fun QuarkLoginScreen(
                 // 键盘避让：网页表单聚焦时把内容顶到键盘上方，输入框不被遮挡
                 .imePadding()
         ) {
-            AndroidView(
-                factory = { controller.webView },
-                modifier = Modifier.fillMaxSize()
-            )
+            // 渲染进程崩溃后 controller 会重建 WebView，靠 generation 换视图（否则 AndroidView 仍持旧实例）
+            key(controller.generation) {
+                AndroidView(
+                    factory = { controller.webView },
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
             if (controller.isLoading) {
                 LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
             }

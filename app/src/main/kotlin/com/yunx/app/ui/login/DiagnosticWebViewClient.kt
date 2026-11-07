@@ -39,6 +39,8 @@ import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
 import com.yunx.app.util.DiagnosticLog
 import com.yunx.app.util.LogRedactor
+import java.util.Collections
+import java.util.WeakHashMap
 
 /**
  * 登录页 WebView 的诊断版客户端：**其余回调只记日志、不改变行为**（每个回调都先/后调 `super`）。
@@ -139,7 +141,23 @@ internal open class DiagnosticWebViewClient : WebViewClient() {
  */
 internal fun handleRendererProcessGone(view: WebView?) {
     runCatching { (view?.parent as? ViewGroup)?.removeView(view) }
-    runCatching { view?.destroy() }
+    destroyWebView(view)
+}
+
+/** 已销毁的实例：崩溃回调与 Compose `onDispose` 会对同一个 WebView 各销毁一次，靠它去重。 */
+private val destroyedWebViews = Collections.newSetFromMap(WeakHashMap<WebView, Boolean>())
+
+/**
+ * 幂等销毁 WebView。
+ *
+ * ★ 为什么需要幂等：渲染进程崩溃时基类会销毁一次，随后 `DisposableEffect` 的 `onDispose` 还会再销毁
+ *   一次 —— 对同一个实例重复 `destroy()` 属于未定义行为（可能触发 native 崩溃），`runCatching` 只能
+ *   挡住 Java 层异常，挡不住 native 层的。
+ */
+internal fun destroyWebView(view: WebView?) {
+    if (view == null) return
+    val firstTime = synchronized(destroyedWebViews) { destroyedWebViews.add(view) }
+    if (firstTime) view.destroy()
 }
 
 /** 渲染进程崩溃后各登录页展示的提示文案（集中一处，避免措辞漂移）。 */

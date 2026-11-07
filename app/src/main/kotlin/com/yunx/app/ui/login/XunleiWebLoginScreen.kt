@@ -150,8 +150,8 @@ fun XunleiWebLoginScreen(
         }
     }
 
-    // 渲染进程崩溃时基类已先销毁过，这里可能重复销毁，故兜一层异常
-    DisposableEffect(webView) { onDispose { runCatching { webView.destroy() } } }
+    // 渲染进程崩溃时基类已先销毁过，destroyWebView 保证真正只销毁一次
+    DisposableEffect(webView) { onDispose { destroyWebView(webView) } }
 
     BackHandler(enabled = !isSaving && !isSavingManual) { onBack() }
 
@@ -160,7 +160,7 @@ fun XunleiWebLoginScreen(
         sampleCredential = { webView.evaluateJsEncoded(XunleiWebCredential.READ_SCRIPT) },
         isPlausible = { XunleiWebCredential.parse(it) != null },
         validateAndSave = { viewModel.saveWebCredential(it) },
-        isPaused = { isSaving || isSavingManual || showPasteDialog },
+        isPaused = { isSaving || isSavingManual || showPasteDialog || rendererGone },
         onInFlightChange = { isSaving = it },
         onAutoSaved = onSaved
     )
@@ -218,7 +218,8 @@ fun XunleiWebLoginScreen(
                                     }
                                 }
                             },
-                            enabled = !isSaving && !isSavingManual
+                            // 渲染进程崩溃后 WebView 已销毁，取凭据必然拿到空值，别让用户点了白点
+                            enabled = !isSaving && !isSavingManual && !rendererGone
                         )
                     }
                 }

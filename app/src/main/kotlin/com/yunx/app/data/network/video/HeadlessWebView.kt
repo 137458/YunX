@@ -32,6 +32,7 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.annotation.RequiresApi
 import com.yunx.app.ui.login.alignClientHintsWith
+import com.yunx.app.ui.login.destroyWebView
 import com.yunx.app.ui.login.handleRendererProcessGone
 import com.yunx.app.util.DiagnosticLog
 import com.yunx.app.util.LogRedactor
@@ -172,16 +173,17 @@ object HeadlessWebView {
                     return@withContext extracted
                 }
             }
+            // 崩溃路径上 WebView 已被客户端销毁过，destroyWebView 保证真正只销毁一次
             DiagnosticLog.warn(
                 DiagnosticLog.NETWORK,
-                "headless_timeout",
+                if (client.rendererGone) "headless_render_gone_giveup" else "headless_timeout",
                 "costMs=${System.currentTimeMillis() - started} url=${LogRedactor.url(url)}"
             )
             null
         } finally {
             runCatching { webView.stopLoading() }
             runCatching { (webView.parent as? ViewGroup)?.removeView(webView) }
-            runCatching { webView.destroy() }
+            destroyWebView(webView)
         }
     }
 
@@ -227,8 +229,8 @@ object HeadlessWebView {
  * ★ 为什么必须兜渲染进程崩溃：不覆写 `onRenderProcessGone`（或返回 false）时，系统会把**整个应用进程**
  *   一起杀掉 —— 解析视频这种常规路径上闪退，比解析失败更糟。返回 true 后当前 WebView 不可再用，
  *   必须摘下销毁，并让轮询循环提前收工（[rendererGone]）。
- * ★ 抑制 `MissingOnRenderProcessGone` 是误报：告警要求的覆写就在本类里，实测 lint 的检测器对
- *   这里的匹配失败（登录页那批改由基类 `DiagnosticWebViewClient` 统一实现，没有此误报）。
+ * ★ `MissingOnRenderProcessGone` 是误报：告警要求的覆写就在本类里（见下方 `onRenderProcessGone`），
+ *   但检测器对「命名类 + 覆写」的组合匹配不到；同包的登录页改成继承 `DiagnosticWebViewClient` 后无此误报。
  */
 @SuppressLint("MissingOnRenderProcessGone")
 private class HeadlessWebClient : WebViewClient() {

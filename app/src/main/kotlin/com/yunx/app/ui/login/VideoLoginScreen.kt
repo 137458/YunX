@@ -269,9 +269,9 @@ fun VideoLoginScreen(
         onAutoSaved = onSaved
     )
 
-    // 页面销毁时释放 WebView（渲染进程崩溃时基类已先销毁过，这里可能重复销毁，故兜一层异常）
+    // 页面销毁时释放 WebView（渲染进程崩溃时基类已先销毁过，destroyWebView 保证真正只销毁一次）
     DisposableEffect(platform, webView) {
-        onDispose { runCatching { webView.destroy() } }
+        onDispose { destroyWebView(webView) }
     }
 
     // 系统返回键 → 返回上一页（保存中禁用）

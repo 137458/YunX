@@ -44,6 +44,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -63,8 +64,8 @@ private const val TAG = "LoginWebView"
 /** 加载超时：WebView 弱网下可能既不回调完成也不回调错误，超过该时间即置失败态，避免进度条永久转圈 */
 private const val LOAD_TIMEOUT_MS = 20_000L
 
-/** 渲染进程崩溃后的自动重载上限：超过则进入失败态，避免「崩溃 → 重载 → 再崩溃」死循环 */
-private const val MAX_RENDER_CRASH_RETRY = 2
+/** 渲染进程崩溃后的提示：崩溃实例已销毁，只能由 [LoginWebViewController.retry] 重建 */
+private const val RENDER_CRASH_MESSAGE = "页面渲染进程崩溃，请点「重试」重新加载"
 
 private const val LOAD_TIMEOUT_MESSAGE = "加载超时，请检查网络后重试"
 private const val LOAD_ERROR_MESSAGE = "页面加载失败，请检查网络后重试"
@@ -116,9 +117,9 @@ internal object LoginWebViewDefaults {
  */
 @Stable
 class LoginWebViewController internal constructor(
-    context: Context,
+    private val context: Context,
     private val initialUrl: String,
-    userAgent: String?,
+    private val userAgent: String?,
     private val injectViewport: Boolean,
     private val allowedHosts: Set<String>
 ) {
@@ -137,10 +138,17 @@ class LoginWebViewController internal constructor(
     var failureMessage by mutableStateOf<String?>(null)
         private set
 
-    /** 渲染进程崩溃后的自动重载次数（上限见 MAX_RENDER_CRASH_RETRY） */
-    private var renderCrashRetries = 0
+    /** 当前 WebView 实例被替换（渲染进程崩溃后重建）的次数；页面要把 `AndroidView` 包在 `key(generation)` 里才能换视图 */
+    var generation by mutableIntStateOf(0)
+        private set
 
-    val webView: WebView = WebView(context).apply {
+    /** 崩溃实例已销毁，重试时必须重建而不是 reload */
+    private var rendererGone = false
+
+    var webView: WebView = createWebView()
+        private set
+
+    private fun createWebView(): WebView = WebView(context).apply {
         LoginWebViewDefaults.apply(this, userAgent)
         webChromeClient = WebChromeClient()
         webViewClient = buildClient()
@@ -151,10 +159,18 @@ class LoginWebViewController internal constructor(
     fun retry() {
         failureMessage = null
         isLoading = true
-        renderCrashRetries = 0
         scheduleTimeout()
-        webView.post {
-            if (webView.url.isNullOrBlank()) webView.loadUrl(initialUrl) else webView.reload()
+        if (rendererGone) {
+            // 崩溃实例已不可用：reload 的回调不会再来，必须丢弃重建
+            val crashed = webView
+            destroyWebView(crashed)
+            rendererGone = false
+            webView = createWebView()
+            generation++
+        } else {
+            webView.post {
+                if (webView.url.isNullOrBlank()) webView.loadUrl(initialUrl) else webView.reload()
+            }
         }
     }
 
@@ -168,7 +184,7 @@ class LoginWebViewController internal constructor(
     /** 释放 WebView（渲染进程资源昂贵，页面销毁必须回收） */
     fun destroy() {
         mainHandler.removeCallbacks(timeoutTask)
-        webView.destroy()
+        destroyWebView(webView)
     }
 
     private fun markFailure(message: String) {
@@ -223,15 +239,10 @@ class LoginWebViewController internal constructor(
         override fun onRenderProcessGone(view: WebView?, detail: RenderProcessGoneDetail?): Boolean {
             // 返回 true 表示已处理，避免系统直接杀掉宿主进程
             Log.e(TAG, "onRenderProcessGone: didCrash=${detail?.didCrash()}")
-            if (renderCrashRetries < MAX_RENDER_CRASH_RETRY) {
-                renderCrashRetries++
-                isLoading = true
-                failureMessage = null
-                scheduleTimeout()
-                view?.post { view.reload() }
-            } else {
-                markFailure("页面渲染进程反复崩溃，请稍后重试或改用手动输入凭证")
-            }
+            // ★ 崩溃实例不可再用：reload 的回调不会再来，只能摘下销毁，由 retry() 重建
+            rendererGone = true
+            handleRendererProcessGone(view)
+            markFailure(RENDER_CRASH_MESSAGE)
             return true
         }
 

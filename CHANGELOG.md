@@ -11,7 +11,7 @@
 - 网盘与解析页的长按多选状态从 11 个 ViewModel 逐份复制的实现收敛为 `ui/viewmodel/CloudMultiSelect.kt`：进入 / 切换 / 全选 / 退出四条规则只保留一份，由 `CloudMultiSelectTest` 钉住（含全选「按数量判满」的既有语义）；ViewModel 对外属性与函数签名不变
 
 ### 修复
-- 修复登录页与无头解析 WebView 在渲染进程崩溃时连带杀掉整个应用的问题：不覆写 `onRenderProcessGone` 时系统会直接结束宿主进程（填验证码 / 解析视频途中闪退）。现将处理统一收口到 `DiagnosticWebViewClient`：摘下并销毁崩溃的 WebView、返回 `true`，登录页展示「渲染进程已崩溃」并在重试时重建 WebView（旧实例已不可用，`reload()` 无效）；无头解析通道则提前收工，不再干等 25s 超时
+- 修复登录页与无头解析 WebView 在渲染进程崩溃时连带杀掉整个应用的问题：不覆写 `onRenderProcessGone` 时系统会直接结束宿主进程（填验证码 / 解析视频途中闪退）。登录页统一由 `DiagnosticWebViewClient` 处理：摘下并销毁崩溃的 WebView、返回 `true`，页面展示「渲染进程已崩溃」并在重试时重建 WebView（旧实例已不可用，`reload()` 无效）；走 `LoginWebViewController` 的 5 个页面同样改为崩溃后重建而非 reload；无头解析通道自行处置并提前收工，不再陪着轮询空等到超时
 - 修复 Android 9 及以下（API 24–28）设备上解析与合并音视频时崩溃的问题：`MediaFormat#getInteger(key, fallback)` 自 API 29 才提供，`AudioExtractor` 与 `DashMuxer` 的四处调用在旧系统上会抛 `NoSuchMethodError`；改为经 `MediaFormatCompat` 统一取值，旧系统回落到单参取值并在缺键时使用默认值
 - 修复所有基于 `CloudDriveBrowser` 的网盘（迅雷/百度/115/123/139/蓝奏/光雅）点单文件「下载」无任何反应的问题：操作表在触发下载前先调了 `dismissActions()` 把 `actionFile` 置空，而各网盘 ViewModel 的 `downloadFile()` / `downloadFolder()` 首行都是 `actionFile ?: return`，于是动作被静默跳过（连异常都不抛）；改为只收起操作表本地 UI 状态、保留 `actionFile`，下载动作完成后由 ViewModel 自行收尾
 - 修复迅雷网盘取链失败时完全不提示的问题：`CloudDriveBrowser` 的 `cloudMessage` 只被消费却从未调用 `SnackbarController.show`，导致取链失败等所有操作错误都被静默吞掉；同时修复 `getFileDetail` 直链解析的空字符串回退失效（`optString` 返回 `""` 而非 null，`web_content_link` 兜底永不触发），直链为空时现在会给出明确报错并输出 `links` 键名诊断日志
