@@ -56,6 +56,7 @@ import com.yunx.app.ui.SnackbarController
 import com.yunx.app.ui.components.YunXWavyLoading
 import com.yunx.app.ui.viewmodel.Pan115AccountViewModel
 import com.yunx.app.util.DiagnosticLog
+import com.yunx.app.util.webview.destroyWebView
 import kotlinx.coroutines.launch
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.ButtonDefaults

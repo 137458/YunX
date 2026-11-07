@@ -67,6 +67,8 @@ import com.yunx.app.ui.components.YunXWavyLoading
 import com.yunx.app.ui.theme.SquircleShape
 import com.yunx.app.ui.viewmodel.VideoAccountViewModel
 import com.yunx.app.util.DiagnosticLog
+import com.yunx.app.util.webview.alignClientHintsWith
+import com.yunx.app.util.webview.destroyWebView
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.json.JSONArray

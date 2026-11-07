@@ -9,6 +9,7 @@
 - 收敛 Material 3 残留代码与配色定义：移除设置目录选择器测试中遗留的 `@OptIn(ExperimentalMaterial3Api)` 实验注解；精简未被业务消费的 `Type.kt` 排版定义为最简兜底；将关于页、收藏页、主题页与网盘页等多处芯片与底座色彩统一收敛为 Miuix 标准层级命名（`surfaceContainerHigh`）
 - 账号页排序与过滤的纯计算从 `DriveScreen` 抽成 `ui/screens/DriveOrder.kt`（排序归一化 / 过滤 / 隐藏计数 / 移动），规则由 `DriveOrderTest` 钉住；上游新增设置键（列表缩略图 / 隐藏未登录 / 账号排序 / 剪贴板与预发布开关）补 `SettingsDriveSettingsTest`，锁键名、默认值与序列化往返格式
 - 网盘与解析页的长按多选状态从 11 个 ViewModel 逐份复制的实现收敛为 `ui/viewmodel/CloudMultiSelect.kt`：进入 / 切换 / 全选 / 退出四条规则只保留一份，由 `CloudMultiSelectTest` 钉住（含全选「按数量判满」的既有语义）；ViewModel 对外属性与函数签名不变
+- WebView 平台级助手（崩溃收尾 `handleRendererProcessGone`、幂等销毁 `destroyWebView`、UA 客户端提示对齐 `alignClientHintsWith`）从 `ui/login` 迁到 `util/webview`：无头解析通道在数据层，原先反向 import UI 包，数据层因此被 UI 编译期绑死
 
 ### 修复
 - 修复登录页与无头解析 WebView 在渲染进程崩溃时连带杀掉整个应用的问题：不覆写 `onRenderProcessGone` 时系统会直接结束宿主进程（填验证码 / 解析视频途中闪退）。登录页统一由 `DiagnosticWebViewClient` 处理：摘下并销毁崩溃的 WebView、返回 `true`，页面展示「渲染进程已崩溃」并在重试时重建 WebView（旧实例已不可用，`reload()` 无效）；走 `LoginWebViewController` 的 5 个页面同样改为崩溃后重建而非 reload；无头解析通道自行处置并提前收工，不再陪着轮询空等到超时
