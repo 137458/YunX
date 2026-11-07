@@ -82,7 +82,7 @@ object DashMuxer {
             val videoTrack = muxer.addTrack(video.format)
             val audioTrack = muxer.addTrack(audio.format)
             // 竖屏视频把旋转角写进 moov（MediaMuxer 只认 start 前的 setOrientationHint）
-            muxer.setOrientationHint(video.format.getInteger(MediaFormat.KEY_ROTATION, 0))
+            muxer.setOrientationHint(MediaFormatCompat.getIntegerOr(video.format, MediaFormat.KEY_ROTATION, 0))
             muxer.start()
             // 进度分母 = 两轨字节之和（读盘量与耗时正相关）；样本级累计，视频轨写完报一次、音轨写完再补到 100%
             val total = videoFile.length() + audioFile.length()
@@ -151,7 +151,7 @@ object DashMuxer {
                 tracks += track to muxerIndex
                 if (track.format.getString(MediaFormat.KEY_MIME)?.startsWith("video/") == true) {
                     // 竖屏素材的旋转角要写进 moov（MediaMuxer 只认 start 之前设置）
-                    muxer.setOrientationHint(track.format.getInteger(MediaFormat.KEY_ROTATION, 0))
+                    muxer.setOrientationHint(MediaFormatCompat.getIntegerOr(track.format, MediaFormat.KEY_ROTATION, 0))
                 }
             }
             if (tracks.isEmpty()) {
@@ -236,7 +236,7 @@ object DashMuxer {
         val extractor = track.extractor
         val info = MediaCodec.BufferInfo()
         var capacity = runCatching {
-            track.format.getInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 2 * 1024 * 1024)
+            MediaFormatCompat.getIntegerOr(track.format, MediaFormat.KEY_MAX_INPUT_SIZE, 2 * 1024 * 1024)
         }.getOrDefault(2 * 1024 * 1024)
         var buffer = ByteBuffer.allocate(capacity)
         while (true) {

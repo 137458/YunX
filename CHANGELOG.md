@@ -11,6 +11,7 @@
 - 网盘与解析页的长按多选状态从 11 个 ViewModel 逐份复制的实现收敛为 `ui/viewmodel/CloudMultiSelect.kt`：进入 / 切换 / 全选 / 退出四条规则只保留一份，由 `CloudMultiSelectTest` 钉住（含全选「按数量判满」的既有语义）；ViewModel 对外属性与函数签名不变
 
 ### 修复
+- 修复 Android 9 及以下（API 24–28）设备上解析与合并音视频时崩溃的问题：`MediaFormat#getInteger(key, fallback)` 自 API 29 才提供，`AudioExtractor` 与 `DashMuxer` 的四处调用在旧系统上会抛 `NoSuchMethodError`；改为经 `MediaFormatCompat` 统一取值，旧系统回落到单参取值并在缺键时使用默认值
 - 修复所有基于 `CloudDriveBrowser` 的网盘（迅雷/百度/115/123/139/蓝奏/光雅）点单文件「下载」无任何反应的问题：操作表在触发下载前先调了 `dismissActions()` 把 `actionFile` 置空，而各网盘 ViewModel 的 `downloadFile()` / `downloadFolder()` 首行都是 `actionFile ?: return`，于是动作被静默跳过（连异常都不抛）；改为只收起操作表本地 UI 状态、保留 `actionFile`，下载动作完成后由 ViewModel 自行收尾
 - 修复迅雷网盘取链失败时完全不提示的问题：`CloudDriveBrowser` 的 `cloudMessage` 只被消费却从未调用 `SnackbarController.show`，导致取链失败等所有操作错误都被静默吞掉；同时修复 `getFileDetail` 直链解析的空字符串回退失效（`optString` 返回 `""` 而非 null，`web_content_link` 兜底永不触发），直链为空时现在会给出明确报错并输出 `links` 键名诊断日志
 - 修复悬浮底栏手势卡死与点击切换延迟：严格对齐 pixez-flutter-MIUIX 底层实现，移除拖拽事件循环中对消费状态的误判，修复每帧拖拽偏移量未累加导致的抖动跳跃；引入 `FloatingBottomBarDirectSelector` 实现 Tab 点击瞬间直驱动画；补齐降级滑块的阻尼形变缩放

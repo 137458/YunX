@@ -130,7 +130,7 @@ object AudioExtractor {
             track.format.getLong(MediaFormat.KEY_DURATION)
         }.getOrDefault(0L)
         var capacity = runCatching {
-            track.format.getInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 2 * 1024 * 1024)
+            MediaFormatCompat.getIntegerOr(track.format, MediaFormat.KEY_MAX_INPUT_SIZE, 2 * 1024 * 1024)
         }.getOrDefault(2 * 1024 * 1024)
         var buffer = ByteBuffer.allocate(capacity)
         var lastPercent = -1
