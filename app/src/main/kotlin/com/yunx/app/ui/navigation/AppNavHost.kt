@@ -18,21 +18,67 @@
 
 package com.yunx.app.ui.navigation
 
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.yunx.app.ui.AppSnackbarHost
 import com.yunx.app.ui.MainScreen
+import com.yunx.app.ui.components.liquid.BottomBarStyle
+import com.yunx.app.ui.rememberGlobalSnackbarHostState
+import com.yunx.app.ui.screens.LanguageScreen
+import com.yunx.app.ui.screens.LinkOpenScreen
+import com.yunx.app.ui.screens.MultiAccountDownloadScreen
+import com.yunx.app.ui.screens.SupportScreen
+import com.yunx.app.ui.screens.ThemeScreen
+import com.yunx.app.ui.theme.AppThemeManager
+import com.yunx.app.ui.theme.BOTTOM_BAR_CONTENT_PADDING_DP
+import com.yunx.app.ui.theme.isWideWindow
+import com.yunx.app.ui.theme.shouldShowBottomBar
+
+/** 全屏页过渡：与迁移前覆盖层的「淡入 + 轻微缩放」保持一致。 */
+private val OverlayEnter: AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition = {
+    fadeIn(tween(220)) + scaleIn(tween(220), initialScale = 0.96f)
+}
+
+/** 全屏页退出：返回（含预测性返回松手完成）时播放，与迁移前一致。 */
+private val OverlayExit: AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition = {
+    fadeOut(tween(160)) + scaleOut(tween(160), targetScale = 0.96f)
+}
 
 /**
  * 应用根导航宿主。
  *
- * 现在只注册主框架一个 destination：骨架阶段先让所有页面都运行在同一个 NavHost 里，
- * 后续批次再把全屏页 / 登录页 / 云盘子页逐批搬到 [AppRoute] 对应的 destination 上。
+ * 返回语义：覆盖页入栈后，pop 动作由 NavHost 的 PredictiveBackHandler 驱动，
+ * 系统能拿到手势进度并播放「目标页预览」动画；页面自身不再用 `BackHandler` 吞返回。
  *
- * 返回语义：单 destination 时返回键仍由系统直接交给 Activity（与迁移前一致）；
- * 一旦有覆盖页入栈，pop 动作由 NavHost 的 PredictiveBackHandler 驱动，
- * 因此系统能拿到手势进度并播放「目标页预览」动画。
+ * 全局提示条宿主上移到本层：它不再随 [MainScreen] 的组合进出，覆盖页也走同一条提示队列
+ * （队列的「最上层宿主显示」语义不受影响，页面自建宿主仍优先）。
  */
 @Composable
 fun AppNavHost(
@@ -50,15 +96,89 @@ fun AppNavHost(
     onIncomingAddUrlConsumed: () -> Unit = {}
 ) {
     val navController = rememberNavController()
-    NavHost(navController = navController, startDestination = MainRoute) {
-        composable<MainRoute> {
-            MainScreen(
-                openTab = openTab,
-                onOpenTabConsumed = onOpenTabConsumed,
-                incomingLink = incomingLink,
-                onIncomingLinkConsumed = onIncomingLinkConsumed,
-                incomingAddUrl = incomingAddUrl,
-                onIncomingAddUrlConsumed = onIncomingAddUrlConsumed
+    val snackbarHostState = rememberGlobalSnackbarHostState()
+    val currentEntry by navController.currentBackStackEntryAsState()
+    // 只有停在主框架时才有底栏，提示条要抬到它上方；覆盖页没有底栏，按普通页面避让
+    val onMain = currentEntry?.destination?.hasRoute<MainRoute>() == true
+
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        val showBottomBar = onMain &&
+            shouldShowBottomBar(
+                isWideWindow(maxWidth.value.toInt()),
+                BottomBarStyle.fromPersisted(AppThemeManager.bottomBarStyle).isFloating
+            )
+        val bottomInset = WindowInsets.navigationBars
+            .only(WindowInsetsSides.Bottom)
+            .asPaddingValues()
+            .calculateBottomPadding()
+        val snackbarBottomPadding = if (showBottomBar) {
+            bottomInset + BOTTOM_BAR_CONTENT_PADDING_DP.dp + 8.dp
+        } else {
+            bottomInset + 16.dp
+        }
+
+        Box(modifier = Modifier.fillMaxSize()) {
+            NavHost(navController = navController, startDestination = MainRoute) {
+                // 主框架是常驻底页：自身不参与覆盖层过渡，否则每次进出覆盖页底页都会闪一下
+                composable<MainRoute>(
+                    enterTransition = { EnterTransition.None },
+                    exitTransition = { ExitTransition.None },
+                    popEnterTransition = { EnterTransition.None },
+                    popExitTransition = { ExitTransition.None }
+                ) {
+                    MainScreen(
+                        navController = navController,
+                        openTab = openTab,
+                        onOpenTabConsumed = onOpenTabConsumed,
+                        incomingLink = incomingLink,
+                        onIncomingLinkConsumed = onIncomingLinkConsumed,
+                        incomingAddUrl = incomingAddUrl,
+                        onIncomingAddUrlConsumed = onIncomingAddUrlConsumed
+                    )
+                }
+
+                composable<SupportRoute>(
+                    enterTransition = OverlayEnter,
+                    popExitTransition = OverlayExit
+                ) {
+                    SupportScreen(onBack = { navController.popBackStack() })
+                }
+
+                composable<ThemeRoute>(
+                    enterTransition = OverlayEnter,
+                    popExitTransition = OverlayExit
+                ) {
+                    ThemeScreen(onBack = { navController.popBackStack() })
+                }
+
+                composable<LanguageRoute>(
+                    enterTransition = OverlayEnter,
+                    popExitTransition = OverlayExit
+                ) {
+                    LanguageScreen(onBack = { navController.popBackStack() })
+                }
+
+                composable<LinkOpenRoute>(
+                    enterTransition = OverlayEnter,
+                    popExitTransition = OverlayExit
+                ) {
+                    LinkOpenScreen(onBack = { navController.popBackStack() })
+                }
+
+                composable<MultiAccountDownloadRoute>(
+                    enterTransition = OverlayEnter,
+                    popExitTransition = OverlayExit
+                ) {
+                    MultiAccountDownloadScreen(onBack = { navController.popBackStack() })
+                }
+            }
+
+            AppSnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = snackbarBottomPadding)
             )
         }
     }

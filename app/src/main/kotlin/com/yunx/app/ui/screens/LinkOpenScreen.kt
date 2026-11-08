@@ -22,7 +22,6 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -87,8 +86,6 @@ fun LinkOpenScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
 
     val scrollBehavior = MiuixScrollBehavior()
     val backdrop = rememberBlurBackdrop()
-
-    BackHandler { onBack() }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),

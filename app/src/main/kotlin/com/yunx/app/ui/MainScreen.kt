@@ -87,6 +87,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
 import com.yunx.app.data.announcement.AnnouncementReadStore
 import com.yunx.app.data.backup.AuthBackupManager
 import com.yunx.app.data.db.AppDatabase
@@ -157,7 +158,12 @@ import com.yunx.app.ui.login.VideoLoginScreen
 import com.yunx.app.ui.login.XunleiLoginScreen
 import com.yunx.app.ui.login.XunleiVerifyWebViewScreen
 import com.yunx.app.ui.login.XunleiWebLoginScreen
+import com.yunx.app.ui.navigation.LanguageRoute
+import com.yunx.app.ui.navigation.LinkOpenRoute
 import com.yunx.app.ui.navigation.MainTab
+import com.yunx.app.ui.navigation.MultiAccountDownloadRoute
+import com.yunx.app.ui.navigation.SupportRoute
+import com.yunx.app.ui.navigation.ThemeRoute
 import com.yunx.app.ui.preview.MediaPreviewScreen
 import com.yunx.app.ui.preview.PreviewLauncher
 import com.yunx.app.ui.rememberGlobalSnackbarHostState
@@ -236,9 +242,6 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.window.WindowDialog
 import top.yukonga.miuix.kmp.window.WindowDialog
 
-/** 提示条避让：在底栏的内容避让之上再抬一点，避免提示条贴着底栏上沿。 */
-private val SnackbarExtraBottomMargin = 8.dp
-
 /**
  * 主页框架（Miuix 架构）：
  * - 外层骨架仍是 Miuix Scaffold，但**只用它的 topBar 槽**：顶栏大标题要折叠、
@@ -256,6 +259,8 @@ private val SnackbarExtraBottomMargin = 8.dp
  */
 @Composable
 fun MainScreen(
+    /** 根导航控制器：全屏页迁出为 NavHost destination 后，入口统一从这里 navigate */
+    navController: NavHostController,
     /** 外部来源请求直接打开的 Tab（如点击实况通知 → 下载页）；null = 用默认「解析」页 */
     openTab: MainTab? = null,
     /** [openTab] 被消费后回调：调用方负责清空它，避免旋转/重组时重复切页 */
@@ -294,11 +299,6 @@ fun MainScreen(
     var showC139Login by rememberSaveable { mutableStateOf(false) }
     var showPan123Login by rememberSaveable { mutableStateOf(false) }
     var showAbout by rememberSaveable { mutableStateOf(false) }
-    var showSupport by rememberSaveable { mutableStateOf(false) }
-    var showTheme by rememberSaveable { mutableStateOf(false) }
-    var showLanguage by rememberSaveable { mutableStateOf(false) }
-    var showLinkOpen by rememberSaveable { mutableStateOf(false) }
-    var showMultiAccountDownload by rememberSaveable { mutableStateOf(false) }
     var showBookmarks by rememberSaveable { mutableStateOf(false) }
     var showXunleiWebLogin by rememberSaveable { mutableStateOf(false) }
     var showPan115Login by rememberSaveable { mutableStateOf(false) }
@@ -1039,10 +1039,6 @@ fun MainScreen(
     // 折叠标题状态提升到本层：跨页面共享，页面切换时折叠/展开状态保持不变
     val scrollBehavior = MiuixScrollBehavior()
 
-    // 全局提示条状态（Miuix 原生 Snackbar，经 SnackbarController 广播事件）；
-    // 宿主渲染在最外层 Box 的末尾（见函数收尾处），是全应用唯一宿主
-    val snackbarHostState = rememberGlobalSnackbarHostState()
-
     // 主框架与全屏覆盖层（关于页）放在同一 Box：覆盖层带过渡动画。
     // 用 BoxWithConstraints 而不是读 LocalConfiguration：后者给的是整块屏幕的宽高，
     // 多窗口 / 分屏 / 折叠态下与本应用实际拿到的窗口不一致，会把半屏误判成大屏。
@@ -1306,12 +1302,12 @@ fun MainScreen(
                     )
                     MainTab.Settings -> SettingsScreen(
                         scrollBehavior = scrollBehavior,
-                        onThemeClick = { showTheme = true },
-                        onLanguageClick = { showLanguage = true },
+                        onThemeClick = { navController.navigate(ThemeRoute) },
+                        onLanguageClick = { navController.navigate(LanguageRoute) },
                         onAboutClick = { showAbout = true },
-                        onSupportClick = { showSupport = true },
-                        onLinkOpenClick = { showLinkOpen = true },
-                        onMultiAccountDownloadClick = { showMultiAccountDownload = true },
+                        onSupportClick = { navController.navigate(SupportRoute) },
+                        onLinkOpenClick = { navController.navigate(LinkOpenRoute) },
+                        onMultiAccountDownloadClick = { navController.navigate(MultiAccountDownloadRoute) },
                         backupManager = backupManager,
                         // 检查更新统一由本页弹窗承载（含下载进度与安装入口）
                         onCheckUpdate = { checkForUpdate(preview = false) },
@@ -1400,42 +1396,6 @@ fun MainScreen(
         )
     }
 
-    // 支持开发：叠加覆盖层（淡入 + 轻微缩放过渡）
-    AnimatedVisibility(
-        visible = showSupport,
-        enter = fadeIn(tween(220)) + scaleIn(tween(220), initialScale = 0.96f),
-        exit = fadeOut(tween(160)) + scaleOut(tween(160), targetScale = 0.96f),
-        modifier = Modifier.fillMaxSize()
-    ) {
-        SupportScreen(
-            onBack = { showSupport = false }
-        )
-    }
-
-    // 主题与外观：叠加覆盖层（淡入 + 轻微缩放过渡）
-    AnimatedVisibility(
-        visible = showTheme,
-        enter = fadeIn(tween(220)) + scaleIn(tween(220), initialScale = 0.96f),
-        exit = fadeOut(tween(160)) + scaleOut(tween(160), targetScale = 0.96f),
-        modifier = Modifier.fillMaxSize()
-    ) {
-        ThemeScreen(
-            onBack = { showTheme = false }
-        )
-    }
-
-    // 语言：叠加覆盖层（淡入 + 轻微缩放过渡）
-    AnimatedVisibility(
-        visible = showLanguage,
-        enter = fadeIn(tween(220)) + scaleIn(tween(220), initialScale = 0.96f),
-        exit = fadeOut(tween(160)) + scaleOut(tween(160), targetScale = 0.96f),
-        modifier = Modifier.fillMaxSize()
-    ) {
-        LanguageScreen(
-            onBack = { showLanguage = false }
-        )
-    }
-
     // 收藏网盘链接：叠加覆盖层（淡入 + 轻微缩放过渡）
     AnimatedVisibility(
         visible = showBookmarks,
@@ -1473,49 +1433,9 @@ fun MainScreen(
         )
     }
 
-    // 链接打开方式设置：叠加覆盖层（淡入 + 轻微缩放过渡）
-    AnimatedVisibility(
-        visible = showLinkOpen,
-        enter = fadeIn(tween(220)) + scaleIn(tween(220), initialScale = 0.96f),
-        exit = fadeOut(tween(160)) + scaleOut(tween(160), targetScale = 0.96f),
-        modifier = Modifier.fillMaxSize()
-    ) {
-        LinkOpenScreen(
-            onBack = { showLinkOpen = false }
-        )
-    }
+    // 链接打开方式、多账号下载、支持开发、主题、语言已迁为 NavHost destination（见 AppNavHost）
 
-    // 多账号下载设置：叠加覆盖层（淡入 + 轻微缩放过渡）
-    AnimatedVisibility(
-        visible = showMultiAccountDownload,
-        enter = fadeIn(tween(220)) + scaleIn(tween(220), initialScale = 0.96f),
-        exit = fadeOut(tween(160)) + scaleOut(tween(160), targetScale = 0.96f),
-        modifier = Modifier.fillMaxSize()
-    ) {
-        MultiAccountDownloadScreen(
-            onBack = { showMultiAccountDownload = false }
-        )
-    }
-
-        // 全局提示条宿主：放在最外层 Box 的最后，画在主界面、覆盖层与弹窗之后。
-        // Overlay 系弹窗（OverlayDialog / OverlayBottomSheet / OperationSheet）与各覆盖层
-        // 都画在本 Box 内、先于本宿主组合，提示不会被它们遮挡；Window 系独立窗口弹窗
-        // （WindowDialog，如更新弹窗）盖不住本宿主，由各弹窗内容自带宿主接管（见各调用点）。
-        // 避让口径按「有没有底栏」而不是「底栏是哪一档」：两种形态现在都叠在本 Box 内，
-        // 只要有底栏就得抬到它上方（旧写法对贴底标准档只抬 16dp，提示会被栏体盖住）。
-        val snackbarBottomPadding =
-            if (showBottomBar) {
-                bottomInset + BOTTOM_BAR_CONTENT_PADDING_DP.dp + SnackbarExtraBottomMargin
-            } else {
-                bottomInset + 16.dp
-            }
-        AppSnackbarHost(
-            hostState = snackbarHostState,
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.BottomCenter)
-                .padding(bottom = snackbarBottomPadding)
-        )
+    // 全局提示条宿主已上移到 AppNavHost 根层，任何 destination 都能显示提示
 
     }
 

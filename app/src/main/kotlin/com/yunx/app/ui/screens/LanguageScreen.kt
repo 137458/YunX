@@ -19,7 +19,6 @@
 package com.yunx.app.ui.screens
 
 import android.app.Activity
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -62,8 +61,6 @@ fun LanguageScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val scrollBehavior = MiuixScrollBehavior()
     val backdrop = rememberBlurBackdrop()
-
-    BackHandler { onBack() }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),

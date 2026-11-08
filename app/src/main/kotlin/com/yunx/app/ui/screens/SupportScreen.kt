@@ -27,7 +27,6 @@ import android.Manifest
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
-import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.DrawableRes
@@ -136,8 +135,6 @@ fun SupportScreen(
         pendingPermission?.complete(granted)
         pendingPermission = null
     }
-    BackHandler { onBack() }
-
     val scrollBehavior = MiuixScrollBehavior()
     val backdrop = rememberBlurBackdrop()
 
