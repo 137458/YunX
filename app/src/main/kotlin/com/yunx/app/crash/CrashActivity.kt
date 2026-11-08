@@ -66,6 +66,7 @@ import com.yunx.app.ui.SnackbarController
 import com.yunx.app.ui.items.CustomFabMenu
 import com.yunx.app.ui.items.FabMenuItem
 import com.yunx.app.ui.theme.ComposeEmptyActivityTheme
+import com.yunx.app.util.AppStrings
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.CardDefaults
 import top.yukonga.miuix.kmp.basic.Icon
@@ -89,7 +90,8 @@ class CrashActivity : ComponentActivity() {
         }
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        val crashLog = intent.getStringExtra(CrashHandler.EXTRA_CRASH_LOG) ?: "未知错误"
+        val crashLog = intent.getStringExtra(CrashHandler.EXTRA_CRASH_LOG)
+            ?: AppStrings.get(R.string.vm_crash_unknown_error)
         setContent {
             ComposeEmptyActivityTheme {
                 CrashScreen(crashLog = crashLog)
@@ -106,20 +108,20 @@ private fun CrashScreen(crashLog: String) {
     val menuItems = remember(crashLog) {
         listOf(
             FabMenuItem(
-                label = "复制崩溃信息",
+                label = AppStrings.get(R.string.vm_crash_copy_info),
                 icon = Icons.Outlined.ContentCopy,
                 onClick = {
                     copyToClipboard(context, crashLog)
-                    SnackbarController.show("崩溃信息已复制")
+                    SnackbarController.show(AppStrings.get(R.string.vm_crash_info_copied))
                 }
             ),
             FabMenuItem(
-                label = "重启应用",
+                label = AppStrings.get(R.string.vm_crash_restart_app),
                 icon = Icons.Outlined.Refresh,
                 onClick = { restartApp(context) }
             ),
             FabMenuItem(
-                label = "退出应用",
+                label = AppStrings.get(R.string.vm_crash_exit_app),
                 icon = Icons.AutoMirrored.Outlined.ExitToApp,
                 onClick = { exitApp(context) }
             )
@@ -155,13 +157,13 @@ private fun CrashScreen(crashLog: String) {
             }
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = "应用发生崩溃",
+                text = AppStrings.get(R.string.vm_crash_title),
                 style = MiuixTheme.textStyles.title1,
                 color = MiuixTheme.colorScheme.onBackground
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "很抱歉，应用遇到了未预期的错误。你可以复制崩溃信息反馈给开发者，或重启应用继续使用。",
+                text = AppStrings.get(R.string.vm_crash_desc),
                 style = MiuixTheme.textStyles.body2,
                 color = MiuixTheme.colorScheme.onSurfaceVariantSummary
             )
