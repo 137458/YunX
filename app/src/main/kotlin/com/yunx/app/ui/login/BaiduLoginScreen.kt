@@ -109,7 +109,7 @@ fun BaiduLoginScreen(
         sampleCredential = { CookieManager.getInstance().getCookie(BaiduConstants.COOKIE_DOMAIN).orEmpty() },
         isPlausible = { BaiduConstants.isValidCookie(it) },
         validateAndSave = { loginSaveResult { viewModel.saveBaiduAccount(it) } == SaveResult.Success },
-        isPaused = { isSaving || isSavingManual || showCookieDialog },
+        isPaused = { isSaving || isSavingManual || showCookieDialog || controller.isRendererGone },
         onInFlightChange = { isSaving = it },
         onAutoSaved = onSaved
     )
@@ -169,7 +169,7 @@ fun BaiduLoginScreen(
                                     }
                                 }
                             },
-                            enabled = !isSavingManual
+                            enabled = !isSavingManual && !controller.isRendererGone
                         )
                     }
                 }
@@ -194,7 +194,7 @@ fun BaiduLoginScreen(
                 LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
             }
             controller.failureMessage?.let { message ->
-                LoginLoadFailureOverlay(message = message, onRetry = { controller.retry() })
+                LoginLoadFailureOverlay(message = message, onRetry = controller.retryOrNull)
             }
         }
 

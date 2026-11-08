@@ -106,7 +106,7 @@ fun Pan123LoginScreen(
         sampleCredential = { controller.webView.readLocalStorageValue(Pan123Constants.LOCAL_STORAGE_TOKEN_KEY) },
         isPlausible = { it.isNotBlank() },
         validateAndSave = { loginSaveResult { viewModel.saveToken(it) } == SaveResult.Success },
-        isPaused = { isSaving || isSavingManual || showTokenDialog },
+        isPaused = { isSaving || isSavingManual || showTokenDialog || controller.isRendererGone },
         onInFlightChange = { isSaving = it },
         onAutoSaved = onSaved
     )
@@ -171,7 +171,7 @@ fun Pan123LoginScreen(
                                     }
                                 }
                             },
-                            enabled = !isSavingManual
+                            enabled = !isSavingManual && !controller.isRendererGone
                         )
                     }
                 }
@@ -196,7 +196,7 @@ fun Pan123LoginScreen(
                 LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
             }
             controller.failureMessage?.let { message ->
-                LoginLoadFailureOverlay(message = message, onRetry = { controller.retry() })
+                LoginLoadFailureOverlay(message = message, onRetry = controller.retryOrNull)
             }
         }
 

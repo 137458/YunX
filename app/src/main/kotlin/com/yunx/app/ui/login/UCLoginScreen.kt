@@ -97,7 +97,7 @@ fun UCLoginScreen(
         sampleCredential = { CookieManager.getInstance().getCookie(UCConstants.COOKIE_DOMAIN).orEmpty() },
         isPlausible = { UCConstants.isValidCookie(it) },
         validateAndSave = { loginSaveResult { viewModel.saveUCAccount(it) } == SaveResult.Success },
-        isPaused = { isSaving || isSavingManual || showCookieDialog },
+        isPaused = { isSaving || isSavingManual || showCookieDialog || controller.isRendererGone },
         onInFlightChange = { isSaving = it },
         onAutoSaved = onSaved
     )
@@ -156,7 +156,7 @@ fun UCLoginScreen(
                                     }
                                 }
                             },
-                            enabled = !isSavingManual
+                            enabled = !isSavingManual && !controller.isRendererGone
                         )
                     }
                 }
@@ -178,7 +178,7 @@ fun UCLoginScreen(
                 LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
             }
             controller.failureMessage?.let { message ->
-                LoginLoadFailureOverlay(message = message, onRetry = { controller.retry() })
+                LoginLoadFailureOverlay(message = message, onRetry = controller.retryOrNull)
             }
         }
 

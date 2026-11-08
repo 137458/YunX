@@ -102,7 +102,7 @@ fun C139LoginScreen(
         sampleCredential = { C139Constants.extractCookies { CookieManager.getInstance().getCookie(it) } },
         isPlausible = { C139Constants.isValidCookie(it) },
         validateAndSave = { loginSaveResult { viewModel.saveC139Account(it) } == SaveResult.Success },
-        isPaused = { isSaving || isSavingManual || showCookieDialog },
+        isPaused = { isSaving || isSavingManual || showCookieDialog || controller.isRendererGone },
         onInFlightChange = { isSaving = it },
         onAutoSaved = onSaved
     )
@@ -162,7 +162,7 @@ fun C139LoginScreen(
                                     }
                                 }
                             },
-                            enabled = !isSavingManual
+                            enabled = !isSavingManual && !controller.isRendererGone
                         )
                     }
                 }
@@ -187,7 +187,7 @@ fun C139LoginScreen(
                 LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
             }
             controller.failureMessage?.let { message ->
-                LoginLoadFailureOverlay(message = message, onRetry = { controller.retry() })
+                LoginLoadFailureOverlay(message = message, onRetry = controller.retryOrNull)
             }
         }
 

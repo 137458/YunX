@@ -35,6 +35,8 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -66,9 +68,6 @@ private const val TAG = "LoginWebView"
 /** 加载超时：WebView 弱网下可能既不回调完成也不回调错误，超过该时间即置失败态，避免进度条永久转圈 */
 private const val LOAD_TIMEOUT_MS = 20_000L
 
-/** 渲染进程崩溃后的提示：崩溃实例已销毁，只能由 [LoginWebViewController.retry] 重建 */
-private const val RENDER_CRASH_MESSAGE = "页面渲染进程崩溃，请点「重试」重新加载"
-
 private const val LOAD_TIMEOUT_MESSAGE = "加载超时，请检查网络后重试"
 private const val LOAD_ERROR_MESSAGE = "页面加载失败，请检查网络后重试"
 
@@ -79,6 +78,11 @@ private const val VIEWPORT_SCRIPT =
         "if(m){m.setAttribute('content',c);}else{var n=document.createElement('meta');" +
         "n.name='viewport';n.content=c;document.head.appendChild(n);}" +
         "window.dispatchEvent(new Event('resize'));})()"
+
+/** 注入 viewport 覆盖脚本；controller 与直连登录页共用同一份实现，避免各页复制脚本体 */
+internal fun WebView.applyViewportOverride() {
+    evaluateJavascript(VIEWPORT_SCRIPT, null)
+}
 
 /**
  * 登录 WebView 统一配置：6 个承载登录页的 WebView 共用，避免每页各写一份导致加固项遗漏。
@@ -144,8 +148,16 @@ class LoginWebViewController internal constructor(
     var generation by mutableIntStateOf(0)
         private set
 
-    /** 崩溃实例已销毁，重试时必须重建而不是 reload */
-    private var rendererGone = false
+    /** 崩溃实例已销毁：此状态下任何 WebView 调用都属于规范外，页面入口必须据此禁用 */
+    var isRendererGone by mutableStateOf(false)
+        private set
+
+    /** 崩溃重建预算；与直连 WebView 的登录页共用同一套 [RendererRestartBudget] 规则 */
+    private var restartBudget by mutableStateOf(RendererRestartBudget())
+
+    /** 崩溃实例且重建预算已用尽时返回 null，覆盖层据此隐藏按钮；普通加载失败不消耗预算，仍可重试 */
+    val retryOrNull: (() -> Unit)?
+        get() = if (isRendererGone && !restartBudget.canRetry) null else ({ retry() })
 
     var webView: WebView = createWebView()
         private set
@@ -159,14 +171,15 @@ class LoginWebViewController internal constructor(
 
     /** 重试：清空失败态并重新加载当前页（reload 保留已填表单；无历史时退回初始地址） */
     fun retry() {
+        if (isRendererGone && !restartBudget.canRetry) return
         failureMessage = null
         isLoading = true
         scheduleTimeout()
-        if (rendererGone) {
+        if (isRendererGone) {
             // 崩溃实例已不可用：reload 的回调不会再来，必须丢弃重建
-            val crashed = webView
-            destroyWebView(crashed)
-            rendererGone = false
+            destroyWebView(webView)
+            restartBudget = restartBudget.consume()
+            isRendererGone = false
             webView = createWebView()
             generation++
         } else {
@@ -178,6 +191,8 @@ class LoginWebViewController internal constructor(
 
     /** 回退网页历史；无历史返回 false，由调用方决定退出登录页 */
     fun goBack(): Boolean {
+        // 崩溃实例已 destroy，canGoBack/goBack 属规范外调用，直接按「无历史」处理
+        if (isRendererGone) return false
         if (!webView.canGoBack()) return false
         webView.goBack()
         return true
@@ -210,7 +225,7 @@ class LoginWebViewController internal constructor(
         override fun onPageFinished(view: WebView?, url: String?) {
             isLoading = false
             mainHandler.removeCallbacks(timeoutTask)
-            if (injectViewport) view?.evaluateJavascript(VIEWPORT_SCRIPT, null)
+            if (injectViewport) view?.applyViewportOverride()
         }
 
         override fun onReceivedError(
@@ -242,9 +257,9 @@ class LoginWebViewController internal constructor(
             // 返回 true 表示已处理，避免系统直接杀掉宿主进程
             Log.e(TAG, "onRenderProcessGone: didCrash=${detail?.didCrash()}")
             // ★ 崩溃实例不可再用：reload 的回调不会再来，只能摘下销毁，由 retry() 重建
-            rendererGone = true
+            isRendererGone = true
             handleRendererProcessGone(view)
-            markFailure(RENDER_CRASH_MESSAGE)
+            markFailure(rendererCrashMessage(restartBudget))
             return true
         }
 
@@ -301,7 +316,13 @@ fun LoginLoadFailureOverlay(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(MiuixTheme.colorScheme.surface),
+            .background(MiuixTheme.colorScheme.surface)
+            // 覆盖层必须吞掉触摸，否则失败态下点击会穿透到底层仍存活的 WebView
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = {}
+            ),
         contentAlignment = Alignment.Center
     ) {
         Column(

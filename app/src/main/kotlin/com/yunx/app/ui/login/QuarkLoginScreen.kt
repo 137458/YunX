@@ -103,7 +103,7 @@ fun QuarkLoginScreen(
         sampleCredential = { CookieManager.getInstance().getCookie(QuarkConstants.COOKIE_DOMAIN).orEmpty() },
         isPlausible = { QuarkConstants.isValidCookie(it) },
         validateAndSave = { loginSaveResult { viewModel.saveQuarkAccount(it) } == SaveResult.Success },
-        isPaused = { isSaving || isSavingManual || showCookieDialog },
+        isPaused = { isSaving || isSavingManual || showCookieDialog || controller.isRendererGone },
         onInFlightChange = { isSaving = it },
         onAutoSaved = onSaved
     )
@@ -164,7 +164,7 @@ fun QuarkLoginScreen(
                                     }
                                 }
                             },
-                            enabled = !isSavingManual
+                            enabled = !isSavingManual && !controller.isRendererGone
                         )
                     }
                 }
@@ -189,7 +189,7 @@ fun QuarkLoginScreen(
                 LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
             }
             controller.failureMessage?.let { message ->
-                LoginLoadFailureOverlay(message = message, onRetry = { controller.retry() })
+                LoginLoadFailureOverlay(message = message, onRetry = controller.retryOrNull)
             }
         }
 

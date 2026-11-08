@@ -51,6 +51,7 @@ internal fun rendererCrashMessage(budget: RendererRestartBudget): String =
     if (budget.canRetry) {
         "页面渲染进程已崩溃，请点「重试」重新加载（还可重试 ${budget.remaining} 次）"
     } else {
-        "页面渲染进程已连续崩溃 $RENDERER_RESTART_LIMIT 次，重试无法恢复。" +
+        // 崩溃次数 = 首崩 1 次 + 已重建次数；预算耗尽时正好是 LIMIT + 1
+        "页面渲染进程已连续崩溃 ${RENDERER_RESTART_LIMIT + 1} 次，重试无法恢复。" +
             "请返回后重新进入此页面，或改用其他登录方式。"
     }
