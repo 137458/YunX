@@ -28,6 +28,7 @@ import android.os.Process
 import android.provider.MediaStore
 import androidx.core.content.FileProvider
 import androidx.core.content.pm.PackageInfoCompat
+import com.yunx.app.R
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileOutputStream
@@ -205,7 +206,10 @@ object LogExporter {
         }
         // chooser 外层也带上读权限 flag：部分接收者（文件管理器/系统 UI）通过
         // 自己的 Intent 读取 uri 时需要授权，否则报 Permission Denial
-        val chooser = Intent.createChooser(intent, "分享日志").apply {
+        val chooser = Intent.createChooser(
+            intent,
+            AppStrings.get(R.string.em_log_share_title)
+        ).apply {
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
         context.startActivity(chooser)

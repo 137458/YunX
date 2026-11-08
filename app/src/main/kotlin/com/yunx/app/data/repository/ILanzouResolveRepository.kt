@@ -47,7 +47,12 @@ class ILanzouResolveRepository(
     override suspend fun createSession(link: String, pwd: String?, cookie: String): Result<ShareSession> =
         runCatching {
             val shareId = ShareLinkParser.parse(link)?.shareId?.takeIf { it.isNotBlank() }
-                ?: throw IllegalStateException(AppStrings.get(R.string.er_share_link_unrecognized))
+                ?: throw IllegalStateException(
+                    AppStrings.get(
+                        R.string.er_share_link_unrecognized_platform,
+                        AppStrings.get(R.string.csa_platform_ilanzou)
+                    )
+                )
             ShareSession(shareId = shareId, stoken = shareId, title = AppStrings.get(R.string.er_ilanzou_share_title))
         }
 

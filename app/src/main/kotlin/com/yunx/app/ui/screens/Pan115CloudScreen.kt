@@ -39,7 +39,7 @@ import com.yunx.app.util.AppStrings
 import top.yukonga.miuix.kmp.basic.ScrollBehavior
 
 /** 平台差异：文案 + 有效期编码 + 提取码策略（115 服务端自动生成访问码） */
-private val pan115DriveSpec = DriveSpec(
+private fun pan115DriveSpec() = DriveSpec(
     title = AppStrings.get(R.string.csa_platform_115),
     shareDesc = AppStrings.get(R.string.csb_pan115_share_title),
     shareHint = AppStrings.get(R.string.csb_pan115_share_hint),
@@ -92,7 +92,7 @@ fun Pan115CloudScreen(
     // 上传要读 ContentResolver：共享层只回传选中的 uri，实际读取由 ViewModel 完成
     val context = LocalContext.current
     CloudDriveBrowser(
-        spec = pan115DriveSpec,
+        spec = pan115DriveSpec(),
         state = state.toPan115DriveState(),
         moveState = moveState.toPan115DriveState(),
         isRefreshing = viewModel.refreshing,

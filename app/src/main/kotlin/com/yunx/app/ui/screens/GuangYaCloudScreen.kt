@@ -38,7 +38,7 @@ import com.yunx.app.ui.viewmodel.GuangYaCloudViewModel
 import com.yunx.app.util.AppStrings
 import top.yukonga.miuix.kmp.basic.ScrollBehavior
 
-private val guangyaDriveSpec = DriveSpec(
+private fun guangyaDriveSpec() = DriveSpec(
     title = AppStrings.get(R.string.csa_platform_guangya),
     shareDesc = AppStrings.get(R.string.csa_action_share_desc),
     shareHint = null,
@@ -104,7 +104,7 @@ fun GuangYaCloudScreen(
     // 上传要读 ContentResolver：共享层只回传选中的 uri，实际读取由 ViewModel 完成
     val context = LocalContext.current
     CloudDriveBrowser(
-        spec = guangyaDriveSpec,
+        spec = guangyaDriveSpec(),
         state = state.toGuangYaDriveState(),
         moveState = moveState.toGuangYaDriveState(),
         isRefreshing = viewModel.refreshing,

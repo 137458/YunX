@@ -285,6 +285,10 @@ fun BookmarkScreen(
     }
 }
 
+/** 预置分类按当前语言展示；用户自建分类原样返回 */
+private fun categoryLabel(category: String): String =
+    BookmarkEntity.presetLabelRes(category)?.let { AppStrings.get(it) } ?: category
+
 /** 分类筛选胶囊：全部 + 各分类 */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -306,7 +310,7 @@ private fun CategoryFilterBar(
         categories.forEach { cat ->
             CategoryChip(
                 selected = selected == cat,
-                label = cat,
+                label = categoryLabel(cat),
                 onClick = { onSelect(cat) }
             )
         }
@@ -371,7 +375,7 @@ private fun BookmarkRow(
                     color = MiuixTheme.colorScheme.surfaceContainerHigh
                 ) {
                     Text(
-                        text = bookmark.category,
+                        text = categoryLabel(bookmark.category),
                         style = MiuixTheme.textStyles.footnote1,
                         color = MiuixTheme.colorScheme.onSurfaceSecondary,
                         maxLines = 1,
@@ -505,7 +509,7 @@ private fun AddBookmarkDialog(
                 categories.filter { it != CUSTOM_CATEGORY }.forEach { cat ->
                     CategoryChip(
                         selected = selectedCategory == cat,
-                        label = cat,
+                        label = categoryLabel(cat),
                         onClick = { selectedCategory = cat }
                     )
                 }
@@ -600,7 +604,7 @@ internal fun AddToBookmarkDialog(
                 categories.filter { it != CUSTOM_CATEGORY }.forEach { cat ->
                     CategoryChip(
                         selected = selectedCategory == cat,
-                        label = cat,
+                        label = categoryLabel(cat),
                         onClick = { selectedCategory = cat }
                     )
                 }
@@ -688,7 +692,7 @@ private fun EditCategoryDialog(
                 categories.forEach { cat ->
                     CategoryChip(
                         selected = selectedCategory == cat,
-                        label = cat,
+                        label = categoryLabel(cat),
                         onClick = { selectedCategory = cat }
                     )
                 }

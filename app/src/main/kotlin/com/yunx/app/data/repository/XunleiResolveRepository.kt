@@ -122,7 +122,12 @@ class XunleiResolveRepository(
     override suspend fun createSession(link: String, pwd: String?, cookie: String): Result<ShareSession> =
         runCatching {
             val shareId = ShareLinkParser.parse(link)?.shareId
-                ?: throw IllegalArgumentException(AppStrings.get(R.string.er_share_link_unrecognized))
+                ?: throw IllegalArgumentException(
+                    AppStrings.get(
+                        R.string.er_share_link_unrecognized_platform,
+                        AppStrings.get(R.string.csa_platform_xunlei)
+                    )
+                )
             val effectivePwd = pwd?.takeIf { it.isNotBlank() } ?: ShareLinkParser.parse(link)?.pwd ?: ""
             passCodes[shareId] = effectivePwd
             // 游客模式：未登录时 token 为空 → 匿名请求（无 Authorization 头）

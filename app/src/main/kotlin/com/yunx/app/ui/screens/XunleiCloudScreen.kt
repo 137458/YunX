@@ -38,7 +38,7 @@ import com.yunx.app.util.AppStrings
 import top.yukonga.miuix.kmp.basic.ScrollBehavior
 
 /** 平台差异：文案 + 有效期编码 + 提取码策略 */
-private val xunleiDriveSpec = DriveSpec(
+private fun xunleiDriveSpec() = DriveSpec(
     title = AppStrings.get(R.string.csa_platform_xunlei),
     shareDesc = AppStrings.get(R.string.csb_xunlei_share_title),
     shareHint = AppStrings.get(R.string.csb_xunlei_share_hint),
@@ -98,7 +98,7 @@ fun XunleiCloudScreen(
     // 上传要读 ContentResolver：共享层只回传选中的 uri，实际读取由 ViewModel 完成
     val context = LocalContext.current
     CloudDriveBrowser(
-        spec = xunleiDriveSpec,
+        spec = xunleiDriveSpec(),
         state = state.toXunleiDriveState(),
         moveState = moveState.toXunleiDriveState(),
         isRefreshing = viewModel.refreshing,

@@ -245,6 +245,6 @@
     <string name="vm_video_gallery_title">ギャラリー解析</string>
     <string name="vm_video_download_selected">選択項目をダウンロード</string>
     <string name="vm_video_download_selected_count">選択項目をダウンロード（%1$d）</string>
-    <string name="vm_video_motion_badge">実況</string>
+    <string name="vm_video_motion_badge">ライブフォト</string>
     <string name="vm_drive_quota_error">次のドライブの容量情報を取得できませんでした：%1$s</string>
 </resources>

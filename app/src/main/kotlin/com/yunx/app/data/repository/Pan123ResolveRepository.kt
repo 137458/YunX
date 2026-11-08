@@ -33,7 +33,14 @@ class Pan123ResolveRepository(
 
     override suspend fun createSession(link: String, pwd: String?, cookie: String): Result<ShareSession> {
         val parsed = ShareLinkParser.parse(link)
-            ?: return Result.failure(IllegalArgumentException(AppStrings.get(R.string.er_share_link_unrecognized)))
+            ?: return Result.failure(
+                IllegalArgumentException(
+                    AppStrings.get(
+                        R.string.er_share_link_unrecognized_platform,
+                        AppStrings.get(R.string.csa_platform_123)
+                    )
+                )
+            )
         return runCatching {
             // 提取码优先级：用户手输 > 链接/文案自带
             val sharePwd = pwd?.takeIf { it.isNotBlank() } ?: parsed.pwd.orEmpty()

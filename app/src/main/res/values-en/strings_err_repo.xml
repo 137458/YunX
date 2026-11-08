@@ -96,4 +96,5 @@
     <string name="er_xunlei_default_nickname">Xunlei user</string>
     <string name="er_account_network_error">Network error, please try again</string>
     <string name="er_xunlei_download_url_empty">Failed to get download link: Xunlei did not return a download address for this file (membership may be required for large files)</string>
+    <string name="er_share_link_unrecognized_platform">Unrecognized %1$s share link</string>
 </resources>

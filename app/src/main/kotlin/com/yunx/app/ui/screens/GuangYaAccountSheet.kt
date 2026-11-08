@@ -175,7 +175,7 @@ fun GuangYaAccountSheet(
                     InfoRow(label = AppStrings.get(R.string.sh_login_time), value = loginTime)
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
-                        text = "Token（access）",
+                        text = "Token (access)",
                         style = MiuixTheme.textStyles.body2,
                         color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                     )

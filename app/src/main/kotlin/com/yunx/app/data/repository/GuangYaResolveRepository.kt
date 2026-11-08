@@ -59,7 +59,14 @@ class GuangYaResolveRepository(
 
     override suspend fun createSession(link: String, pwd: String?, cookie: String): Result<ShareSession> {
         val parsed = ShareLinkParser.parse(link)
-            ?: return Result.failure(IllegalArgumentException(AppStrings.get(R.string.er_share_link_unrecognized)))
+            ?: return Result.failure(
+                IllegalArgumentException(
+                    AppStrings.get(
+                        R.string.er_share_link_unrecognized_platform,
+                        AppStrings.get(R.string.csa_platform_guangya)
+                    )
+                )
+            )
         return runCatching {
             val sharePwd = pwd?.takeIf { it.isNotBlank() } ?: parsed.pwd.orEmpty()
             // 记下提取码：后续每次列目录/取链都要用同一份重取分享令牌

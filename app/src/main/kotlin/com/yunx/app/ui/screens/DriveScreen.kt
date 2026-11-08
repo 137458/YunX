@@ -515,7 +515,7 @@ fun DriveScreen(
     val hiddenHint = listOfNotNull(
         hiddenUnloggedCount.takeIf { it > 0 }?.let { AppStrings.get(R.string.csb_drive_hidden_drives_count, it) },
         hiddenVideoCount.takeIf { it > 0 }?.let { AppStrings.get(R.string.csb_drive_hidden_videos_count, it) }
-    ).joinToString("、")
+    ).joinToString(", ")
 
     // 进入网盘页加载空间详情（仅已登录平台）
     LaunchedEffect(Unit) {

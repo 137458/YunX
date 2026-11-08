@@ -322,7 +322,11 @@ private fun AppHeader(versionName: String, versionCode: Int) {
         )
         Spacer(modifier = Modifier.height(4.dp))
         Text(
-            text = "YunX · v$versionName ($versionCode)",
+            text = AppStrings.get(
+                R.string.vm_about_version_name,
+                versionName,
+                versionCode
+            ),
             style = MiuixTheme.textStyles.body2,
             color = MiuixTheme.colorScheme.onSurfaceSecondary
         )

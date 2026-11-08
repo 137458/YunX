@@ -38,7 +38,7 @@ import com.yunx.app.util.AppStrings
 import top.yukonga.miuix.kmp.basic.ScrollBehavior
 
 /** 夸克网盘平台差异：文案 + 有效期编码 1/2/3/4 + 可选提取码 */
-private val quarkDriveSpec = DriveSpec(
+private fun quarkDriveSpec() = DriveSpec(
     title = AppStrings.get(R.string.csa_platform_quark),
     shareDesc = AppStrings.get(R.string.csa_action_share_desc),
     shareHint = null,
@@ -112,7 +112,7 @@ fun QuarkCloudScreen(
     // 上传要读 ContentResolver：共享层只回传选中的 uri，实际读取由 ViewModel 完成
     val context = LocalContext.current
     CloudDriveBrowser(
-        spec = quarkDriveSpec,
+        spec = quarkDriveSpec(),
         state = state.toQuarkDriveState(),
         moveState = moveState.toQuarkDriveState(),
         isRefreshing = viewModel.refreshing,

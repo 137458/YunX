@@ -96,4 +96,5 @@
     <string name="er_xunlei_default_nickname">迅雷ユーザー</string>
     <string name="er_account_network_error">ネットワークエラーです。もう一度お試しください</string>
     <string name="er_xunlei_download_url_empty">ダウンロードリンクの取得に失敗しました：迅雷がこのファイルのダウンロードアドレスを返しませんでした（大きなファイルは会員が必要な場合があります）</string>
+    <string name="er_share_link_unrecognized_platform">%1$s の共有リンクを認識できません</string>
 </resources>

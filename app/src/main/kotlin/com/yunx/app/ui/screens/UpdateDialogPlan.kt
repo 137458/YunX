@@ -105,7 +105,12 @@ internal fun updateDialogProgressDetail(state: UpdateDialogState.Downloading): S
     val downloaded = ByteFormat.size(state.downloaded)
     val speed = if (state.speed > 0L) " · ${ByteFormat.speed(state.speed)}" else ""
     return if (state.total > 0L) {
-        "$downloaded / ${ByteFormat.size(state.total)}$speed"
+        AppStrings.get(
+            R.string.vm_update_progress_detail,
+            downloaded,
+            ByteFormat.size(state.total),
+            speed
+        )
     } else {
         AppStrings.get(R.string.vm_update_progress_detail_unknown, downloaded, speed)
     }

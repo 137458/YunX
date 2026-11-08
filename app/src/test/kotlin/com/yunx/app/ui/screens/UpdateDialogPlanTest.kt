@@ -40,6 +40,7 @@ class UpdateDialogPlanTest {
             R.string.vm_update_later to "稍后",
             R.string.vm_update_downloading_percent to "下载中 %1\$s",
             R.string.vm_update_background_download to "后台下载",
+            R.string.vm_update_progress_detail to "%1\$s / %2\$s%3\$s",
             R.string.vm_update_progress_detail_unknown to "%1\$s · 大小未知%2\$s",
             R.string.vm_update_install to "安装更新",
             R.string.csa_retry to "重试",

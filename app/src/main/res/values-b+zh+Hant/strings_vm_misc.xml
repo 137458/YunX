@@ -109,7 +109,7 @@
     <string name="vm_about_license">本專案基於 GNU AGPL-3.0 協議開源</string>
     <string name="vm_about_version_footer">雲析 v%1$s · Made with ❤ and deepseek</string>
     <string name="vm_about_icon">雲析圖示</string>
-    <string name="vm_about_app_name">雲析</string>
+    <string name="vm_about_app_name">雲析（YunX）</string>
     <string name="vm_about_version_name">YunX · v%1$s (%2$d)</string>
     <string name="vm_about_tagline">網盤 / 影片連結解析與高速下載</string>
     <string name="vm_about_supported_platforms">支援平台</string>

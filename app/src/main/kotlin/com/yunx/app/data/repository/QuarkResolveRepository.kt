@@ -38,7 +38,14 @@ class QuarkResolveRepository(private val api: QuarkApi) : ShareResolveRepository
      */
     override suspend fun createSession(link: String, pwd: String?, cookie: String): Result<ShareSession> {
         val parsed = ShareLinkParser.parse(link)
-            ?: return Result.failure(IllegalArgumentException(AppStrings.get(R.string.er_share_link_unrecognized)))
+            ?: return Result.failure(
+                IllegalArgumentException(
+                    AppStrings.get(
+                        R.string.er_share_link_unrecognized_platform,
+                        AppStrings.get(R.string.csa_platform_quark)
+                    )
+                )
+            )
         val effectivePwd = pwd?.takeIf { it.isNotBlank() } ?: parsed.pwd
         return runCatching {
             val token = api.getShareToken(parsed.shareId, effectivePwd, cookie)

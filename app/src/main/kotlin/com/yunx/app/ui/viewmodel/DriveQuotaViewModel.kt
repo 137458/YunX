@@ -199,7 +199,7 @@ class DriveQuotaViewModel(
             }
             _quotaError.value = failed
                 .takeIf { it.isNotEmpty() }
-                ?.let { AppStrings.get(R.string.vm_drive_quota_error, it.joinToString("、")) }
+                ?.let { AppStrings.get(R.string.vm_drive_quota_error, it.joinToString(", ")) }
             loading.value = false
         }
     }

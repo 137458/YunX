@@ -39,7 +39,7 @@ import com.yunx.app.util.AppStrings
 import top.yukonga.miuix.kmp.basic.ScrollBehavior
 
 /** 平台差异：文案 + 有效期编码 + 提取码策略 */
-private val c139DriveSpec = DriveSpec(
+private fun c139DriveSpec() = DriveSpec(
     title = AppStrings.get(R.string.csa_platform_139),
     shareDesc = AppStrings.get(R.string.csb_c139_share_title),
     shareHint = AppStrings.get(R.string.csb_c139_share_hint),
@@ -95,7 +95,7 @@ fun C139CloudScreen(
     // 上传要读 ContentResolver：共享层只回传选中的 uri，实际读取由 ViewModel 完成
     val context = LocalContext.current
     CloudDriveBrowser(
-        spec = c139DriveSpec,
+        spec = c139DriveSpec(),
         state = state.toC139DriveState(),
         moveState = moveState.toC139DriveState(),
         isRefreshing = viewModel.refreshing,

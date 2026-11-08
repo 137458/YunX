@@ -44,7 +44,14 @@ class Pan115ResolveRepository(private val api: Pan115Api) : ShareResolveReposito
 
     override suspend fun createSession(link: String, pwd: String?, cookie: String): Result<ShareSession> {
         val parsed = ShareLinkParser.parse(link)
-            ?: return Result.failure(IllegalArgumentException(AppStrings.get(R.string.er_share_link_unrecognized)))
+            ?: return Result.failure(
+                IllegalArgumentException(
+                    AppStrings.get(
+                        R.string.er_share_link_unrecognized_platform,
+                        AppStrings.get(R.string.csa_platform_115)
+                    )
+                )
+            )
         return runCatching {
             // 提取码优先级：用户手输 > 链接 ?password= 或文案「访问码：xxxx」
             val receiveCode = pwd?.takeIf { it.isNotBlank() } ?: parsed.pwd.orEmpty()

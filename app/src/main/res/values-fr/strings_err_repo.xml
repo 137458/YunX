@@ -96,4 +96,5 @@
     <string name="er_xunlei_default_nickname">Utilisateur Xunlei</string>
     <string name="er_account_network_error">Erreur réseau, veuillez réessayer</string>
     <string name="er_xunlei_download_url_empty">Échec de l\'obtention du lien de téléchargement : Xunlei n\'a pas renvoyé d\'adresse de téléchargement pour ce fichier (un abonnement peut être requis pour les gros fichiers)</string>
+    <string name="er_share_link_unrecognized_platform">Lien de partage %1$s non reconnu</string>
 </resources>

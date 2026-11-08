@@ -58,7 +58,14 @@ class C139ResolveRepository(private val api: C139Api) : ShareResolveRepository {
 
     override suspend fun createSession(link: String, pwd: String?, cookie: String): Result<ShareSession> {
         val parsed = ShareLinkParser.parse(link)
-            ?: return Result.failure(IllegalArgumentException(AppStrings.get(R.string.er_share_link_unrecognized)))
+            ?: return Result.failure(
+                IllegalArgumentException(
+                    AppStrings.get(
+                        R.string.er_share_link_unrecognized_platform,
+                        AppStrings.get(R.string.csa_platform_139)
+                    )
+                )
+            )
         // 游客模式：不再要求 cookie 里含账号信息 —— 139 的列表端点（getOutLinkInfoV6）本身就是
         // 匿名调用（account 固定空串、不带 authorization/mcloud-sign，见 C139Api.getShareFiles），
         // 空 cookie 也能列出目录。下载/转存仍会在各自入口要求登录（见 Agent.md §3.19）。

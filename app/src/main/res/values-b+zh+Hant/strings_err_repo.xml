@@ -96,4 +96,5 @@
     <string name="er_xunlei_default_nickname">迅雷用戶</string>
     <string name="er_account_network_error">網路異常，請重試</string>
     <string name="er_xunlei_download_url_empty">取得下載連結失敗：迅雷未回傳該檔案的下載位址（大檔案可能需要會員）</string>
+    <string name="er_share_link_unrecognized_platform">無法識別%1$s分享連結</string>
 </resources>

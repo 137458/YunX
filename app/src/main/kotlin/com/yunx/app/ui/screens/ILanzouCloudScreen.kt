@@ -36,7 +36,7 @@ import com.yunx.app.ui.viewmodel.ILanzouCloudViewModel
 import com.yunx.app.util.AppStrings
 import top.yukonga.miuix.kmp.basic.ScrollBehavior
 
-private val ilanzouDriveSpec = DriveSpec(
+private fun ilanzouDriveSpec() = DriveSpec(
     title = AppStrings.get(R.string.csa_platform_ilanzou),
     shareDesc = AppStrings.get(R.string.csb_share_title),
     shareHint = null,
@@ -87,7 +87,7 @@ fun ILanzouCloudScreen(
     // 上传要读 ContentResolver：共享层只回传选中的 uri，实际读取由 ViewModel 完成
     val context = LocalContext.current
     CloudDriveBrowser(
-        spec = ilanzouDriveSpec,
+        spec = ilanzouDriveSpec(),
         state = state.toILanzouDriveState(),
         moveState = moveState.toILanzouDriveState(),
         isRefreshing = viewModel.refreshing,

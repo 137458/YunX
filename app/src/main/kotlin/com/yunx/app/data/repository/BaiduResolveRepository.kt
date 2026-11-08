@@ -43,7 +43,12 @@ class BaiduResolveRepository(private val api: BaiduApi) : ShareResolveRepository
     override suspend fun createSession(link: String, pwd: String?, cookie: String): Result<ShareSession> =
         runCatching {
             val parsed = ShareLinkParser.parse(link)
-                ?: throw IllegalArgumentException(AppStrings.get(R.string.er_share_link_unrecognized))
+                ?: throw IllegalArgumentException(
+                    AppStrings.get(
+                        R.string.er_share_link_unrecognized_platform,
+                        AppStrings.get(R.string.csa_platform_baidu)
+                    )
+                )
             val surl = parsed.shareId
             // 修复：公共分享（pwd 为空）不强制提取码——跳过 verify，sekey 置空，
             // listShare 将不带 sekey 直接列出（抓包实证：公共分享无需 sekey/Cookie 即 errno=0）

@@ -36,7 +36,7 @@ import com.yunx.app.ui.viewmodel.LanzouCloudViewModel
 import com.yunx.app.util.AppStrings
 import top.yukonga.miuix.kmp.basic.ScrollBehavior
 
-private val lanzouDriveSpec = DriveSpec(
+private fun lanzouDriveSpec() = DriveSpec(
     title = AppStrings.get(R.string.csb_drive_name_lanzou),
     shareDesc = AppStrings.get(R.string.csb_share_title),
     shareHint = null,
@@ -87,7 +87,7 @@ fun LanzouCloudScreen(
     // 上传要读 ContentResolver：共享层只回传选中的 uri，实际读取由 ViewModel 完成
     val context = LocalContext.current
     CloudDriveBrowser(
-        spec = lanzouDriveSpec,
+        spec = lanzouDriveSpec(),
         state = state.toLanzouDriveState(),
         moveState = moveState.toLanzouDriveState(),
         isRefreshing = viewModel.refreshing,
