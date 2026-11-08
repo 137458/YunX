@@ -59,6 +59,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.yunx.app.data.announcement.AnnouncementApi
 import com.yunx.app.data.announcement.relativeTime
+import com.yunx.app.ui.components.EmptyState
 import com.yunx.app.ui.components.RemoteImage
 import com.yunx.app.ui.components.YunXLoading
 import com.yunx.app.ui.theme.ListGroupGap
@@ -389,26 +390,12 @@ private fun LoadMoreFooter(loading: Boolean, onClick: () -> Unit) {
 
 @Composable
 private fun AnnouncementEmptyState(modifier: Modifier = Modifier) {
-    Column(
-        modifier = modifier.padding(32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Icon(
-            imageVector = Icons.Outlined.Campaign,
-            contentDescription = null,
-            modifier = Modifier.size(40.dp),
-            tint = MiuixTheme.colorScheme.onSurfaceSecondary
-        )
-        Spacer(modifier = Modifier.height(12.dp))
-        Text(text = "暂无公告", style = MiuixTheme.textStyles.body1)
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = "有新公告时会在这里显示",
-            style = MiuixTheme.textStyles.footnote1,
-            color = MiuixTheme.colorScheme.onSurfaceSecondary,
-            textAlign = TextAlign.Center
-        )
-    }
+    EmptyState(
+        icon = Icons.Outlined.Campaign,
+        title = "暂无公告",
+        hint = "有新公告时会在这里显示",
+        modifier = modifier
+    )
 }
 
 @Composable

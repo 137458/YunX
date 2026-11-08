@@ -69,7 +69,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.yunx.app.data.db.BookmarkEntity
@@ -90,6 +89,7 @@ import top.yukonga.miuix.kmp.basic.TextField
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import com.yunx.app.ui.components.BlurredBar
+import com.yunx.app.ui.components.EmptyState
 import com.yunx.app.ui.components.blurBackdropSource
 import com.yunx.app.ui.components.rememberBlurBackdrop
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
@@ -410,43 +410,22 @@ private fun EmptyBookmark(
     onAdd: () -> Unit,
     onClearFilter: () -> Unit
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 32.dp, vertical = 48.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Icon(
-            imageVector = Icons.Outlined.BookmarkBorder,
-            contentDescription = null,
-            modifier = Modifier.size(48.dp),
-            // dividerLine 是分隔线专用色，深色下几乎不可见，图标必须用次级内容色
-            tint = MiuixTheme.colorScheme.onSurfaceSecondary
-        )
-        Spacer(modifier = Modifier.height(12.dp))
-        Text(
-            text = if (filtered) "该分类下暂无收藏" else "还没有收藏任何网盘链接",
-            style = MiuixTheme.textStyles.body1,
-            color = MiuixTheme.colorScheme.onSurfaceSecondary
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = if (filtered) {
-                "切换到其他分类，或清除筛选查看全部收藏"
-            } else {
-                "可在解析页点击「添加至收藏」，或点击右上角 + 手动添加"
-            },
-            style = MiuixTheme.textStyles.footnote1,
-            color = MiuixTheme.colorScheme.onSurfaceSecondary,
-            textAlign = TextAlign.Center
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = onAdd) {
-            Icon(Icons.Outlined.Add, contentDescription = null, modifier = Modifier.size(18.dp))
-            Spacer(modifier = Modifier.width(6.dp))
-            Text("添加收藏")
+    EmptyState(
+        icon = Icons.Outlined.BookmarkBorder,
+        title = if (filtered) "该分类下暂无收藏" else "还没有收藏任何网盘链接",
+        hint = if (filtered) {
+            "切换到其他分类，或清除筛选查看全部收藏"
+        } else {
+            "可在解析页点击「添加至收藏」，或点击右上角 + 手动添加"
+        },
+        action = {
+            Button(onClick = onAdd) {
+                Icon(Icons.Outlined.Add, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(modifier = Modifier.width(6.dp))
+                Text("添加收藏")
+            }
         }
-    }
+    )
 }
 
 /** 新增收藏弹窗（Miuix OverlayDialog） */

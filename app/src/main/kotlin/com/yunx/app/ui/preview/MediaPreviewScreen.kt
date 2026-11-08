@@ -43,6 +43,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.Download
+import androidx.compose.material.icons.outlined.VisibilityOff
+import com.yunx.app.ui.components.EmptyState
 import com.yunx.app.ui.AppSnackbarHost
 import top.yukonga.miuix.kmp.basic.HorizontalDivider
 import top.yukonga.miuix.kmp.basic.Icon
@@ -675,11 +677,9 @@ private fun EmptyPreview(
     modifier: Modifier = Modifier,
     message: String = "没有可预览的内容"
 ) {
-    Box(modifier = modifier, contentAlignment = Alignment.Center) {
-        Text(
-            text = message,
-            style = MiuixTheme.textStyles.body1,
-            color = MiuixTheme.colorScheme.onSurfaceVariantSummary
-        )
-    }
+    EmptyState(
+        icon = Icons.Outlined.VisibilityOff,
+        title = message,
+        modifier = modifier
+    )
 }

@@ -86,7 +86,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -97,6 +96,7 @@ import com.yunx.app.data.download.MagnetLink
 import com.yunx.app.ui.AppSnackbarHost
 import com.yunx.app.ui.SnackbarController
 import com.yunx.app.ui.rememberGlobalSnackbarHostState
+import com.yunx.app.ui.components.EmptyState
 import com.yunx.app.ui.components.LocalScaffoldPadding
 import com.yunx.app.ui.theme.SquircleShape
 import com.yunx.app.ui.util.installApk
@@ -201,7 +201,12 @@ fun DownloadScreen(
 
     Box(modifier = modifier.fillMaxSize()) {
         if (tasks.isEmpty()) {
-            EmptyDownloadState(modifier = Modifier.align(Alignment.Center))
+            EmptyState(
+                icon = Icons.Outlined.Download,
+                title = "暂无下载任务",
+                hint = "解析分享后点击文件即可加入下载队列\n也可点击右下角按钮手动添加",
+                modifier = Modifier.align(Alignment.Center)
+            )
         } else {
             LazyColumn(
                 modifier = Modifier
@@ -510,42 +515,6 @@ private fun DeleteConfirmDialog(
             }
         }
         AppSnackbarHost(rememberGlobalSnackbarHostState())
-    }
-}
-
-@Composable
-private fun EmptyDownloadState(modifier: Modifier = Modifier) {
-    Column(
-        modifier = modifier.padding(32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Surface(
-            modifier = Modifier.size(64.dp),
-            shape = CircleShape,
-            color = MiuixTheme.colorScheme.surfaceContainerHighest
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                Icon(
-                    imageVector = Icons.Outlined.Download,
-                    contentDescription = null,
-                    modifier = Modifier.size(28.dp),
-                    tint = MiuixTheme.colorScheme.onSurfaceSecondary
-                )
-            }
-        }
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = "暂无下载任务",
-            style = MiuixTheme.textStyles.title3,
-            fontWeight = FontWeight.Medium
-        )
-        Spacer(modifier = Modifier.height(6.dp))
-        Text(
-            text = "解析分享后点击文件即可加入下载队列\n也可点击右下角按钮手动添加",
-            style = MiuixTheme.textStyles.body2,
-            color = MiuixTheme.colorScheme.onSurfaceSecondary,
-            textAlign = TextAlign.Center
-        )
     }
 }
 
