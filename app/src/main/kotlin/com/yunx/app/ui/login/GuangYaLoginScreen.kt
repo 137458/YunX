@@ -119,7 +119,9 @@ fun GuangYaLoginScreen(
     }
 
 
-    BackHandler(enabled = !isSaving && !isSendingSms) { onBack() }
+    // 保存中禁止返回：回调保持注册（enabled 恒 true），只把「返回」降级为空操作，
+    // 否则返回事件会穿透到 Activity 直接退出应用
+    BackHandler { if (!isSaving && !isSendingSms) onBack() }
 
     /** 发送验证码：成功后记录 verification_id / is_user 并启动 60s 倒计时 */
     val sendSmsCode: () -> Unit = {

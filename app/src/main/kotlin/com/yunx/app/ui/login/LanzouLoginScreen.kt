@@ -88,7 +88,7 @@ fun LanzouLoginScreen(
     var showTutorial by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { showTutorial = true }
 
-    BackHandler(enabled = !isSaving) { onBack() }
+    BackHandler { if (!isSaving) onBack() }
 
     Scaffold(
         topBar = {

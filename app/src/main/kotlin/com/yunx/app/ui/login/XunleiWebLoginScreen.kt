@@ -156,7 +156,7 @@ fun XunleiWebLoginScreen(
     // 渲染进程崩溃时基类已先销毁过，destroyWebView 保证真正只销毁一次
     DisposableEffect(webView) { onDispose { destroyWebView(webView) } }
 
-    BackHandler(enabled = !isSaving && !isSavingManual) { onBack() }
+    BackHandler { if (!isSaving && !isSavingManual) onBack() }
 
     // 自动登录检测：网页把凭据写进 localStorage 就自动校验并落库，无需手动点「保存」
     rememberWebLoginAutoDetect(

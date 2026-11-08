@@ -146,7 +146,7 @@ fun Pan115LoginScreen(
     }
 
     // 系统返回键 → 返回主页（保存中禁用）
-    BackHandler(enabled = !isSaving && !isSavingManual) { onBack() }
+    BackHandler { if (!isSaving && !isSavingManual) onBack() }
 
     // 自动登录检测：把 CookieManager 里的登录 Cookie 与本地已存值比对，变化即校验入库
     rememberWebLoginAutoDetect(

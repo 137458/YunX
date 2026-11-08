@@ -264,7 +264,7 @@ fun VideoLoginScreen(
     }
 
     // 系统返回键 → 返回上一页（保存中禁用）
-    BackHandler(enabled = !isSaving && !isSavingManual) { onBack() }
+    BackHandler { if (!isSaving && !isSavingManual) onBack() }
 
     Scaffold(
         topBar = {
@@ -571,8 +571,8 @@ private fun ManualCookieLoginScreen(
     var input by remember { mutableStateOf("") }
     var isSaving by remember { mutableStateOf(false) }
 
-    // 系统返回键 → 返回上一页（保存中禁用）
-    BackHandler(enabled = !isSaving) { onBack() }
+    // 系统返回键 → 返回上一页（保存中忽略返回：回调整体保持注册，避免事件穿透到 Activity 退出应用）
+    BackHandler { if (!isSaving) onBack() }
 
     Scaffold(
         topBar = {
