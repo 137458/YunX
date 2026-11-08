@@ -27,8 +27,9 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.navigationevent.compose.LocalNavigationEventDispatcherOwner
-import androidx.navigationevent.compose.rememberNavigationEventDispatcherOwner
+import androidx.navigationevent.findViewTreeNavigationEventDispatcherOwner
 import top.yukonga.miuix.kmp.theme.ColorSchemeMode
 import top.yukonga.miuix.kmp.theme.Colors
 import top.yukonga.miuix.kmp.theme.MiuixTheme
@@ -215,15 +216,26 @@ fun ComposeEmptyActivityTheme(
 
     // 3. 将 MiuixTheme 作为唯一全局主题根节点，单根传递最终 colors，彻底消除双层嵌套
     MiuixTheme(colors = colors) {
-        val navOwner = rememberNavigationEventDispatcherOwner(parent = null)
-        CompositionLocalProvider(
-            LocalNavigationEventDispatcherOwner provides navOwner
-        ) {
+        // 返回事件派发器必须与 Activity 同源：activity 1.13 起 ComponentActivity 自身实现
+        // NavigationEventDispatcherOwner 并把 owner 挂到 decorView 的 ViewTree 上，这里直接取用；
+        // 不能再 parent = null 新建独立 root dispatcher，否则 Miuix 弹窗的预测性返回接不到系统手势。
+        val view = LocalView.current
+        val navOwner = remember(view) { view.findViewTreeNavigationEventDispatcherOwner() }
+        val themedContent: @Composable () -> Unit = {
             MaterialTheme(
                 colorScheme = md3Colors,
                 typography = Typography,
                 content = content
             )
+        }
+        if (navOwner != null) {
+            CompositionLocalProvider(
+                LocalNavigationEventDispatcherOwner provides navOwner,
+                content = themedContent
+            )
+        } else {
+            // 预览 / 非 Activity 宿主没有 ViewTree owner：不提供，避免引入与系统脱钩的派发器
+            themedContent()
         }
     }
 }

@@ -16,7 +16,9 @@ webkit = "1.17.1"   # 登录 WebView：关闭 X-Requested-With + 同步桌面 cl
 # androidx.lifecycle 全家桶统一取 2.9.2：runtime-ktx / viewmodel-ktx / viewmodel-compose 同组工件
 # 按 androidx 约定应同版本发布，历史上 runtime 2.9.2 + viewmodel 2.8.7 的混搭纯属漂移。
 lifecycle = "2.9.2"
-activityCompose = "1.11.0"
+# 1.13.0 起 ComponentActivity 实现 androidx.navigationevent.NavigationEventDispatcherOwner，
+# 并在 decorView 上初始化 ViewTree owner；Miuix 弹窗的 NavigationBackHandler 才能真正接到系统返回事件。
+activityCompose = "1.13.0"
 okhttp = "4.12.0"
 navigationevent = "1.1.2"   # 必须与 miuix 0.9.4 的 pom 对齐（它 requires navigationevent-compose 1.1.2），见下方依赖注释
 # miuix 0.9.4 以 Compose Multiplatform 1.12.0 编译，BOM 2026.09.00 起内含 compose 1.12.1（runtime/ui/foundation），与之对齐
