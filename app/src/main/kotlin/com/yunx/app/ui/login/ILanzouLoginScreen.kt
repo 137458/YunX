@@ -57,7 +57,6 @@ import com.yunx.app.ui.viewmodel.ILanzouAccountViewModel
 import kotlinx.coroutines.launch
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
-import top.yukonga.miuix.kmp.basic.CircularProgressIndicator
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.Scaffold
@@ -190,9 +189,7 @@ fun ILanzouLoginScreen(
                 colors = ButtonDefaults.buttonColorsPrimary()
             ) {
                 if (isSaving) {
-                    CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("登录中…", style = MiuixTheme.textStyles.button)
+                    LoginLoadingIndicator(text = "登录中…")
                 } else {
                     Text("登录", style = MiuixTheme.textStyles.button)
                 }

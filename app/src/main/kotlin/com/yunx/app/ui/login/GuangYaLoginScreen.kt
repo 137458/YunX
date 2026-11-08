@@ -62,7 +62,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
-import top.yukonga.miuix.kmp.basic.CircularProgressIndicator
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.Scaffold
@@ -244,9 +243,7 @@ fun GuangYaLoginScreen(
                     colors = ButtonDefaults.buttonColorsPrimary()
                 ) {
                     if (isSaving) {
-                        CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("登录中…")
+                        LoginLoadingIndicator(text = "登录中…")
                     } else {
                         Text("登录")
                     }
@@ -309,7 +306,7 @@ fun GuangYaLoginScreen(
                         colors = ButtonDefaults.buttonColors()
                     ) {
                         if (isSendingSms) {
-                            CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+                            LoginLoadingIndicator()
                         } else {
                             Text(
                                 text = if (countdown > 0) "${countdown}s 后重发" else "获取验证码",
@@ -350,9 +347,7 @@ fun GuangYaLoginScreen(
                     colors = ButtonDefaults.buttonColorsPrimary()
                 ) {
                     if (isSaving) {
-                        CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("登录中…")
+                        LoginLoadingIndicator(text = "登录中…")
                     } else {
                         Text("登录 / 注册")
                     }

@@ -61,7 +61,6 @@ import com.yunx.app.ui.viewmodel.XunleiAccountViewModel
 import kotlinx.coroutines.delay
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
-import top.yukonga.miuix.kmp.basic.CircularProgressIndicator
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.Scaffold
@@ -220,10 +219,7 @@ fun XunleiLoginScreen(
                     colors = ButtonDefaults.buttonColorsPrimary()
                 ) {
                     if (isSending) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(18.dp),
-                            strokeWidth = 2.dp
-                        )
+                        LoginLoadingIndicator()
                     } else {
                         Text("登录")
                     }
@@ -260,10 +256,7 @@ fun XunleiLoginScreen(
                     colors = ButtonDefaults.buttonColorsPrimary()
                 ) {
                     if (isSending) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(18.dp),
-                            strokeWidth = 2.dp
-                        )
+                        LoginLoadingIndicator()
                     } else {
                         Text("验证并登录")
                     }

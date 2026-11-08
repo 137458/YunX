@@ -50,7 +50,6 @@ import com.yunx.app.ui.viewmodel.QuarkAccountViewModel
 import kotlinx.coroutines.launch
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
-import top.yukonga.miuix.kmp.basic.CircularProgressIndicator
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.LinearProgressIndicator
@@ -139,12 +138,7 @@ fun QuarkLoginScreen(
                         )
                     }
                     if (isSaving) {
-                        CircularProgressIndicator(
-                            modifier = Modifier
-                                .padding(horizontal = 12.dp)
-                                .size(20.dp),
-                            strokeWidth = 2.dp
-                        )
+                        LoginLoadingIndicator(modifier = Modifier.padding(horizontal = 12.dp))
                     } else {
                         TextButton(
                             text = "保存",
@@ -298,10 +292,7 @@ fun QuarkLoginScreen(
                         colors = ButtonDefaults.buttonColorsPrimary()
                     ) {
                         if (isSavingManual) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(18.dp),
-                                strokeWidth = 2.dp
-                            )
+                            LoginLoadingIndicator()
                         } else {
                             Text("保存")
                         }
