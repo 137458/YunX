@@ -26,21 +26,20 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
-import com.yunx.app.ui.theme.SquircleShape
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Campaign
 import androidx.compose.material.icons.outlined.DoneAll
 import androidx.compose.material.icons.outlined.ErrorOutline
@@ -48,10 +47,10 @@ import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -59,12 +58,15 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.yunx.app.data.announcement.AnnouncementApi
 import com.yunx.app.data.announcement.relativeTime
+import com.yunx.app.R
 import com.yunx.app.ui.components.EmptyState
 import com.yunx.app.ui.components.RemoteImage
 import com.yunx.app.ui.components.YunXLoading
 import com.yunx.app.ui.theme.ListGroupGap
 import com.yunx.app.ui.theme.listGroupShape
+import com.yunx.app.ui.theme.SquircleShape
 import com.yunx.app.ui.viewmodel.AnnouncementViewModel
+import com.yunx.app.util.AppStrings
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.CardDefaults
@@ -72,12 +74,12 @@ import top.yukonga.miuix.kmp.basic.CircularProgressIndicator
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.PullToRefresh
+import top.yukonga.miuix.kmp.basic.rememberPullToRefreshState
 import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.basic.Surface
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.basic.TopAppBar
-import top.yukonga.miuix.kmp.basic.rememberPullToRefreshState
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /**
@@ -110,21 +112,21 @@ fun AnnouncementListPage(
         modifier = modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
-                title = "公告",
+                title = AppStrings.get(R.string.vm_announcements_title),
                 color = MiuixTheme.colorScheme.surface,
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = AppStrings.get(R.string.csa_back))
                     }
                 },
                 actions = {
                     if (state.items.isNotEmpty()) {
                         IconButton(onClick = onMarkAllRead) {
-                            Icon(Icons.Outlined.DoneAll, contentDescription = "全部标为已读")
+                            Icon(Icons.Outlined.DoneAll, contentDescription = AppStrings.get(R.string.vm_announcement_mark_all_read))
                         }
                     }
                     IconButton(onClick = onRefresh) {
-                        Icon(Icons.Outlined.Refresh, contentDescription = "刷新")
+                        Icon(Icons.Outlined.Refresh, contentDescription = AppStrings.get(R.string.vm_refresh))
                     }
                 }
             )
@@ -217,7 +219,7 @@ private fun AnnouncementRow(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         if (item.isPinned) {
                             AnnouncementChip(
-                                text = "置顶",
+                                text = AppStrings.get(R.string.vm_announcement_pinned_short),
                                 containerColor = MiuixTheme.colorScheme.primaryContainer,
                                 contentColor = MiuixTheme.colorScheme.onPrimaryContainer
                             )
@@ -359,7 +361,7 @@ internal fun AnnouncementAvatar(
     ) {
         Box(contentAlignment = Alignment.Center) {
             Text(
-                text = name.trim().take(1).ifEmpty { "公" },
+                text = name.trim().take(1).ifEmpty { AppStrings.get(R.string.vm_announcement_avatar_fallback) },
                 style = MiuixTheme.textStyles.footnote2,
                 fontWeight = FontWeight.SemiBold,
                 color = MiuixTheme.colorScheme.onPrimaryContainer
@@ -383,7 +385,7 @@ private fun LoadMoreFooter(loading: Boolean, onClick: () -> Unit) {
                 strokeWidth = 2.dp
             )
         } else {
-            TextButton(text = "加载更多", onClick = onClick)
+            TextButton(text = AppStrings.get(R.string.rs_load_more), onClick = onClick)
         }
     }
 }
@@ -392,8 +394,8 @@ private fun LoadMoreFooter(loading: Boolean, onClick: () -> Unit) {
 private fun AnnouncementEmptyState(modifier: Modifier = Modifier) {
     EmptyState(
         icon = Icons.Outlined.Campaign,
-        title = "暂无公告",
-        hint = "有新公告时会在这里显示",
+        title = AppStrings.get(R.string.vm_announcement_empty_title),
+        hint = AppStrings.get(R.string.vm_announcement_empty_desc),
         modifier = modifier
     )
 }
@@ -415,7 +417,7 @@ private fun AnnouncementErrorState(
             tint = MiuixTheme.colorScheme.onSurfaceSecondary
         )
         Spacer(modifier = Modifier.height(12.dp))
-        Text(text = "公告加载失败", style = MiuixTheme.textStyles.body1)
+        Text(text = AppStrings.get(R.string.vm_announcement_load_failed), style = MiuixTheme.textStyles.body1)
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = message,
@@ -425,7 +427,7 @@ private fun AnnouncementErrorState(
         )
         Spacer(modifier = Modifier.height(16.dp))
         Button(onClick = onRetry) {
-            Text("重试", style = MiuixTheme.textStyles.button)
+            Text(AppStrings.get(R.string.csa_retry), style = MiuixTheme.textStyles.button)
         }
     }
 }

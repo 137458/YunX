@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 设置页（本地差异文案） -->
+    <string name="settings_thread_platform_generic">通用 / 手动添加</string>
+    <string name="settings_download_threads_desc_note">按网盘分别设置分片并发数（默认 32，最高 512）；仅对新建任务生效</string>
+    <string name="settings_download_dir_system_default">系统默认 Download（点击自定义）</string>
+    <string name="settings_download_dir_reset">恢复默认下载目录</string>
+    <string name="settings_download_dir_reset_desc">点击恢复为系统默认目录</string>
+    <string name="settings_max_tasks_desc_bg">同时下载 %1$d 个任务（限制后台并发）</string>
+    <string name="settings_value_task_count">%1$d 个</string>
+    <string name="settings_auto_retry_value_never">不重试</string>
+    <string name="settings_auto_retry_value_times">%1$d 次</string>
+    <string name="settings_keep_downloading_desc_short">开启后下载时获取 WakeLock 维持网络，并可加入白名单</string>
+    <string name="settings_github_repo_no_browser">未找到浏览器，链接已复制：%1$s</string>
+    <string name="settings_diagnostic_path">详细日志写入 Android/data/%1$s/files/diagnostic_logs</string>
+    <string name="settings_diag_zip_shared">诊断日志已打包分享（%1$s）</string>
+
+    <!-- 主题与外观（本地差异文案） -->
+    <string name="theme_bottom_bar_section">底部导航栏</string>
+    <string name="theme_bottom_bar_desc">选择底部导航栏样式</string>
+    <string name="theme_bottom_bar_liquid">液态玻璃</string>
+    <string name="theme_bottom_bar_frosted">毛玻璃</string>
+    <string name="theme_bottom_bar_standard">标准</string>
+    <string name="theme_bottom_bar_hint_liquid">悬浮胶囊 + 透镜折射与色散光晕，随手机倾斜产生镜面高光；需 Android 13+，低版本自动降级为半透明纯色。</string>
+    <string name="theme_bottom_bar_hint_frosted">悬浮胶囊 + 背景高斯模糊，观感接近液态玻璃但不含折射；需 Android 13+，低版本自动降级为半透明纯色。</string>
+    <string name="theme_bottom_bar_hint_standard">Miuix 原生贴底导航栏，无背景采样与着色器开销，最省电。</string>
+    <string name="theme_amoled_switch">AMOLED 纯黑</string>
+    <string name="theme_amoled_on_desc">深色下把背景与卡片表面压到纯黑，降低 OLED 屏幕耗电</string>
+    <string name="theme_amoled_off_desc">仅深色模式生效，当前为浅色外观</string>
+    <string name="theme_recommended_colors">推荐颜色</string>
+    <string name="theme_preview_title">实时预览</string>
+    <string name="theme_preview_desc">以下色块取自当前主题方案</string>
+    <string name="theme_preview_body">正文示例文字</string>
+    <string name="theme_preview_caption">次要说明文字</string>
+    <string name="theme_preview_container">容器</string>
+    <string name="theme_preview_container_high">高容器</string>
+    <string name="theme_preview_container_highest">最高容器</string>
+    <string name="theme_custom_color_title">自定义主题色</string>
+
+    <!-- 关于页（本地差异文案） -->
+    <string name="vm_about_intro">云析（YunX）是一款网盘 / 视频分享链接解析与高速下载工具。粘贴链接即可：网盘分享能浏览内容并高速下载，视频链接能解析出直链与原图，图片 / 视频 / 音频都支持在线预览播放。</string>
+    <string name="vm_about_terms_title">使用条款与声明</string>
+    <string name="vm_about_version">云析 v%1$s · Made with DeepSeek</string>
+
+    <!-- 收藏页（本地差异文案） -->
+    <string name="vm_bookmark_empty_filtered">该分类下暂无收藏</string>
+    <string name="vm_bookmark_empty_filtered_hint">切换到其他分类，或清除筛选查看全部收藏</string>
+    <string name="vm_bookmark_delete_title">删除收藏</string>
+    <string name="vm_bookmark_delete_message">确定删除「%1$s」？该操作不可恢复。</string>
+
+    <!-- 引导页（本地差异文案） -->
+    <string name="rs_onboarding_feature_link_title">一键解析分享链接</string>
+    <string name="rs_onboarding_feature_link_desc">夸克 / UC / 迅雷 / 百度 / 139 / 123 / 115 / 光鸭 / 蓝奏云 等 10 个网盘分享链接自动识别，登录网盘账号后即可解析与下载</string>
+    <string name="rs_onboarding_feature_video_desc">抖音 / 小红书 / 快手 / 微博 / AcFun 免登录，哔哩哔哩登录后画质更高；7 大视频平台链接解析直链，图片 / 视频 / 音频都能在线预览</string>
+    <string name="rs_onboarding_feature_multi_title">多平台支持</string>
+    <string name="rs_onboarding_feature_multi_desc">一个应用管理多个网盘账号，统一解析下载入口</string>
+    <string name="rs_onboarding_feature_privacy_title">隐私安全</string>
+    <string name="rs_onboarding_feature_privacy_desc">登录凭证仅存本机，不上传任何服务器</string>
+    <string name="rs_onboarding_free_hint">无广告、无内购，所有功能永久免费</string>
+    <string name="rs_onboarding_disclaimer">免责声明：本应用仅供个人学习与技术交流，请勿用于商业用途。下载内容版权归原作者所有，请于下载后 24 小时内删除。使用本应用产生的任何后果由使用者自行承担。</string>
+
+    <!-- 更新弹窗（本地差异文案） -->
+    <string name="vm_update_mirror_download_cn">使用镜像站下载（国内加速）</string>
+    <string name="vm_update_ignore_version">忽略此版本</string>
+    <string name="vm_update_open_download_task">转到下载任务</string>
+    <string name="vm_update_cancel_download">取消下载</string>
+    <string name="vm_update_downloading_package">正在下载更新包</string>
+    <string name="vm_update_downloading_package_unknown">正在下载更新包（大小未知）</string>
+    <string name="vm_update_notes_collapse">收起说明</string>
+    <string name="vm_update_notes_expand_more">展开全部（还有 %1$d 行）</string>
+    <string name="vm_update_version_jump">当前 %1$s → 最新 %2$s</string>
+    <string name="vm_update_progress_detail">%1$s / %2$s%3$s</string>
+    <string name="vm_update_progress_detail_unknown">%1$s · 大小未知%2$s</string>
+    <string name="vm_update_open_releases">前往 Releases 页面</string>
+    <string name="vm_update_downloading_percent">下载中 %1$s</string>
+    <string name="vm_update_install">安装更新</string>
+    <string name="vm_update_download_now">立即下载</string>
+    <string name="vm_update_background_download">后台下载</string>
+    <string name="em_update_download_failed">更新包下载失败</string>
+    <string name="em_update_package_missing">安装包已不存在，请重新下载</string>
+    <string name="em_update_digest_mismatch">安装包校验失败（SHA-256 不匹配），请重新下载</string>
+</resources>

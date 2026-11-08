@@ -22,34 +22,34 @@ import android.content.ComponentName
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
@@ -57,8 +57,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.runtime.Composable
@@ -68,20 +68,21 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -89,20 +90,20 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.yunx.app.R
 import com.yunx.app.data.prefs.SettingsRepository
+import com.yunx.app.R
+import com.yunx.app.ui.components.blurBackdropSource
+import com.yunx.app.ui.components.BlurredBar
+import com.yunx.app.ui.components.rememberBlurBackdrop
 import com.yunx.app.ui.theme.AppThemeManager
 import com.yunx.app.ui.theme.readableSeedForeground
 import com.yunx.app.ui.theme.SquircleShape
-import androidx.compose.ui.input.nestedscroll.nestedScroll
-import com.yunx.app.ui.components.BlurredBar
-import com.yunx.app.ui.components.blurBackdropSource
-import com.yunx.app.ui.components.rememberBlurBackdrop
-import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
+import com.yunx.app.util.AppStrings
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.basic.Slider
 import top.yukonga.miuix.kmp.basic.SmallTitle
@@ -117,26 +118,26 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /** 预置主题色（Material 风格种子色） */
 private val presetColors = listOf(
-    "蓝色" to 0xFF415F91L,
-    "靛蓝" to 0xFF3F51B5L,
-    "紫色" to 0xFF6750A4L,
-    "玫红" to 0xFFC2185BL,
-    "红色" to 0xFFB3261EL,
-    "橙色" to 0xFFF4631CL,
-    "金黄" to 0xFFF9A825L,
-    "绿色" to 0xFF38761DL,
-    "青色" to 0xFF00897BL,
-    "天蓝" to 0xFF0288D1L,
+    AppStrings.get(R.string.color_blue) to 0xFF415F91L,
+    AppStrings.get(R.string.color_indigo) to 0xFF3F51B5L,
+    AppStrings.get(R.string.color_purple) to 0xFF6750A4L,
+    AppStrings.get(R.string.color_rose) to 0xFFC2185BL,
+    AppStrings.get(R.string.color_red) to 0xFFB3261EL,
+    AppStrings.get(R.string.color_orange) to 0xFFF4631CL,
+    AppStrings.get(R.string.color_gold) to 0xFFF9A825L,
+    AppStrings.get(R.string.color_green) to 0xFF38761DL,
+    AppStrings.get(R.string.color_cyan) to 0xFF00897BL,
+    AppStrings.get(R.string.color_sky) to 0xFF0288D1L,
 )
 
 /** 底部导航栏样式选项（顺序与 BottomBarStyle.ordinal 一一对应，不可调序） */
-private val bottomBarStyleOptions = listOf("液态玻璃", "毛玻璃", "标准")
+private val bottomBarStyleOptions = listOf(AppStrings.get(R.string.theme_bottom_bar_liquid), AppStrings.get(R.string.theme_bottom_bar_frosted), AppStrings.get(R.string.theme_bottom_bar_standard))
 
 /** 各档位说明文案（与 bottomBarStyleOptions 同序；模糊与折射均依赖 miuix-blur 的 RuntimeShader） */
 private val bottomBarStyleHints = listOf(
-    "悬浮胶囊 + 透镜折射与色散光晕，随手机倾斜产生镜面高光；需 Android 13+，低版本自动降级为半透明纯色。",
-    "悬浮胶囊 + 背景高斯模糊，观感接近液态玻璃但不含折射；需 Android 13+，低版本自动降级为半透明纯色。",
-    "Miuix 原生贴底导航栏，无背景采样与着色器开销，最省电。"
+    AppStrings.get(R.string.theme_bottom_bar_hint_liquid),
+    AppStrings.get(R.string.theme_bottom_bar_hint_frosted),
+    AppStrings.get(R.string.theme_bottom_bar_hint_standard)
 )
 
 /**
@@ -199,12 +200,12 @@ fun ThemeScreen(
                 scrollBehavior = scrollBehavior,
             ) {
                 TopAppBar(
-                    title = "主题与外观",
+                    title = AppStrings.get(R.string.theme_title),
                     scrollBehavior = scrollBehavior,
                     color = if (backdrop != null) Color.Transparent else MiuixTheme.colorScheme.surface,
                     navigationIcon = {
                         IconButton(onClick = onBack) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = AppStrings.get(R.string.csa_back))
                         }
                     }
                 )
@@ -228,7 +229,7 @@ fun ThemeScreen(
                     )
             ) {
             // ---------- 外观模式 ----------
-            SmallTitle(text = "外观模式")
+            SmallTitle(text = AppStrings.get(R.string.section_appearance_mode))
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -236,7 +237,7 @@ fun ThemeScreen(
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        text = "选择应用的明暗外观",
+                        text = AppStrings.get(R.string.appearance_mode_hint),
                         style = MiuixTheme.textStyles.body2,
                         color = MiuixTheme.colorScheme.onSurfaceSecondary
                     )
@@ -245,7 +246,7 @@ fun ThemeScreen(
                         modifier = Modifier.fillMaxWidth().selectableGroup(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        val modes = listOf("跟随系统", "浅色", "深色")
+                        val modes = listOf(AppStrings.get(R.string.language_follow_system), AppStrings.get(R.string.appearance_light), AppStrings.get(R.string.appearance_dark))
                         modes.forEachIndexed { index, label ->
                             SmoothFilterChip(
                                 selected = AppThemeManager.darkMode == index,
@@ -260,11 +261,11 @@ fun ThemeScreen(
                 SwitchPreference(
                     checked = AppThemeManager.isAmoled,
                     onCheckedChange = { AppThemeManager.setAmoled(context, it) },
-                    title = "AMOLED 纯黑",
+                    title = AppStrings.get(R.string.theme_amoled_switch),
                     summary = if (darkAppearance) {
-                        "深色下把背景与卡片表面压到纯黑，降低 OLED 屏幕耗电"
+                        AppStrings.get(R.string.theme_amoled_on_desc)
                     } else {
-                        "仅深色模式生效，当前为浅色外观"
+                        AppStrings.get(R.string.theme_amoled_off_desc)
                     },
                     enabled = darkAppearance
                 )
@@ -274,7 +275,7 @@ fun ThemeScreen(
             ThemePreviewCard()
 
             // ---------- 主题色彩 ----------
-            SmallTitle(text = "主题颜色")
+            SmallTitle(text = AppStrings.get(R.string.theme_color_palette_label))
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -283,8 +284,8 @@ fun ThemeScreen(
                 // 动态色彩开关（仅 Android 12+）：Miuix 规范使用 SwitchPreference
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                     SwitchPreference(
-                        title = "动态色彩",
-                        summary = "从系统壁纸自动取色",
+                        title = AppStrings.get(R.string.theme_color_dynamic_switch),
+                        summary = AppStrings.get(R.string.theme_color_dynamic_hint),
                         checked = AppThemeManager.colorMode == 0,
                         onCheckedChange = { on ->
                             AppThemeManager.setColorMode(context, if (on) 0 else 1)
@@ -296,7 +297,7 @@ fun ThemeScreen(
                 AnimatedVisibility(visible = effectiveColorMode != 0) {
                     Column(modifier = Modifier.padding(16.dp)) {
                             Text(
-                                text = "推荐颜色",
+                                text = AppStrings.get(R.string.theme_recommended_colors),
                                 style = MiuixTheme.textStyles.body2,
                                 color = MiuixTheme.colorScheme.primary
                             )
@@ -333,7 +334,7 @@ fun ThemeScreen(
             }
 
             // ---------- 底部导航栏 ----------
-            SmallTitle(text = "底部导航栏")
+            SmallTitle(text = AppStrings.get(R.string.theme_bottom_bar_section))
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -341,7 +342,7 @@ fun ThemeScreen(
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        text = "选择底部导航栏样式",
+                        text = AppStrings.get(R.string.theme_bottom_bar_desc),
                         style = MiuixTheme.textStyles.body2,
                         color = MiuixTheme.colorScheme.onSurfaceSecondary
                     )
@@ -369,7 +370,7 @@ fun ThemeScreen(
             }
 
             // ---------- 桌面图标 ----------
-            SmallTitle(text = "桌面图标")
+            SmallTitle(text = AppStrings.get(R.string.section_desktop_icon))
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -382,7 +383,7 @@ fun ThemeScreen(
                     ) {
                         AppIconOption(
                             iconRes = R.drawable.icon,
-                            name = "经典图标",
+                            name = AppStrings.get(R.string.icon_classic),
                             isSelected = appIconVariant == 0,
                             onClick = {
                                 appIconVariant = 0
@@ -391,7 +392,7 @@ fun ThemeScreen(
                         )
                         AppIconOption(
                             iconRes = R.drawable.icon2,
-                            name = "新图标",
+                            name = AppStrings.get(R.string.icon_new),
                             isSelected = appIconVariant == 1,
                             onClick = {
                                 appIconVariant = 1
@@ -401,7 +402,7 @@ fun ThemeScreen(
                     }
                     Spacer(modifier = Modifier.height(10.dp))
                     Text(
-                        text = "Android 12+ 立即生效；部分设备需回到桌面或重启启动器后查看。",
+                        text = AppStrings.get(R.string.icon_apply_hint),
                         style = MiuixTheme.textStyles.body2,
                         color = MiuixTheme.colorScheme.onSurfaceSecondary
                     )
@@ -475,12 +476,12 @@ private fun ThemePreviewCard() {
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                text = "实时预览",
+                text = AppStrings.get(R.string.theme_preview_title),
                 style = MiuixTheme.textStyles.subtitle,
                 color = colors.onSurface
             )
             Text(
-                text = "以下色块取自当前主题方案",
+                text = AppStrings.get(R.string.theme_preview_desc),
                 style = MiuixTheme.textStyles.body2,
                 color = colors.onSurfaceSecondary
             )
@@ -508,12 +509,12 @@ private fun ThemePreviewCard() {
                 ) {
                     Column {
                         Text(
-                            text = "正文示例文字",
+                            text = AppStrings.get(R.string.theme_preview_body),
                             style = MiuixTheme.textStyles.body1,
                             color = colors.onSurface
                         )
                         Text(
-                            text = "次要说明文字",
+                            text = AppStrings.get(R.string.theme_preview_caption),
                             style = MiuixTheme.textStyles.body2,
                             color = colors.onSurfaceSecondary
                         )
@@ -526,9 +527,9 @@ private fun ThemePreviewCard() {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                PreviewSwatch(color = colors.surfaceContainer, label = "容器", modifier = Modifier.weight(1f))
-                PreviewSwatch(color = colors.surfaceContainerHigh, label = "高容器", modifier = Modifier.weight(1f))
-                PreviewSwatch(color = colors.surfaceContainerHighest, label = "最高容器", modifier = Modifier.weight(1f))
+                PreviewSwatch(color = colors.surfaceContainer, label = AppStrings.get(R.string.theme_preview_container), modifier = Modifier.weight(1f))
+                PreviewSwatch(color = colors.surfaceContainerHigh, label = AppStrings.get(R.string.theme_preview_container_high), modifier = Modifier.weight(1f))
+                PreviewSwatch(color = colors.surfaceContainerHighest, label = AppStrings.get(R.string.theme_preview_container_highest), modifier = Modifier.weight(1f))
             }
         }
     }
@@ -616,7 +617,7 @@ private fun CustomColorButton(
     Column(
         modifier = modifier
             .selectable(selected = isSelected, role = Role.RadioButton, onClick = onClick)
-            .semantics(mergeDescendants = true) { contentDescription = "自定义" },
+            .semantics(mergeDescendants = true) { contentDescription = AppStrings.get(R.string.rs_custom) },
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Box(
@@ -648,7 +649,7 @@ private fun CustomColorButton(
         }
         Spacer(modifier = Modifier.height(6.dp))
         Text(
-            text = "自定义",
+            text = AppStrings.get(R.string.rs_custom),
             style = MiuixTheme.textStyles.footnote1,
             color = if (isSelected) MiuixTheme.colorScheme.primary else MiuixTheme.colorScheme.onSurfaceSecondary
         )
@@ -670,7 +671,7 @@ internal fun ColorPickerDialog(
 
     OverlayDialog(
         show = true,
-        title = "自定义主题色",
+        title = AppStrings.get(R.string.theme_custom_color_title),
         onDismissRequest = onDismiss
     ) {
         Column(
@@ -747,14 +748,14 @@ internal fun ColorPickerDialog(
                 horizontalArrangement = Arrangement.End
             ) {
                 TextButton(
-                    text = "取消",
+                    text = AppStrings.get(R.string.csa_cancel),
                     onClick = onDismiss
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Button(
                     onClick = { onColorSelected(currentColor.toArgb().toLong() and 0xFFFFFFFFL) }
                 ) {
-                    Text("应用")
+                    Text(AppStrings.get(R.string.action_apply))
                 }
             }
         }
@@ -807,7 +808,7 @@ private fun AppIconOption(
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.Check,
-                        contentDescription = "已选择",
+                        contentDescription = AppStrings.get(R.string.content_desc_selected),
                         tint = MiuixTheme.colorScheme.onPrimary,
                         modifier = Modifier.size(14.dp)
                     )

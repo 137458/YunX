@@ -19,6 +19,8 @@
 package com.yunx.app.ui.screens
 
 import com.yunx.app.data.update.UpdateChecker
+import com.yunx.app.R
+import com.yunx.app.util.AppStrings
 import com.yunx.app.util.ByteFormat
 
 /** 折叠态只展示前 12 行更新说明，展开后整段放进弹窗唯一的滚动区 */
@@ -66,7 +68,7 @@ internal fun updateDialogSummary(
 internal fun updateVersionJump(
     currentVersion: String,
     release: UpdateChecker.Release,
-): String = "当前 ${updateDisplayVersion(currentVersion)} → 最新 ${updateDisplayVersion(release.tagName)}"
+): String = AppStrings.get(R.string.vm_update_version_jump, updateDisplayVersion(currentVersion), updateDisplayVersion(release.tagName))
 
 /** 版本号展示统一去掉前导 v：GitHub tag 习惯写 v1.3.0，界面统一显示 1.3.0 */
 internal fun updateDisplayVersion(raw: String): String = raw.trim().removePrefix("v").removePrefix("V")
@@ -105,7 +107,7 @@ internal fun updateDialogProgressDetail(state: UpdateDialogState.Downloading): S
     return if (state.total > 0L) {
         "$downloaded / ${ByteFormat.size(state.total)}$speed"
     } else {
-        "$downloaded · 大小未知$speed"
+        AppStrings.get(R.string.vm_update_progress_detail_unknown, downloaded, speed)
     }
 }
 
@@ -122,19 +124,19 @@ internal fun updateDialogPrimaryText(
     hasApk: Boolean,
     state: UpdateDialogState,
 ): String = when {
-    !hasApk -> "前往 Releases 页面"
+    !hasApk -> AppStrings.get(R.string.vm_update_open_releases)
     state is UpdateDialogState.Downloading -> {
         val percent = updateDialogProgressPercent(state)
-        if (percent.isEmpty()) "下载中" else "下载中 $percent"
+        if (percent.isEmpty()) AppStrings.get(R.string.ed_notif_status_downloading) else AppStrings.get(R.string.vm_update_downloading_percent, percent)
     }
-    state is UpdateDialogState.Done -> "安装更新"
-    state is UpdateDialogState.Failed -> "重试"
-    else -> "立即下载"
+    state is UpdateDialogState.Done -> AppStrings.get(R.string.vm_update_install)
+    state is UpdateDialogState.Failed -> AppStrings.get(R.string.csa_retry)
+    else -> AppStrings.get(R.string.vm_update_download_now)
 }
 
 /** 次按钮文案：下载中写「后台下载」，明确关掉弹窗不会中断任务 */
 internal fun updateDialogDismissText(state: UpdateDialogState): String =
-    if (state is UpdateDialogState.Downloading) "后台下载" else "稍后"
+    if (state is UpdateDialogState.Downloading) AppStrings.get(R.string.vm_update_background_download) else AppStrings.get(R.string.vm_update_later)
 
 /**
  * 按下载态推导整份弹窗计划。

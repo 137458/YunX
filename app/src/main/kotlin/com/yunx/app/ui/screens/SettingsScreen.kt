@@ -18,38 +18,34 @@
 
 package com.yunx.app.ui.screens
 
-import android.Manifest
-import android.content.ClipData
 import android.content.ClipboardManager
+import android.content.ClipData
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.Manifest
 import android.net.Uri
 import android.os.Build
 import android.os.PowerManager
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import com.yunx.app.ui.components.LocalScaffoldPadding
-import com.yunx.app.util.AppLinks
-import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
-import top.yukonga.miuix.kmp.basic.ScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -58,9 +54,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -68,21 +64,26 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.compose.LocalLifecycleOwner
-import com.yunx.app.R
 import com.yunx.app.data.backup.AuthBackupManager
 import com.yunx.app.data.backup.AuthCrypto
 import com.yunx.app.data.download.DownloadDebugLog
 import com.yunx.app.data.download.DownloadPlatform
 import com.yunx.app.data.download.DownloadSaver
 import com.yunx.app.data.prefs.SettingsRepository
+import com.yunx.app.R
+import com.yunx.app.ui.components.LocalScaffoldPadding
 import com.yunx.app.ui.SnackbarController
 import com.yunx.app.ui.theme.AppThemeManager
 import com.yunx.app.ui.theme.LocaleController
+import com.yunx.app.util.AppLinks
+import com.yunx.app.util.AppStrings
 import com.yunx.app.util.DiagnosticLog
 import com.yunx.app.util.LogExporter
+import kotlin.math.roundToInt
+import kotlin.math.roundToLong
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -90,6 +91,8 @@ import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.InfiniteProgressIndicator
+import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
+import top.yukonga.miuix.kmp.basic.ScrollBehavior
 import top.yukonga.miuix.kmp.basic.SmallTitle
 import top.yukonga.miuix.kmp.basic.Switch
 import top.yukonga.miuix.kmp.basic.Text
@@ -101,8 +104,6 @@ import top.yukonga.miuix.kmp.preference.RadioButtonPreference
 import top.yukonga.miuix.kmp.preference.SliderPreference
 import top.yukonga.miuix.kmp.preference.SwitchPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme
-import kotlin.math.roundToInt
-import kotlin.math.roundToLong
 
 /** 可选的下载线程数档位（最高 512） */
 private val threadOptions = listOf(1, 2, 4, 8, 16, 32, 64, 128, 256, 512)
@@ -114,13 +115,13 @@ private val CardGap = 12.dp
 private data class ThreadPlatform(val platform: String, val label: String)
 
 private val threadPlatforms = listOf(
-    ThreadPlatform(DownloadPlatform.GENERIC, "通用 / 手动添加"),
-    ThreadPlatform(DownloadPlatform.QUARK, "夸克网盘"),
-    ThreadPlatform(DownloadPlatform.UC, "UC 网盘"),
-    ThreadPlatform(DownloadPlatform.XUNLEI, "迅雷网盘"),
-    ThreadPlatform(DownloadPlatform.BAIDU, "百度网盘"),
-    ThreadPlatform(DownloadPlatform.C139, "139 网盘"),
-    ThreadPlatform(DownloadPlatform.PAN123, "123 云盘"),
+    ThreadPlatform(DownloadPlatform.GENERIC, AppStrings.get(R.string.settings_thread_platform_generic)),
+    ThreadPlatform(DownloadPlatform.QUARK, AppStrings.get(R.string.csa_platform_quark)),
+    ThreadPlatform(DownloadPlatform.UC, AppStrings.get(R.string.rs_platform_uc)),
+    ThreadPlatform(DownloadPlatform.XUNLEI, AppStrings.get(R.string.csa_platform_xunlei)),
+    ThreadPlatform(DownloadPlatform.BAIDU, AppStrings.get(R.string.csa_platform_baidu)),
+    ThreadPlatform(DownloadPlatform.C139, AppStrings.get(R.string.rs_platform_139)),
+    ThreadPlatform(DownloadPlatform.PAN123, AppStrings.get(R.string.vm_link_target_pan123)),
 )
 
 /** 跳转系统「应用通知」设置页（Android 8+ 通用入口；失败时退回应用详情页） */
@@ -235,7 +236,7 @@ fun SettingsScreen(
             runCatching { context.contentResolver.takePersistableUriPermission(uri, flags) }
             settingsRepo.downloadDirUri = uri.toString()
             downloadDirUri = uri.toString()
-            SnackbarController.show("下载保存目录已更新")
+            SnackbarController.show(AppStrings.get(R.string.snack_download_dir_updated))
         }
     }
     // 导入认证信息文件选择器：选择后先判断是否加密备份，加密则弹密码框
@@ -250,7 +251,7 @@ fun SettingsScreen(
                         context.contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() }
                     }.getOrNull()
                     if (text == null) {
-                        SnackbarController.show("读取文件失败")
+                        SnackbarController.show(AppStrings.get(R.string.snack_read_file_failed))
                         return@launch
                     }
                     if (AuthCrypto.isEncrypted(text)) {
@@ -260,10 +261,10 @@ fun SettingsScreen(
                         val count = runCatching {
                             withContext(Dispatchers.IO) { backupManager.importJson(text, context) }
                         }.getOrElse { e ->
-                            SnackbarController.show("导入失败：${e.message}")
+                            SnackbarController.show(AppStrings.get(R.string.snack_import_failed, e.message ?: ""))
                             return@launch
                         }
-                        SnackbarController.show("已恢复 $count 个平台的认证信息")
+                        SnackbarController.show(AppStrings.get(R.string.snack_auth_imported, count))
                     }
                 } finally {
                     isImporting = false
@@ -284,31 +285,31 @@ fun SettingsScreen(
             )
     ) {
         // ---------- 分类 1: 下载 ----------
-        SmallTitle(text = "下载")
+        SmallTitle(text = AppStrings.get(R.string.csa_download))
         Card(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(start = 12.dp, end = 12.dp, bottom = CardGap)
         ) {
             ArrowPreference(
-                title = "下载线程数",
-                summary = "按网盘分别设置分片并发数（默认 32，最高 512）；仅对新建任务生效",
+                title = AppStrings.get(R.string.settings_download_threads),
+                summary = AppStrings.get(R.string.settings_download_threads_desc_note),
                 onClick = { showThreadsDialog = true }
             )
             ArrowPreference(
-                title = "下载保存目录",
-                summary = downloadDirUri?.let { "已自定义：${DownloadSaver.safDirDisplay(it)}" }
-                    ?: "系统默认 Download（点击自定义）",
+                title = AppStrings.get(R.string.settings_download_dir),
+                summary = downloadDirUri?.let { AppStrings.get(R.string.settings_download_dir_desc_custom, DownloadSaver.safDirDisplay(it)) }
+                    ?: AppStrings.get(R.string.settings_download_dir_system_default),
                 onClick = { dirLauncher.launch(null) }
             )
             if (downloadDirUri != null) {
                 ArrowPreference(
-                    title = "恢复默认下载目录",
-                    summary = "点击恢复为系统默认目录",
+                    title = AppStrings.get(R.string.settings_download_dir_reset),
+                    summary = AppStrings.get(R.string.settings_download_dir_reset_desc),
                     onClick = {
                         downloadDirUri = null
                         settingsRepo.downloadDirUri = null
-                        SnackbarController.show("已恢复默认下载目录")
+                        SnackbarController.show(AppStrings.get(R.string.snack_download_dir_reset))
                     }
                 )
             }
@@ -319,9 +320,9 @@ fun SettingsScreen(
                 onValueChangeFinished = { settingsRepo.maxConcurrentDownloads = maxConcurrent },
                 valueRange = 1f..8f,
                 steps = 6,
-                title = "最大同时下载任务数",
-                summary = "同时下载 $maxConcurrent 个任务（限制后台并发）",
-                valueText = "$maxConcurrent 个"
+                title = AppStrings.get(R.string.settings_max_tasks),
+                summary = AppStrings.get(R.string.settings_max_tasks_desc_bg, maxConcurrent),
+                valueText = AppStrings.get(R.string.settings_value_task_count, maxConcurrent)
             )
             SliderPreference(
                 value = (speedLimitBps / (1024 * 1024)).toFloat(),
@@ -329,9 +330,9 @@ fun SettingsScreen(
                 onValueChangeFinished = { settingsRepo.downloadSpeedLimit = speedLimitBps },
                 valueRange = 0f..30f,
                 steps = 29,
-                title = "下载速度限制",
+                title = AppStrings.get(R.string.settings_speed_limit),
                 summary = speedLimitText(speedLimitBps),
-                valueText = if (speedLimitBps <= 0) "不限速" else "${speedLimitBps / (1024 * 1024)} MB/s"
+                valueText = if (speedLimitBps <= 0) AppStrings.get(R.string.option_speed_unlimited) else "${speedLimitBps / (1024 * 1024)} MB/s"
             )
             SliderPreference(
                 value = retryCount.toFloat(),
@@ -339,9 +340,9 @@ fun SettingsScreen(
                 onValueChangeFinished = { settingsRepo.downloadRetryCount = retryCount },
                 valueRange = 0f..10f,
                 steps = 9,
-                title = "失败自动重试",
-                summary = if (retryCount == 0) "失败后不自动重试" else "失败后自动重试 $retryCount 次（断点续传）",
-                valueText = if (retryCount == 0) "不重试" else "$retryCount 次"
+                title = AppStrings.get(R.string.settings_auto_retry),
+                summary = if (retryCount == 0) AppStrings.get(R.string.settings_auto_retry_desc_never) else AppStrings.get(R.string.settings_auto_retry_desc, retryCount),
+                valueText = if (retryCount == 0) AppStrings.get(R.string.settings_auto_retry_value_never) else AppStrings.get(R.string.settings_auto_retry_value_times, retryCount)
             )
             SwitchPreference(
                 checked = keepLocked,
@@ -355,8 +356,8 @@ fun SettingsScreen(
                         }
                     }
                 },
-                title = "锁屏后保持下载",
-                summary = "开启后下载时获取 WakeLock 维持网络，并可加入白名单"
+                title = AppStrings.get(R.string.settings_keep_downloading),
+                summary = AppStrings.get(R.string.settings_keep_downloading_desc_short)
             )
             SwitchPreference(
                 checked = showSpeed,
@@ -373,33 +374,33 @@ fun SettingsScreen(
                         settingsRepo.notificationShowSpeed = checked
                     }
                 },
-                title = "通知栏下载进度",
+                title = AppStrings.get(R.string.settings_notification_progress),
                 summary = when {
-                    !notificationsEnabled -> "通知未开启，下载通知将不可见（点击去开启）"
-                    showSpeed -> "完整通知：进度条 + 下载速度"
-                    else -> "仅显示通知（隐藏下载速度）"
+                    !notificationsEnabled -> AppStrings.get(R.string.settings_notification_progress_desc_no_perm)
+                    showSpeed -> AppStrings.get(R.string.settings_notification_progress_desc_on)
+                    else -> AppStrings.get(R.string.settings_notification_progress_desc_simple)
                 }
             )
             // 多账号下载（实验性）：这里只做入口，两个开关在独立页面里改（开启前有二次风险确认）；
             // 「实验性」徽标只标在里面那两个开关上，入口这一行不重复标
             ArrowPreference(
-                title = "多账号下载",
-                summary = "实验性：同一网盘多个账号轮流取链 / 单文件多源提速",
+                title = AppStrings.get(R.string.dl_ma_title),
+                summary = AppStrings.get(R.string.settings_multi_account_download_desc),
                 onClick = onMultiAccountDownloadClick,
                 modifier = multiAccountRowModifier
             )
         }
 
         // ---------- 分类 2: 外观 ----------
-        SmallTitle(text = "外观")
+        SmallTitle(text = AppStrings.get(R.string.section_appearance))
         Card(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(start = 12.dp, end = 12.dp, bottom = CardGap)
         ) {
             ArrowPreference(
-                title = "主题与外观",
-                summary = "主题色、动态色彩与深色模式",
+                title = AppStrings.get(R.string.theme_title),
+                summary = AppStrings.get(R.string.settings_theme_entry_desc),
                 onClick = onThemeClick
             )
         }
@@ -422,7 +423,7 @@ fun SettingsScreen(
         }
 
         // ---------- 分类 3: 通用 ----------
-        SmallTitle(text = "通用")
+        SmallTitle(text = AppStrings.get(R.string.section_general))
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -435,11 +436,11 @@ fun SettingsScreen(
                 onCheckedChange = { checked ->
                     AppThemeManager.setCloudThumbnails(context, checked)
                 },
-                title = "列表缩略图",
+                title = AppStrings.get(R.string.settings_thumbnails),
                 summary = if (AppThemeManager.cloudThumbnails) {
-                    "图片文件在列表里显示小图（需要向网盘取图，会多花一点流量）"
+                    AppStrings.get(R.string.settings_thumbnails_desc_on)
                 } else {
-                    "已关闭，列表只显示文件图标（不发取图请求）"
+                    AppStrings.get(R.string.settings_thumbnails_desc_off)
                 }
             )
             SwitchPreference(
@@ -448,12 +449,12 @@ fun SettingsScreen(
                     clipboardSuggest = checked
                     settingsRepo.clipboardSuggestEnabled = checked
                 },
-                title = "自动识别剪贴板",
-                summary = if (clipboardSuggest) "复制分享链接后自动提示解析" else "已关闭，应用不再读取剪贴板"
+                title = AppStrings.get(R.string.settings_clipboard_detect),
+                summary = if (clipboardSuggest) AppStrings.get(R.string.settings_clipboard_detect_desc_on) else AppStrings.get(R.string.settings_clipboard_detect_desc_off)
             )
             ArrowPreference(
-                title = "检查更新",
-                summary = "检查 GitHub 是否有新版本可用",
+                title = AppStrings.get(R.string.settings_check_update),
+                summary = AppStrings.get(R.string.settings_check_update_desc),
                 onClick = onCheckUpdate
             )
             SwitchPreference(
@@ -462,60 +463,60 @@ fun SettingsScreen(
                     acceptPrerelease = checked
                     settingsRepo.acceptPrereleaseUpdate = checked
                 },
-                title = "接受预发布版更新",
-                summary = if (acceptPrerelease) "检查更新时包含 GitHub Pre-release（可能不稳定）" else "只接收正式版更新"
+                title = AppStrings.get(R.string.settings_accept_prerelease),
+                summary = if (acceptPrerelease) AppStrings.get(R.string.settings_accept_prerelease_desc_on) else AppStrings.get(R.string.settings_accept_prerelease_desc_off)
             )
             ArrowPreference(
-                title = "导出日志",
-                summary = "导出崩溃日志与应用信息，便于排查问题",
+                title = AppStrings.get(R.string.settings_export_log),
+                summary = AppStrings.get(R.string.settings_export_log_desc),
                 onClick = { showLogDialog = true }
             )
         }
 
         // ---------- 分类 4: 认证备份 ----------
-        SmallTitle(text = "认证备份")
+        SmallTitle(text = AppStrings.get(R.string.section_auth_backup))
         Card(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(start = 12.dp, end = 12.dp, bottom = CardGap)
         ) {
             ArrowPreference(
-                title = "导出认证信息",
-                summary = "使用至少 8 位口令加密网盘与视频平台的 Cookie/JWT 后导出",
+                title = AppStrings.get(R.string.settings_export_auth),
+                summary = AppStrings.get(R.string.settings_export_auth_desc),
                 onClick = { showExportAuthDialog = true }
             )
             ArrowPreference(
-                title = "导入认证信息",
-                summary = "选择加密或明文的认证备份文件，恢复网盘与视频平台登录",
+                title = AppStrings.get(R.string.settings_import_auth),
+                summary = AppStrings.get(R.string.settings_import_auth_desc),
                 onClick = { importLauncher.launch(arrayOf("application/json", "application/octet-stream", "*/*")) }
             )
         }
 
         // ---------- 分类 5: 链接唤起 ----------
-        SmallTitle(text = "链接唤起")
+        SmallTitle(text = AppStrings.get(R.string.vm_link_open_title))
         Card(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(start = 12.dp, end = 12.dp, bottom = CardGap)
         ) {
             ArrowPreference(
-                title = "网盘链接一键唤起",
-                summary = "点分享链接（或分享到云析）直接进来解析；可按平台逐个开关",
+                title = AppStrings.get(R.string.settings_link_open),
+                summary = AppStrings.get(R.string.settings_link_open_desc),
                 onClick = onLinkOpenClick,
                 modifier = linkOpenRowModifier
             )
         }
 
         // ---------- 分类 6: 关于 ----------
-        SmallTitle(text = "关于")
+        SmallTitle(text = AppStrings.get(R.string.section_about))
         Card(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(start = 12.dp, end = 12.dp, bottom = CardGap)
         ) {
             ArrowPreference(
-                title = "关于云析",
-                summary = "版本信息、支持平台与技术说明",
+                title = AppStrings.get(R.string.vm_about_title),
+                summary = AppStrings.get(R.string.settings_about_app_desc),
                 onClick = onAboutClick,
                 modifier = Modifier.combinedClickable(
                     onClick = onAboutClick,
@@ -523,18 +524,18 @@ fun SettingsScreen(
                 )
             )
             ArrowPreference(
-                title = "支持开发",
-                summary = "微信扫码捐赠，支持项目持续维护",
+                title = AppStrings.get(R.string.vm_support_title),
+                summary = AppStrings.get(R.string.settings_support_dev_desc),
                 onClick = onSupportClick
             )
             ArrowPreference(
-                title = "QQ 交流群",
-                summary = "群号 ${AppLinks.QQ_GROUP}（点击加入群聊，长按复制群号）",
+                title = AppStrings.get(R.string.settings_qq_group),
+                summary = AppStrings.get(R.string.settings_qq_group_desc, AppLinks.QQ_GROUP),
                 onClick = {
                     if (!AppLinks.openQQGroup(context)) {
                         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                         clipboard.setPrimaryClip(ClipData.newPlainText("qq_group", AppLinks.QQ_GROUP))
-                        SnackbarController.show("未安装 QQ，群号已复制：${AppLinks.QQ_GROUP}")
+                        SnackbarController.show(AppStrings.get(R.string.rs_qq_not_installed, AppLinks.QQ_GROUP))
                     }
                 },
                 modifier = Modifier.combinedClickable(
@@ -542,26 +543,26 @@ fun SettingsScreen(
                         if (!AppLinks.openQQGroup(context)) {
                             val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                             clipboard.setPrimaryClip(ClipData.newPlainText("qq_group", AppLinks.QQ_GROUP))
-                            SnackbarController.show("未安装 QQ，群号已复制：${AppLinks.QQ_GROUP}")
+                            SnackbarController.show(AppStrings.get(R.string.rs_qq_not_installed, AppLinks.QQ_GROUP))
                         }
                     },
                     onLongClick = {
                         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                         clipboard.setPrimaryClip(ClipData.newPlainText("qq_group", AppLinks.QQ_GROUP))
-                        SnackbarController.show("群号已复制：${AppLinks.QQ_GROUP}")
+                        SnackbarController.show(AppStrings.get(R.string.snack_qq_group_copied, AppLinks.QQ_GROUP))
                     }
                 )
             )
             ArrowPreference(
-                title = "GitHub 仓库",
-                summary = "${AppLinks.GITHUB_REPO_DISPLAY} · 查看源码与反馈问题",
+                title = AppStrings.get(R.string.settings_github_repo),
+                summary = AppStrings.get(R.string.settings_github_repo_desc, AppLinks.GITHUB_REPO_DISPLAY),
                 onClick = {
                     runCatching {
                         context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(AppLinks.GITHUB_REPO)))
                     }.onFailure {
                         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                         clipboard.setPrimaryClip(ClipData.newPlainText("github_repo", AppLinks.GITHUB_REPO))
-                        SnackbarController.show("未找到浏览器，链接已复制：${AppLinks.GITHUB_REPO}")
+                        SnackbarController.show(AppStrings.get(R.string.settings_github_repo_no_browser, AppLinks.GITHUB_REPO))
                     }
                 }
             )
@@ -571,7 +572,7 @@ fun SettingsScreen(
     // 导出日志方式选择弹窗（Miuix OverlayDialog）
     OverlayDialog(
         show = showLogDialog,
-        title = "导出日志",
+        title = AppStrings.get(R.string.settings_export_log),
         onDismissRequest = { showLogDialog = false }
     ) {
         Column(
@@ -580,21 +581,21 @@ fun SettingsScreen(
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
             Text(
-                text = "选择日志导出方式：",
+                text = AppStrings.get(R.string.dialog_log_choose),
                 style = MiuixTheme.textStyles.body2,
                 color = MiuixTheme.colorScheme.onSurfaceSecondary
             )
             Spacer(modifier = Modifier.height(12.dp))
             TextButton(
-                text = "分享日志（发送到其他应用）",
+                text = AppStrings.get(R.string.dialog_log_share),
                 onClick = {
                     showLogDialog = false
                     scope.launch {
                         val file = withContext(Dispatchers.IO) { LogExporter.export(context) }
                         if (file != null && LogExporter.share(context, file)) {
-                            SnackbarController.show("日志已分享")
+                            SnackbarController.show(AppStrings.get(R.string.snack_log_shared))
                         } else {
-                            SnackbarController.show("导出日志失败")
+                            SnackbarController.show(AppStrings.get(R.string.snack_log_export_failed))
                         }
                     }
                 },
@@ -602,24 +603,24 @@ fun SettingsScreen(
             )
             Spacer(modifier = Modifier.height(4.dp))
             TextButton(
-                text = "保存到下载目录",
+                text = AppStrings.get(R.string.dialog_log_save),
                 onClick = {
                     showLogDialog = false
                     scope.launch {
                         val ok = withContext(Dispatchers.IO) { LogExporter.saveToDownloads(context) }
-                        SnackbarController.show(if (ok) "已保存到下载目录" else "保存失败")
+                        SnackbarController.show(if (ok) AppStrings.get(R.string.snack_log_saved) else AppStrings.get(R.string.vm_support_save_failed))
                     }
                 },
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(4.dp))
             TextButton(
-                text = "清空日志缓存（logcat -c）",
+                text = AppStrings.get(R.string.dialog_log_clear),
                 onClick = {
                     showLogDialog = false
                     scope.launch {
                         val ok = withContext(Dispatchers.IO) { LogExporter.clearLogcat() }
-                        SnackbarController.show(if (ok) "日志缓存已清空" else "清空失败")
+                        SnackbarController.show(if (ok) AppStrings.get(R.string.snack_log_cleared) else AppStrings.get(R.string.snack_log_clear_failed))
                     }
                 },
                 modifier = Modifier.fillMaxWidth()
@@ -629,7 +630,7 @@ fun SettingsScreen(
                 onClick = { showLogDialog = false },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("取消")
+                Text(AppStrings.get(R.string.csa_cancel))
             }
         }
     }
@@ -637,7 +638,7 @@ fun SettingsScreen(
     // 隐藏开发调试菜单（长按「关于云析」打开）
     OverlayDialog(
         show = showDevMenu,
-        title = "开发调试",
+        title = AppStrings.get(R.string.dialog_dev_title),
         onDismissRequest = { showDevMenu = false }
     ) {
         Column(
@@ -653,7 +654,7 @@ fun SettingsScreen(
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("显示检查更新弹窗")
+                Text(AppStrings.get(R.string.dialog_dev_show_update))
             }
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -664,12 +665,12 @@ fun SettingsScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("诊断模式")
+                    Text(AppStrings.get(R.string.dialog_dev_diagnostic))
                     Text(
                         text = if (diagnosticOn) {
-                            "详细日志写入 Android/data/" + context.packageName + "/files/diagnostic_logs"
+                            AppStrings.get(R.string.settings_diagnostic_path, context.packageName)
                         } else {
-                            "关闭：不写任何诊断日志"
+                            AppStrings.get(R.string.dialog_dev_diagnostic_off)
                         },
                         style = MiuixTheme.textStyles.footnote1,
                         color = MiuixTheme.colorScheme.onSurfaceVariantActions
@@ -683,7 +684,7 @@ fun SettingsScreen(
                         settingsRepo.diagnosticMode = on
                         // 动态生效：DiagnosticLog.setEnabled 会立刻起/停写线程，关闭时先 flush
                         DiagnosticLog.setEnabled(context, on)
-                        SnackbarController.show(if (on) "诊断模式已开启" else "诊断模式已关闭")
+                        SnackbarController.show(if (on) AppStrings.get(R.string.snack_diagnostic_on) else AppStrings.get(R.string.snack_diagnostic_off))
                     }
                 )
             }
@@ -697,12 +698,12 @@ fun SettingsScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("下载调试")
+                    Text(AppStrings.get(R.string.dl_debug_title))
                     Text(
                         text = if (downloadDebugOn) {
-                            "已在记录：下载页长按任务 → 调试信息（关闭会清空日志）"
+                            AppStrings.get(R.string.dialog_dev_download_debug_on)
                         } else {
-                            "关闭：不记录下载调试日志"
+                            AppStrings.get(R.string.dialog_dev_download_debug_off)
                         },
                         style = MiuixTheme.textStyles.footnote1,
                         color = MiuixTheme.colorScheme.onSurfaceVariantActions
@@ -716,7 +717,7 @@ fun SettingsScreen(
                             downloadDebugOn = true
                             AppThemeManager.setDownloadDebug(context, true)
                             DownloadDebugLog.setEnabled(true)
-                            SnackbarController.show("下载调试已开启")
+                            SnackbarController.show(AppStrings.get(R.string.snack_download_debug_on))
                         } else {
                             // 关闭会清空全部调试日志：先二次确认再真正关闭
                             showDisableDownloadDebugConfirm = true
@@ -734,12 +735,12 @@ fun SettingsScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("全量 SHA-256")
+                        Text(AppStrings.get(R.string.dialog_dev_full_sha))
                         Text(
                             text = if (fullShaOn) {
-                                "已开启：保存后记录整文件 SHA-256（写入调试日志）"
+                                AppStrings.get(R.string.dialog_dev_full_sha_on)
                             } else {
-                                "关闭：不算整文件摘要（默认，省 CPU）"
+                                AppStrings.get(R.string.dialog_dev_full_sha_off)
                             },
                             style = MiuixTheme.textStyles.footnote1,
                             color = MiuixTheme.colorScheme.onSurfaceVariantActions
@@ -751,7 +752,7 @@ fun SettingsScreen(
                         onCheckedChange = { on ->
                             fullShaOn = on
                             settingsRepo.fullFileSha256 = on
-                            SnackbarController.show(if (on) "已开启全量 SHA-256 校验" else "已关闭全量 SHA-256 校验")
+                            SnackbarController.show(if (on) AppStrings.get(R.string.snack_full_sha_on) else AppStrings.get(R.string.snack_full_sha_off))
                         }
                     )
                 }
@@ -761,15 +762,15 @@ fun SettingsScreen(
 
             // 导出入口（zip 名 yunx_diagnostic_logs_yyyyMMdd_HHmmss.zip，导出前会先 flush）
             TextButton(
-                text = "导出诊断日志（zip）",
+                text = AppStrings.get(R.string.dialog_log_export_zip),
                 onClick = {
                     showDevMenu = false
                     scope.launch {
                         val zip = withContext(Dispatchers.IO) { LogExporter.exportDiagnosticZip(context) }
                         if (zip != null && LogExporter.share(context, zip)) {
-                            SnackbarController.show("诊断日志已打包分享（" + zip.name + "）")
+                            SnackbarController.show(AppStrings.get(R.string.settings_diag_zip_shared, zip.name))
                         } else {
-                            SnackbarController.show("暂时没有可导出的诊断日志")
+                            SnackbarController.show(AppStrings.get(R.string.snack_diag_log_empty))
                         }
                     }
                 },
@@ -777,7 +778,7 @@ fun SettingsScreen(
             )
             Spacer(modifier = Modifier.height(12.dp))
             TextButton(
-                text = "关闭",
+                text = AppStrings.get(R.string.em_log_disabled),
                 onClick = { showDevMenu = false },
                 modifier = Modifier.fillMaxWidth()
             )
@@ -787,7 +788,7 @@ fun SettingsScreen(
     // 关闭「下载调试」的二次确认：关闭会清空已记录的全部调试日志，且不可恢复
     OverlayDialog(
         show = showDisableDownloadDebugConfirm,
-        title = "关闭下载调试？",
+        title = AppStrings.get(R.string.dialog_disable_debug_title),
         onDismissRequest = { showDisableDownloadDebugConfirm = false }
     ) {
         Column(
@@ -796,13 +797,13 @@ fun SettingsScreen(
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
             Text(
-                text = "关闭后会清空已记录的全部下载调试日志，且无法恢复；「全量 SHA-256」也会被一并关闭（下次开启下载调试后需手动重新开启）。确定要关闭吗？",
+                text = AppStrings.get(R.string.dialog_disable_debug_message),
                 style = MiuixTheme.textStyles.body2,
                 color = MiuixTheme.colorScheme.onSurfaceVariantActions
             )
             Spacer(modifier = Modifier.height(12.dp))
             TextButton(
-                text = "关闭并清空",
+                text = AppStrings.get(R.string.action_close_and_clear),
                 onClick = {
                     showDisableDownloadDebugConfirm = false
                     downloadDebugOn = false
@@ -813,7 +814,7 @@ fun SettingsScreen(
                     // 下次重新开启下载调试后需要用户手动再开一次。
                     fullShaOn = false
                     settingsRepo.fullFileSha256 = false
-                    SnackbarController.show("下载调试已关闭，日志已清空；全量 SHA-256 已一并关闭")
+                    SnackbarController.show(AppStrings.get(R.string.snack_download_debug_off))
                 },
                 colors = ButtonDefaults.textButtonColors(
                     textColor = MiuixTheme.colorScheme.error
@@ -822,7 +823,7 @@ fun SettingsScreen(
             )
             Spacer(modifier = Modifier.height(4.dp))
             TextButton(
-                text = "取消",
+                text = AppStrings.get(R.string.csa_cancel),
                 onClick = { showDisableDownloadDebugConfirm = false },
                 modifier = Modifier.fillMaxWidth()
             )
@@ -832,7 +833,7 @@ fun SettingsScreen(
     // 线程数选择弹窗（按平台）
     OverlayDialog(
         show = showThreadsDialog,
-        title = "下载线程数",
+        title = AppStrings.get(R.string.settings_download_threads),
         onDismissRequest = { showThreadsDialog = false }
     ) {
         Column(
@@ -843,7 +844,7 @@ fun SettingsScreen(
                 .verticalScroll(rememberScrollState())
         ) {
             Text(
-                text = "按网盘分别设置分片并发数；线程数不是越多越好，适当调整",
+                text = AppStrings.get(R.string.dialog_threads_hint),
                 style = MiuixTheme.textStyles.body2,
                 color = MiuixTheme.colorScheme.onSurfaceSecondary
             )
@@ -854,7 +855,7 @@ fun SettingsScreen(
                 val isXunlei = item.platform == DownloadPlatform.XUNLEI
                 ArrowPreference(
                     title = item.label,
-                    summary = if (isXunlei) "固定 8 线程" else "$current 线程",
+                    summary = if (isXunlei) AppStrings.get(R.string.dialog_threads_fixed) else AppStrings.get(R.string.dl_threads, current),
                     enabled = !isXunlei,
                     onClick = {
                         selectedThreadPlatform = item
@@ -867,7 +868,7 @@ fun SettingsScreen(
                 onClick = { showThreadsDialog = false },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("确定")
+                Text(AppStrings.get(R.string.rs_confirm))
             }
         }
     }
@@ -875,7 +876,7 @@ fun SettingsScreen(
     // 单个平台线程数选择（二级弹窗）
     OverlayDialog(
         show = showPlatformThreadDialog,
-        title = "${selectedThreadPlatform.label}线程数",
+        title = AppStrings.get(R.string.dialog_platform_threads_title, selectedThreadPlatform.label),
         onDismissRequest = { showPlatformThreadDialog = false }
     ) {
         val current = settingsRepo.downloadThreadsFor(selectedThreadPlatform.platform)
@@ -889,7 +890,7 @@ fun SettingsScreen(
             // 线程档位改用 miuix-preference 单选行：整行可点，命中区与主题样式统一
             threadOptions.forEach { value ->
                 RadioButtonPreference(
-                    title = "$value 线程",
+                    title = AppStrings.get(R.string.dl_threads, value),
                     selected = current == value,
                     onClick = {
                         settingsRepo.setDownloadThreads(selectedThreadPlatform.platform, value)
@@ -903,7 +904,7 @@ fun SettingsScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 // 单选行点选即生效，按钮只负责关窗：叫「取消」会让人误以为能撤销刚才的选择
-                Text("关闭")
+                Text(AppStrings.get(R.string.em_log_disabled))
             }
         }
     }
@@ -921,7 +922,7 @@ fun SettingsScreen(
                         withContext(Dispatchers.IO) { backupManager.export(password, onlyLoggedIn, context) }
                     }.getOrNull()
                     if (content == null) {
-                        SnackbarController.show("导出失败")
+                        SnackbarController.show(AppStrings.get(R.string.snack_export_failed))
                         return@launch
                     }
                     val encrypted = true
@@ -930,9 +931,9 @@ fun SettingsScreen(
                     }
                     SnackbarController.show(
                         if (saved) {
-                            if (encrypted) "已加密导出到下载目录" else "已导出到下载目录"
+                            if (encrypted) AppStrings.get(R.string.snack_auth_exported_encrypted) else AppStrings.get(R.string.snack_auth_exported)
                         } else {
-                            "导出失败"
+                            AppStrings.get(R.string.snack_export_failed)
                         }
                     )
                 } finally {
@@ -960,13 +961,13 @@ fun SettingsScreen(
                         val count = try {
                             withContext(Dispatchers.IO) { backupManager.import(content, password, context) }
                         } catch (e: javax.crypto.AEADBadTagException) {
-                            SnackbarController.show("密码错误，解密失败")
+                            SnackbarController.show(AppStrings.get(R.string.snack_decrypt_failed))
                             return@launch
                         } catch (e: Exception) {
-                            SnackbarController.show("导入失败：${e.message}")
+                            SnackbarController.show(AppStrings.get(R.string.snack_import_failed, e.message ?: ""))
                             return@launch
                         }
-                        SnackbarController.show("已恢复 $count 个平台的认证信息")
+                        SnackbarController.show(AppStrings.get(R.string.snack_auth_imported, count))
                     } finally {
                         isImporting = false
                     }
@@ -976,13 +977,13 @@ fun SettingsScreen(
     )
 
     // 导出/导入处理中：转圈加载弹窗
-    if (isExporting) OperationLoadingDialog("正在导出认证…")
-    if (isImporting) OperationLoadingDialog("正在导入认证…")
+    if (isExporting) OperationLoadingDialog(AppStrings.get(R.string.loading_exporting_auth))
+    if (isImporting) OperationLoadingDialog(AppStrings.get(R.string.loading_importing_auth))
 
     // 锁屏保持下载：引导加入「忽略电池优化」白名单
     OverlayDialog(
         show = showBatteryDialog,
-        title = "保持后台下载",
+        title = AppStrings.get(R.string.dialog_battery_title),
         onDismissRequest = { showBatteryDialog = false }
     ) {
         Column(
@@ -991,7 +992,7 @@ fun SettingsScreen(
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
             Text(
-                text = "为确保障屏后下载不中断，建议将云析加入「忽略电池优化」白名单。是否前往系统设置？",
+                text = AppStrings.get(R.string.dialog_battery_message),
                 style = MiuixTheme.textStyles.body1,
                 color = MiuixTheme.colorScheme.onSurface
             )
@@ -1001,7 +1002,7 @@ fun SettingsScreen(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 TextButton(
-                    text = "暂不",
+                    text = AppStrings.get(R.string.action_not_now),
                     onClick = { showBatteryDialog = false },
                     modifier = Modifier.weight(1f)
                 )
@@ -1019,7 +1020,7 @@ fun SettingsScreen(
                     },
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text("前往设置")
+                    Text(AppStrings.get(R.string.action_go_settings))
                 }
             }
         }
@@ -1037,7 +1038,7 @@ private fun ExportAuthDialog(
     var onlyLoggedIn by remember { mutableStateOf(true) }
     OverlayDialog(
         show = show,
-        title = "导出认证信息",
+        title = AppStrings.get(R.string.settings_export_auth),
         onDismissRequest = onDismiss
     ) {
         Column(
@@ -1047,32 +1048,32 @@ private fun ExportAuthDialog(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
-                text = "设置至少 8 位密码对认证文件进行 AES 加密。密码请务必牢记，丢失无法找回。",
+                text = AppStrings.get(R.string.dialog_export_auth_hint),
                 style = MiuixTheme.textStyles.body2,
                 color = MiuixTheme.colorScheme.onSurfaceSecondary
             )
             TextField(
                 value = password,
                 onValueChange = { password = it },
-                label = "加密密码（至少 8 位）",
+                label = AppStrings.get(R.string.dialog_export_auth_password),
                 modifier = Modifier.fillMaxWidth(),
                 visualTransformation = PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 singleLine = true
             )
             Text(
-                text = "导出范围",
+                text = AppStrings.get(R.string.dialog_export_scope),
                 style = MiuixTheme.textStyles.subtitle,
                 color = MiuixTheme.colorScheme.primary
             )
             // 导出范围改用 miuix-preference 单选行：整行即命中区，交互与主题样式由组件统一负责
             RadioButtonPreference(
-                title = "仅导出当前已登录的账号",
+                title = AppStrings.get(R.string.dialog_export_scope_logged_in),
                 selected = onlyLoggedIn,
                 onClick = { onlyLoggedIn = true }
             )
             RadioButtonPreference(
-                title = "导出全部绑定的账号",
+                title = AppStrings.get(R.string.dialog_export_scope_all),
                 selected = !onlyLoggedIn,
                 onClick = { onlyLoggedIn = false }
             )
@@ -1082,7 +1083,7 @@ private fun ExportAuthDialog(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 TextButton(
-                    text = "取消",
+                    text = AppStrings.get(R.string.csa_cancel),
                     onClick = onDismiss,
                     modifier = Modifier.weight(1f)
                 )
@@ -1091,7 +1092,7 @@ private fun ExportAuthDialog(
                     enabled = password.length >= 8,
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text("导出")
+                    Text(AppStrings.get(R.string.action_export))
                 }
             }
         }
@@ -1108,7 +1109,7 @@ private fun ImportAuthDialog(
     var password by remember { mutableStateOf("") }
     OverlayDialog(
         show = show,
-        title = "导入认证信息",
+        title = AppStrings.get(R.string.settings_import_auth),
         onDismissRequest = onDismiss
     ) {
         Column(
@@ -1118,14 +1119,14 @@ private fun ImportAuthDialog(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
-                text = "该备份文件已加密，请输入导出时设置的密码进行解密。",
+                text = AppStrings.get(R.string.dialog_import_auth_hint),
                 style = MiuixTheme.textStyles.body2,
                 color = MiuixTheme.colorScheme.onSurfaceSecondary
             )
             TextField(
                 value = password,
                 onValueChange = { password = it },
-                label = "解密密码",
+                label = AppStrings.get(R.string.dialog_import_auth_password),
                 modifier = Modifier.fillMaxWidth(),
                 visualTransformation = PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
@@ -1137,7 +1138,7 @@ private fun ImportAuthDialog(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 TextButton(
-                    text = "取消",
+                    text = AppStrings.get(R.string.csa_cancel),
                     onClick = onDismiss,
                     modifier = Modifier.weight(1f)
                 )
@@ -1146,7 +1147,7 @@ private fun ImportAuthDialog(
                     enabled = password.isNotBlank(),
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text("解密并导入")
+                    Text(AppStrings.get(R.string.action_decrypt_import))
                 }
             }
         }
@@ -1174,7 +1175,7 @@ private fun OperationLoadingDialog(message: String) {
 
 /** 速度限制展示文案：0=不限速；>=1MB/s 显示 MB/s，否则 KB/s */
 private fun speedLimitText(bps: Long): String {
-    if (bps <= 0) return "不限速"
+    if (bps <= 0) return AppStrings.get(R.string.option_speed_unlimited)
     return if (bps >= 1024 * 1024) {
         val mb = bps / (1024.0 * 1024.0)
         if (mb >= 10) String.format("%.0f MB/s", mb) else String.format("%.1f MB/s", mb)

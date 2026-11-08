@@ -19,31 +19,30 @@
 package com.yunx.app.ui.screens
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import com.yunx.app.ui.theme.SquircleShape
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Visibility
@@ -51,9 +50,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -63,12 +62,15 @@ import com.yunx.app.data.announcement.AnnouncementApi
 import com.yunx.app.data.announcement.formatLocalDateTime
 import com.yunx.app.data.announcement.parseIsoMillis
 import com.yunx.app.data.announcement.relativeTime
+import com.yunx.app.R
+import com.yunx.app.ui.components.compactMarkdownTypography
 import com.yunx.app.ui.components.GitHubMarkdownImageTransformer
 import com.yunx.app.ui.components.RemoteImage
 import com.yunx.app.ui.components.YunXLoading
-import com.yunx.app.ui.components.compactMarkdownTypography
 import com.yunx.app.ui.theme.effectsDefault
+import com.yunx.app.ui.theme.SquircleShape
 import com.yunx.app.ui.viewmodel.AnnouncementViewModel
+import com.yunx.app.util.AppStrings
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.HorizontalDivider
 import top.yukonga.miuix.kmp.basic.Icon
@@ -113,18 +115,18 @@ fun AnnouncementDetailPage(
         modifier = modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
-                title = "公告详情",
+                title = AppStrings.get(R.string.vm_announcement_detail_title),
                 color = MiuixTheme.colorScheme.surface,
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = AppStrings.get(R.string.csa_back))
                     }
                 },
                 actions = {
                     // 只有真的拿到内容才给刷新：加载中/失败态下重试按钮已经在页面中间了
                     if (state is AnnouncementViewModel.DetailUiState.Loaded) {
                         IconButton(onClick = onRefresh) {
-                            Icon(Icons.Outlined.Refresh, contentDescription = "刷新公告")
+                            Icon(Icons.Outlined.Refresh, contentDescription = AppStrings.get(R.string.vm_announcement_refresh))
                         }
                     }
                 }
@@ -187,7 +189,7 @@ private fun AnnouncementDetailContent(
             Column {
                 if (item.isPinned) {
                     AnnouncementChip(
-                        text = "置顶公告",
+                        text = AppStrings.get(R.string.vm_announcement_pinned),
                         containerColor = MiuixTheme.colorScheme.primaryContainer,
                         contentColor = MiuixTheme.colorScheme.onPrimaryContainer
                     )
@@ -201,7 +203,7 @@ private fun AnnouncementDetailContent(
                 Spacer(modifier = Modifier.height(12.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     AnnouncementAvatar(
-                        name = publisher.ifBlank { "公告" },
+                        name = publisher.ifBlank { AppStrings.get(R.string.vm_announcements_title) },
                         avatarUrl = item.publisher.avatarUrl,
                         size = 32.dp
                     )
@@ -261,7 +263,7 @@ private fun AnnouncementDetailContent(
                 // 只有真的一张图都没有时才提示"没有正文"：纯图片公告（正文空、只有图集）不该出现这句话
                 if (gallery.isEmpty()) {
                     Text(
-                        text = "（本条公告没有正文）",
+                        text = AppStrings.get(R.string.vm_announcement_no_content),
                         style = MiuixTheme.textStyles.body2,
                         color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                     )
@@ -296,13 +298,13 @@ private fun AnnouncementDetailContent(
                     } else {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
-                                text = "图片",
+                                text = AppStrings.get(R.string.rs_category_image),
                                 style = MiuixTheme.textStyles.body1,
                                 fontWeight = FontWeight.Medium
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
-                                text = "${gallery.size} 张",
+                                text = AppStrings.get(R.string.vm_announcement_image_count, gallery.size),
                                 style = MiuixTheme.textStyles.footnote2,
                                 color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                             )
@@ -341,14 +343,16 @@ private fun AnnouncementDetailContent(
                 Spacer(modifier = Modifier.height(10.dp))
                 val updatedMillis = parseIsoMillis(item.updatedAt) ?: item.effectiveMillis
                 if (updatedMillis > 0L) {
+                    val hasExtraAuthor = item.author.isNotBlank() && item.author != publisher
                     Text(
-                        text = buildString {
-                            append("最后更新 ")
-                            append(formatLocalDateTime(updatedMillis))
-                            if (item.author.isNotBlank() && item.author != publisher) {
-                                append(" · 作者 ")
-                                append(item.author)
-                            }
+                        text = if (hasExtraAuthor) {
+                            AppStrings.get(
+                                R.string.vm_announcement_last_updated_author,
+                                formatLocalDateTime(updatedMillis),
+                                item.author
+                            )
+                        } else {
+                            AppStrings.get(R.string.vm_announcement_last_updated, formatLocalDateTime(updatedMillis))
                         },
                         style = MiuixTheme.textStyles.footnote2,
                         color = MiuixTheme.colorScheme.onSurfaceVariantSummary
@@ -461,7 +465,7 @@ private fun AnnouncementGalleryImage(
             ) {
                 RemoteImage(
                     url = image.url,
-                    contentDescription = if (image.isCover) "封面图片" else "公告图片",
+                    contentDescription = if (image.isCover) AppStrings.get(R.string.vm_announcement_cover_image) else AppStrings.get(R.string.vm_announcement_image),
                     shape = shape,
                     // 横向列表里的缩略图统一 Crop 成方块（原图比例差异很大，Fit 会让行高参差不齐）；
                     // 单图（hero）铺满宽度、按原始比例完整显示
@@ -471,7 +475,7 @@ private fun AnnouncementGalleryImage(
                 )
                 if (image.isCover) {
                     AnnouncementChip(
-                        text = "封面",
+                        text = AppStrings.get(R.string.vm_announcement_cover),
                         // 标签压在图片上：用实心 primary 而不是容器色，保证任何底图上都看得清
                         containerColor = MiuixTheme.colorScheme.primary,
                         contentColor = MiuixTheme.colorScheme.onPrimary,
@@ -502,7 +506,7 @@ private fun AnnouncementDetailError(
             tint = MiuixTheme.colorScheme.onSurfaceSecondary
         )
         Spacer(modifier = Modifier.height(12.dp))
-        Text(text = "公告加载失败", style = MiuixTheme.textStyles.body1)
+        Text(text = AppStrings.get(R.string.vm_announcement_load_failed), style = MiuixTheme.textStyles.body1)
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = message,
@@ -512,7 +516,7 @@ private fun AnnouncementDetailError(
         )
         Spacer(modifier = Modifier.height(16.dp))
         Button(onClick = onRetry) {
-            Text("重试", style = MiuixTheme.textStyles.button)
+            Text(AppStrings.get(R.string.csa_retry), style = MiuixTheme.textStyles.button)
         }
     }
 }

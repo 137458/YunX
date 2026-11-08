@@ -18,12 +18,12 @@
 
 package com.yunx.app.ui.screens
 
-import android.Manifest
 import android.content.ContentValues
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.Manifest
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
@@ -31,31 +31,31 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.DrawableRes
-import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animate
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.rememberDraggableState
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.VolunteerActivism
@@ -68,7 +68,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -76,6 +75,7 @@ import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
@@ -87,11 +87,12 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.core.content.ContextCompat
 import com.yunx.app.R
-import com.yunx.app.ui.SnackbarController
-import com.yunx.app.ui.components.BlurredBar
 import com.yunx.app.ui.components.blurBackdropSource
+import com.yunx.app.ui.components.BlurredBar
 import com.yunx.app.ui.components.rememberBlurBackdrop
+import com.yunx.app.ui.SnackbarController
 import com.yunx.app.ui.theme.SquircleShape
+import com.yunx.app.util.AppStrings
 import java.io.File
 import java.io.FileOutputStream
 import kotlin.math.abs
@@ -146,12 +147,12 @@ fun SupportScreen(
                 scrollBehavior = scrollBehavior,
             ) {
                 TopAppBar(
-                    title = "支持开发",
+                    title = AppStrings.get(R.string.vm_support_title),
                     scrollBehavior = scrollBehavior,
                     color = if (backdrop != null) Color.Transparent else MiuixTheme.colorScheme.surface,
                     navigationIcon = {
                         IconButton(onClick = onBack) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = AppStrings.get(R.string.csa_back))
                         }
                     }
                 )
@@ -211,14 +212,14 @@ fun SupportScreen(
                     Spacer(modifier = Modifier.width(14.dp))
                     Column {
                         Text(
-                            text = "支持开发",
+                            text = AppStrings.get(R.string.vm_support_title),
                             style = MiuixTheme.textStyles.title1,
                             fontWeight = FontWeight.SemiBold,
                             color = MiuixTheme.colorScheme.onPrimary
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "你的支持，是持续维护与更新的动力",
+                            text = AppStrings.get(R.string.vm_support_tagline),
                             style = MiuixTheme.textStyles.body2,
                             color = MiuixTheme.colorScheme.onPrimary.copy(alpha = 0.85f)
                         )
@@ -254,9 +255,7 @@ fun SupportScreen(
                     )
                     Spacer(modifier = Modifier.width(10.dp))
                     Text(
-                        text = "云析完全免费开源，所有功能无需捐赠即可正常使用。" +
-                            "如果你觉得它帮到了你，愿意的话可以扫码表达一下心意，" +
-                            "你的支持会成为持续维护与更新的动力～",
+                        text = AppStrings.get(R.string.vm_support_free_notice),
                         style = MiuixTheme.textStyles.body2,
                         color = MiuixTheme.colorScheme.onSurface,
                         lineHeight = 21.sp
@@ -266,7 +265,7 @@ fun SupportScreen(
 
             // ---------- 感谢语 ----------
             Text(
-                text = "感谢每一位支持者 ❤",
+                text = AppStrings.get(R.string.vm_support_thanks),
                 style = MiuixTheme.textStyles.subtitle,
                 fontWeight = FontWeight.Medium,
                 color = MiuixTheme.colorScheme.onSurfaceSecondary,
@@ -291,7 +290,7 @@ fun SupportScreen(
                             deferred.await()
                         }
                         if (!granted) {
-                            SnackbarController.show("未授予存储权限，无法保存到相册")
+                            SnackbarController.show(AppStrings.get(R.string.vm_support_no_storage_permission))
                             return@launch
                         }
                         val current = sponsorCards[cardIndex]
@@ -299,7 +298,7 @@ fun SupportScreen(
                             saveQrToGallery(context, current.drawableRes, current.fileTag)
                         }
                         if (ok) saved = true
-                        SnackbarController.show(if (ok) "已保存到相册（Pictures/YunX）" else "保存失败")
+                        SnackbarController.show(if (ok) AppStrings.get(R.string.vm_support_saved_to_gallery) else AppStrings.get(R.string.vm_support_save_failed))
                     }
                 },
                 modifier = Modifier
@@ -313,13 +312,13 @@ fun SupportScreen(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 // 说清存的是哪张：翻过卡片后用户需要知道这一下存的是谁的码
-                Text(if (saved) "已保存到相册" else "保存 ${sponsorCards[cardIndex].role} 的二维码")
+                Text(if (saved) AppStrings.get(R.string.vm_support_saved) else AppStrings.get(R.string.vm_support_save_qr_of, sponsorCards[cardIndex].role))
             }
 
             // 保存成功本地反馈
             if (saved) {
                 Text(
-                    text = "✓ 二维码已保存到 相册/Pictures/YunX",
+                    text = AppStrings.get(R.string.vm_support_saved_hint),
                     style = MiuixTheme.textStyles.footnote1,
                     color = MiuixTheme.colorScheme.primary,
                     textAlign = TextAlign.Center
@@ -350,16 +349,16 @@ private data class SponsorCard(
 /** 页面上的全部赞助码：作者在前（第一张就应该是它） */
 private val sponsorCards = listOf(
     SponsorCard(
-        role = "作者 CYQawa",
+        role = AppStrings.get(R.string.vm_support_role_author),
         drawableRes = R.drawable.weixin,
         fileTag = "cyqawa",
-        hint = "保存二维码到相册后，打开微信「扫一扫」即可捐赠"
+        hint = AppStrings.get(R.string.vm_support_qr_hint)
     ),
     SponsorCard(
-        role = "协作者 tidain",
+        role = AppStrings.get(R.string.vm_support_role_collaborator),
         drawableRes = R.drawable.sponsor_tidain_weixin,
         fileTag = "tidain",
-        hint = "保存二维码到相册后，打开微信「扫一扫」即可捐赠"
+        hint = AppStrings.get(R.string.vm_support_qr_hint)
     )
 )
 
@@ -585,7 +584,7 @@ private fun SponsorCardStack(
             SponsorCodeCard(
                 card = cards[otherIndex],
                 backness = 1f - approachProgress,
-                contentDescriptionSuffix = "（下一张）",
+                contentDescriptionSuffix = AppStrings.get(R.string.vm_support_next_card),
                 modifier = Modifier
                     .zIndex(if (exitOffScreen) 1f else 0f)
                     .graphicsLayer {
@@ -637,7 +636,7 @@ private fun SponsorCardStack(
                 }
             }
             Text(
-                text = "左右滑动切换",
+                text = AppStrings.get(R.string.vm_support_swipe_hint),
                 modifier = Modifier.padding(top = 6.dp),
                 style = MiuixTheme.textStyles.footnote2,
                 color = MiuixTheme.colorScheme.onSurfaceSecondary.copy(alpha = 0.7f)
@@ -694,7 +693,7 @@ private fun SponsorCodeCard(
                 )
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
-                    text = "微信扫码捐赠",
+                    text = AppStrings.get(R.string.vm_support_wechat_donate),
                     style = MiuixTheme.textStyles.subtitle,
                     fontWeight = FontWeight.Medium
                 )
@@ -722,7 +721,7 @@ private fun SponsorCodeCard(
             ) {
                 Image(
                     painter = painterResource(card.drawableRes),
-                    contentDescription = "${card.role} 的微信捐赠码$contentDescriptionSuffix",
+                    contentDescription = AppStrings.get(R.string.vm_support_qr_content_desc, card.role, contentDescriptionSuffix),
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(10.dp),

@@ -18,39 +18,39 @@
 
 package com.yunx.app.ui.screens
 
-import android.Manifest
 import android.content.Intent
+import android.Manifest
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.only
-import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.automirrored.outlined.OpenInNew
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material.icons.outlined.Lock
-import androidx.compose.material.icons.automirrored.outlined.OpenInNew
 import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.outlined.Speed
 import androidx.compose.material.icons.outlined.Storage
@@ -61,23 +61,24 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.yunx.app.R
 import com.yunx.app.ui.theme.SquircleShape
 import com.yunx.app.util.AppLinks
+import com.yunx.app.util.AppStrings
 import com.yunx.app.util.PermissionState
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.Card
@@ -167,7 +168,7 @@ fun OnboardingScreen(
             ) {
                 Image(
                     painter = painterResource(R.drawable.icon),
-                    contentDescription = "云析图标",
+                    contentDescription = AppStrings.get(R.string.rs_app_icon_desc),
                     modifier = Modifier
                         .size(96.dp)
                         .clip(SquircleShape(26.dp)),
@@ -176,14 +177,14 @@ fun OnboardingScreen(
             }
             Spacer(modifier = Modifier.height(18.dp))
             Text(
-                text = "云析",
+                text = AppStrings.get(R.string.rs_app_name),
                 style = MiuixTheme.textStyles.headline1,
                 fontWeight = FontWeight.SemiBold,
                 color = MiuixTheme.colorScheme.onBackground
             )
             Spacer(modifier = Modifier.height(6.dp))
             Text(
-                text = "网盘与视频链接解析 · 在线预览 · 高速下载",
+                text = AppStrings.get(R.string.rs_onboarding_tagline),
                 style = MiuixTheme.textStyles.body1,
                 color = MiuixTheme.colorScheme.onSurfaceSecondary,
                 textAlign = TextAlign.Center
@@ -194,30 +195,28 @@ fun OnboardingScreen(
             // ---------- 功能特性 ----------
             OnboardingFeature(
                 icon = Icons.Outlined.Link,
-                title = "一键解析分享链接",
-                description = "夸克 / UC / 迅雷 / 百度 / 139 / 123 / 115 / 光鸭 / 蓝奏云 等 10 个网盘分享链接自动识别，" +
-                    "登录网盘账号后即可解析与下载"
+                title = AppStrings.get(R.string.rs_onboarding_feature_link_title),
+                description = AppStrings.get(R.string.rs_onboarding_feature_link_desc)
             )
             OnboardingFeature(
                 icon = Icons.AutoMirrored.Outlined.OpenInNew,
-                title = "视频链接解析",
-                description = "抖音 / 小红书 / 快手 / 微博 / AcFun 免登录，哔哩哔哩登录后画质更高；" +
-                    "7 大视频平台链接解析直链，图片 / 视频 / 音频都能在线预览"
+                title = AppStrings.get(R.string.vm_about_feature_video_title),
+                description = AppStrings.get(R.string.rs_onboarding_feature_video_desc)
             )
             OnboardingFeature(
                 icon = Icons.Outlined.Speed,
-                title = "高速分片下载",
-                description = "多线程并发 + 断点续传，充分利用带宽"
+                title = AppStrings.get(R.string.vm_about_feature_download_title),
+                description = AppStrings.get(R.string.vm_about_feature_download_desc)
             )
             OnboardingFeature(
                 icon = Icons.Outlined.Storage,
-                title = "多平台支持",
-                description = "一个应用管理多个网盘账号，统一解析下载入口"
+                title = AppStrings.get(R.string.rs_onboarding_feature_multi_title),
+                description = AppStrings.get(R.string.rs_onboarding_feature_multi_desc)
             )
             OnboardingFeature(
                 icon = Icons.Outlined.Lock,
-                title = "隐私安全",
-                description = "登录凭证仅存本机，不上传任何服务器"
+                title = AppStrings.get(R.string.rs_onboarding_feature_privacy_title),
+                description = AppStrings.get(R.string.rs_onboarding_feature_privacy_desc)
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -250,13 +249,13 @@ fun OnboardingScreen(
                     Spacer(modifier = Modifier.width(14.dp))
                     Column {
                         Text(
-                            text = "完全免费",
+                            text = AppStrings.get(R.string.rs_fact_free),
                             style = MiuixTheme.textStyles.title3,
                             fontWeight = FontWeight.SemiBold,
                             color = MiuixTheme.colorScheme.onTertiaryContainer
                         )
                         Text(
-                            text = "无广告、无内购，所有功能永久免费",
+                            text = AppStrings.get(R.string.rs_onboarding_free_hint),
                             style = MiuixTheme.textStyles.footnote1,
                             color = MiuixTheme.colorScheme.onTertiaryContainer
                         )
@@ -284,9 +283,7 @@ fun OnboardingScreen(
                     )
                     Spacer(modifier = Modifier.width(10.dp))
                     Text(
-                        text = "免责声明：本应用仅供个人学习与技术交流，请勿用于商业用途。" +
-                            "下载内容版权归原作者所有，请于下载后 24 小时内删除。" +
-                            "使用本应用产生的任何后果由使用者自行承担。",
+                        text = AppStrings.get(R.string.rs_onboarding_disclaimer),
                         style = MiuixTheme.textStyles.footnote1,
                         color = MiuixTheme.colorScheme.onSurfaceSecondary,
                         lineHeight = 20.sp
@@ -330,7 +327,7 @@ fun OnboardingScreen(
                     .defaultMinSize(minHeight = 52.dp)
             ) {
                 Text(
-                    text = "开始使用",
+                    text = AppStrings.get(R.string.rs_get_started),
                     style = MiuixTheme.textStyles.title3
                 )
             }
@@ -418,7 +415,7 @@ private fun GitHubCard(context: android.content.Context) {
             Spacer(modifier = Modifier.width(14.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "开源仓库",
+                    text = AppStrings.get(R.string.rs_open_source_repo),
                     style = MiuixTheme.textStyles.title4,
                     fontWeight = FontWeight.Medium,
                     color = MiuixTheme.colorScheme.onSurface

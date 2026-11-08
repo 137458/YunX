@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 設定画面（ローカル差異） -->
+    <string name="settings_thread_platform_generic">汎用 / 手動追加</string>
+    <string name="settings_download_threads_desc_note">ドライブごとに分割並列数を設定（既定 32、最大 512）。新規タスクのみ有効</string>
+    <string name="settings_download_dir_system_default">システム既定の Download（タップして変更）</string>
+    <string name="settings_download_dir_reset">保存先を既定に戻す</string>
+    <string name="settings_download_dir_reset_desc">タップしてシステム既定のフォルダーに戻す</string>
+    <string name="settings_max_tasks_desc_bg">同時に %1$d 件をダウンロード（バックグラウンド同時数を制限）</string>
+    <string name="settings_value_task_count">%1$d 件</string>
+    <string name="settings_auto_retry_value_never">再試行なし</string>
+    <string name="settings_auto_retry_value_times">%1$d 回</string>
+    <string name="settings_keep_downloading_desc_short">有効にするとダウンロード中に WakeLock で通信を維持し、ホワイトリストに追加できます</string>
+    <string name="settings_github_repo_no_browser">ブラウザが見つかりません。リンクをコピーしました：%1$s</string>
+    <string name="settings_diagnostic_path">詳細ログは Android/data/%1$s/files/diagnostic_logs に書き込みます</string>
+    <string name="settings_diag_zip_shared">診断ログをまとめて共有しました（%1$s）</string>
+
+    <!-- テーマと外観（ローカル差異） -->
+    <string name="theme_bottom_bar_section">下部ナビゲーションバー</string>
+    <string name="theme_bottom_bar_desc">下部ナビゲーションバーのスタイルを選択</string>
+    <string name="theme_bottom_bar_liquid">リキッドグラス</string>
+    <string name="theme_bottom_bar_frosted">すりガラス</string>
+    <string name="theme_bottom_bar_standard">標準</string>
+    <string name="theme_bottom_bar_hint_liquid">フローティングカプセル＋レンズ屈折と分散グロー。端末を傾けると鏡面ハイライトが生まれます。Android 13 以降が必要で、それ未満では半透明の単色に自動で切り替わります。</string>
+    <string name="theme_bottom_bar_hint_frosted">フローティングカプセル＋背景ガウスぼかし。屈折なしでリキッドグラスに近い見た目。Android 13 以降が必要で、それ未満では半透明の単色に自動で切り替わります。</string>
+    <string name="theme_bottom_bar_hint_standard">Miuix ネイティブの下部バー。背景サンプリングやシェーダーの負荷がなく最も省電力です。</string>
+    <string name="theme_amoled_switch">AMOLED ピュアブラック</string>
+    <string name="theme_amoled_on_desc">ダーク時に背景とカード表面を純黒にして OLED の消費電力を抑えます</string>
+    <string name="theme_amoled_off_desc">ダークモード時のみ有効です（現在はライト表示）</string>
+    <string name="theme_recommended_colors">おすすめの色</string>
+    <string name="theme_preview_title">ライブプレビュー</string>
+    <string name="theme_preview_desc">以下の色見本は現在のテーマに基づきます</string>
+    <string name="theme_preview_body">本文のサンプルテキスト</string>
+    <string name="theme_preview_caption">補足説明のサンプル</string>
+    <string name="theme_preview_container">コンテナ</string>
+    <string name="theme_preview_container_high">高コンテナ</string>
+    <string name="theme_preview_container_highest">最高コンテナ</string>
+    <string name="theme_custom_color_title">テーマ色をカスタム</string>
+
+    <!-- このアプリについて（ローカル差異） -->
+    <string name="vm_about_intro">雲析（YunX）は、クラウドドライブ／動画共有リンクの解析と高速ダウンロードを行うツールです。リンクを貼り付けるだけ：クラウドドライブの共有は内容を閲覧して高速ダウンロードでき、動画リンクは直リンクと元画像を解析できます。画像／動画／音声はすべてオンラインプレビューに対応しています。</string>
+    <string name="vm_about_terms_title">利用規約と免責事項</string>
+    <string name="vm_about_version">雲析 v%1$s · Made with DeepSeek</string>
+
+    <!-- ブックマーク（ローカル差異） -->
+    <string name="vm_bookmark_empty_filtered">このカテゴリにはまだブックマークがありません</string>
+    <string name="vm_bookmark_empty_filtered_hint">別のカテゴリに切り替えるか、絞り込みを解除してすべて表示</string>
+    <string name="vm_bookmark_delete_title">ブックマークを削除</string>
+    <string name="vm_bookmark_delete_message">「%1$s」を削除しますか？この操作は取り消せません。</string>
+
+    <!-- オンボーディング（ローカル差異） -->
+    <string name="rs_onboarding_feature_link_title">共有リンクをワンタップ解析</string>
+    <string name="rs_onboarding_feature_link_desc">Quark / UC / Xunlei / Baidu / 139 / 123 / 115 / GuangYa / Lanzou など 10 のドライブ共有リンクを自動判別。ドライブにログインすれば解析・ダウンロードできます</string>
+    <string name="rs_onboarding_feature_video_desc">抖音 / 小紅書 / Kuaishou / Weibo / AcFun はログイン不要、bilibili はログイン後に高画質になります。7 大動画プラットフォームのリンクを直リンクに解析し、画像／動画／音声をオンラインプレビューできます</string>
+    <string name="rs_onboarding_feature_multi_title">マルチプラットフォーム</string>
+    <string name="rs_onboarding_feature_multi_desc">1 つのアプリで複数のドライブアカウントを管理し、解析とダウンロードを一元化</string>
+    <string name="rs_onboarding_feature_privacy_title">プライバシーと安全</string>
+    <string name="rs_onboarding_feature_privacy_desc">ログイン情報は端末内にのみ保存され、サーバーへ送信されません</string>
+    <string name="rs_onboarding_free_hint">広告なし・課金なし、すべての機能が永久無料</string>
+    <string name="rs_onboarding_disclaimer">免責事項：本アプリは個人の学習と技術交流のみを目的とし、商用利用は禁止です。ダウンロードしたコンテンツの著作権は原作者に帰属します。ダウンロード後 24 時間以内に削除してください。本アプリの使用により生じる結果は利用者の責任です。</string>
+
+    <!-- アップデートダイアログ（ローカル差異） -->
+    <string name="vm_update_mirror_download_cn">ミラーサイトからダウンロード（中国本土で高速）</string>
+    <string name="vm_update_ignore_version">このバージョンを無視</string>
+    <string name="vm_update_open_download_task">ダウンロードタスクへ移動</string>
+    <string name="vm_update_cancel_download">ダウンロードを中止</string>
+    <string name="vm_update_downloading_package">更新パッケージをダウンロード中</string>
+    <string name="vm_update_downloading_package_unknown">更新パッケージをダウンロード中（サイズ不明）</string>
+    <string name="vm_update_notes_collapse">説明を折りたたむ</string>
+    <string name="vm_update_notes_expand_more">すべて表示（残り %1$d 行）</string>
+    <string name="vm_update_version_jump">現在 %1$s → 最新 %2$s</string>
+    <string name="vm_update_progress_detail">%1$s / %2$s%3$s</string>
+    <string name="vm_update_progress_detail_unknown">%1$s · サイズ不明%2$s</string>
+    <string name="vm_update_open_releases">Releases ページを開く</string>
+    <string name="vm_update_downloading_percent">ダウンロード中 %1$s</string>
+    <string name="vm_update_install">更新をインストール</string>
+    <string name="vm_update_download_now">今すぐダウンロード</string>
+    <string name="vm_update_background_download">バックグラウンドでダウンロード</string>
+    <string name="em_update_download_failed">更新パッケージのダウンロードに失敗しました</string>
+    <string name="em_update_package_missing">インストーラーが存在しません。再ダウンロードしてください</string>
+    <string name="em_update_digest_mismatch">インストーラーの検証に失敗しました（SHA-256 不一致）。再ダウンロードしてください</string>
+</resources>

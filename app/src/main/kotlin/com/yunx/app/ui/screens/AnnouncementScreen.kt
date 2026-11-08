@@ -20,33 +20,32 @@ package com.yunx.app.ui.screens
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.SharedTransitionLayout
-import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.CircleShape
-import com.yunx.app.ui.theme.SquircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Close
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -54,31 +53,34 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.sp
 import com.yunx.app.data.announcement.AnnouncementApi
 import com.yunx.app.data.announcement.relativeTime
+import com.yunx.app.R
 import com.yunx.app.ui.components.RemoteImage
 import com.yunx.app.ui.theme.effectsDefault
+import com.yunx.app.ui.theme.SquircleShape
 import com.yunx.app.ui.viewmodel.AnnouncementViewModel
+import com.yunx.app.util.AppStrings
 import kotlinx.coroutines.launch
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.Surface
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
-import top.yukonga.miuix.kmp.window.WindowDialog
 import top.yukonga.miuix.kmp.theme.MiuixTheme
+import top.yukonga.miuix.kmp.window.WindowDialog
 
 /** 公告的共享元素 key：列表项（源）与详情页容器（目标）必须用同一个 key，形变才会发生 */
 internal fun announcementSharedKey(id: String): String = "announcement-item-$id"
@@ -351,7 +353,7 @@ private fun AnnouncementImageViewerPage(
     ) {
         RemoteImage(
             url = url,
-            contentDescription = if (isCover) "封面图片" else "公告图片",
+            contentDescription = if (isCover) AppStrings.get(R.string.vm_announcement_cover_image) else AppStrings.get(R.string.vm_announcement_image),
             contentScale = ContentScale.Fit,
             // 深色底上不能要浅色占位：透明占位让 Fit 留下的空白直接是黑底
             placeholderColor = Color.Transparent,
@@ -377,13 +379,13 @@ private fun AnnouncementImageViewerPage(
         ) {
             Icon(
                 imageVector = Icons.Outlined.Close,
-                contentDescription = "关闭",
+                contentDescription = AppStrings.get(R.string.em_log_disabled),
                 tint = Color.White
             )
         }
         // 底部一行小字：是不是封面 + 第几张（只有一张时不显示序号）
         val caption = buildString {
-            if (isCover) append("封面")
+            if (isCover) append(AppStrings.get(R.string.vm_announcement_cover))
             if (isCover && total > 1) append(" · ")
             if (total > 1) append("${index + 1} / $total")
         }
@@ -485,7 +487,7 @@ fun AnnouncementPopupDialog(
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
             AnnouncementChip(
-                text = if (announcement.isPinned) "置顶公告" else "最新公告",
+                text = if (announcement.isPinned) AppStrings.get(R.string.vm_announcement_pinned) else AppStrings.get(R.string.vm_announcement_latest),
                 containerColor = MiuixTheme.colorScheme.primaryContainer,
                 contentColor = MiuixTheme.colorScheme.onPrimaryContainer
             )
@@ -525,13 +527,13 @@ fun AnnouncementPopupDialog(
             }
             Spacer(modifier = Modifier.height(12.dp))
             TextButton(
-                text = "查看详情",
+                text = AppStrings.get(R.string.vm_announcement_view_detail),
                 onClick = onDetail,
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(4.dp))
             TextButton(
-                text = "知道了",
+                text = AppStrings.get(R.string.lg_got_it),
                 onClick = {
                     show = false
                     onDismiss()

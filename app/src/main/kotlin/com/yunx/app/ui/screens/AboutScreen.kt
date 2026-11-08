@@ -22,36 +22,39 @@ import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.annotation.DrawableRes
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.background
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Cloud
 import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -59,27 +62,25 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.pm.PackageInfoCompat
-import com.yunx.app.R
 import com.yunx.app.data.network.SharePlatform
 import com.yunx.app.data.network.video.VideoPlatform
+import com.yunx.app.R
+import com.yunx.app.ui.components.blurBackdropSource
+import com.yunx.app.ui.components.BlurredBar
+import com.yunx.app.ui.components.rememberBlurBackdrop
 import com.yunx.app.ui.items.logoRes
 import com.yunx.app.ui.theme.SquircleShape
 import com.yunx.app.util.AppLinks
+import com.yunx.app.util.AppStrings
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.basic.SmallTitle
 import top.yukonga.miuix.kmp.basic.Surface
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TopAppBar
-import androidx.compose.foundation.background
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.nestedscroll.nestedScroll
-import com.yunx.app.ui.components.BlurredBar
-import com.yunx.app.ui.components.blurBackdropSource
-import com.yunx.app.ui.components.rememberBlurBackdrop
-import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.preference.ArrowPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
@@ -113,12 +114,12 @@ fun AboutScreen(
                 scrollBehavior = scrollBehavior,
             ) {
                 TopAppBar(
-                    title = "关于云析",
+                    title = AppStrings.get(R.string.vm_about_title),
                     scrollBehavior = scrollBehavior,
                     color = if (backdrop != null) Color.Transparent else MiuixTheme.colorScheme.surface,
                     navigationIcon = {
                         IconButton(onClick = onBack) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = AppStrings.get(R.string.csa_back))
                         }
                     }
                 )
@@ -146,7 +147,7 @@ fun AboutScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             // ---------- 简介 ----------
-            SmallTitle(text = "应用简介")
+            SmallTitle(text = AppStrings.get(R.string.vm_about_intro_title))
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -160,15 +161,13 @@ fun AboutScreen(
                     Spacer(modifier = Modifier.width(14.dp))
                     Column {
                         Text(
-                            text = "云析（YunX）",
+                            text = AppStrings.get(R.string.vm_about_app_name),
                             style = MiuixTheme.textStyles.subtitle,
                             fontWeight = FontWeight.Medium
                         )
                         Spacer(modifier = Modifier.height(6.dp))
                         Text(
-                            text = "云析（YunX）是一款网盘 / 视频分享链接解析与高速下载工具。" +
-                                "粘贴链接即可：网盘分享能浏览内容并高速下载，视频链接能解析出直链与原图，" +
-                                "图片 / 视频 / 音频都支持在线预览播放。",
+                            text = AppStrings.get(R.string.vm_about_intro),
                             style = MiuixTheme.textStyles.body2,
                             color = MiuixTheme.colorScheme.onSurfaceSecondary,
                             lineHeight = 22.sp
@@ -178,7 +177,7 @@ fun AboutScreen(
             }
 
             // ---------- 支持平台 ----------
-            SmallTitle(text = "支持平台")
+            SmallTitle(text = AppStrings.get(R.string.vm_about_supported_platforms))
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -188,7 +187,7 @@ fun AboutScreen(
             }
 
             // ---------- 功能特性 ----------
-            SmallTitle(text = "功能特性")
+            SmallTitle(text = AppStrings.get(R.string.vm_about_features))
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -198,7 +197,7 @@ fun AboutScreen(
             }
 
             // ---------- 技术栈 ----------
-            SmallTitle(text = "技术栈")
+            SmallTitle(text = AppStrings.get(R.string.vm_about_tech_stack))
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -208,19 +207,19 @@ fun AboutScreen(
             }
 
             // ---------- 相关操作 ----------
-            SmallTitle(text = "快捷入口")
+            SmallTitle(text = AppStrings.get(R.string.vm_link_open_shortcuts))
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(start = 12.dp, end = 12.dp, bottom = 12.dp)
             ) {
                 ArrowPreference(
-                    title = "重新预览欢迎界面",
-                    summary = "重新展示首次启动引导页",
+                    title = AppStrings.get(R.string.vm_about_preview_onboarding_title),
+                    summary = AppStrings.get(R.string.vm_about_preview_onboarding_desc),
                     onClick = onPreviewOnboarding
                 )
                 ArrowPreference(
-                    title = "开源仓库",
+                    title = AppStrings.get(R.string.rs_open_source_repo),
                     summary = AppLinks.GITHUB_REPO_DISPLAY,
                     onClick = {
                         val intent = Intent(Intent.ACTION_VIEW, Uri.parse(AppLinks.GITHUB_REPO))
@@ -230,7 +229,7 @@ fun AboutScreen(
             }
 
             // ---------- 免责声明 ----------
-            SmallTitle(text = "免责声明")
+            SmallTitle(text = AppStrings.get(R.string.rs_disclaimer_title))
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -244,15 +243,13 @@ fun AboutScreen(
                     Spacer(modifier = Modifier.width(14.dp))
                     Column {
                         Text(
-                            text = "使用条款与声明",
+                            text = AppStrings.get(R.string.vm_about_terms_title),
                             style = MiuixTheme.textStyles.subtitle,
                             fontWeight = FontWeight.Medium
                         )
                         Spacer(modifier = Modifier.height(6.dp))
                         Text(
-                            text = "本应用仅供个人学习与技术交流使用，请勿用于任何商业用途。" +
-                                "下载内容版权归原作者所有，请于下载后 24 小时内删除。" +
-                                "使用本应用产生的任何后果由使用者自行承担。",
+                            text = AppStrings.get(R.string.vm_about_disclaimer_body),
                             style = MiuixTheme.textStyles.body2,
                             color = MiuixTheme.colorScheme.onSurfaceSecondary,
                             lineHeight = 22.sp
@@ -263,7 +260,7 @@ fun AboutScreen(
 
             // ---------- 开源协议与页脚 ----------
             Text(
-                text = "本项目基于 GNU AGPL-3.0 协议开源",
+                text = AppStrings.get(R.string.vm_about_license),
                 style = MiuixTheme.textStyles.footnote1,
                 color = MiuixTheme.colorScheme.onSurfaceSecondary,
                 modifier = Modifier.fillMaxWidth(),
@@ -271,7 +268,7 @@ fun AboutScreen(
             )
             Spacer(modifier = Modifier.height(6.dp))
             Text(
-                text = "云析 v$versionName · Made with DeepSeek",
+                text = AppStrings.get(R.string.vm_about_version, versionName),
                 style = MiuixTheme.textStyles.footnote1,
                 // dividerLine 是分隔线专用色，深色下几乎不可见，正文必须用次级内容色
                 color = MiuixTheme.colorScheme.onSurfaceSecondary,
@@ -310,7 +307,7 @@ private fun AppHeader(versionName: String, versionCode: Int) {
         ) {
             Image(
                 painter = painterResource(R.drawable.icon),
-                contentDescription = "云析图标",
+                contentDescription = AppStrings.get(R.string.rs_app_icon_desc),
                 modifier = Modifier
                     .size(88.dp)
                     .clip(SquircleShape(24.dp)),
@@ -319,7 +316,7 @@ private fun AppHeader(versionName: String, versionCode: Int) {
         }
         Spacer(modifier = Modifier.height(14.dp))
         Text(
-            text = "云析",
+            text = AppStrings.get(R.string.rs_app_name),
             style = MiuixTheme.textStyles.title1,
             fontWeight = FontWeight.SemiBold
         )
@@ -331,7 +328,7 @@ private fun AppHeader(versionName: String, versionCode: Int) {
         )
         Spacer(modifier = Modifier.height(4.dp))
         Text(
-            text = "网盘 / 视频链接解析与高速下载",
+            text = AppStrings.get(R.string.vm_about_tagline),
             style = MiuixTheme.textStyles.footnote1,
             color = MiuixTheme.colorScheme.onSurfaceSecondary
         )
@@ -350,9 +347,9 @@ private fun PlatformContent() {
         .map { PlatformChip(it.logoRes(), it.displayName) }
     val videos = VideoPlatform.entries.map { PlatformChip(it.logoRes(), it.displayName) }
     Column(modifier = Modifier.padding(16.dp)) {
-        PlatformChipGroup(label = "网盘", chips = drives)
+        PlatformChipGroup(label = AppStrings.get(R.string.rs_platform_generic), chips = drives)
         Spacer(modifier = Modifier.height(12.dp))
-        PlatformChipGroup(label = "视频解析", chips = videos)
+        PlatformChipGroup(label = AppStrings.get(R.string.csb_drive_section_video), chips = videos)
     }
 }
 
@@ -401,14 +398,13 @@ private fun PlatformChipGroup(label: String, chips: List<PlatformChip>) {
 @Composable
 private fun FeatureContent() {
     val features = listOf(
-        "网盘分享解析" to "夸克 / UC / 迅雷 / 百度 / 139 / 123 / 115 / 光鸭 / 蓝奏云 / 蓝奏云优享版 直链识别",
-        "视频链接解析" to "抖音 / 小红书 / 快手 / 微博 / AcFun 免登录；哔哩哔哩登录后画质更高，" +
-            "Pixiv 未登录只能解析部分公开作品、粘贴浏览器 Cookie 后可解析全部作品",
-        "在线预览与播放" to "图片 / 视频 / 音频在线看（自动带请求头），网盘里的文本文件也能打开",
-        "音视频合轨" to "哔哩哔哩高清是音视频分轨的，应用内部合轨，不需要额外装 ffmpeg",
-        "高速分片下载" to "多线程并发 + 断点续传，充分利用带宽",
-        "取链即删" to "转存后立即清理，不留残留",
-        "凭证本地化" to "Cookie 加密落库，仅存本机"
+        AppStrings.get(R.string.vm_about_feature_netdisk_title) to AppStrings.get(R.string.vm_about_feature_netdisk_desc),
+        AppStrings.get(R.string.vm_about_feature_video_title) to AppStrings.get(R.string.vm_about_feature_video_desc),
+        AppStrings.get(R.string.vm_about_feature_preview_title) to AppStrings.get(R.string.vm_about_feature_preview_desc),
+        AppStrings.get(R.string.vm_about_feature_mux_title) to AppStrings.get(R.string.vm_about_feature_mux_desc),
+        AppStrings.get(R.string.vm_about_feature_download_title) to AppStrings.get(R.string.vm_about_feature_download_desc),
+        AppStrings.get(R.string.vm_about_feature_cleanup_title) to AppStrings.get(R.string.vm_about_feature_cleanup_desc),
+        AppStrings.get(R.string.vm_about_feature_credentials_title) to AppStrings.get(R.string.vm_about_feature_credentials_desc)
     )
     Column(modifier = Modifier.padding(16.dp)) {
         features.forEachIndexed { index, (title, desc) ->

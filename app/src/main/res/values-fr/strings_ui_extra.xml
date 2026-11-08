@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Paramètres (libellés locaux) -->
+    <string name="settings_thread_platform_generic">Générique / Manuel</string>
+    <string name="settings_download_threads_desc_note">Définir la concurrence des fragments par disque (32 par défaut, max 512) ; s\'applique aux nouvelles tâches</string>
+    <string name="settings_download_dir_system_default">Download par défaut du système (toucher pour personnaliser)</string>
+    <string name="settings_download_dir_reset">Rétablir le dossier par défaut</string>
+    <string name="settings_download_dir_reset_desc">Toucher pour revenir au dossier par défaut du système</string>
+    <string name="settings_max_tasks_desc_bg">Télécharger %1$d tâches à la fois (limite la concurrence en arrière-plan)</string>
+    <string name="settings_value_task_count">%1$d tâches</string>
+    <string name="settings_auto_retry_value_never">Aucun nouvel essai</string>
+    <string name="settings_auto_retry_value_times">%1$d fois</string>
+    <string name="settings_keep_downloading_desc_short">Maintient un WakeLock pendant le téléchargement et permet de s\'ajouter à la liste blanche</string>
+    <string name="settings_github_repo_no_browser">Aucun navigateur trouvé ; lien copié : %1$s</string>
+    <string name="settings_diagnostic_path">Les journaux détaillés sont écrits dans Android/data/%1$s/files/diagnostic_logs</string>
+    <string name="settings_diag_zip_shared">Journaux de diagnostic empaquetés et partagés (%1$s)</string>
+
+    <!-- Thème (libellés locaux) -->
+    <string name="theme_bottom_bar_section">Barre de navigation inférieure</string>
+    <string name="theme_bottom_bar_desc">Choisir le style de la barre inférieure</string>
+    <string name="theme_bottom_bar_liquid">Verre liquide</string>
+    <string name="theme_bottom_bar_frosted">Verre dépoli</string>
+    <string name="theme_bottom_bar_standard">Standard</string>
+    <string name="theme_bottom_bar_hint_liquid">Capsule flottante + réfraction de lentille et halo de dispersion, avec reflets spéculaires selon l\'inclinaison ; nécessite Android 13+, sinon repli sur une couleur unie translucide.</string>
+    <string name="theme_bottom_bar_hint_frosted">Capsule flottante + flou gaussien de l\'arrière-plan, proche du verre liquide sans réfraction ; nécessite Android 13+, sinon repli sur une couleur unie translucide.</string>
+    <string name="theme_bottom_bar_hint_standard">Barre inférieure native Miuix, sans échantillonnage d\'arrière-plan ni coût de shader, la plus économe en énergie.</string>
+    <string name="theme_amoled_switch">Noir pur AMOLED</string>
+    <string name="theme_amoled_on_desc">Pousse l\'arrière-plan et les surfaces des cartes au noir pur en mode sombre pour réduire la consommation OLED</string>
+    <string name="theme_amoled_off_desc">S\'applique uniquement en mode sombre ; l\'apparence actuelle est claire</string>
+    <string name="theme_recommended_colors">Couleurs suggérées</string>
+    <string name="theme_preview_title">Aperçu en direct</string>
+    <string name="theme_preview_desc">Les pastilles ci-dessous proviennent du thème actuel</string>
+    <string name="theme_preview_body">Texte d\'exemple</string>
+    <string name="theme_preview_caption">Texte secondaire d\'exemple</string>
+    <string name="theme_preview_container">Conteneur</string>
+    <string name="theme_preview_container_high">Conteneur élevé</string>
+    <string name="theme_preview_container_highest">Conteneur le plus élevé</string>
+    <string name="theme_custom_color_title">Couleur de thème personnalisée</string>
+
+    <!-- À propos (libellés locaux) -->
+    <string name="vm_about_intro">YunX est un outil d\'analyse de liens de partage (cloud et vidéo) et de téléchargement rapide. Collez un lien : les partages cloud se parcourent et se téléchargent rapidement, les liens vidéo sont résolus en URL directes et en images d\'origine, et les images, vidéos et audios peuvent être prévisualisés en ligne.</string>
+    <string name="vm_about_terms_title">Conditions d\'utilisation et avertissement</string>
+    <string name="vm_about_version">YunX v%1$s · Made with DeepSeek</string>
+
+    <!-- Signets (libellés locaux) -->
+    <string name="vm_bookmark_empty_filtered">Aucun signet dans cette catégorie</string>
+    <string name="vm_bookmark_empty_filtered_hint">Changez de catégorie ou effacez le filtre pour voir tous les signets</string>
+    <string name="vm_bookmark_delete_title">Supprimer le signet</string>
+    <string name="vm_bookmark_delete_message">Supprimer « %1$s » ? Cette action est irréversible.</string>
+
+    <!-- Accueil (libellés locaux) -->
+    <string name="rs_onboarding_feature_link_title">Analyse des liens de partage en un clic</string>
+    <string name="rs_onboarding_feature_link_desc">Détecte les liens de partage de 10 disques (Quark, UC, Xunlei, Baidu, 139, 123, 115, GuangYa, Lanzou, etc.) ; connectez-vous pour analyser et télécharger</string>
+    <string name="rs_onboarding_feature_video_desc">Douyin, Xiaohongshu, Kuaishou, Weibo et AcFun ne nécessitent pas de connexion ; Bilibili offre une meilleure qualité après connexion. Les liens des 7 grandes plateformes vidéo sont résolus en URL directes, et images, vidéos et audios se prévisualisent en ligne</string>
+    <string name="rs_onboarding_feature_multi_title">Multi-plateforme</string>
+    <string name="rs_onboarding_feature_multi_desc">Gérez plusieurs comptes de disques dans une seule application, avec un point d\'entrée unique d\'analyse et de téléchargement</string>
+    <string name="rs_onboarding_feature_privacy_title">Confidentialité et sécurité</string>
+    <string name="rs_onboarding_feature_privacy_desc">Les identifiants restent sur l\'appareil et ne sont jamais envoyés</string>
+    <string name="rs_onboarding_free_hint">Sans publicité ni achat intégré, toutes les fonctions sont gratuites à vie</string>
+    <string name="rs_onboarding_disclaimer">Avertissement : cette application est destinée à un usage personnel d\'étude et d\'échange technique, sans usage commercial. Le contenu téléchargé reste la propriété de ses auteurs — supprimez-le sous 24 heures. Vous assumez l\'entière responsabilité des conséquences de son utilisation.</string>
+
+    <!-- Boîte de mise à jour (libellés locaux) -->
+    <string name="vm_update_mirror_download_cn">Télécharger via un miroir (accéléré en Chine)</string>
+    <string name="vm_update_ignore_version">Ignorer cette version</string>
+    <string name="vm_update_open_download_task">Aller à la tâche de téléchargement</string>
+    <string name="vm_update_cancel_download">Annuler le téléchargement</string>
+    <string name="vm_update_downloading_package">Téléchargement du paquet de mise à jour</string>
+    <string name="vm_update_downloading_package_unknown">Téléchargement du paquet de mise à jour (taille inconnue)</string>
+    <string name="vm_update_notes_collapse">Réduire les notes</string>
+    <string name="vm_update_notes_expand_more">Tout afficher (%1$d lignes de plus)</string>
+    <string name="vm_update_version_jump">Actuel %1$s → dernière %2$s</string>
+    <string name="vm_update_progress_detail">%1$s / %2$s%3$s</string>
+    <string name="vm_update_progress_detail_unknown">%1$s · taille inconnue%2$s</string>
+    <string name="vm_update_open_releases">Ouvrir la page Releases</string>
+    <string name="vm_update_downloading_percent">Téléchargement %1$s</string>
+    <string name="vm_update_install">Installer la mise à jour</string>
+    <string name="vm_update_download_now">Télécharger maintenant</string>
+    <string name="vm_update_background_download">Télécharger en arrière-plan</string>
+    <string name="em_update_download_failed">Échec du téléchargement du paquet de mise à jour</string>
+    <string name="em_update_package_missing">Le paquet d\'installation a disparu ; retéléchargez-le</string>
+    <string name="em_update_digest_mismatch">Échec de la vérification de l\'installeur (SHA-256 non concordant) ; retéléchargez-le</string>
+</resources>

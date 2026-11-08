@@ -18,14 +18,45 @@
 
 package com.yunx.app.ui.screens
 
+import com.yunx.app.R
 import com.yunx.app.data.update.UpdateChecker
+import com.yunx.app.util.AppStrings
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Test
 
 class UpdateDialogPlanTest {
+
+    /** 弹窗纯函数走 AppStrings，单测用中文模板替身还原真实取值 */
+    @Before
+    fun installStringResolver() {
+        val templates = mapOf(
+            R.string.vm_update_version_jump to "当前 %1\$s → 最新 %2\$s",
+            R.string.vm_update_download_now to "立即下载",
+            R.string.vm_update_later to "稍后",
+            R.string.vm_update_downloading_percent to "下载中 %1\$s",
+            R.string.vm_update_background_download to "后台下载",
+            R.string.vm_update_progress_detail_unknown to "%1\$s · 大小未知%2\$s",
+            R.string.vm_update_install to "安装更新",
+            R.string.csa_retry to "重试",
+            R.string.vm_update_open_releases to "前往 Releases 页面",
+            R.string.ed_notif_status_downloading to "下载中",
+        )
+        AppStrings.installResolverForTest { resId, args ->
+            val template = templates[resId] ?: resId.toString()
+            if (args.isEmpty()) template else String.format(template, *args)
+        }
+    }
+
+    @After
+    fun clearStringResolver() {
+        AppStrings.installResolverForTest(null)
+    }
+
 
     private fun release(
         tagName: String = "v1.3.0",

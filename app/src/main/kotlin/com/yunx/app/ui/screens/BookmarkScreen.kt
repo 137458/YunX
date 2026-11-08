@@ -18,8 +18,8 @@
 
 package com.yunx.app.ui.screens
 
-import android.content.ClipData
 import android.content.ClipboardManager
+import android.content.ClipData
 import android.content.Context
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
@@ -33,39 +33,41 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Link
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -73,26 +75,26 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.yunx.app.data.db.BookmarkEntity
 import com.yunx.app.data.network.ShareLinkParser
+import com.yunx.app.R
+import com.yunx.app.ui.components.blurBackdropSource
+import com.yunx.app.ui.components.BlurredBar
+import com.yunx.app.ui.components.EmptyState
+import com.yunx.app.ui.components.rememberBlurBackdrop
 import com.yunx.app.ui.SnackbarController
 import com.yunx.app.ui.theme.SquircleShape
 import com.yunx.app.ui.viewmodel.BookmarkViewModel
+import com.yunx.app.util.AppStrings
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.basic.Surface
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.basic.TextField
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.nestedscroll.nestedScroll
-import com.yunx.app.ui.components.BlurredBar
-import com.yunx.app.ui.components.EmptyState
-import com.yunx.app.ui.components.blurBackdropSource
-import com.yunx.app.ui.components.rememberBlurBackdrop
-import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.TopAppBar
 import top.yukonga.miuix.kmp.overlay.OverlayDialog
 import top.yukonga.miuix.kmp.theme.MiuixTheme
@@ -142,17 +144,17 @@ fun BookmarkScreen(
                 scrollBehavior = scrollBehavior,
             ) {
                 TopAppBar(
-                    title = "收藏网盘链接",
+                    title = AppStrings.get(R.string.rs_bookmarks_title),
                     scrollBehavior = scrollBehavior,
                     color = if (backdrop != null) Color.Transparent else MiuixTheme.colorScheme.surface,
                     navigationIcon = {
                         IconButton(onClick = onBack) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = AppStrings.get(R.string.csa_back))
                         }
                     },
                     actions = {
                         IconButton(onClick = { showAddDialog = true }) {
-                            Icon(Icons.Outlined.Add, contentDescription = "添加收藏")
+                            Icon(Icons.Outlined.Add, contentDescription = AppStrings.get(R.string.rs_add_bookmark))
                         }
                     }
                 )
@@ -252,7 +254,7 @@ fun BookmarkScreen(
                 onCopy = {
                     menuBookmark = null
                     copyToClipboard(context, bookmark.link)
-                    SnackbarController.show("链接已复制")
+                    SnackbarController.show(AppStrings.get(R.string.rs_link_copied))
                 },
                 onEditCategory = {
                     menuBookmark = null
@@ -275,7 +277,7 @@ fun BookmarkScreen(
                 onConfirm = {
                     viewModel.delete(target.id)
                     pendingDelete = null
-                    SnackbarController.show("已删除收藏")
+                    SnackbarController.show(AppStrings.get(R.string.vm_bookmark_deleted))
                 },
                 onDismiss = { pendingDelete = null }
             )
@@ -298,7 +300,7 @@ private fun CategoryFilterBar(
     ) {
         CategoryChip(
             selected = selected == null,
-            label = "全部",
+            label = AppStrings.get(R.string.rs_all),
             onClick = { onSelect(null) }
         )
         categories.forEach { cat ->
@@ -412,17 +414,17 @@ private fun EmptyBookmark(
 ) {
     EmptyState(
         icon = Icons.Outlined.BookmarkBorder,
-        title = if (filtered) "该分类下暂无收藏" else "还没有收藏任何网盘链接",
+        title = if (filtered) AppStrings.get(R.string.vm_bookmark_empty_filtered) else AppStrings.get(R.string.rs_no_bookmarks),
         hint = if (filtered) {
-            "切换到其他分类，或清除筛选查看全部收藏"
+            AppStrings.get(R.string.vm_bookmark_empty_filtered_hint)
         } else {
-            "可在解析页点击「添加至收藏」，或点击右上角 + 手动添加"
+            AppStrings.get(R.string.rs_no_bookmarks_hint)
         },
         action = {
             Button(onClick = onAdd) {
                 Icon(Icons.Outlined.Add, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(modifier = Modifier.width(6.dp))
-                Text("添加收藏")
+                Text(AppStrings.get(R.string.rs_add_bookmark))
             }
         }
     )
@@ -454,7 +456,7 @@ private fun AddBookmarkDialog(
 
     OverlayDialog(
         show = show,
-        title = "添加收藏",
+        title = AppStrings.get(R.string.rs_add_bookmark),
         onDismissRequest = onDismiss
     ) {
         Column(
@@ -468,26 +470,26 @@ private fun AddBookmarkDialog(
             TextField(
                 value = link,
                 onValueChange = { link = it },
-                label = "网盘链接",
+                label = AppStrings.get(R.string.rs_share_link_label),
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 2
             )
             TextField(
                 value = title,
                 onValueChange = { title = it },
-                label = "标题（可选）",
+                label = AppStrings.get(R.string.rs_title_optional),
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true
             )
             TextField(
                 value = pwd,
                 onValueChange = { pwd = it },
-                label = "提取码（可选）",
+                label = AppStrings.get(R.string.rs_extract_code_optional),
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true
             )
             Text(
-                text = "分类",
+                text = AppStrings.get(R.string.rs_category),
                 style = MiuixTheme.textStyles.subtitle,
                 color = MiuixTheme.colorScheme.primary
             )
@@ -497,7 +499,7 @@ private fun AddBookmarkDialog(
             ) {
                 CategoryChip(
                     selected = isCustom,
-                    label = "自定义",
+                    label = AppStrings.get(R.string.rs_custom),
                     onClick = { selectedCategory = CUSTOM_CATEGORY }
                 )
                 categories.filter { it != CUSTOM_CATEGORY }.forEach { cat ->
@@ -516,7 +518,7 @@ private fun AddBookmarkDialog(
                 TextField(
                     value = customCategory,
                     onValueChange = { customCategory = it },
-                    label = "自定义分类",
+                    label = AppStrings.get(R.string.rs_custom_category),
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
@@ -526,7 +528,7 @@ private fun AddBookmarkDialog(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End
             ) {
-                TextButton(text = "取消", onClick = onDismiss)
+                TextButton(text = AppStrings.get(R.string.csa_cancel), onClick = onDismiss)
                 Spacer(modifier = Modifier.width(8.dp))
                 Button(
                     enabled = link.isNotBlank() && !(isCustom && customCategory.isBlank()),
@@ -539,7 +541,7 @@ private fun AddBookmarkDialog(
                         )
                     }
                 ) {
-                    Text("收藏")
+                    Text(AppStrings.get(R.string.rs_bookmark))
                 }
             }
         }
@@ -563,7 +565,7 @@ internal fun AddToBookmarkDialog(
 
     OverlayDialog(
         show = true,
-        title = "添加至收藏",
+        title = AppStrings.get(R.string.rs_add_to_bookmark),
         onDismissRequest = onDismiss
     ) {
         Column(
@@ -577,12 +579,12 @@ internal fun AddToBookmarkDialog(
             TextField(
                 value = titleInput,
                 onValueChange = { titleInput = it },
-                label = "标题（可选）",
+                label = AppStrings.get(R.string.rs_title_optional),
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true
             )
             Text(
-                text = "分类",
+                text = AppStrings.get(R.string.rs_category),
                 style = MiuixTheme.textStyles.subtitle,
                 color = MiuixTheme.colorScheme.primary
             )
@@ -592,7 +594,7 @@ internal fun AddToBookmarkDialog(
             ) {
                 CategoryChip(
                     selected = isCustom,
-                    label = "自定义",
+                    label = AppStrings.get(R.string.rs_custom),
                     onClick = { selectedCategory = CUSTOM_CATEGORY }
                 )
                 categories.filter { it != CUSTOM_CATEGORY }.forEach { cat ->
@@ -611,7 +613,7 @@ internal fun AddToBookmarkDialog(
                 TextField(
                     value = customCategory,
                     onValueChange = { customCategory = it },
-                    label = "自定义分类",
+                    label = AppStrings.get(R.string.rs_custom_category),
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
@@ -621,7 +623,7 @@ internal fun AddToBookmarkDialog(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End
             ) {
-                TextButton(text = "取消", onClick = onDismiss)
+                TextButton(text = AppStrings.get(R.string.csa_cancel), onClick = onDismiss)
                 Spacer(modifier = Modifier.width(8.dp))
                 Button(
                     enabled = !(isCustom && customCategory.isBlank()),
@@ -632,7 +634,7 @@ internal fun AddToBookmarkDialog(
                         )
                     }
                 ) {
-                    Text("收藏")
+                    Text(AppStrings.get(R.string.rs_bookmark))
                 }
             }
         }
@@ -663,7 +665,7 @@ private fun EditCategoryDialog(
 
     OverlayDialog(
         show = show,
-        title = "修改分类",
+        title = AppStrings.get(R.string.rs_edit_category),
         onDismissRequest = onDismiss
     ) {
         Column(
@@ -680,7 +682,7 @@ private fun EditCategoryDialog(
             ) {
                 CategoryChip(
                     selected = isCustom,
-                    label = "自定义",
+                    label = AppStrings.get(R.string.rs_custom),
                     onClick = { selectedCategory = CUSTOM_CATEGORY }
                 )
                 categories.forEach { cat ->
@@ -699,7 +701,7 @@ private fun EditCategoryDialog(
                 TextField(
                     value = customCategory,
                     onValueChange = { customCategory = it },
-                    label = "自定义分类",
+                    label = AppStrings.get(R.string.rs_custom_category),
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
@@ -709,7 +711,7 @@ private fun EditCategoryDialog(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End
             ) {
-                TextButton(text = "取消", onClick = onDismiss)
+                TextButton(text = AppStrings.get(R.string.csa_cancel), onClick = onDismiss)
                 Spacer(modifier = Modifier.width(8.dp))
                 Button(
                     enabled = !(isCustom && customCategory.isBlank()),
@@ -717,7 +719,7 @@ private fun EditCategoryDialog(
                         onConfirm(if (isCustom) customCategory.trim() else selectedCategory)
                     }
                 ) {
-                    Text("确定")
+                    Text(AppStrings.get(R.string.rs_confirm))
                 }
             }
         }
@@ -746,25 +748,25 @@ private fun BookmarkMenuDialog(
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
             TextButton(
-                text = "解析",
+                text = AppStrings.get(R.string.em_what_parse),
                 onClick = onResolve,
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(4.dp))
             TextButton(
-                text = "复制链接",
+                text = AppStrings.get(R.string.rs_copy_link),
                 onClick = onCopy,
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(4.dp))
             TextButton(
-                text = "修改分类",
+                text = AppStrings.get(R.string.rs_edit_category),
                 onClick = onEditCategory,
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(4.dp))
             TextButton(
-                text = "删除",
+                text = AppStrings.get(R.string.csa_delete),
                 onClick = onDelete,
                 textStyle = MiuixTheme.textStyles.button.copy(color = MiuixTheme.colorScheme.error),
                 modifier = Modifier.fillMaxWidth()
@@ -774,7 +776,7 @@ private fun BookmarkMenuDialog(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End
             ) {
-                TextButton(text = "取消", onClick = onDismiss)
+                TextButton(text = AppStrings.get(R.string.csa_cancel), onClick = onDismiss)
             }
         }
     }
@@ -790,7 +792,7 @@ private fun DeleteBookmarkDialog(
 ) {
     OverlayDialog(
         show = show,
-        title = "删除收藏",
+        title = AppStrings.get(R.string.vm_bookmark_delete_title),
         onDismissRequest = onDismiss
     ) {
         Column(
@@ -799,7 +801,7 @@ private fun DeleteBookmarkDialog(
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
             Text(
-                text = "确定删除「$title」？该操作不可恢复。",
+                text = AppStrings.get(R.string.vm_bookmark_delete_message, title),
                 style = MiuixTheme.textStyles.body2,
                 color = MiuixTheme.colorScheme.onSurfaceSecondary,
                 maxLines = 3,
@@ -810,7 +812,7 @@ private fun DeleteBookmarkDialog(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End
             ) {
-                TextButton(text = "取消", onClick = onDismiss)
+                TextButton(text = AppStrings.get(R.string.csa_cancel), onClick = onDismiss)
                 Spacer(modifier = Modifier.width(8.dp))
                 Button(
                     onClick = onConfirm,
@@ -819,7 +821,7 @@ private fun DeleteBookmarkDialog(
                         contentColor = MiuixTheme.colorScheme.onError
                     )
                 ) {
-                    Text("删除")
+                    Text(AppStrings.get(R.string.csa_delete))
                 }
             }
         }
@@ -828,13 +830,13 @@ private fun DeleteBookmarkDialog(
 
 /** 平台枚举名 → 展示名 */
 internal fun bookmarkPlatformLabel(platform: String): String = when (platform) {
-    "QUARK" -> "夸克网盘"
-    "UC" -> "UC网盘"
-    "XUNLEI" -> "迅雷网盘"
-    "BAIDU" -> "百度网盘"
-    "C139" -> "139网盘"
-    "PAN123" -> "123云盘"
-    else -> "网盘"
+    "QUARK" -> AppStrings.get(R.string.csa_platform_quark)
+    "UC" -> AppStrings.get(R.string.csa_platform_uc)
+    "XUNLEI" -> AppStrings.get(R.string.csa_platform_xunlei)
+    "BAIDU" -> AppStrings.get(R.string.csa_platform_baidu)
+    "C139" -> AppStrings.get(R.string.csa_platform_139)
+    "PAN123" -> AppStrings.get(R.string.csa_platform_123)
+    else -> AppStrings.get(R.string.rs_platform_generic)
 }
 
 private fun copyToClipboard(context: Context, text: String) {

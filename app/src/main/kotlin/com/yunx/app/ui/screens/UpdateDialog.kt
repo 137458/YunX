@@ -26,23 +26,22 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.BlendMode
@@ -50,6 +49,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -61,10 +61,12 @@ import com.yunx.app.data.download.DownloadSaver
 import com.yunx.app.data.download.DownloadStats
 import com.yunx.app.data.update.UpdateChecker
 import com.yunx.app.data.update.UpdatePackageDigest
+import com.yunx.app.R
 import com.yunx.app.ui.AppSnackbarHost
 import com.yunx.app.ui.components.MarkdownText
 import com.yunx.app.ui.rememberGlobalSnackbarHostState
 import com.yunx.app.ui.theme.SquircleShape
+import com.yunx.app.util.AppStrings
 import java.io.FileInputStream
 import java.io.InputStream
 import kotlinx.coroutines.Dispatchers
@@ -99,7 +101,8 @@ sealed interface UpdateDialogState {
 }
 
 /** 下载失败但引擎没给出原因时的兜底文案 */
-internal const val UPDATE_DOWNLOAD_FAILED_MESSAGE = "更新包下载失败"
+internal val UPDATE_DOWNLOAD_FAILED_MESSAGE: String
+    get() = AppStrings.get(R.string.em_update_download_failed)
 
 /** 进度比例：总长未知时恒为 0，交给进度条退回不确定态 */
 internal fun updateDownloadFraction(downloaded: Long, total: Long): Float =
@@ -186,10 +189,10 @@ private fun verifySavedUpdatePackage(
     savePath: String,
     digest: String,
 ): UpdateDialogState {
-    if (savePath.isBlank()) return UpdateDialogState.Failed("安装包已不存在，请重新下载")
+    if (savePath.isBlank()) return UpdateDialogState.Failed(AppStrings.get(R.string.em_update_package_missing))
     val expected = UpdatePackageDigest.expectedSha256(digest)
     val input = openSavedPackage(context, savePath)
-        ?: return UpdateDialogState.Failed("安装包已不存在，请重新下载")
+        ?: return UpdateDialogState.Failed(AppStrings.get(R.string.em_update_package_missing))
     if (expected == null) {
         runCatching { input.close() }
         return UpdateDialogState.Done(savePath)
@@ -198,7 +201,7 @@ private fun verifySavedUpdatePackage(
         is UpdatePackageDigest.Verdict.Mismatched -> {
             // 坏包不能留在下载目录里被手动安装，直接删掉让用户重下
             DownloadSaver.delete(context, savePath)
-            UpdateDialogState.Failed("安装包校验失败（SHA-256 不匹配），请重新下载")
+            UpdateDialogState.Failed(AppStrings.get(R.string.em_update_digest_mismatch))
         }
         UpdatePackageDigest.Verdict.Matched,
         UpdatePackageDigest.Verdict.Skipped -> UpdateDialogState.Done(savePath)
@@ -278,7 +281,7 @@ fun UpdateDialog(
 
     WindowDialog(
         show = true,
-        title = "发现新版本",
+        title = AppStrings.get(R.string.vm_update_new_version),
         summary = plan.summary,
         onDismissRequest = onLater,
     ) {
@@ -299,21 +302,21 @@ fun UpdateDialog(
             // 说明下方的文字链：镜像入口与「忽略此版本」不再占主操作位
             if (plan.showMirror && onDownloadMirror != null) {
                 DialogTextLink(
-                    text = "使用镜像站下载（国内加速）",
+                    text = AppStrings.get(R.string.vm_update_mirror_download_cn),
                     color = MiuixTheme.colorScheme.primary,
                     onClick = onDownloadMirror,
                 )
             }
             if (plan.showIgnore) {
                 DialogTextLink(
-                    text = "忽略此版本",
+                    text = AppStrings.get(R.string.vm_update_ignore_version),
                     color = MiuixTheme.colorScheme.error,
                     onClick = onIgnore,
                 )
             }
             if (plan.showOpenDownloadPage) {
                 DialogTextLink(
-                    text = "转到下载任务",
+                    text = AppStrings.get(R.string.vm_update_open_download_task),
                     color = MiuixTheme.colorScheme.primary,
                     onClick = onOpenDownloadPage,
                 )
@@ -339,7 +342,7 @@ fun UpdateDialog(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     TextButton(
-                        text = "取消下载",
+                        text = AppStrings.get(R.string.vm_update_cancel_download),
                         onClick = onCancelDownload,
                         modifier = Modifier.weight(1f),
                     )
@@ -373,9 +376,9 @@ private fun DownloadProgress(plan: UpdateDialogPlan, state: UpdateDialogState) {
     ) {
         Text(
             text = if (state is UpdateDialogState.Downloading && state.total > 0L) {
-                "正在下载更新包"
+                AppStrings.get(R.string.vm_update_downloading_package)
             } else {
-                "正在下载更新包（大小未知）"
+                AppStrings.get(R.string.vm_update_downloading_package_unknown)
             },
             style = MiuixTheme.textStyles.body2.copy(fontSize = 12.sp, fontWeight = FontWeight.SemiBold),
             color = MiuixTheme.colorScheme.primary,
@@ -438,13 +441,13 @@ private fun NotesSection(
                 .verticalScroll(scrollState),
         ) {
             MarkdownText(
-                markdown = notesState.visibleMarkdown.ifBlank { "暂无更新说明" },
+                markdown = notesState.visibleMarkdown.ifBlank { AppStrings.get(R.string.vm_update_no_changelog) },
                 modifier = Modifier.fillMaxWidth(),
                 baseFontSize = 12,
             )
             if (notesState.hiddenLineCount > 0 || expanded) {
                 TextButton(
-                    text = if (expanded) "收起说明" else "展开全部（还有 ${notesState.hiddenLineCount} 行）",
+                    text = if (expanded) AppStrings.get(R.string.vm_update_notes_collapse) else AppStrings.get(R.string.vm_update_notes_expand_more, notesState.hiddenLineCount),
                     onClick = onToggle,
                     modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
                 )
