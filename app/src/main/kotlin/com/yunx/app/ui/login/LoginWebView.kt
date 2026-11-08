@@ -55,6 +55,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.yunx.app.R
+import com.yunx.app.util.AppStrings
 import com.yunx.app.util.LogRedactor
 import com.yunx.app.util.webview.destroyWebView
 import com.yunx.app.util.webview.handleRendererProcessGone
@@ -68,8 +70,10 @@ private const val TAG = "LoginWebView"
 /** 加载超时：WebView 弱网下可能既不回调完成也不回调错误，超过该时间即置失败态，避免进度条永久转圈 */
 private const val LOAD_TIMEOUT_MS = 20_000L
 
-private const val LOAD_TIMEOUT_MESSAGE = "加载超时，请检查网络后重试"
-private const val LOAD_ERROR_MESSAGE = "页面加载失败，请检查网络后重试"
+private val LOAD_TIMEOUT_MESSAGE: String
+    get() = AppStrings.get(R.string.lg_web_load_timeout)
+private val LOAD_ERROR_MESSAGE: String
+    get() = AppStrings.get(R.string.lg_web_load_error)
 
 /** 覆盖页面 viewport：适配屏幕宽度并允许双指缩放（部分官网页面缺失 viewport 或限制了缩放） */
 private const val VIEWPORT_SCRIPT =
@@ -248,7 +252,7 @@ class LoginWebViewController internal constructor(
             val code = errorResponse?.statusCode ?: return
             if (code >= 400) {
                 Log.e(TAG, "onReceivedHttpError: status=$code url=${LogRedactor.url(request.url.toString())}")
-                markFailure("服务返回异常（HTTP $code），请稍后重试")
+                markFailure(AppStrings.get(R.string.lg_http_error, code))
             }
         }
 
@@ -331,7 +335,7 @@ fun LoginLoadFailureOverlay(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
-                text = "加载失败",
+                text = AppStrings.get(R.string.lg_web_load_failed),
                 style = MiuixTheme.textStyles.title2,
                 color = MiuixTheme.colorScheme.onSurface
             )
@@ -346,7 +350,7 @@ fun LoginLoadFailureOverlay(
                     onClick = retry,
                     colors = ButtonDefaults.buttonColorsPrimary()
                 ) {
-                    Text("重试")
+                    Text(AppStrings.get(R.string.lg_retry))
                 }
             }
         }

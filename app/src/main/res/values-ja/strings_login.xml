@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- 共通 -->
     <string name="lg_back">戻る</string>
@@ -184,4 +184,19 @@
     <string name="lg_xunlei_paste_hint">パソコンのブラウザで pan.xunlei.com にログイン後、開発者ツールで localStorage の %1$s の値をコピーしてください（JSON 全体で構いません）</string>
     <string name="lg_paste_credential_hint">認証情報 JSON を貼り付け…</string>
     <string name="lg_credential_invalid">認証情報が無効または失効しています。完全な内容をコピーしたか確認してください</string>
+    <string name="lg_save_cancelled">保存をキャンセルしました。後でもう一度ログインできます</string>
+    <string name="lg_manual_credential">認証情報を手動で入力</string>
+    <string name="lg_no_login_state_save">ログイン状態が検出されません。先にページでログインしてから「保存」を押してください</string>
+    <string name="lg_cookie_incomplete">Cookie が不完全です。ログイン情報を最後までコピーしたか確認してください</string>
+    <string name="lg_token_incomplete">Token が不完全です。ログイントークンを最後までコピーしたか確認してください</string>
+    <string name="lg_web_load_timeout">読み込みがタイムアウトしました。ネットワークを確認して再試行してください</string>
+    <string name="lg_web_load_error">ページの読み込みに失敗しました。ネットワークを確認して再試行してください</string>
+    <string name="lg_http_error">サーバーが異常を返しました（HTTP %1$d）。しばらくしてから再試行してください</string>
+    <string name="lg_crash_retry_count">ページのレンダリングプロセスがクラッシュしました。「再試行」で再読み込みしてください（残り %1$d 回）</string>
+    <string name="lg_crash_exhausted">ページのレンダリングプロセスが %1$d 回連続でクラッシュしました。再試行では復旧できません。戻ってからこのページを開き直すか、別のログイン方法を使用してください。</string>
+    <string name="lg_saving">保存中…</string>
+    <string name="lg_video_cookie_steps">取得方法：PC のブラウザで %1$s にログインし、開発者ツール（F12）→ Application / ストレージ → Cookies を開いて、そのサイトの Cookie 全体をコピーします。</string>
+    <string name="lg_xunlei_sms_title">SMS 認証</string>
+    <string name="lg_xunlei_login_desc">迅雷アカウントでログインすると、共有ファイルの解析とダウンロードができます</string>
+    <string name="lg_xunlei_web_storage_hint">PC のブラウザで pan.xunlei.com にログインし、開発者ツールの localStorage にある %1$s の値をコピーしてください（JSON 全体で構いません）</string>
 </resources>

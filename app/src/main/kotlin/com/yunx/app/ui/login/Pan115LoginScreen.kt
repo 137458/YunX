@@ -51,6 +51,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import com.yunx.app.R
+import com.yunx.app.util.AppStrings
 import com.yunx.app.data.network.Pan115Constants
 import com.yunx.app.ui.SnackbarController
 import com.yunx.app.ui.components.YunXWavyLoading
@@ -162,12 +164,12 @@ fun Pan115LoginScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = "115网盘登录",
+                title = AppStrings.get(R.string.lg_pan115_title),
                 navigationIcon = {
                     IconButton(onClick = { if (!isSaving && !isSavingManual) onBack() }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "返回"
+                            contentDescription = AppStrings.get(R.string.lg_back)
                         )
                     }
                 },
@@ -178,7 +180,7 @@ fun Pan115LoginScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Outlined.ContentPaste,
-                            contentDescription = "手动输入 Cookie",
+                            contentDescription = AppStrings.get(R.string.lg_manual_cookie),
                             tint = MiuixTheme.colorScheme.onSurfaceVariantActions
                         )
                     }
@@ -186,7 +188,7 @@ fun Pan115LoginScreen(
                         LoginLoadingIndicator(modifier = Modifier.padding(horizontal = 12.dp))
                     } else {
                         TextButton(
-                            text = "保存",
+                            text = AppStrings.get(R.string.lg_save),
                             onClick = {
                                 scope.launch {
                                     isSaving = true
@@ -201,10 +203,10 @@ fun Pan115LoginScreen(
                                     }
                                     isSaving = false
                                     if (saved) {
-                                        SnackbarController.show("登录成功")
+                                        SnackbarController.show(AppStrings.get(R.string.lg_login_success))
                                         onSaved()
                                     } else {
-                                        SnackbarController.show("未检测到登录态，请先完成登录")
+                                        SnackbarController.show(AppStrings.get(R.string.lg_no_login_state))
                                     }
                                 }
                             },
@@ -248,7 +250,7 @@ fun Pan115LoginScreen(
     // 登录教程弹窗
     OverlayDialog(
         show = showTutorial,
-        title = "登录教程",
+        title = AppStrings.get(R.string.lg_login_tutorial),
         onDismissRequest = { showTutorial = false }
     ) {
         Column(
@@ -256,33 +258,33 @@ fun Pan115LoginScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text(
-                text = "1. 在下方网页中登录 115 账号（支持扫码 / 短信 / 账号密码）",
+                text = AppStrings.get(R.string.lg_pan115_tutorial_1),
                 style = MiuixTheme.textStyles.body1,
                 color = MiuixTheme.colorScheme.onSurface
             )
             Text(
-                text = "2. 登录完成后将自动检测并登录，无需手动操作",
+                text = AppStrings.get(R.string.lg_pan115_tutorial_2),
                 style = MiuixTheme.textStyles.body1,
                 color = MiuixTheme.colorScheme.onSurface
             )
             Text(
-                text = "3. 若自动登录未触发，可点右上角「保存」手动提取（读取网页 Cookie）",
+                text = AppStrings.get(R.string.lg_pan115_tutorial_3),
                 style = MiuixTheme.textStyles.body1,
                 color = MiuixTheme.colorScheme.onSurface
             )
             Text(
-                text = "4. 或点击「粘贴」图标，手动粘贴整串 Cookie",
+                text = AppStrings.get(R.string.lg_pan115_tutorial_4),
                 style = MiuixTheme.textStyles.body1,
                 color = MiuixTheme.colorScheme.onSurface
             )
             Text(
-                text = "5. 115 的 Cookie 会定期轮换，失效后重新登录即可",
+                text = AppStrings.get(R.string.lg_pan115_tutorial_5),
                 style = MiuixTheme.textStyles.body2,
                 color = MiuixTheme.colorScheme.onSurfaceVariantSummary
             )
         }
         TextButton(
-            text = "知道了",
+            text = AppStrings.get(R.string.lg_got_it),
             onClick = { showTutorial = false },
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.textButtonColorsPrimary()
@@ -292,12 +294,12 @@ fun Pan115LoginScreen(
     // 手动输入 Cookie 弹窗
     OverlayDialog(
         show = showCookieDialog,
-        title = "手动输入 Cookie",
+        title = AppStrings.get(R.string.lg_manual_cookie),
         onDismissRequest = { if (!isSavingManual) showCookieDialog = false }
     ) {
         Column {
             Text(
-                text = "登录 115 网页版后，复制浏览器中的 Cookie 粘贴到这里（需包含 UID 与 SEID）",
+                text = AppStrings.get(R.string.lg_pan115_cookie_hint),
                 style = MiuixTheme.textStyles.body2,
                 color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                 modifier = Modifier.padding(bottom = 12.dp)
@@ -308,7 +310,7 @@ fun Pan115LoginScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 16.dp),
-                label = "粘贴 Cookie…",
+                label = AppStrings.get(R.string.lg_paste_cookie_hint),
                 useLabelAsPlaceholder = true,
                 minLines = 4,
                 maxLines = 8
@@ -318,7 +320,7 @@ fun Pan115LoginScreen(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 TextButton(
-                    text = "取消",
+                    text = AppStrings.get(R.string.lg_cancel),
                     onClick = { if (!isSavingManual) showCookieDialog = false },
                     modifier = Modifier.weight(1f),
                     enabled = !isSavingManual
@@ -330,11 +332,11 @@ fun Pan115LoginScreen(
                             val saved = viewModel.saveCookie(cookieInput.trim())
                             isSavingManual = false
                             if (saved) {
-                                SnackbarController.show("登录成功")
+                                SnackbarController.show(AppStrings.get(R.string.lg_login_success))
                                 showCookieDialog = false
                                 onSaved()
                             } else {
-                                SnackbarController.show("Cookie 无效或已过期，请检查是否包含 UID 与 SEID")
+                                SnackbarController.show(AppStrings.get(R.string.lg_pan115_cookie_invalid))
                             }
                         }
                     },
@@ -345,7 +347,7 @@ fun Pan115LoginScreen(
                     if (isSavingManual) {
                         LoginLoadingIndicator()
                     } else {
-                        Text("保存")
+                        Text(AppStrings.get(R.string.lg_save))
                     }
                 }
             }

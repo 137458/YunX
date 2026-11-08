@@ -56,6 +56,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import com.yunx.app.R
+import com.yunx.app.util.AppStrings
 import com.yunx.app.ui.SnackbarController
 import com.yunx.app.ui.viewmodel.GuangYaAccountViewModel
 import kotlinx.coroutines.delay
@@ -129,7 +131,7 @@ fun GuangYaLoginScreen(
                     verificationId = result.verificationId
                     isExistingUser = result.isUser
                     countdown = SMS_COUNTDOWN_SECONDS
-                    SnackbarController.show("验证码已发送")
+                    SnackbarController.show(AppStrings.get(R.string.lg_sms_sent))
                 }
                 is GuangYaAccountViewModel.GuangYaSmsResult.Failure -> error = result.message
             }
@@ -140,12 +142,12 @@ fun GuangYaLoginScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = "光鸭云盘登录",
+                title = AppStrings.get(R.string.lg_guangya_title),
                 navigationIcon = {
                     IconButton(onClick = { if (!isSaving && !isSendingSms) onBack() }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "返回"
+                            contentDescription = AppStrings.get(R.string.lg_back)
                         )
                     }
                 },
@@ -153,7 +155,7 @@ fun GuangYaLoginScreen(
                     IconButton(onClick = { showTutorial = true }, enabled = !isSaving && !isSendingSms) {
                         Icon(
                             imageVector = Icons.Outlined.Info,
-                            contentDescription = "登录教程",
+                            contentDescription = AppStrings.get(R.string.lg_login_tutorial),
                             tint = MiuixTheme.colorScheme.onSurfaceVariantActions
                         )
                     }
@@ -170,8 +172,8 @@ fun GuangYaLoginScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                text = if (smsMode) "使用手机号接收短信验证码登录 / 注册（新用户自动注册）"
-                else "使用光鸭云盘账号密码登录（如账号未设置密码，请到官网完成设置）",
+                text = if (smsMode) AppStrings.get(R.string.lg_guangya_sms_hint)
+                else AppStrings.get(R.string.lg_guangya_password_hint),
                 style = MiuixTheme.textStyles.body2,
                 color = MiuixTheme.colorScheme.onSurfaceVariantSummary
             )
@@ -184,7 +186,7 @@ fun GuangYaLoginScreen(
                         error = null
                     },
                     modifier = Modifier.fillMaxWidth(),
-                    label = "账号",
+                    label = AppStrings.get(R.string.lg_account),
                     useLabelAsPlaceholder = true,
                     singleLine = true,
                     enabled = !isSaving
@@ -197,7 +199,7 @@ fun GuangYaLoginScreen(
                         error = null
                     },
                     modifier = Modifier.fillMaxWidth(),
-                    label = "密码",
+                    label = AppStrings.get(R.string.lg_password),
                     useLabelAsPlaceholder = true,
                     singleLine = true,
                     enabled = !isSaving,
@@ -208,7 +210,7 @@ fun GuangYaLoginScreen(
                         IconButton(onClick = { passwordVisible = !passwordVisible }) {
                             Icon(
                                 imageVector = if (passwordVisible) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
-                                contentDescription = if (passwordVisible) "隐藏密码" else "显示密码"
+                                contentDescription = if (passwordVisible) AppStrings.get(R.string.lg_hide_password) else AppStrings.get(R.string.lg_show_password)
                             )
                         }
                     }
@@ -231,7 +233,7 @@ fun GuangYaLoginScreen(
                             val (ok, msg) = viewModel.login(account.trim(), password)
                             isSaving = false
                             if (ok) {
-                                SnackbarController.show("登录成功")
+                                SnackbarController.show(AppStrings.get(R.string.lg_login_success))
                                 onSaved()
                             } else {
                                 error = msg
@@ -243,15 +245,15 @@ fun GuangYaLoginScreen(
                     colors = ButtonDefaults.buttonColorsPrimary()
                 ) {
                     if (isSaving) {
-                        LoginLoadingIndicator(text = "登录中…")
+                        LoginLoadingIndicator(text = AppStrings.get(R.string.lg_logging_in))
                     } else {
-                        Text("登录")
+                        Text(AppStrings.get(R.string.lg_login))
                     }
                 }
 
                 // 登录按键下方的「验证码登录」入口：切到手机号短信验证码表单
                 TextButton(
-                    text = "验证码登录",
+                    text = AppStrings.get(R.string.lg_sms_login_entry),
                     onClick = {
                         smsMode = true
                         error = null
@@ -272,7 +274,7 @@ fun GuangYaLoginScreen(
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
-                    label = "手机号",
+                    label = AppStrings.get(R.string.lg_phone),
                     useLabelAsPlaceholder = true,
                     leadingIcon = { Icon(Icons.Outlined.Phone, contentDescription = null, modifier = Modifier.padding(horizontal = 12.dp)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
@@ -292,7 +294,7 @@ fun GuangYaLoginScreen(
                             error = null
                         },
                         modifier = Modifier.weight(1f),
-                        label = "短信验证码",
+                        label = AppStrings.get(R.string.lg_sms_code),
                         useLabelAsPlaceholder = true,
                         leadingIcon = { Icon(Icons.Outlined.Shield, contentDescription = null, modifier = Modifier.padding(horizontal = 12.dp)) },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -309,7 +311,7 @@ fun GuangYaLoginScreen(
                             LoginLoadingIndicator()
                         } else {
                             Text(
-                                text = if (countdown > 0) "${countdown}s 后重发" else "获取验证码",
+                                text = if (countdown > 0) AppStrings.get(R.string.lg_resend_after_seconds, countdown) else AppStrings.get(R.string.lg_get_sms_code),
                                 maxLines = 1
                             )
                         }
@@ -335,7 +337,7 @@ fun GuangYaLoginScreen(
                             )
                             isSaving = false
                             if (ok) {
-                                SnackbarController.show("登录成功")
+                                SnackbarController.show(AppStrings.get(R.string.lg_login_success))
                                 onSaved()
                             } else {
                                 error = msg
@@ -347,14 +349,14 @@ fun GuangYaLoginScreen(
                     colors = ButtonDefaults.buttonColorsPrimary()
                 ) {
                     if (isSaving) {
-                        LoginLoadingIndicator(text = "登录中…")
+                        LoginLoadingIndicator(text = AppStrings.get(R.string.lg_logging_in))
                     } else {
-                        Text("登录 / 注册")
+                        Text(AppStrings.get(R.string.lg_login_or_register))
                     }
                 }
 
                 TextButton(
-                    text = "返回密码登录",
+                    text = AppStrings.get(R.string.lg_back_to_password),
                     onClick = {
                         smsMode = false
                         error = null
@@ -369,7 +371,7 @@ fun GuangYaLoginScreen(
     // 登录说明弹窗
     OverlayDialog(
         show = showTutorial,
-        title = "登录说明",
+        title = AppStrings.get(R.string.lg_login_instructions),
         onDismissRequest = { showTutorial = false }
     ) {
         Column(
@@ -377,28 +379,28 @@ fun GuangYaLoginScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text(
-                text = "1. 输入光鸭云盘账号与密码后点击「登录」。",
+                text = AppStrings.get(R.string.lg_guangya_tutorial_1),
                 style = MiuixTheme.textStyles.body1,
                 color = MiuixTheme.colorScheme.onSurface
             )
             Text(
-                text = "2. 也可点「验证码登录」，用手机号接收短信验证码登录（新用户自动注册）。",
+                text = AppStrings.get(R.string.lg_guangya_tutorial_2),
                 style = MiuixTheme.textStyles.body1,
                 color = MiuixTheme.colorScheme.onSurface
             )
             Text(
-                text = "3. 登录成功后 access / refresh 令牌与设备标识会加密保存在本机。",
+                text = AppStrings.get(R.string.lg_guangya_tutorial_3),
                 style = MiuixTheme.textStyles.body1,
                 color = MiuixTheme.colorScheme.onSurface
             )
             Text(
-                text = "4. 若提示需要安全验证，请重试或改用其它登录方式。",
+                text = AppStrings.get(R.string.lg_guangya_tutorial_4),
                 style = MiuixTheme.textStyles.body2,
                 color = MiuixTheme.colorScheme.onSurfaceVariantSummary
             )
         }
         TextButton(
-            text = "知道了",
+            text = AppStrings.get(R.string.lg_got_it),
             onClick = { showTutorial = false },
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.textButtonColorsPrimary()

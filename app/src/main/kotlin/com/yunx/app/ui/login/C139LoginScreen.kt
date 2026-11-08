@@ -43,6 +43,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import com.yunx.app.R
+import com.yunx.app.util.AppStrings
 import com.yunx.app.data.network.C139Constants
 import com.yunx.app.data.repository.SaveResult
 import com.yunx.app.ui.SnackbarController
@@ -93,7 +95,7 @@ fun C139LoginScreen(
 
     // 保存中允许返回：网络卡死时不能把用户困在登录页；离开时提示保存已取消
     val exitLogin: () -> Unit = {
-        if (isSaving || isSavingManual) SnackbarController.show("已取消保存，可稍后重新登录")
+        if (isSaving || isSavingManual) SnackbarController.show(AppStrings.get(R.string.lg_save_cancelled))
         onBack()
     }
 
@@ -114,13 +116,13 @@ fun C139LoginScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = "139 网盘登录",
+                title = AppStrings.get(R.string.lg_c139_title),
                 navigationIcon = {
                     // 顶栏返回始终可点：保存中也要能退出，避免用户被困
                     IconButton(onClick = exitLogin) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "返回"
+                            contentDescription = AppStrings.get(R.string.lg_back)
                         )
                     }
                 },
@@ -131,7 +133,7 @@ fun C139LoginScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Outlined.ContentPaste,
-                            contentDescription = "手动输入凭证",
+                            contentDescription = AppStrings.get(R.string.lg_manual_credential),
                             tint = MiuixTheme.colorScheme.onSurfaceVariantActions
                         )
                     }
@@ -139,7 +141,7 @@ fun C139LoginScreen(
                         LoginLoadingIndicator(modifier = Modifier.padding(horizontal = 12.dp))
                     } else {
                         TextButton(
-                            text = "保存",
+                            text = AppStrings.get(R.string.lg_save),
                             onClick = {
                                 scope.launch {
                                     isSaving = true
@@ -150,11 +152,11 @@ fun C139LoginScreen(
                                         // 三态：139 无网络校验，只会返回成功/凭证无效
                                         when (val result = loginSaveResult { viewModel.saveC139Account(cookie) }) {
                                             SaveResult.Success -> {
-                                                SnackbarController.show("登录成功")
+                                                SnackbarController.show(AppStrings.get(R.string.lg_login_success))
                                                 onSaved()
                                             }
                                             SaveResult.InvalidCredential ->
-                                                SnackbarController.show("未检测到登录状态，请先在网页中完成登录，再点保存")
+                                                SnackbarController.show(AppStrings.get(R.string.lg_no_login_state_save))
                                             is SaveResult.NetworkError -> SnackbarController.show(result.message)
                                         }
                                     } finally {
@@ -194,7 +196,7 @@ fun C139LoginScreen(
         // 登录教程弹窗
         OverlayDialog(
             show = showTutorial,
-            title = "登录教程",
+            title = AppStrings.get(R.string.lg_login_tutorial),
             onDismissRequest = { showTutorial = false }
         ) {
             Column(
@@ -202,33 +204,33 @@ fun C139LoginScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
-                    text = "1. 在下方网页中登录 139 网盘账号（手机号）",
+                    text = AppStrings.get(R.string.lg_c139_tutorial_1),
                     style = MiuixTheme.textStyles.body1,
                     color = MiuixTheme.colorScheme.onSurface
                 )
                 Text(
-                    text = "2. 登录完成后将自动检测登录；若未自动登录，点右上角「保存」",
+                    text = AppStrings.get(R.string.lg_baidu_tutorial_2),
                     style = MiuixTheme.textStyles.body1,
                     color = MiuixTheme.colorScheme.onSurface
                 )
                 Text(
-                    text = "3. 或点击「粘贴」图标，手动输入 Cookie（需含 Os_SSo_Sid= 与 RMKEY=）",
+                    text = AppStrings.get(R.string.lg_c139_tutorial_3),
                     style = MiuixTheme.textStyles.body1,
                     color = MiuixTheme.colorScheme.onSurface
                 )
                 Text(
-                    text = "4. 若网页空白：用系统浏览器打开 yun.139.com 登录后复制 Cookie 粘贴，效果相同",
+                    text = AppStrings.get(R.string.lg_c139_tutorial_4),
                     style = MiuixTheme.textStyles.body2,
                     color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                 )
                 Text(
-                    text = "5. Cookie 有效期有限，失效后需重新登录",
+                    text = AppStrings.get(R.string.lg_c139_tutorial_5),
                     style = MiuixTheme.textStyles.body2,
                     color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                 )
             }
             TextButton(
-                text = "知道了",
+                text = AppStrings.get(R.string.lg_got_it),
                 onClick = { showTutorial = false },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.textButtonColorsPrimary()
@@ -238,12 +240,12 @@ fun C139LoginScreen(
         // 手动输入凭证弹窗（各平台统一标题，字段名沿用平台自身：Cookie）
         OverlayDialog(
             show = showCookieDialog,
-            title = "手动输入凭证",
+            title = AppStrings.get(R.string.lg_manual_credential),
             onDismissRequest = { if (!isSavingManual) showCookieDialog = false }
         ) {
             Column {
                 Text(
-                    text = "从网页登录态复制完整的 Cookie（需包含 Os_SSo_Sid= 与 RMKEY=）",
+                    text = AppStrings.get(R.string.lg_c139_cookie_hint),
                     style = MiuixTheme.textStyles.body2,
                     color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                     modifier = Modifier.padding(bottom = 12.dp)
@@ -254,7 +256,7 @@ fun C139LoginScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(bottom = 16.dp),
-                    label = "粘贴 Cookie…",
+                    label = AppStrings.get(R.string.lg_paste_cookie_hint),
                     useLabelAsPlaceholder = true,
                     minLines = 4,
                     maxLines = 8
@@ -264,7 +266,7 @@ fun C139LoginScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     TextButton(
-                        text = "取消",
+                        text = AppStrings.get(R.string.lg_cancel),
                         onClick = { if (!isSavingManual) showCookieDialog = false },
                         modifier = Modifier.weight(1f),
                         enabled = !isSavingManual
@@ -276,12 +278,12 @@ fun C139LoginScreen(
                                 try {
                                     when (val result = loginSaveResult { viewModel.saveC139Account(cookieInput.trim()) }) {
                                         SaveResult.Success -> {
-                                            SnackbarController.show("登录成功")
+                                            SnackbarController.show(AppStrings.get(R.string.lg_login_success))
                                             showCookieDialog = false
                                             onSaved()
                                         }
                                         SaveResult.InvalidCredential ->
-                                            SnackbarController.show("Cookie 不完整，请确认复制了完整的登录凭证")
+                                            SnackbarController.show(AppStrings.get(R.string.lg_cookie_incomplete))
                                         // 网络失败：保留弹窗与已输入内容，只提示重试
                                         is SaveResult.NetworkError -> SnackbarController.show(result.message)
                                     }
@@ -297,7 +299,7 @@ fun C139LoginScreen(
                         if (isSavingManual) {
                             LoginLoadingIndicator()
                         } else {
-                            Text("保存")
+                            Text(AppStrings.get(R.string.lg_save))
                         }
                     }
                 }

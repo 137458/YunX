@@ -48,6 +48,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
+import com.yunx.app.R
+import com.yunx.app.util.AppStrings
 import com.yunx.app.data.network.XunleiConstants
 import com.yunx.app.util.webview.destroyWebView
 import org.json.JSONObject
@@ -174,12 +176,12 @@ fun XunleiVerifyWebViewScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = "迅雷安全验证",
+                title = AppStrings.get(R.string.lg_xunlei_verify_title),
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "返回"
+                            contentDescription = AppStrings.get(R.string.lg_back)
                         )
                     }
                 }

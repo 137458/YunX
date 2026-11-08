@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- 通用 -->
     <string name="lg_back">返回</string>
@@ -184,4 +184,19 @@
     <string name="lg_xunlei_paste_hint">在電腦瀏覽器登入 pan.xunlei.com 後，從開發人員工具複製 localStorage 中 %1$s 的值（整段 JSON 即可）</string>
     <string name="lg_paste_credential_hint">貼上憑證 JSON…</string>
     <string name="lg_credential_invalid">憑證無效或已過期，請確認複製的是完整內容</string>
+    <string name="lg_save_cancelled">已取消儲存，可稍後重新登入</string>
+    <string name="lg_manual_credential">手動輸入憑證</string>
+    <string name="lg_no_login_state_save">未偵測到登入狀態，請先在網頁中完成登入，再點儲存</string>
+    <string name="lg_cookie_incomplete">Cookie 不完整，請確認複製了完整的登入憑證</string>
+    <string name="lg_token_incomplete">Token 不完整，請確認複製了完整的登入權杖</string>
+    <string name="lg_web_load_timeout">載入逾時，請檢查網路後重試</string>
+    <string name="lg_web_load_error">頁面載入失敗，請檢查網路後重試</string>
+    <string name="lg_http_error">服務傳回異常（HTTP %1$d），請稍後重試</string>
+    <string name="lg_crash_retry_count">頁面轉譯程序已崩潰，請點「重試」重新載入（還可重試 %1$d 次）</string>
+    <string name="lg_crash_exhausted">頁面轉譯程序已連續崩潰 %1$d 次，重試無法恢復。請返回後重新進入此頁面，或改用其他登入方式。</string>
+    <string name="lg_saving">儲存中…</string>
+    <string name="lg_video_cookie_steps">取得方法：在電腦瀏覽器登入 %1$s 後開啟開發者工具（F12）→ Application / 儲存空間 → Cookies，複製該網站下的整條 Cookie。</string>
+    <string name="lg_xunlei_sms_title">簡訊驗證</string>
+    <string name="lg_xunlei_login_desc">使用迅雷帳號登入，支援解析與下載分享檔案</string>
+    <string name="lg_xunlei_web_storage_hint">在電腦瀏覽器登入 pan.xunlei.com 後，從開發者工具複製 localStorage 中 %1$s 的值（整段 JSON 即可）</string>
 </resources>

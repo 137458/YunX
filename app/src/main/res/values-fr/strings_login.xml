@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Commun -->
     <string name="lg_back">Retour</string>
@@ -184,4 +184,19 @@
     <string name="lg_xunlei_paste_hint">Après vous être connecté à pan.xunlei.com dans un navigateur de bureau, copiez la valeur de %1$s depuis le localStorage dans les outils de développement (le JSON entier convient)</string>
     <string name="lg_paste_credential_hint">Coller le JSON de l\'identifiant…</string>
     <string name="lg_credential_invalid">Identifiant invalide ou expiré. Vérifiez que vous avez copié le contenu complet</string>
+    <string name="lg_save_cancelled">Enregistrement annulé. Vous pourrez vous reconnecter plus tard</string>
+    <string name="lg_manual_credential">Saisir les identifiants manuellement</string>
+    <string name="lg_no_login_state_save">Aucune connexion détectée. Connectez-vous d\'abord sur la page, puis appuyez sur Enregistrer</string>
+    <string name="lg_cookie_incomplete">Cookie incomplet. Vérifiez que l\'identifiant complet a été copié</string>
+    <string name="lg_token_incomplete">Jeton incomplet. Vérifiez que le jeton de connexion complet a été copié</string>
+    <string name="lg_web_load_timeout">Délai de chargement dépassé. Vérifiez votre réseau et réessayez</string>
+    <string name="lg_web_load_error">Échec du chargement de la page. Vérifiez votre réseau et réessayez</string>
+    <string name="lg_http_error">Le serveur a renvoyé une erreur (HTTP %1$d). Veuillez réessayer plus tard</string>
+    <string name="lg_crash_retry_count">Le moteur de rendu de la page a planté. Appuyez sur Réessayer pour recharger (%1$d tentatives restantes)</string>
+    <string name="lg_crash_exhausted">Le moteur de rendu a planté %1$d fois d\'affilée ; réessayer ne changera rien. Revenez en arrière et rouvrez cette page, ou utilisez une autre méthode de connexion.</string>
+    <string name="lg_saving">Enregistrement…</string>
+    <string name="lg_video_cookie_steps">Comment l\'obtenir : connectez-vous à %1$s dans un navigateur de bureau, ouvrez les outils de développement (F12) → Application / Stockage → Cookies, puis copiez l\'intégralité du cookie du site.</string>
+    <string name="lg_xunlei_sms_title">Vérification par SMS</string>
+    <string name="lg_xunlei_login_desc">Connectez-vous avec un compte Xunlei pour analyser et télécharger des fichiers partagés</string>
+    <string name="lg_xunlei_web_storage_hint">Connectez-vous à pan.xunlei.com dans un navigateur de bureau, puis copiez la valeur %1$s depuis localStorage dans les outils de développement (le JSON complet convient)</string>
 </resources>

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Common -->
     <string name="lg_back">Back</string>
@@ -184,4 +184,19 @@
     <string name="lg_xunlei_paste_hint">After signing in to pan.xunlei.com in a desktop browser, copy the value of %1$s from localStorage in Developer Tools (the whole JSON is fine)</string>
     <string name="lg_paste_credential_hint">Paste credential JSON…</string>
     <string name="lg_credential_invalid">Invalid or expired credential. Please make sure you copied the complete content</string>
+    <string name="lg_save_cancelled">Save cancelled. You can sign in again later</string>
+    <string name="lg_manual_credential">Enter credential manually</string>
+    <string name="lg_no_login_state_save">No login detected. Complete sign-in on the page first, then tap Save</string>
+    <string name="lg_cookie_incomplete">Incomplete cookie. Make sure the full credential was copied</string>
+    <string name="lg_token_incomplete">Incomplete token. Make sure the full sign-in token was copied</string>
+    <string name="lg_web_load_timeout">Load timed out. Check your network and try again</string>
+    <string name="lg_web_load_error">Page failed to load. Check your network and try again</string>
+    <string name="lg_http_error">Server returned an error (HTTP %1$d). Please try again later</string>
+    <string name="lg_crash_retry_count">The page renderer crashed. Tap Retry to reload (%1$d retries left)</string>
+    <string name="lg_crash_exhausted">The page renderer has crashed %1$d times in a row; retrying will not help. Go back and reopen this page, or use another sign-in method.</string>
+    <string name="lg_saving">Saving…</string>
+    <string name="lg_video_cookie_steps">How to get it: sign in to %1$s in a desktop browser, open DevTools (F12) → Application / Storage → Cookies, and copy the entire cookie for that site.</string>
+    <string name="lg_xunlei_sms_title">SMS verification</string>
+    <string name="lg_xunlei_login_desc">Sign in with a Xunlei account to resolve and download shared files</string>
+    <string name="lg_xunlei_web_storage_hint">Sign in to pan.xunlei.com in a desktop browser, then copy the %1$s value from localStorage in DevTools (the whole JSON is fine)</string>
 </resources>

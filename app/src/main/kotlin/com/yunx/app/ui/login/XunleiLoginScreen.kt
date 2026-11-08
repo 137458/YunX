@@ -56,6 +56,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import com.yunx.app.R
+import com.yunx.app.util.AppStrings
 import com.yunx.app.ui.SnackbarController
 import com.yunx.app.ui.viewmodel.XunleiAccountViewModel
 import kotlinx.coroutines.delay
@@ -134,12 +136,12 @@ fun XunleiLoginScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = "迅雷网盘登录",
+                title = AppStrings.get(R.string.lg_xunlei_title),
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "返回"
+                            contentDescription = AppStrings.get(R.string.lg_back)
                         )
                     }
                 }
@@ -157,17 +159,17 @@ fun XunleiLoginScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                text = if (step?.needSms == true) "短信验证" else "登录迅雷网盘",
+                text = if (step?.needSms == true) AppStrings.get(R.string.lg_xunlei_sms_title) else AppStrings.get(R.string.lg_xunlei_title),
                 style = MiuixTheme.textStyles.title2,
                 fontWeight = FontWeight.SemiBold,
                 color = MiuixTheme.colorScheme.onBackground
             )
             Text(
                 text = if (step?.needSms == true) {
-                    if (smsSent) "账号密码登录触发安全验证，验证码已发送至 $username"
-                    else "账号密码登录触发安全验证，请点击下方「发送验证码」"
+                    if (smsSent) AppStrings.get(R.string.lg_xunlei_sms_sent_to, username)
+                    else AppStrings.get(R.string.lg_xunlei_sms_prompt)
                 } else {
-                    "使用迅雷账号登录，支持解析与下载分享文件"
+                    AppStrings.get(R.string.lg_xunlei_login_desc)
                 },
                 style = MiuixTheme.textStyles.body2,
                 color = MiuixTheme.colorScheme.onSurfaceVariantSummary
@@ -178,7 +180,7 @@ fun XunleiLoginScreen(
                     value = username,
                     onValueChange = { username = it },
                     modifier = Modifier.fillMaxWidth(),
-                    label = "手机号 / 邮箱",
+                    label = AppStrings.get(R.string.lg_phone_or_email),
                     leadingIcon = { Icon(Icons.Outlined.Phone, contentDescription = null, modifier = Modifier.padding(horizontal = 12.dp)) },
                     singleLine = true
                 )
@@ -186,13 +188,13 @@ fun XunleiLoginScreen(
                     value = password,
                     onValueChange = { password = it },
                     modifier = Modifier.fillMaxWidth(),
-                    label = "密码",
+                    label = AppStrings.get(R.string.lg_password),
                     leadingIcon = { Icon(Icons.Outlined.Lock, contentDescription = null, modifier = Modifier.padding(horizontal = 12.dp)) },
                     trailingIcon = {
                         IconButton(onClick = { passwordVisible = !passwordVisible }) {
                             Icon(
                                 imageVector = if (passwordVisible) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
-                                contentDescription = if (passwordVisible) "隐藏密码" else "显示密码"
+                                contentDescription = if (passwordVisible) AppStrings.get(R.string.lg_hide_password) else AppStrings.get(R.string.lg_show_password)
                             )
                         }
                     },
@@ -221,7 +223,7 @@ fun XunleiLoginScreen(
                     if (isSending) {
                         LoginLoadingIndicator()
                     } else {
-                        Text("登录")
+                        Text(AppStrings.get(R.string.lg_login))
                     }
                 }
             } else {
@@ -229,7 +231,7 @@ fun XunleiLoginScreen(
                     value = smsCode,
                     onValueChange = { smsCode = it },
                     modifier = Modifier.fillMaxWidth(),
-                    label = "短信验证码",
+                    label = AppStrings.get(R.string.lg_sms_code),
                     leadingIcon = { Icon(Icons.Outlined.Shield, contentDescription = null, modifier = Modifier.padding(horizontal = 12.dp)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true
@@ -258,7 +260,7 @@ fun XunleiLoginScreen(
                     if (isSending) {
                         LoginLoadingIndicator()
                     } else {
-                        Text("验证并登录")
+                        Text(AppStrings.get(R.string.lg_verify_and_login))
                     }
                 }
                 if (!smsSent) {
@@ -266,25 +268,25 @@ fun XunleiLoginScreen(
                     Button(
                         onClick = {
                             viewModel.sendSms(username)
-                            SnackbarController.show("验证码已发送")
+                            SnackbarController.show(AppStrings.get(R.string.lg_sms_sent))
                         },
                         modifier = Modifier.fillMaxWidth().height(48.dp),
                         colors = ButtonDefaults.buttonColors()
                     ) {
-                        Text("发送验证码")
+                        Text(AppStrings.get(R.string.lg_send_code))
                     }
                 } else {
                     TextButton(
-                        text = "重新发送验证码",
+                        text = AppStrings.get(R.string.lg_resend_code),
                         onClick = {
                             viewModel.sendSms(username)
-                            SnackbarController.show("验证码已发送")
+                            SnackbarController.show(AppStrings.get(R.string.lg_sms_sent))
                         },
                         modifier = Modifier.align(Alignment.CenterHorizontally)
                     )
                 }
                 Text(
-                    text = "若始终收不到短信，请确认手机号正确，或稍后重试 / 切换网络",
+                    text = AppStrings.get(R.string.lg_sms_not_received_hint),
                     style = MiuixTheme.textStyles.footnote2,
                     color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                     modifier = Modifier.align(Alignment.CenterHorizontally)
@@ -293,7 +295,7 @@ fun XunleiLoginScreen(
                 // 短信发不出时的应用内验证兜底（应用内 WebView 承载验证页；核心验证仍走自有短信流）
                 if (step.reviewUrl.isNotBlank()) {
                     TextButton(
-                        text = "短信收不到？应用内验证",
+                        text = AppStrings.get(R.string.lg_verify_in_app),
                         onClick = {
                             // 用与登录请求一致的设备签名（deviceSign = div101.xxx）：
                             // 验证页会把 URL 里的 deviceid 原样当 devicesign 用，
@@ -304,7 +306,7 @@ fun XunleiLoginScreen(
                         colors = ButtonDefaults.textButtonColorsPrimary()
                     )
                     Text(
-                        text = "应用内完成验证后，将自动重新登录",
+                        text = AppStrings.get(R.string.lg_verify_in_app_hint),
                         style = MiuixTheme.textStyles.footnote2,
                         color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                         modifier = Modifier.align(Alignment.CenterHorizontally)
@@ -315,7 +317,7 @@ fun XunleiLoginScreen(
             // 未设置密码：跳转迅雷官网设置（浏览器打开）
             Spacer(modifier = Modifier.height(8.dp))
             TextButton(
-                text = "未设置密码，点我前往设置",
+                text = AppStrings.get(R.string.lg_set_password),
                 onClick = {
                     runCatching {
                         context.startActivity(

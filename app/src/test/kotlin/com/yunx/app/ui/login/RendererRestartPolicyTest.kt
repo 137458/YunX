@@ -18,9 +18,13 @@
 
 package com.yunx.app.ui.login
 
+import com.yunx.app.R
+import com.yunx.app.util.AppStrings
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Test
 
 /**
@@ -29,6 +33,25 @@ import org.junit.Test
  * 因此把「还能不能重试 / 还剩几次 / 该说什么」压在纯函数里用单测钉住。
  */
 class RendererRestartPolicyTest {
+
+    /** 文案走资源表，JVM 单测没有 Context：注入与资源模板一致的替身。 */
+    @Before
+    fun installStringTable() {
+        AppStrings.installResolverForTest { resId, args ->
+            when (resId) {
+                R.string.lg_crash_retry_count ->
+                    "页面渲染进程已崩溃，请点「重试」重新加载（还可重试 ${args[0]} 次）"
+                R.string.lg_crash_exhausted ->
+                    "页面渲染进程已连续崩溃 ${args[0]} 次，重试无法恢复。请返回后重新进入此页面，或改用其他登录方式。"
+                else -> ""
+            }
+        }
+    }
+
+    @After
+    fun resetStringTable() {
+        AppStrings.installResolverForTest(null)
+    }
 
     @Test
     fun freshBudgetAllowsFullNumberOfRestarts() {

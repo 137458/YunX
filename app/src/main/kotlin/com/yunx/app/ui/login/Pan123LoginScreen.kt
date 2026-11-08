@@ -43,6 +43,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import com.yunx.app.R
+import com.yunx.app.util.AppStrings
 import com.yunx.app.data.network.Pan123Constants
 import com.yunx.app.data.repository.SaveResult
 import com.yunx.app.ui.SnackbarController
@@ -97,7 +99,7 @@ fun Pan123LoginScreen(
 
     // 保存中允许返回：网络卡死时不能把用户困在登录页；离开时提示保存已取消
     val exitLogin: () -> Unit = {
-        if (isSaving || isSavingManual) SnackbarController.show("已取消保存，可稍后重新登录")
+        if (isSaving || isSavingManual) SnackbarController.show(AppStrings.get(R.string.lg_save_cancelled))
         onBack()
     }
 
@@ -118,13 +120,13 @@ fun Pan123LoginScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = "123 云盘登录",
+                title = AppStrings.get(R.string.lg_pan123_title),
                 navigationIcon = {
                     // 顶栏返回始终可点：保存中也要能退出，避免用户被困
                     IconButton(onClick = exitLogin) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "返回"
+                            contentDescription = AppStrings.get(R.string.lg_back)
                         )
                     }
                 },
@@ -135,7 +137,7 @@ fun Pan123LoginScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Outlined.ContentPaste,
-                            contentDescription = "手动输入凭证",
+                            contentDescription = AppStrings.get(R.string.lg_manual_credential),
                             tint = MiuixTheme.colorScheme.onSurfaceVariantActions
                         )
                     }
@@ -143,7 +145,7 @@ fun Pan123LoginScreen(
                         LoginLoadingIndicator(modifier = Modifier.padding(horizontal = 12.dp))
                     } else {
                         TextButton(
-                            text = "保存",
+                            text = AppStrings.get(R.string.lg_save),
                             onClick = {
                                 scope.launch {
                                     isSaving = true
@@ -159,11 +161,11 @@ fun Pan123LoginScreen(
                                         }
                                         when (result) {
                                             SaveResult.Success -> {
-                                                SnackbarController.show("登录成功")
+                                                SnackbarController.show(AppStrings.get(R.string.lg_login_success))
                                                 onSaved()
                                             }
                                             SaveResult.InvalidCredential ->
-                                                SnackbarController.show("未检测到登录状态，请先在网页中完成登录，再点保存")
+                                                SnackbarController.show(AppStrings.get(R.string.lg_no_login_state_save))
                                             is SaveResult.NetworkError -> SnackbarController.show(result.message)
                                         }
                                     } finally {
@@ -203,7 +205,7 @@ fun Pan123LoginScreen(
         // 登录教程弹窗
         OverlayDialog(
             show = showTutorial,
-            title = "登录教程",
+            title = AppStrings.get(R.string.lg_login_tutorial),
             onDismissRequest = { showTutorial = false }
         ) {
             Column(
@@ -211,33 +213,33 @@ fun Pan123LoginScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
-                    text = "1. 在下方网页中登录 123 云盘账号（支持账号密码 / 短信验证码）",
+                    text = AppStrings.get(R.string.lg_pan123_tutorial_1),
                     style = MiuixTheme.textStyles.body1,
                     color = MiuixTheme.colorScheme.onSurface
                 )
                 Text(
-                    text = "2. 登录完成后将自动检测并登录，无需手动操作",
+                    text = AppStrings.get(R.string.lg_pan115_tutorial_2),
                     style = MiuixTheme.textStyles.body1,
                     color = MiuixTheme.colorScheme.onSurface
                 )
                 Text(
-                    text = "3. 若自动登录未触发，可点右上角「保存」手动提取（读取网页 localStorage 的 authorToken）",
+                    text = AppStrings.get(R.string.lg_pan123_tutorial_3),
                     style = MiuixTheme.textStyles.body1,
                     color = MiuixTheme.colorScheme.onSurface
                 )
                 Text(
-                    text = "4. 或点击「粘贴」图标，手动粘贴 authorToken",
+                    text = AppStrings.get(R.string.lg_pan123_tutorial_4),
                     style = MiuixTheme.textStyles.body1,
                     color = MiuixTheme.colorScheme.onSurface
                 )
                 Text(
-                    text = "5. Token 长期有效，失效后需重新登录",
+                    text = AppStrings.get(R.string.lg_pan123_tutorial_5),
                     style = MiuixTheme.textStyles.body2,
                     color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                 )
             }
             TextButton(
-                text = "知道了",
+                text = AppStrings.get(R.string.lg_got_it),
                 onClick = { showTutorial = false },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.textButtonColorsPrimary()
@@ -247,12 +249,12 @@ fun Pan123LoginScreen(
         // 手动输入凭证弹窗（各平台统一标题，字段名沿用平台自身：authorToken）
         OverlayDialog(
             show = showTokenDialog,
-            title = "手动输入凭证",
+            title = AppStrings.get(R.string.lg_manual_credential),
             onDismissRequest = { if (!isSavingManual) showTokenDialog = false }
         ) {
             Column {
                 Text(
-                    text = "登录 123 云盘网页后，复制其 localStorage 中的 authorToken 值粘贴到这里（可用浏览器开发者工具查看）",
+                    text = AppStrings.get(R.string.lg_pan123_token_hint),
                     style = MiuixTheme.textStyles.body2,
                     color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                     modifier = Modifier.padding(bottom = 12.dp)
@@ -263,7 +265,7 @@ fun Pan123LoginScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(bottom = 16.dp),
-                    label = "粘贴 authorToken…",
+                    label = AppStrings.get(R.string.lg_paste_token_hint),
                     useLabelAsPlaceholder = true,
                     minLines = 4,
                     maxLines = 8
@@ -273,7 +275,7 @@ fun Pan123LoginScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     TextButton(
-                        text = "取消",
+                        text = AppStrings.get(R.string.lg_cancel),
                         onClick = { if (!isSavingManual) showTokenDialog = false },
                         modifier = Modifier.weight(1f),
                         enabled = !isSavingManual
@@ -285,12 +287,12 @@ fun Pan123LoginScreen(
                                 try {
                                     when (val result = loginSaveResult { viewModel.saveToken(tokenInput.trim()) }) {
                                         SaveResult.Success -> {
-                                            SnackbarController.show("登录成功")
+                                            SnackbarController.show(AppStrings.get(R.string.lg_login_success))
                                             showTokenDialog = false
                                             onSaved()
                                         }
                                         SaveResult.InvalidCredential ->
-                                            SnackbarController.show("Token 不完整，请确认复制了完整的登录令牌")
+                                            SnackbarController.show(AppStrings.get(R.string.lg_token_incomplete))
                                         // 网络失败：保留弹窗与已输入内容，只提示重试
                                         is SaveResult.NetworkError -> SnackbarController.show(result.message)
                                     }
@@ -306,7 +308,7 @@ fun Pan123LoginScreen(
                         if (isSavingManual) {
                             LoginLoadingIndicator()
                         } else {
-                            Text("保存")
+                            Text(AppStrings.get(R.string.lg_save))
                         }
                     }
                 }

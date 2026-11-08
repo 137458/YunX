@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- 通用 -->
     <string name="lg_back">返回</string>
@@ -184,4 +184,19 @@
     <string name="lg_xunlei_paste_hint">在电脑浏览器登录 pan.xunlei.com 后，从开发者工具复制 localStorage 中 %1$s 的值（整段 JSON 即可）</string>
     <string name="lg_paste_credential_hint">粘贴凭据 JSON…</string>
     <string name="lg_credential_invalid">凭据无效或已过期，请确认复制的是完整内容</string>
+    <string name="lg_save_cancelled">已取消保存，可稍后重新登录</string>
+    <string name="lg_manual_credential">手动输入凭证</string>
+    <string name="lg_no_login_state_save">未检测到登录状态，请先在网页中完成登录，再点保存</string>
+    <string name="lg_cookie_incomplete">Cookie 不完整，请确认复制了完整的登录凭证</string>
+    <string name="lg_token_incomplete">Token 不完整，请确认复制了完整的登录令牌</string>
+    <string name="lg_web_load_timeout">加载超时，请检查网络后重试</string>
+    <string name="lg_web_load_error">页面加载失败，请检查网络后重试</string>
+    <string name="lg_http_error">服务返回异常（HTTP %1$d），请稍后重试</string>
+    <string name="lg_crash_retry_count">页面渲染进程已崩溃，请点「重试」重新加载（还可重试 %1$d 次）</string>
+    <string name="lg_crash_exhausted">页面渲染进程已连续崩溃 %1$d 次，重试无法恢复。请返回后重新进入此页面，或改用其他登录方式。</string>
+    <string name="lg_saving">保存中…</string>
+    <string name="lg_video_cookie_steps">获取方法：在电脑浏览器登录 %1$s 后打开开发者工具（F12）→ Application / 存储 → Cookies，复制该站点下的整条 Cookie。</string>
+    <string name="lg_xunlei_sms_title">短信验证</string>
+    <string name="lg_xunlei_login_desc">使用迅雷账号登录，支持解析与下载分享文件</string>
+    <string name="lg_xunlei_web_storage_hint">在电脑浏览器登录 pan.xunlei.com 后，从开发者工具复制 localStorage 中 %1$s 的值（整段 JSON 即可）</string>
 </resources>

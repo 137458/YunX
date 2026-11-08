@@ -48,6 +48,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import com.yunx.app.R
+import com.yunx.app.util.AppStrings
 import com.yunx.app.data.network.XunleiWebCredential
 import com.yunx.app.ui.SnackbarController
 import com.yunx.app.ui.components.YunXWavyLoading
@@ -170,12 +172,12 @@ fun XunleiWebLoginScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = "迅雷网页登录",
+                title = AppStrings.get(R.string.lg_xunlei_web_title),
                 navigationIcon = {
                     IconButton(onClick = { if (!isSaving && !isSavingManual) onBack() }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "返回"
+                            contentDescription = AppStrings.get(R.string.lg_back)
                         )
                     }
                 },
@@ -186,7 +188,7 @@ fun XunleiWebLoginScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Outlined.ContentPaste,
-                            contentDescription = "手动粘贴登录凭据",
+                            contentDescription = AppStrings.get(R.string.lg_manual_paste_credential),
                             tint = MiuixTheme.colorScheme.onSurfaceVariantActions
                         )
                     }
@@ -194,7 +196,7 @@ fun XunleiWebLoginScreen(
                         LoginLoadingIndicator(modifier = Modifier.padding(horizontal = 12.dp))
                     } else {
                         TextButton(
-                            text = "保存",
+                            text = AppStrings.get(R.string.lg_save),
                             onClick = {
                                 scope.launch {
                                     isSaving = true
@@ -203,10 +205,10 @@ fun XunleiWebLoginScreen(
                                         val raw = webView.evaluateJsEncoded(XunleiWebCredential.READ_SCRIPT)
                                         val saved = raw.isNotBlank() && viewModel.saveWebCredential(raw)
                                         if (saved) {
-                                            SnackbarController.show("登录成功")
+                                            SnackbarController.show(AppStrings.get(R.string.lg_login_success))
                                             onSaved()
                                         } else {
-                                            SnackbarController.show("未检测到登录态，请先在网页中完成登录")
+                                            SnackbarController.show(AppStrings.get(R.string.lg_no_login_state_web))
                                         }
                                     } finally {
                                         // 必须 finally：抛异常时「保存」按钮要能恢复可点，否则这个页面就废了
@@ -248,7 +250,7 @@ fun XunleiWebLoginScreen(
     // 网页登录说明弹窗
     OverlayDialog(
         show = showTutorial,
-        title = "网页登录说明",
+        title = AppStrings.get(R.string.lg_web_login_instructions),
         onDismissRequest = { showTutorial = false }
     ) {
         Column(
@@ -256,33 +258,33 @@ fun XunleiWebLoginScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text(
-                text = "1. 在下方网页中登录迅雷账号（手机号验证码 / 扫码 / 密码都行）",
+                text = AppStrings.get(R.string.lg_xunlei_web_tutorial_1),
                 style = MiuixTheme.textStyles.body1,
                 color = MiuixTheme.colorScheme.onSurface
             )
             Text(
-                text = "2. 登录完成后会自动识别并登录，通常无需手动操作",
+                text = AppStrings.get(R.string.lg_xunlei_web_tutorial_2),
                 style = MiuixTheme.textStyles.body1,
                 color = MiuixTheme.colorScheme.onSurface
             )
             Text(
-                text = "3. 若没自动登录，可点右上角「保存」手动提取一次",
+                text = AppStrings.get(R.string.lg_xunlei_web_tutorial_3),
                 style = MiuixTheme.textStyles.body1,
                 color = MiuixTheme.colorScheme.onSurface
             )
             Text(
-                text = "4. 仍不行就点「粘贴」图标，把网页登录后的凭据 JSON 贴进来",
+                text = AppStrings.get(R.string.lg_xunlei_web_tutorial_4),
                 style = MiuixTheme.textStyles.body1,
                 color = MiuixTheme.colorScheme.onSurface
             )
             Text(
-                text = "5. 网页登录的令牌可自动续期；失效后需重新登录",
+                text = AppStrings.get(R.string.lg_xunlei_web_tutorial_5),
                 style = MiuixTheme.textStyles.body2,
                 color = MiuixTheme.colorScheme.onSurfaceVariantSummary
             )
         }
         TextButton(
-            text = "知道了",
+            text = AppStrings.get(R.string.lg_got_it),
             onClick = { showTutorial = false },
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.textButtonColorsPrimary()
@@ -292,13 +294,15 @@ fun XunleiWebLoginScreen(
     // 手动粘贴凭据弹窗
     OverlayDialog(
         show = showPasteDialog,
-        title = "手动粘贴登录凭据",
+        title = AppStrings.get(R.string.lg_manual_paste_credential),
         onDismissRequest = { if (!isSavingManual) showPasteDialog = false }
     ) {
         Column {
             Text(
-                text = "在电脑浏览器登录 pan.xunlei.com 后，从开发者工具复制 localStorage 中 " +
-                    "${XunleiWebCredential.STORAGE_KEY} 的值（整段 JSON 即可）",
+                text = AppStrings.get(
+                    R.string.lg_xunlei_web_storage_hint,
+                    XunleiWebCredential.STORAGE_KEY
+                ),
                 style = MiuixTheme.textStyles.body2,
                 color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                 modifier = Modifier.padding(bottom = 12.dp)
@@ -309,7 +313,7 @@ fun XunleiWebLoginScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 16.dp),
-                label = "粘贴凭据 JSON…",
+                label = AppStrings.get(R.string.lg_paste_credential_hint),
                 useLabelAsPlaceholder = true,
                 minLines = 4,
                 maxLines = 8
@@ -319,7 +323,7 @@ fun XunleiWebLoginScreen(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 TextButton(
-                    text = "取消",
+                    text = AppStrings.get(R.string.lg_cancel),
                     onClick = { if (!isSavingManual) showPasteDialog = false },
                     modifier = Modifier.weight(1f),
                     enabled = !isSavingManual
@@ -331,11 +335,11 @@ fun XunleiWebLoginScreen(
                             try {
                                 val saved = viewModel.saveWebCredential(pasteInput.trim())
                                 if (saved) {
-                                    SnackbarController.show("登录成功")
+                                    SnackbarController.show(AppStrings.get(R.string.lg_login_success))
                                     showPasteDialog = false
                                     onSaved()
                                 } else {
-                                    SnackbarController.show("凭据无效或已过期，请确认复制的是完整内容")
+                                    SnackbarController.show(AppStrings.get(R.string.lg_credential_invalid))
                                 }
                             } finally {
                                 isSavingManual = false
@@ -349,7 +353,7 @@ fun XunleiWebLoginScreen(
                     if (isSavingManual) {
                         LoginLoadingIndicator()
                     } else {
-                        Text("保存")
+                        Text(AppStrings.get(R.string.lg_save))
                     }
                 }
             }

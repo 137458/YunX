@@ -18,8 +18,10 @@
 
 package com.yunx.app.ui.login
 
+import com.yunx.app.R
 import com.yunx.app.data.repository.SaveNetworkException
 import com.yunx.app.data.repository.SaveResult
+import com.yunx.app.util.AppStrings
 
 /**
  * 把账号仓库的 Boolean 兼容入口还原为三态结果。
@@ -32,5 +34,5 @@ internal suspend fun loginSaveResult(block: suspend () -> Boolean): SaveResult =
     try {
         if (block()) SaveResult.Success else SaveResult.InvalidCredential
     } catch (e: SaveNetworkException) {
-        SaveResult.NetworkError(e.message ?: "网络异常，请重试")
+        SaveResult.NetworkError(e.message ?: AppStrings.get(R.string.er_account_network_error))
     }

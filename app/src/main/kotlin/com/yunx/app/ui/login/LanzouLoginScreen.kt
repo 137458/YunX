@@ -52,6 +52,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import com.yunx.app.R
+import com.yunx.app.util.AppStrings
 import com.yunx.app.ui.SnackbarController
 import com.yunx.app.ui.viewmodel.LanzouAccountViewModel
 import kotlinx.coroutines.launch
@@ -91,17 +93,17 @@ fun LanzouLoginScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = "蓝奏云登录",
+                title = AppStrings.get(R.string.lg_lanzou_title),
                 navigationIcon = {
                     IconButton(onClick = { if (!isSaving) onBack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = AppStrings.get(R.string.lg_back))
                     }
                 },
                 actions = {
                     IconButton(onClick = { showTutorial = true }, enabled = !isSaving) {
                         Icon(
                             Icons.Outlined.Info,
-                            contentDescription = "登录说明",
+                            contentDescription = AppStrings.get(R.string.lg_login_instructions),
                             tint = MiuixTheme.colorScheme.onSurfaceVariantActions
                         )
                     }
@@ -119,7 +121,7 @@ fun LanzouLoginScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                text = "使用蓝奏云账号密码登录（官方接口，自动通过人机校验）",
+                text = AppStrings.get(R.string.lg_lanzou_hint),
                 style = MiuixTheme.textStyles.body2,
                 color = MiuixTheme.colorScheme.onSurfaceVariantSummary
             )
@@ -131,7 +133,7 @@ fun LanzouLoginScreen(
                     error = null
                 },
                 modifier = Modifier.fillMaxWidth(),
-                label = "用户名 / 账号 / 手机号",
+                label = AppStrings.get(R.string.lg_lanzou_username_label),
                 useLabelAsPlaceholder = true,
                 singleLine = true,
                 enabled = !isSaving
@@ -144,7 +146,7 @@ fun LanzouLoginScreen(
                     error = null
                 },
                 modifier = Modifier.fillMaxWidth(),
-                label = "密码",
+                label = AppStrings.get(R.string.lg_password),
                 useLabelAsPlaceholder = true,
                 singleLine = true,
                 enabled = !isSaving,
@@ -155,7 +157,7 @@ fun LanzouLoginScreen(
                     IconButton(onClick = { passwordVisible = !passwordVisible }) {
                         Icon(
                             if (passwordVisible) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
-                            contentDescription = if (passwordVisible) "隐藏密码" else "显示密码"
+                            contentDescription = if (passwordVisible) AppStrings.get(R.string.lg_hide_password) else AppStrings.get(R.string.lg_show_password)
                         )
                     }
                 }
@@ -179,10 +181,10 @@ fun LanzouLoginScreen(
                         isSaving = false
                         result
                             .onSuccess {
-                                SnackbarController.show("登录成功")
+                                SnackbarController.show(AppStrings.get(R.string.lg_login_success))
                                 onSaved()
                             }
-                            .onFailure { error = it.message ?: "登录失败，请检查账号密码" }
+                            .onFailure { error = it.message ?: AppStrings.get(R.string.lg_login_failed_check) }
                     }
                 },
                 modifier = Modifier.fillMaxWidth().height(48.dp),
@@ -190,9 +192,9 @@ fun LanzouLoginScreen(
                 colors = ButtonDefaults.buttonColorsPrimary()
             ) {
                 if (isSaving) {
-                    LoginLoadingIndicator(text = "登录中…")
+                    LoginLoadingIndicator(text = AppStrings.get(R.string.lg_logging_in))
                 } else {
-                    Text("登录", style = MiuixTheme.textStyles.button)
+                    Text(AppStrings.get(R.string.lg_login), style = MiuixTheme.textStyles.button)
                 }
             }
         }
@@ -200,7 +202,7 @@ fun LanzouLoginScreen(
 
     OverlayDialog(
         show = showTutorial,
-        title = "登录说明",
+        title = AppStrings.get(R.string.lg_login_instructions),
         onDismissRequest = { showTutorial = false }
     ) {
         Column(
@@ -209,19 +211,19 @@ fun LanzouLoginScreen(
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Text("1. 输入蓝奏云账号（用户名或手机号）与密码后点击「登录」。", style = MiuixTheme.textStyles.body2)
+            Text(AppStrings.get(R.string.lg_lanzou_tutorial_1), style = MiuixTheme.textStyles.body2)
             Text(
-                "2. 登录成功后 Cookie 会加密保存在本机，用于个人盘与分享转存。",
+                AppStrings.get(R.string.lg_lanzou_tutorial_2),
                 style = MiuixTheme.textStyles.body2
             )
             Text(
-                "3. 若提示密码错误，请核对后重试（连续失败请稍后再试）。",
+                AppStrings.get(R.string.lg_lanzou_tutorial_3),
                 style = MiuixTheme.textStyles.body2,
                 color = MiuixTheme.colorScheme.onSurfaceVariantSummary
             )
             Spacer(modifier = Modifier.height(4.dp))
             TextButton(
-                text = "知道了",
+                text = AppStrings.get(R.string.lg_got_it),
                 onClick = { showTutorial = false },
                 modifier = Modifier.fillMaxWidth()
             )

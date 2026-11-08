@@ -48,6 +48,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import com.yunx.app.R
+import com.yunx.app.util.AppStrings
 import com.yunx.app.data.network.BaiduConstants
 import com.yunx.app.data.repository.SaveResult
 import com.yunx.app.ui.SnackbarController
@@ -100,7 +102,7 @@ fun BaiduLoginScreen(
 
     // 保存中允许返回：网络卡死时不能把用户困在登录页；离开时提示保存已取消
     val exitLogin: () -> Unit = {
-        if (isSaving || isSavingManual) SnackbarController.show("已取消保存，可稍后重新登录")
+        if (isSaving || isSavingManual) SnackbarController.show(AppStrings.get(R.string.lg_save_cancelled))
         onBack()
     }
 
@@ -121,13 +123,13 @@ fun BaiduLoginScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = "百度网盘登录",
+                title = AppStrings.get(R.string.lg_baidu_title),
                 navigationIcon = {
                     // 顶栏返回始终可点：保存中也要能退出，避免用户被困
                     IconButton(onClick = exitLogin) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "返回"
+                            contentDescription = AppStrings.get(R.string.lg_back)
                         )
                     }
                 },
@@ -138,7 +140,7 @@ fun BaiduLoginScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Outlined.ContentPaste,
-                            contentDescription = "手动输入凭证",
+                            contentDescription = AppStrings.get(R.string.lg_manual_credential),
                             tint = MiuixTheme.colorScheme.onSurfaceVariantActions
                         )
                     }
@@ -146,7 +148,7 @@ fun BaiduLoginScreen(
                         LoginLoadingIndicator(modifier = Modifier.padding(horizontal = 12.dp))
                     } else {
                         TextButton(
-                            text = "保存",
+                            text = AppStrings.get(R.string.lg_save),
                             onClick = {
                                 scope.launch {
                                     isSaving = true
@@ -157,11 +159,11 @@ fun BaiduLoginScreen(
                                         // 三态：成功才关闭登录页；凭证无效提示检查；网络失败保留输入、留在本页
                                         when (val result = loginSaveResult { viewModel.saveBaiduAccount(cookie) }) {
                                             SaveResult.Success -> {
-                                                SnackbarController.show("登录成功")
+                                                SnackbarController.show(AppStrings.get(R.string.lg_login_success))
                                                 onSaved()
                                             }
                                             SaveResult.InvalidCredential ->
-                                                SnackbarController.show("未检测到登录状态，请先在网页中完成登录，再点保存")
+                                                SnackbarController.show(AppStrings.get(R.string.lg_no_login_state_save))
                                             is SaveResult.NetworkError -> SnackbarController.show(result.message)
                                         }
                                     } finally {
@@ -202,7 +204,7 @@ fun BaiduLoginScreen(
         // 上游 v1.3.1 起：必须勾选「我已阅读并了解上述风险」才能继续，且不允许点外部/返回键关闭
         OverlayDialog(
             show = showRiskDialog,
-            title = "使用前请阅读",
+            title = AppStrings.get(R.string.lg_baidu_risk_title),
             onDismissRequest = {}
         ) {
             Column(
@@ -210,17 +212,17 @@ fun BaiduLoginScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
-                    text = "百度网盘风控严重，可能导致你的账号被风控",
+                    text = AppStrings.get(R.string.lg_baidu_risk_1),
                     style = MiuixTheme.textStyles.body1,
                     color = MiuixTheme.colorScheme.onSurface
                 )
                 Text(
-                    text = "以下情况通常都是风控导致，不是软件故障：\n· 获取 bdstoken 失败\n· 个人网盘文件列表加载不出来",
+                    text = AppStrings.get(R.string.lg_baidu_risk_2),
                     style = MiuixTheme.textStyles.body2,
                     color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                 )
                 Text(
-                    text = "请勿高频操作（频繁解析/转存/下载/上传），如遇异常建议降低使用频率或稍后再试。",
+                    text = AppStrings.get(R.string.lg_baidu_risk_3),
                     style = MiuixTheme.textStyles.body2,
                     color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                 )
@@ -238,14 +240,14 @@ fun BaiduLoginScreen(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "我已阅读并了解上述风险",
+                        text = AppStrings.get(R.string.lg_baidu_risk_ack),
                         style = MiuixTheme.textStyles.body2,
                         color = MiuixTheme.colorScheme.onSurface
                     )
                 }
             }
             TextButton(
-                text = "继续",
+                text = AppStrings.get(R.string.lg_continue),
                 onClick = {
                     showRiskDialog = false
                     showTutorial = true
@@ -259,7 +261,7 @@ fun BaiduLoginScreen(
         // 登录教程弹窗
         OverlayDialog(
             show = showTutorial,
-            title = "登录教程",
+            title = AppStrings.get(R.string.lg_login_tutorial),
             onDismissRequest = { showTutorial = false }
         ) {
             Column(
@@ -267,28 +269,28 @@ fun BaiduLoginScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
-                    text = "1. 在下方网页中登录百度账号",
+                    text = AppStrings.get(R.string.lg_baidu_tutorial_1),
                     style = MiuixTheme.textStyles.body1,
                     color = MiuixTheme.colorScheme.onSurface
                 )
                 Text(
-                    text = "2. 登录完成后将自动检测登录；若未自动登录，点右上角「保存」",
+                    text = AppStrings.get(R.string.lg_baidu_tutorial_2),
                     style = MiuixTheme.textStyles.body1,
                     color = MiuixTheme.colorScheme.onSurface
                 )
                 Text(
-                    text = "3. 或点击「粘贴」图标，手动输入 Cookie（需含 BDUSS=）",
+                    text = AppStrings.get(R.string.lg_baidu_tutorial_3),
                     style = MiuixTheme.textStyles.body1,
                     color = MiuixTheme.colorScheme.onSurface
                 )
                 Text(
-                    text = "4. Cookie 长期有效，失效后需重新登录",
+                    text = AppStrings.get(R.string.lg_baidu_tutorial_4),
                     style = MiuixTheme.textStyles.body2,
                     color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                 )
             }
             TextButton(
-                text = "知道了",
+                text = AppStrings.get(R.string.lg_got_it),
                 onClick = { showTutorial = false },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.textButtonColorsPrimary()
@@ -298,12 +300,12 @@ fun BaiduLoginScreen(
         // 手动输入凭证弹窗（各平台统一标题，字段名沿用平台自身：Cookie）
         OverlayDialog(
             show = showCookieDialog,
-            title = "手动输入凭证",
+            title = AppStrings.get(R.string.lg_manual_credential),
             onDismissRequest = { if (!isSavingManual) showCookieDialog = false }
         ) {
             Column {
                 Text(
-                    text = "从网页登录态复制完整的 Cookie（需包含 BDUSS=）",
+                    text = AppStrings.get(R.string.lg_baidu_cookie_hint),
                     style = MiuixTheme.textStyles.body2,
                     color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                     modifier = Modifier.padding(bottom = 12.dp)
@@ -314,7 +316,7 @@ fun BaiduLoginScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(bottom = 16.dp),
-                    label = "粘贴 Cookie…",
+                    label = AppStrings.get(R.string.lg_paste_cookie_hint),
                     useLabelAsPlaceholder = true,
                     minLines = 4,
                     maxLines = 8
@@ -324,7 +326,7 @@ fun BaiduLoginScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     TextButton(
-                        text = "取消",
+                        text = AppStrings.get(R.string.lg_cancel),
                         onClick = { if (!isSavingManual) showCookieDialog = false },
                         modifier = Modifier.weight(1f),
                         enabled = !isSavingManual
@@ -336,12 +338,12 @@ fun BaiduLoginScreen(
                                 try {
                                     when (val result = loginSaveResult { viewModel.saveBaiduAccount(cookieInput.trim()) }) {
                                         SaveResult.Success -> {
-                                            SnackbarController.show("登录成功")
+                                            SnackbarController.show(AppStrings.get(R.string.lg_login_success))
                                             showCookieDialog = false
                                             onSaved()
                                         }
                                         SaveResult.InvalidCredential ->
-                                            SnackbarController.show("Cookie 不完整，请确认复制了完整的登录凭证")
+                                            SnackbarController.show(AppStrings.get(R.string.lg_cookie_incomplete))
                                         // 网络失败：保留弹窗与已输入内容，只提示重试
                                         is SaveResult.NetworkError -> SnackbarController.show(result.message)
                                     }
@@ -357,7 +359,7 @@ fun BaiduLoginScreen(
                         if (isSavingManual) {
                             LoginLoadingIndicator()
                         } else {
-                            Text("保存")
+                            Text(AppStrings.get(R.string.lg_save))
                         }
                     }
                 }
