@@ -179,6 +179,8 @@ dependencies {
     implementation(libs.miuix.icons.android)
     // 版本约束见 libs.versions.toml 的 androidx-navigationevent-compose 注释（与 miuix 0.9.4 的 pom 对齐）
     implementation(libs.androidx.navigationevent.compose)
+    // 导航：NavHost 承载系统预测性返回（实现细节见 libs.versions.toml 的 navigation 注释）
+    implementation(libs.androidx.navigation.compose)
     implementation(libs.kotlinx.serialization.json)
 
     // kotlin-stdlib 统一约束版本见 libs.versions.toml 的 kotlinStdlib 注释。

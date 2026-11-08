@@ -31,6 +31,11 @@ composeBom = "2026.09.00"
 #    升版就是因为 alpha18 的基线停在 1.11.0-beta02，而 compose 1.12.1 的 aar-metadata 要求 minCompileSdk=37 / AGP ≥ 9.1.0，
 #    等于让 1.11 线编译的 material3 跑在 1.12 线上（混版，Expressive 组件运行时行为无人背书）。
 material3Expressive = "1.5.0-alpha26"
+# Navigation Compose：预测性返回由 NavHost 内部的 PredictiveBackHandler 驱动（反编译 2.9.5 的
+# NavComposeUtils_androidKt 确认调用 androidx.activity.compose.PredictiveBackHandler；该能力自 2.8.0 起提供）。
+# 2.9.5 的 aar-metadata 为 minCompileSdk=35 / AGP ≥ 8.6.0，本项目 compileSdk 37 + AGP 9.1.1 满足；
+# 其 pom 依赖 compose runtime/ui/animation 1.7.2，由 BOM 2026.09.00 的 1.12.1 取高版本覆盖。
+navigation = "2.9.5"
 
 # Room 2.7 起正式支持 KSP2（KSP 2.x 默认走 KSP2 处理器），2.6.1 只兼容 KSP1
 room = "2.8.5"
@@ -79,6 +84,7 @@ androidx-activity-compose = { group = "androidx.activity", name = "activity-comp
 # 与 miuix 0.9.4 的 pom 对齐（requires navigationevent-compose 1.1.2）：Theme.kt 直接使用
 # rememberNavigationEventDispatcherOwner，声明旧版本只是被 Gradle 取高版本兜住，写死旧版已成死钉。
 androidx-navigationevent-compose = { group = "androidx.navigationevent", name = "navigationevent-compose", version.ref = "navigationevent" }
+androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigation" }
 okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
 kotlin-stdlib = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib", version.ref = "kotlinStdlib" }
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }

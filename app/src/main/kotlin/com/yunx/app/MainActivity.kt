@@ -27,7 +27,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.mutableStateOf
 import com.yunx.app.crash.CrashHandler
 import com.yunx.app.data.download.MagnetLink
-import com.yunx.app.ui.MainScreen
+import com.yunx.app.ui.navigation.AppNavHost
 import com.yunx.app.ui.navigation.MainTab
 import com.yunx.app.ui.screens.SafetyNoticeDialog
 import com.yunx.app.ui.theme.ComposeEmptyActivityTheme
@@ -91,7 +91,7 @@ class MainActivity : ComponentActivity() {
         }
         setContent {
             ComposeEmptyActivityTheme {
-                MainScreen(
+                AppNavHost(
                     openTab = pendingTab.value,
                     onOpenTabConsumed = { pendingTab.value = null },
                     incomingLink = pendingLink.value,
