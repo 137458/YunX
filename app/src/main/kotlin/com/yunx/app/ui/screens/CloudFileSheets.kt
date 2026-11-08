@@ -53,8 +53,8 @@ import com.yunx.app.data.upload.UploadProgress
 import com.yunx.app.ui.AppSnackbarHost
 import com.yunx.app.ui.SnackbarController
 import com.yunx.app.ui.rememberGlobalSnackbarHostState
-import com.yunx.app.ui.resolve.formatSize
 import com.yunx.app.ui.theme.SquircleShape
+import com.yunx.app.util.ByteFormat
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Card
@@ -225,7 +225,7 @@ internal fun UploadProgressDialog(progress: UploadProgress, onCancel: () -> Unit
                     color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                 )
                 Text(
-                    text = formatSize(progress.sent) + " / " + formatSize(progress.size),
+                    text = ByteFormat.size(progress.sent) + " / " + ByteFormat.size(progress.size),
                     style = MiuixTheme.textStyles.footnote1,
                     color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                 )

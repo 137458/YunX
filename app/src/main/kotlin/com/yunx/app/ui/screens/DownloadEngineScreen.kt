@@ -77,8 +77,8 @@ import com.yunx.app.data.gopeed.KernelProvisioner
 import com.yunx.app.data.prefs.SettingsRepository
 import com.yunx.app.ui.components.YunXWavyLoading
 import com.yunx.app.ui.components.YunXWavyProgress
-import com.yunx.app.ui.resolve.formatSize
 import com.yunx.app.ui.theme.SquircleShape
+import com.yunx.app.util.ByteFormat
 import com.yunx.app.ui.theme.effectsDefault
 import com.yunx.app.ui.theme.effectsFast
 import com.yunx.app.util.PermissionState
@@ -240,7 +240,7 @@ fun DownloadEngineScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
             action {
                 val bytes = withContext(Dispatchers.IO) { GopeedEngine.installFromAar(context, uri) }
                 refreshSoInfo()
-                notice = "内核已导入：libgojni.so ${formatSize(bytes)}"
+                notice = "内核已导入：libgojni.so ${ByteFormat.size(bytes)}"
                 failure = GopeedEngine.lastError
             }
         }
@@ -303,7 +303,7 @@ fun DownloadEngineScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
         val done = provisionPhase as? KernelProvisioner.Phase.Done ?: return@LaunchedEffect
         refreshSoInfo()
         GopeedEngine.syncInstalledState(context)
-        notice = "内核已导入：libgojni.so ${formatSize(done.bytes)}" +
+        notice = "内核已导入：libgojni.so ${ByteFormat.size(done.bytes)}" +
             (if (GopeedEngine.pendingRestartForNewKernel) "　·　重启应用后生效" else "")
         failure = GopeedEngine.lastError
     }
@@ -428,7 +428,7 @@ fun DownloadEngineScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
 
                             Text(
                                 if (installed) {
-                                    "内核：${formatSize(soBytes)}" +
+                                    "内核：${ByteFormat.size(soBytes)}" +
                                         (if (engineVersion.isNotBlank()) "　·　核心版本 $engineVersion" else "")
                                 } else {
                                     "内核：未导入（需要 libgopeed-<abi>.aar）"
@@ -749,7 +749,7 @@ private fun KernelCloudSheet(
                     )
                     Text(
                         text = if (release.assetSize > 0L) {
-                            "大小 ${formatSize(release.assetSize)}"
+                            "大小 ${ByteFormat.size(release.assetSize)}"
                         } else {
                             "大小未知"
                         },
@@ -881,7 +881,7 @@ private fun KernelProgressDialog(
                     is KernelProvisioner.Phase.Merging -> "正在合并分片…"
                     is KernelProvisioner.Phase.Importing -> "正在解包导入…"
                     is KernelProvisioner.Phase.Done ->
-                        "${phase.fileName} 已解出 libgojni.so ${formatSize(phase.bytes)}"
+                        "${phase.fileName} 已解出 libgojni.so ${ByteFormat.size(phase.bytes)}"
                     is KernelProvisioner.Phase.Failed -> phase.message
                     else -> ""
                 },
@@ -916,12 +916,12 @@ private fun KernelProgressDialog(
                         text = buildString {
                             if (known) {
                                 append("${(fraction * 100).toInt()}%　")
-                                append("${formatSize(downloading.downloaded)} / ${formatSize(downloading.total)}")
+                                append("${ByteFormat.size(downloading.downloaded)} / ${ByteFormat.size(downloading.total)}")
                             } else {
-                                append(formatSize(downloading.downloaded))
+                                append(ByteFormat.size(downloading.downloaded))
                             }
                             if (downloading.speedBps > 0L) {
-                                append("　·　${formatSize(downloading.speedBps)}/s")
+                                append("　·　${ByteFormat.size(downloading.speedBps)}/s")
                             }
                             append("　·　${downloading.chunks} 分片")
                         },

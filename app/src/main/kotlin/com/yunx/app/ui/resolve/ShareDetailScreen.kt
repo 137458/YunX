@@ -113,6 +113,7 @@ import com.yunx.app.ui.viewmodel.QuarkCloudViewModel
 import com.yunx.app.ui.viewmodel.ResolveViewModel
 import com.yunx.app.ui.viewmodel.UCCoudViewModel
 import com.yunx.app.ui.viewmodel.XunleiCloudViewModel
+import com.yunx.app.util.ByteFormat
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Card
@@ -816,7 +817,7 @@ internal fun ShareFileRow(
                 // 副标题行：文件夹/大小 + 修改时间（同一行展示）
                 Text(
                     text = buildString {
-                        append(if (file.isdir) "文件夹" else formatSize(file.fsize))
+                        append(if (file.isdir) "文件夹" else ByteFormat.size(file.fsize))
                         val time = formatModifyTime(file.modifyTime)
                         if (time.isNotBlank()) {
                             append("  ·  ")
@@ -945,18 +946,6 @@ private fun FileIconBadge(file: ShareFile) {
             )
         }
     }
-}
-
-internal fun formatSize(bytes: Long): String {
-    if (bytes <= 0) return "0 B"
-    val units = arrayOf("B", "KB", "MB", "GB", "TB")
-    var value = bytes.toDouble()
-    var i = 0
-    while (value >= 1024 && i < units.size - 1) {
-        value /= 1024
-        i++
-    }
-    return String.format("%.1f %s", value, units[i])
 }
 
 /**

@@ -104,6 +104,7 @@ import com.yunx.app.ui.viewmodel.Pan123CloudViewModel
 import com.yunx.app.ui.viewmodel.QuarkCloudViewModel
 import com.yunx.app.ui.viewmodel.UCCoudViewModel
 import com.yunx.app.ui.viewmodel.XunleiCloudViewModel
+import com.yunx.app.util.ByteFormat
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.CardDefaults
 import top.yukonga.miuix.kmp.basic.HorizontalDivider
@@ -1092,7 +1093,7 @@ private fun QuotaInlineBar(quota: QuotaInfo) {
     }
     Column {
         Text(
-            text = "已用 ${formatBytes(quota.used)} / ${formatBytes(quota.total)}",
+            text = "已用 ${ByteFormat.size(quota.used)} / ${ByteFormat.size(quota.total)}",
             style = MiuixTheme.textStyles.footnote1,
             color = MiuixTheme.colorScheme.onSurfaceVariantSummary
         )
@@ -1129,20 +1130,6 @@ private fun LoginBadge(isLoggedIn: Boolean) {
             color = MiuixTheme.colorScheme.onSurfaceVariantSummary
         )
     }
-}
-
-/** 字节数格式化：B / KB / MB / GB / TB */
-private fun formatBytes(bytes: Long): String {
-    if (bytes <= 0) return "0 B"
-    val units = arrayOf("B", "KB", "MB", "GB", "TB")
-    var value = bytes.toDouble()
-    var unit = 0
-    while (value >= 1024 && unit < units.size - 1) {
-        value /= 1024
-        unit++
-    }
-    return if (unit == 0) "${bytes} B"
-    else String.format("%.1f %s", value, units[unit])
 }
 
 /**

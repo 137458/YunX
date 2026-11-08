@@ -75,7 +75,7 @@ import com.yunx.app.ui.preview.MediaPlayerPane
 import com.yunx.app.ui.preview.PreviewKind
 import com.yunx.app.ui.preview.PreviewLauncher
 import com.yunx.app.ui.preview.PreviewMedia
-import com.yunx.app.ui.resolve.formatSize
+import com.yunx.app.util.ByteFormat
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -605,7 +605,7 @@ private fun VideoMediaRow(
 ) {
     val subtitle = buildList {
         if (media.quality.isNotBlank()) add(media.quality)
-        if (media.size > 0) add(formatSize(media.size))
+        if (media.size > 0) add(ByteFormat.size(media.size))
     }.joinToString("  ·  ")
 
     Row(
