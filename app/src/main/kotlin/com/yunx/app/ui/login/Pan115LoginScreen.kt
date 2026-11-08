@@ -91,6 +91,8 @@ fun Pan115LoginScreen(
     // 渲染进程崩溃后旧 WebView 不可再用，只能重建：epoch 变化时 remember 会造一个新的
     var webViewEpoch by remember { mutableIntStateOf(0) }
     var rendererGone by remember { mutableStateOf(false) }
+    // 重建预算：页面级状态，离开本页即销毁，重新进入重新计数
+    var restartBudget by remember { mutableStateOf(RendererRestartBudget()) }
 
     // 手动输入 Cookie 弹窗状态
     var showCookieDialog by remember { mutableStateOf(false) }
@@ -250,12 +252,15 @@ fun Pan115LoginScreen(
             }
             if (rendererGone) {
                 LoginLoadFailureOverlay(
-                    message = RENDER_PROCESS_GONE_MESSAGE,
-                    onRetry = {
-                        rendererGone = false
-                        isLoading = true
-                        webViewEpoch++
-                    }
+                    message = rendererCrashMessage(restartBudget),
+                    onRetry = if (restartBudget.canRetry) {
+                        {
+                            restartBudget = restartBudget.consume()
+                            rendererGone = false
+                            isLoading = true
+                            webViewEpoch++
+                        }
+                    } else null
                 )
             }
         }

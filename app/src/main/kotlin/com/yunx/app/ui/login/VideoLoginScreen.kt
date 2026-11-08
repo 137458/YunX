@@ -125,6 +125,8 @@ fun VideoLoginScreen(
     // 渲染进程崩溃后旧 WebView 不可再用，只能重建：epoch 变化时 remember 会造一个新的
     var webViewEpoch by remember { mutableIntStateOf(0) }
     var rendererGone by remember { mutableStateOf(false) }
+    // 重建预算：页面级状态，离开本页即销毁，重新进入重新计数；换平台也重新计数
+    var restartBudget by remember(platform) { mutableStateOf(RendererRestartBudget()) }
     /**
      * 「游客基线」Cookie：页面刚打开时服务端会先种一批**游客**凭证
      * （小红书会自己种下游客态 `web_session`），它们只说明「有过会话」。
@@ -295,17 +297,24 @@ fun VideoLoginScreen(
                         onClick = {
                             if (!isSaving && !isSavingManual) {
                                 loadError = null
-                                isLoading = true
                                 // 渲染进程崩溃过的 WebView 已经销毁，reload 无效，只能重建
                                 if (rendererGone) {
-                                    rendererGone = false
-                                    webViewEpoch++
+                                    // 与覆盖层「重试」共用同一份重建预算，不能靠刷新按钮绕过上限
+                                    if (restartBudget.canRetry) {
+                                        restartBudget = restartBudget.consume()
+                                        rendererGone = false
+                                        isLoading = true
+                                        webViewEpoch++
+                                    }
                                 } else {
+                                    isLoading = true
                                     webView.reload()
                                 }
                             }
                         },
-                        enabled = !isSaving && !isSavingManual
+                        // 重建次数用尽后刷新也无效，直接禁用，避免用户反复点了没反应
+                        enabled = !isSaving && !isSavingManual &&
+                            !(rendererGone && !restartBudget.canRetry)
                     ) {
                         Icon(
                             imageVector = Icons.Outlined.Refresh,
@@ -419,12 +428,15 @@ fun VideoLoginScreen(
             // 渲染进程崩溃（基类已销毁旧 WebView）：覆盖在主文档错误卡片之上，只能重建页面
             if (rendererGone) {
                 LoginLoadFailureOverlay(
-                    message = RENDER_PROCESS_GONE_MESSAGE,
-                    onRetry = {
-                        rendererGone = false
-                        isLoading = true
-                        webViewEpoch++
-                    }
+                    message = rendererCrashMessage(restartBudget),
+                    onRetry = if (restartBudget.canRetry) {
+                        {
+                            restartBudget = restartBudget.consume()
+                            rendererGone = false
+                            isLoading = true
+                            webViewEpoch++
+                        }
+                    } else null
                 )
             }
         }

@@ -131,9 +131,6 @@ internal open class DiagnosticWebViewClient : WebViewClient() {
     }
 }
 
-/** 渲染进程崩溃后各登录页展示的提示文案（集中一处，避免措辞漂移）。 */
-internal const val RENDER_PROCESS_GONE_MESSAGE = "页面渲染进程已崩溃，请点「重试」重新加载"
-
 /**
  * 登录页 WebView 的**诊断版 WebChromeClient**：把页面的 JS 控制台消息（**只记 WARN / ERROR**，
  * 单条截断 200 字）落进诊断日志**并同时写 logcat**。

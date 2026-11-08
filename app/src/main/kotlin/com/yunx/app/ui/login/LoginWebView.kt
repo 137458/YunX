@@ -289,11 +289,13 @@ fun rememberLoginWebView(
 
 /**
  * 加载失败覆盖层：加载失败/超时/渲染进程反复崩溃时覆盖 WebView，提供明确的「加载失败 + 重试」出口。
+ *
+ * @param onRetry 重试动作；传 null 表示重试已无意义（例如渲染进程重建次数达到上限），此时只显示说明、不给按钮
  */
 @Composable
 fun LoginLoadFailureOverlay(
     message: String,
-    onRetry: () -> Unit,
+    onRetry: (() -> Unit)?,
     modifier: Modifier = Modifier
 ) {
     Box(
@@ -318,11 +320,13 @@ fun LoginLoadFailureOverlay(
                 color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                 textAlign = TextAlign.Center
             )
-            Button(
-                onClick = onRetry,
-                colors = ButtonDefaults.buttonColorsPrimary()
-            ) {
-                Text("重试")
+            onRetry?.let { retry ->
+                Button(
+                    onClick = retry,
+                    colors = ButtonDefaults.buttonColorsPrimary()
+                ) {
+                    Text("重试")
+                }
             }
         }
     }
