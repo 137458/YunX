@@ -80,6 +80,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -87,6 +88,7 @@ import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.yunx.app.data.db.DownloadTaskEntity
@@ -232,9 +234,10 @@ fun DownloadScreen(
 
                 // 根目录任务（无相对路径）单独显示；文件夹任务按「顶级目录」分组（整个文件夹归为一组）
                 items(rootTasks, key = { it.id }, contentType = { "download_task" }) { task ->
-                        DownloadTaskCard(
+                        DownloadTaskRow(
                             task = task,
                             stats = stats[task.id],
+                            density = TaskRowDensity.Regular,
                             onPause = { viewModel.pause(task.id) },
                             onResume = { viewModel.resume(task.id) },
                             onRemove = { pendingDelete = task },
@@ -680,9 +683,10 @@ private fun FolderDownloadGroup(
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         tasks.forEach { task ->
-                            DownloadSubTaskRow(
+                            DownloadTaskRow(
                                 task = task,
                                 stats = stats[task.id],
+                                density = TaskRowDensity.Compact,
                                 onPause = { onPause(task.id) },
                                 onResume = { onResume(task.id) },
                                 onRemove = { onRemove(task) },
@@ -698,14 +702,57 @@ private fun FolderDownloadGroup(
     }
 }
 
+/** 任务行密度：独立任务卡用 Regular，文件夹组内子任务用 Compact。只改尺寸字号，不改结构 */
+private enum class TaskRowDensity(
+    val horizontalPadding: Dp,
+    val verticalPadding: Dp,
+    val iconSize: Dp,
+    val iconShape: Shape,
+    val glyphSize: Dp,
+    val iconSpacing: Dp,
+    val actionGlyphSize: Dp,
+    val progressHeight: Dp,
+    val nestedContainer: Boolean,
+    val compactText: Boolean,
+) {
+    Regular(
+        horizontalPadding = 14.dp,
+        verticalPadding = 14.dp,
+        iconSize = 40.dp,
+        iconShape = CircleShape,
+        glyphSize = 20.dp,
+        iconSpacing = 12.dp,
+        actionGlyphSize = 20.dp,
+        progressHeight = 6.dp,
+        nestedContainer = false,
+        compactText = false,
+    ),
+    Compact(
+        horizontalPadding = 10.dp,
+        verticalPadding = 8.dp,
+        iconSize = 32.dp,
+        iconShape = SquircleShape(9.dp),
+        glyphSize = 16.dp,
+        iconSpacing = 10.dp,
+        actionGlyphSize = 18.dp,
+        progressHeight = 3.dp,
+        nestedContainer = true,
+        compactText = true,
+    ),
+}
+
 /**
- * 文件夹组内子任务紧凑行：相对路径 + 状态 + 进度条 + 操作按钮。
- * 相比独立任务卡更轻量，适合嵌套在文件夹组内。
+ * 下载任务行（列表与文件夹组共用）。
+ *
+ * 结构固定为：图标 + 文件名 + 状态/速度 + 失败原因 + 进度条 + 底部进度与删除。
+ * 两种密度只改内边距、图标尺寸与形状、字号和进度条高度，不增删字段——
+ * 切换「按文件夹分组」后同一任务的行高、字号、图标形状与信息量不再跳变。
  */
 @Composable
-private fun DownloadSubTaskRow(
+private fun DownloadTaskRow(
     task: DownloadTaskEntity,
     stats: DownloadStats?,
+    density: TaskRowDensity,
     onPause: () -> Unit,
     onResume: () -> Unit,
     onRemove: () -> Unit,
@@ -715,12 +762,11 @@ private fun DownloadSubTaskRow(
     onOpenDebug: (Long) -> Unit = {}
 ) {
     val context = LocalContext.current
-    val isDownloading = task.status == DownloadTaskEntity.STATUS_DOWNLOADING ||
-        task.status == DownloadTaskEntity.STATUS_PENDING
     val fraction = if (task.totalSize > 0) {
         (task.downloadedSize.toFloat() / task.totalSize).coerceIn(0f, 1f)
     } else 0f
-    // 显示相对路径（去掉顶级目录前缀，如 "A/B/b.mp4" → "B/b.mp4"）
+    // 相对路径（"A/B/b.mp4" → "B/b.mp4"）：组内子任务与独立任务统一按末级目录以下显示，
+    // 既不丢区分度，也不会在分组视图里重复整条路径
     val displayName = task.fileName.substringAfter('/')
     // 长按任务行弹出操作菜单（复制直链 / 重新下载 / 删除）
     var showMenu by remember { mutableStateOf(false) }
@@ -729,269 +775,126 @@ private fun DownloadSubTaskRow(
     Card(
         modifier = Modifier.fillMaxWidth(),
         onLongPress = { showMenu = true },
-        colors = CardDefaults.defaultColors(
-            color = MiuixTheme.colorScheme.surfaceContainer
-        )
+        colors = if (density.nestedContainer) {
+            CardDefaults.defaultColors(color = MiuixTheme.colorScheme.surfaceContainer)
+        } else {
+            CardDefaults.defaultColors()
+        }
     ) {
-        Column(modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp)) {
+        Column(
+            modifier = Modifier.padding(
+                horizontal = density.horizontalPadding,
+                vertical = density.verticalPadding,
+            )
+        ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 // 文件小图标
                 Surface(
-                    modifier = Modifier.size(32.dp),
-                    shape = SquircleShape(9.dp),
+                    modifier = Modifier.size(density.iconSize),
+                    shape = density.iconShape,
                     color = MiuixTheme.colorScheme.surfaceContainerHighest
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Outlined.InsertDriveFile,
                             contentDescription = null,
-                            modifier = Modifier.size(16.dp),
+                            modifier = Modifier.size(density.glyphSize),
                             tint = MiuixTheme.colorScheme.onSurfaceSecondary
                         )
                     }
                 }
-                Spacer(modifier = Modifier.width(10.dp))
+                Spacer(modifier = Modifier.width(density.iconSpacing))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = displayName,
-                        style = MiuixTheme.textStyles.body2,
+                        style = if (density.compactText) {
+                            MiuixTheme.textStyles.body2
+                        } else {
+                            MiuixTheme.textStyles.body1
+                        },
                         fontWeight = FontWeight.Medium,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        text = when {
-                            isDownloading && stats != null && stats.speed > 0 ->
-                                "${DownloadTaskEntity.statusText(task.status)} · ${formatSpeed(stats.speed)}"
-                            task.status == DownloadTaskEntity.STATUS_COMPLETED && task.avgSpeed > 0 ->
-                                "${DownloadTaskEntity.statusText(task.status)} · 平均 ${formatSpeed(task.avgSpeed)}"
-                            else -> taskStatusLine(task)
+                        text = taskRowSubtitle(task, stats),
+                        style = if (density.compactText) {
+                            MiuixTheme.textStyles.footnote2
+                        } else {
+                            MiuixTheme.textStyles.body2
                         },
-                        style = MiuixTheme.textStyles.footnote2,
                         color = if (task.status == DownloadTaskEntity.STATUS_FAILED) {
                             MiuixTheme.colorScheme.error
                         } else {
                             MiuixTheme.colorScheme.onSurfaceSecondary
-                        }
-                    )
-                }
-                // 主操作（暂停/继续/重试/打开）
-                when (task.status) {
-                    DownloadTaskEntity.STATUS_DOWNLOADING,
-                    DownloadTaskEntity.STATUS_PENDING -> IconButton(onClick = onPause, modifier = Modifier.size(48.dp)) {
-                        Icon(
-                            Icons.Outlined.Pause, contentDescription = "暂停",
-                            tint = MiuixTheme.colorScheme.primary, modifier = Modifier.size(18.dp)
-                        )
-                    }
-                    DownloadTaskEntity.STATUS_PAUSED -> IconButton(onClick = onResume, modifier = Modifier.size(48.dp)) {
-                        Icon(
-                            Icons.Outlined.PlayArrow, contentDescription = "继续",
-                            tint = MiuixTheme.colorScheme.primary, modifier = Modifier.size(18.dp)
-                        )
-                    }
-                    DownloadTaskEntity.STATUS_FAILED -> IconButton(onClick = onResume, modifier = Modifier.size(48.dp)) {
-                        Icon(
-                            Icons.Outlined.Refresh, contentDescription = "重试",
-                            tint = MiuixTheme.colorScheme.error, modifier = Modifier.size(18.dp)
-                        )
-                    }
-                    DownloadTaskEntity.STATUS_COMPLETED -> IconButton(
-                        onClick = { openSavedFile(context, task.savePath) },
-                        modifier = Modifier.size(48.dp)
-                    ) {
-                        Icon(
-                            Icons.AutoMirrored.Outlined.OpenInNew, contentDescription = "打开",
-                            tint = MiuixTheme.colorScheme.primary, modifier = Modifier.size(18.dp)
-                        )
-                    }
-                }
-                // 删除（命中区 48dp：Miuix IconButton 不会自动扩展触摸目标）
-                IconButton(onClick = onRemove, modifier = Modifier.size(48.dp)) {
-                    Icon(
-                        Icons.Outlined.Delete, contentDescription = "删除",
-                        tint = MiuixTheme.colorScheme.error, modifier = Modifier.size(18.dp)
-                    )
-                }
-            }
-            // 细进度条（完成态或大小未知时折叠，带过渡动画）
-            AnimatedVisibility(
-                visible = task.status != DownloadTaskEntity.STATUS_COMPLETED && task.totalSize > 0,
-                enter = expandVertically(tween(200)) + fadeIn(tween(200)),
-                exit = shrinkVertically(tween(200)) + fadeOut(tween(150))
-            ) {
-                LinearProgressIndicator(
-                    progress = fraction,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 6.dp),
-                    height = 3.dp,
-                    colors = ProgressIndicatorDefaults.progressIndicatorColors(
-                        foregroundColor = if (task.status == DownloadTaskEntity.STATUS_FAILED) {
-                            MiuixTheme.colorScheme.error
-                        } else {
-                            MiuixTheme.colorScheme.primary
                         },
-                        backgroundColor = MiuixTheme.colorScheme.surfaceContainerHighest
-                    )
-                )
-            }
-        }
-
-        // 长按任务行弹出操作菜单（复制直链 / 重新下载 / 删除）
-        if (showMenu) {
-            WindowDialog(
-                show = showMenu,
-                onDismissRequest = { showMenu = false },
-                title = displayName
-            ) {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    TextButton(
-                        text = "复制直链",
-                        onClick = {
-                            showMenu = false
-                            copyToClipboard(context, task.url)
-                            SnackbarController.show("直链已复制")
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    TextButton(
-                        text = "重新下载",
-                        onClick = {
-                            showMenu = false
-                            onRedownload()
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    TextButton(
-                        text = "删除任务",
-                        onClick = {
-                            showMenu = false
-                            onRemove()
-                        },
-                        colors = ButtonDefaults.textButtonColors(
-                            textColor = MiuixTheme.colorScheme.error
-                        ),
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    if (downloadDebug) {
-                        TextButton(
-                            text = "调试信息",
-                            onClick = {
-                                showMenu = false
-                                onOpenDebug(task.id)
-                            },
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(4.dp))
-                    TextButton(
-                        text = "取消",
-                        onClick = { showMenu = false },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-                AppSnackbarHost(rememberGlobalSnackbarHostState())
-            }
-        }
-    }
-}
-
-@Composable
-private fun DownloadTaskCard(
-    task: DownloadTaskEntity,
-    stats: DownloadStats?,
-    onPause: () -> Unit,
-    onResume: () -> Unit,
-    onRemove: () -> Unit,
-    onRedownload: () -> Unit,
-    /** 下载调试开启时长按菜单出现「调试信息」 */
-    downloadDebug: Boolean = false,
-    onOpenDebug: (Long) -> Unit = {}
-) {
-    val context = LocalContext.current
-    val isDownloading = task.status == DownloadTaskEntity.STATUS_DOWNLOADING ||
-        task.status == DownloadTaskEntity.STATUS_PENDING
-    val fraction = if (task.totalSize > 0) {
-        (task.downloadedSize.toFloat() / task.totalSize).coerceIn(0f, 1f)
-    } else 0f
-    // 长按任务卡弹出操作菜单（复制直链 / 重新下载 / 删除）
-    var showMenu by remember { mutableStateOf(false) }
-
-    // 只保留长按手势：原先的 onClick = {} 会让卡片被读屏当成"按钮"却没有任何动作。
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        onLongPress = { showMenu = true },
-        colors = CardDefaults.defaultColors()
-    ) {
-        Column(modifier = Modifier.padding(14.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Surface(
-                    modifier = Modifier.size(40.dp),
-                    shape = CircleShape,
-                    color = MiuixTheme.colorScheme.surfaceContainerHighest
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Outlined.InsertDriveFile,
-                            contentDescription = null,
-                            modifier = Modifier.size(20.dp),
-                            tint = MiuixTheme.colorScheme.onSurfaceSecondary
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.width(12.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = task.fileName,
-                        style = MiuixTheme.textStyles.body1,
-                        fontWeight = FontWeight.Medium,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Text(
-                        text = taskStatusLine(task),
-                        style = MiuixTheme.textStyles.body2,
-                        color = MiuixTheme.colorScheme.onSurfaceSecondary
-                    )
                 }
-                // 主操作按钮
+                // 主操作（暂停/继续/重试/安装/打开）；删除固定在底部行，避免两处入口
                 when (task.status) {
                     DownloadTaskEntity.STATUS_DOWNLOADING,
-                    DownloadTaskEntity.STATUS_PENDING -> IconButton(onClick = onPause) {
-                        Icon(Icons.Outlined.Pause, contentDescription = "暂停", tint = MiuixTheme.colorScheme.primary)
+                    DownloadTaskEntity.STATUS_PENDING -> IconButton(
+                        onClick = onPause,
+                        modifier = Modifier.size(48.dp)
+                    ) {
+                        Icon(
+                            Icons.Outlined.Pause, contentDescription = "暂停",
+                            tint = MiuixTheme.colorScheme.primary,
+                            modifier = Modifier.size(density.actionGlyphSize)
+                        )
                     }
-                    DownloadTaskEntity.STATUS_PAUSED -> IconButton(onClick = onResume) {
-                        Icon(Icons.Outlined.PlayArrow, contentDescription = "继续", tint = MiuixTheme.colorScheme.primary)
+                    DownloadTaskEntity.STATUS_PAUSED -> IconButton(
+                        onClick = onResume,
+                        modifier = Modifier.size(48.dp)
+                    ) {
+                        Icon(
+                            Icons.Outlined.PlayArrow, contentDescription = "继续",
+                            tint = MiuixTheme.colorScheme.primary,
+                            modifier = Modifier.size(density.actionGlyphSize)
+                        )
                     }
-                    DownloadTaskEntity.STATUS_FAILED -> IconButton(onClick = onResume) {
-                        Icon(Icons.Outlined.Refresh, contentDescription = "重试", tint = MiuixTheme.colorScheme.error)
+                    DownloadTaskEntity.STATUS_FAILED -> IconButton(
+                        onClick = onResume,
+                        modifier = Modifier.size(48.dp)
+                    ) {
+                        Icon(
+                            Icons.Outlined.Refresh, contentDescription = "重试",
+                            tint = MiuixTheme.colorScheme.error,
+                            modifier = Modifier.size(density.actionGlyphSize)
+                        )
                     }
                     DownloadTaskEntity.STATUS_COMPLETED -> Row {
-                        // APK 文件：额外显示「安装」按钮
+                        // APK 文件额外给「安装」入口，两种密度一致
                         if (task.fileName.endsWith(".apk", true)) {
-                            IconButton(onClick = { installApk(context, task.savePath) }) {
+                            IconButton(
+                                onClick = { installApk(context, task.savePath) },
+                                modifier = Modifier.size(48.dp)
+                            ) {
                                 Icon(
                                     imageVector = Icons.Outlined.SystemUpdate,
                                     contentDescription = "安装",
-                                    tint = MiuixTheme.colorScheme.primary
+                                    tint = MiuixTheme.colorScheme.primary,
+                                    modifier = Modifier.size(density.actionGlyphSize)
                                 )
                             }
                         }
-                        IconButton(onClick = {
-                            openSavedFile(context, task.savePath)
-                        }) {
-                            Icon(Icons.AutoMirrored.Outlined.OpenInNew, contentDescription = "打开", tint = MiuixTheme.colorScheme.primary)
+                        IconButton(
+                            onClick = { openSavedFile(context, task.savePath) },
+                            modifier = Modifier.size(48.dp)
+                        ) {
+                            Icon(
+                                Icons.AutoMirrored.Outlined.OpenInNew, contentDescription = "打开",
+                                tint = MiuixTheme.colorScheme.primary,
+                                modifier = Modifier.size(density.actionGlyphSize)
+                            )
                         }
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             // 失败原因（红色小字展示具体错误）
             if (task.status == DownloadTaskEntity.STATUS_FAILED && task.errorMsg.isNotBlank()) {
@@ -1005,39 +908,28 @@ private fun DownloadTaskCard(
                 Spacer(modifier = Modifier.height(6.dp))
             }
 
-            // 实时统计 + 进度条：完成态整体折叠（带高度过渡动画，不残留空白）
+            // 进度条：完成态或大小未知时折叠（带高度过渡动画，不残留空白）
             AnimatedVisibility(
-                visible = task.status != DownloadTaskEntity.STATUS_COMPLETED,
+                visible = task.status != DownloadTaskEntity.STATUS_COMPLETED && task.totalSize > 0,
                 enter = expandVertically(tween(200)) + fadeIn(tween(200)),
                 exit = shrinkVertically(tween(200)) + fadeOut(tween(150))
             ) {
-                Column {
-                    if (isDownloading && stats != null && stats.speed > 0) {
-                        Text(
-                            text = "${formatSpeed(stats.speed)} · 剩余 ${formatRemain(stats.remainMillis)} · ${stats.chunkCount} 线程",
-                            style = MiuixTheme.textStyles.footnote2,
-                            color = MiuixTheme.colorScheme.primary
-                        )
-                        Spacer(modifier = Modifier.height(6.dp))
-                    }
-                    // 大小未知（服务器未返回 Content-Length）时不画 0% 的假进度条
-                    if (task.totalSize > 0) {
-                        LinearProgressIndicator(
-                            progress = fraction,
-                            modifier = Modifier.fillMaxWidth(),
-                            height = 6.dp,
-                            colors = ProgressIndicatorDefaults.progressIndicatorColors(
-                                foregroundColor = when (task.status) {
-                                    DownloadTaskEntity.STATUS_FAILED -> MiuixTheme.colorScheme.error
-                                    else -> MiuixTheme.colorScheme.primary
-                                },
-                                backgroundColor = MiuixTheme.colorScheme.surfaceContainerHighest
-                            )
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                    }
-                }
+                LinearProgressIndicator(
+                    progress = fraction,
+                    modifier = Modifier.fillMaxWidth(),
+                    height = density.progressHeight,
+                    colors = ProgressIndicatorDefaults.progressIndicatorColors(
+                        foregroundColor = if (task.status == DownloadTaskEntity.STATUS_FAILED) {
+                            MiuixTheme.colorScheme.error
+                        } else {
+                            MiuixTheme.colorScheme.primary
+                        },
+                        backgroundColor = MiuixTheme.colorScheme.surfaceContainerHighest
+                    )
+                )
             }
+
+            Spacer(modifier = Modifier.height(8.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -1067,65 +959,88 @@ private fun DownloadTaskCard(
             }
         }
 
-        // 长按任务卡弹出操作菜单（复制直链 / 重新下载 / 删除）
-        if (showMenu) {
-            WindowDialog(
-                show = showMenu,
-                onDismissRequest = { showMenu = false },
-                title = task.fileName
-            ) {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    TextButton(
-                        text = "复制直链",
-                        onClick = {
-                            showMenu = false
-                            copyToClipboard(context, task.url)
-                            SnackbarController.show("直链已复制")
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    TextButton(
-                        text = "重新下载",
-                        onClick = {
-                            showMenu = false
-                            onRedownload()
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    TextButton(
-                        text = "删除任务",
-                        onClick = {
-                            showMenu = false
-                            onRemove()
-                        },
-                        colors = ButtonDefaults.textButtonColors(
-                            textColor = MiuixTheme.colorScheme.error
-                        ),
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    if (downloadDebug) {
-                        TextButton(
-                            text = "调试信息",
-                            onClick = {
-                                showMenu = false
-                                onOpenDebug(task.id)
-                            },
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(4.dp))
-                    TextButton(
-                        text = "取消",
-                        onClick = { showMenu = false },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-                AppSnackbarHost(rememberGlobalSnackbarHostState())
+        TaskRowActionMenu(
+            task = task,
+            title = displayName,
+            show = showMenu,
+            onDismiss = { showMenu = false },
+            onRedownload = onRedownload,
+            onRemove = onRemove,
+            downloadDebug = downloadDebug,
+            onOpenDebug = onOpenDebug,
+        )
+    }
+}
+
+/** 任务行长按菜单：两种密度共用，菜单项与文案只此一份 */
+@Composable
+private fun TaskRowActionMenu(
+    task: DownloadTaskEntity,
+    title: String,
+    show: Boolean,
+    onDismiss: () -> Unit,
+    onRedownload: () -> Unit,
+    onRemove: () -> Unit,
+    downloadDebug: Boolean,
+    onOpenDebug: (Long) -> Unit,
+) {
+    if (!show) return
+    val context = LocalContext.current
+    WindowDialog(
+        show = true,
+        onDismissRequest = onDismiss,
+        title = title
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            TextButton(
+                text = "复制直链",
+                onClick = {
+                    onDismiss()
+                    copyToClipboard(context, task.url)
+                    SnackbarController.show("直链已复制")
+                },
+                modifier = Modifier.fillMaxWidth()
+            )
+            TextButton(
+                text = "重新下载",
+                onClick = {
+                    onDismiss()
+                    onRedownload()
+                },
+                modifier = Modifier.fillMaxWidth()
+            )
+            TextButton(
+                text = "删除任务",
+                onClick = {
+                    onDismiss()
+                    onRemove()
+                },
+                colors = ButtonDefaults.textButtonColors(
+                    textColor = MiuixTheme.colorScheme.error
+                ),
+                modifier = Modifier.fillMaxWidth()
+            )
+            if (downloadDebug) {
+                TextButton(
+                    text = "调试信息",
+                    onClick = {
+                        onDismiss()
+                        onOpenDebug(task.id)
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
+            Spacer(modifier = Modifier.height(4.dp))
+            TextButton(
+                text = "取消",
+                onClick = onDismiss,
+                modifier = Modifier.fillMaxWidth()
+            )
         }
+        AppSnackbarHost(rememberGlobalSnackbarHostState())
     }
 }
 
@@ -1143,6 +1058,27 @@ internal fun taskStatusLine(task: DownloadTaskEntity): String {
     } else {
         status
     }
+}
+
+/**
+ * 任务行副标题：状态 + 速度 + 剩余时间 + 线程数，完成态改用平均速度。
+ *
+ * 列表与文件夹组共用同一份文案推导，避免同一任务在两种排版下显示不同信息量。
+ */
+internal fun taskRowSubtitle(task: DownloadTaskEntity, stats: DownloadStats?): String {
+    val status = DownloadTaskEntity.statusText(task.status)
+    val isDownloading = task.status == DownloadTaskEntity.STATUS_DOWNLOADING ||
+        task.status == DownloadTaskEntity.STATUS_PENDING
+    if (isDownloading && stats != null && stats.speed > 0L) {
+        val parts = mutableListOf(status, formatSpeed(stats.speed))
+        if (stats.remainMillis >= 0L) parts += "剩余 ${formatRemain(stats.remainMillis)}"
+        if (stats.chunkCount > 0) parts += "${stats.chunkCount} 线程"
+        return parts.joinToString(" · ")
+    }
+    if (task.status == DownloadTaskEntity.STATUS_COMPLETED && task.avgSpeed > 0L) {
+        return "$status · 平均 ${formatSpeed(task.avgSpeed)}"
+    }
+    return taskStatusLine(task)
 }
 
 internal fun progressText(task: DownloadTaskEntity): String {
