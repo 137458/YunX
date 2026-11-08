@@ -79,4 +79,32 @@
     <string name="em_update_download_failed">Échec du téléchargement du paquet de mise à jour</string>
     <string name="em_update_package_missing">Le paquet d\'installation a disparu ; retéléchargez-le</string>
     <string name="em_update_digest_mismatch">Échec de la vérification de l\'installeur (SHA-256 non concordant) ; retéléchargez-le</string>
+
+    <!-- Navigation cloud et fiches de compte (libellés locaux) -->
+    <string name="csa_move_up">Déplacer %1$s vers le haut</string>
+    <string name="csa_move_down">Déplacer %1$s vers le bas</string>
+    <string name="csa_primary_account_hint">Le compte principal sert aux opérations exigeant une identité unique (liste, enregistrement, envoi) ; avec « Téléchargement multi-comptes », les téléchargements utilisent automatiquement les autres comptes du même disque.</string>
+    <string name="csa_new_or_upload">Créer ou envoyer</string>
+    <string name="csa_new_folder">Nouveau dossier</string>
+    <string name="csa_new_folder_desc">Créer un dossier dans le répertoire actuel</string>
+    <string name="csa_upload_desc">Choisir des fichiers sur l\'appareil et les envoyer dans le répertoire actuel</string>
+    <string name="csa_delete_desc_recycle">Supprimer vers la corbeille</string>
+    <string name="csa_delete_file_message">Supprimer « %1$s » ? Il sera déplacé vers la corbeille.</string>
+    <string name="csa_delete_selected_message">Supprimer les %1$d éléments sélectionnés ? Ils seront déplacés vers la corbeille.</string>
+    <string name="csa_share_text_platform">J\'ai partagé « %2$s » via %1$s\n</string>
+    <string name="csa_share_passcode_line">\nCode d\'extraction : %1$s</string>
+    <string name="csa_share_expiry_label">Validité : </string>
+    <string name="csa_cancel_upload">Annuler l\'envoi</string>
+    <string name="csa_access_token_copied">Access Token copié</string>
+    <string name="csb_drive_logged_in_with_name">%1$s · Connecté</string>
+    <string name="csb_secret_copied">%1$s copié</string>
+    <string name="csb_share_title">Créer un lien de partage</string>
+    <string name="csb_baidu_share_title">Créer un lien de partage (avec code)</string>
+    <string name="csb_baidu_share_hint">Les partages Baidu exigent un code à 4 chiffres</string>
+    <string name="csb_c139_share_title">Créer un lien de partage (code généré)</string>
+    <string name="csb_c139_share_hint">Le code est généré automatiquement</string>
+    <string name="csb_pan115_share_title">Créer un lien de partage (code d\'accès généré)</string>
+    <string name="csb_pan115_share_hint">Le code d\'accès est généré automatiquement</string>
+    <string name="csb_xunlei_share_title">Créer un lien de partage (avec code)</string>
+    <string name="csb_xunlei_share_hint">Les partages Xunlei exigent un code ; saisissez 4 chiffres ou laissez vide pour le générer</string>
 </resources>

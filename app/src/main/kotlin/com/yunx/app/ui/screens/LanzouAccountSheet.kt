@@ -18,21 +18,21 @@
 
 package com.yunx.app.ui.screens
 
-import android.content.ClipData
 import android.content.ClipboardManager
+import android.content.ClipData
 import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -52,16 +52,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.yunx.app.data.db.LanzouAccountEntity
 import com.yunx.app.data.db.MultiAccountEntity
+import com.yunx.app.R
 import com.yunx.app.ui.SnackbarController
+import com.yunx.app.util.AppStrings
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Surface
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.overlay.OverlayBottomSheet
 import top.yukonga.miuix.kmp.theme.MiuixTheme
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 /**
  * 已登录蓝奏云账号的底部弹窗：展示用户信息、登录时间、Cookie（可展开/复制），并提供多账号管理（主账号 / 备注 / 退出该账号 / 添加账号）。
@@ -90,7 +92,7 @@ fun LanzouAccountSheet(
         SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(Date(account.updatedAt))
     }
     // 账号可能是手机号/邮箱等敏感信息，展示时脱敏（与其它网盘一致，不明文列出账号）
-    val displayName = maskAccount(account.nickname).ifBlank { "蓝奏云用户" }
+    val displayName = maskAccount(account.nickname).ifBlank { AppStrings.get(R.string.er_lanzou_default_nickname) }
 
     val scrollState = rememberScrollState()
 
@@ -120,7 +122,7 @@ fun LanzouAccountSheet(
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Text(
-                            text = displayName.take(1).ifBlank { "蓝" },
+                            text = displayName.take(1).ifBlank { AppStrings.get(R.string.csb_drive_avatar_lanzou) },
                             style = MiuixTheme.textStyles.body1,
                             fontWeight = FontWeight.SemiBold,
                             color = MiuixTheme.colorScheme.onPrimaryContainer
@@ -143,7 +145,7 @@ fun LanzouAccountSheet(
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = "蓝奏云 · 已登录",
+                            text = AppStrings.get(R.string.sh_lanzou_logged_in),
                             style = MiuixTheme.textStyles.footnote2,
                             color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                         )
@@ -154,7 +156,7 @@ fun LanzouAccountSheet(
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                text = "登录信息",
+                text = AppStrings.get(R.string.sh_login_info),
                 style = MiuixTheme.textStyles.footnote2,
                 color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                 modifier = Modifier.padding(horizontal = 12.dp)
@@ -165,7 +167,7 @@ fun LanzouAccountSheet(
                 insideMargin = PaddingValues(16.dp)
             ) {
                 Column {
-                    InfoRow(label = "登录时间", value = loginTime)
+                    InfoRow(label = AppStrings.get(R.string.sh_login_time), value = loginTime)
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
                         text = "Cookie",
@@ -185,16 +187,16 @@ fun LanzouAccountSheet(
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                         if (truncated) {
                             TextButton(
-                                text = if (showFullToken) "收起" else "展开全部",
+                                text = if (showFullToken) AppStrings.get(R.string.dl_collapse) else AppStrings.get(R.string.sh_expand_all),
                                 onClick = { showFullToken = !showFullToken }
                             )
                         }
                         TextButton(
-                            text = "复制",
+                            text = AppStrings.get(R.string.sh_copy),
                             onClick = {
                                 val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                                 clipboard.setPrimaryClip(ClipData.newPlainText("lanzou_cookie", account.cookie))
-                                SnackbarController.show("Cookie 已复制")
+                                SnackbarController.show(AppStrings.get(R.string.sh_cookie_copied))
                             }
                         )
                     }

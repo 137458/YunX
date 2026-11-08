@@ -22,20 +22,20 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -44,6 +44,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.yunx.app.data.db.MultiAccountEntity
+import com.yunx.app.R
+import com.yunx.app.util.AppStrings
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Card
@@ -83,7 +85,7 @@ internal fun AccountListSection(
     // 最后一个账号被退出后弹窗没有内容可展示了，自动关闭
     LaunchedEffect(accounts.isEmpty()) { if (accounts.isEmpty()) onEmpty() }
 
-    SmallTitle(text = "账号（${accounts.size}）")
+    SmallTitle(text = AppStrings.get(R.string.sh_accounts_count, accounts.size))
     Card(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp)) {
         accounts.forEach { account ->
             AccountRow(
@@ -109,15 +111,14 @@ internal fun AccountListSection(
             )
             Spacer(modifier = Modifier.width(12.dp))
             Text(
-                text = "添加账号",
+                text = AppStrings.get(R.string.sh_add_account),
                 style = MiuixTheme.textStyles.title4,
                 color = MiuixTheme.colorScheme.primary
             )
         }
     }
     Text(
-        text = "主账号用于列目录、转存、上传等需要单一身份的操作；" +
-            "开启「多账号下载」后，下载会自动用上同一网盘的其他账号。",
+        text = AppStrings.get(R.string.csa_primary_account_hint),
         style = MiuixTheme.textStyles.footnote1,
         color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
         modifier = Modifier.padding(horizontal = 28.dp, vertical = 8.dp)
@@ -164,7 +165,7 @@ internal fun AccountRow(
             Text(text = displayName, style = MiuixTheme.textStyles.body1)
             Spacer(modifier = Modifier.height(2.dp))
             Text(
-                text = if (account.isPrimary) "主账号" else "点一下设为主账号",
+                text = if (account.isPrimary) AppStrings.get(R.string.sh_primary_account) else AppStrings.get(R.string.sh_tap_to_set_primary),
                 style = MiuixTheme.textStyles.footnote1,
                 color = if (account.isPrimary) {
                     MiuixTheme.colorScheme.primary
@@ -177,7 +178,7 @@ internal fun AccountRow(
             IconButton(onClick = { menuExpanded = true }) {
                 Icon(
                     imageVector = Icons.Outlined.MoreVert,
-                    contentDescription = "账号操作",
+                    contentDescription = AppStrings.get(R.string.sh_account_actions),
                     tint = MiuixTheme.colorScheme.onSurfaceSecondary
                 )
             }
@@ -187,7 +188,7 @@ internal fun AccountRow(
             ) {
                 ListPopupColumn {
                     DropdownImpl(
-                        text = "重命名备注",
+                        text = AppStrings.get(R.string.sh_rename_remark),
                         optionSize = 2,
                         isSelected = false,
                         index = 0,
@@ -197,7 +198,7 @@ internal fun AccountRow(
                         }
                     )
                     DropdownImpl(
-                        text = "退出该账号",
+                        text = AppStrings.get(R.string.sh_logout_account),
                         optionSize = 2,
                         isSelected = false,
                         index = 1,
@@ -216,7 +217,7 @@ internal fun AccountRow(
         WindowDialog(
             show = showRename,
             onDismissRequest = { showRename = false },
-            title = "重命名备注"
+            title = AppStrings.get(R.string.sh_rename_remark)
         ) {
             Column(modifier = Modifier.fillMaxWidth()) {
                 TextField(
@@ -225,12 +226,12 @@ internal fun AccountRow(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(bottom = 8.dp),
-                    label = "备注",
+                    label = AppStrings.get(R.string.sh_remark),
                     useLabelAsPlaceholder = true,
                     singleLine = true
                 )
                 Text(
-                    text = "同一平台登录多个账号时，备注能帮你区分（清空备注则显示昵称）。",
+                    text = AppStrings.get(R.string.sh_video_remark_hint),
                     style = MiuixTheme.textStyles.footnote1,
                     color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                     modifier = Modifier.padding(bottom = 16.dp)
@@ -240,7 +241,7 @@ internal fun AccountRow(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     TextButton(
-                        text = "取消",
+                        text = AppStrings.get(R.string.csa_cancel),
                         onClick = { showRename = false },
                         modifier = Modifier.weight(1f)
                     )
@@ -251,7 +252,7 @@ internal fun AccountRow(
                         },
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text("保存", style = MiuixTheme.textStyles.button)
+                        Text(AppStrings.get(R.string.lg_save), style = MiuixTheme.textStyles.button)
                     }
                 }
             }
@@ -262,11 +263,11 @@ internal fun AccountRow(
         WindowDialog(
             show = showRemove,
             onDismissRequest = { showRemove = false },
-            title = "退出该账号"
+            title = AppStrings.get(R.string.sh_logout_account)
         ) {
             Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    text = "确定要退出「$displayName」吗？只清除这一个账号在本机的登录凭证，其他账号不受影响。",
+                    text = AppStrings.get(R.string.sh_logout_confirm, displayName),
                     style = MiuixTheme.textStyles.body1,
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
@@ -275,7 +276,7 @@ internal fun AccountRow(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     TextButton(
-                        text = "取消",
+                        text = AppStrings.get(R.string.csa_cancel),
                         onClick = { showRemove = false },
                         modifier = Modifier.weight(1f)
                     )
@@ -290,7 +291,7 @@ internal fun AccountRow(
                             contentColor = MiuixTheme.colorScheme.onError
                         )
                     ) {
-                        Text("退出", style = MiuixTheme.textStyles.button)
+                        Text(AppStrings.get(R.string.sh_logout), style = MiuixTheme.textStyles.button)
                     }
                 }
             }
@@ -300,4 +301,4 @@ internal fun AccountRow(
 
 /** 账号显示名：备注优先，回退昵称，再回退占位文案 */
 internal fun MultiAccountEntity.displayName(): String =
-    remark.ifBlank { nickname }.ifBlank { "未命名账号" }
+    remark.ifBlank { nickname }.ifBlank { AppStrings.get(R.string.sh_unnamed_account) }

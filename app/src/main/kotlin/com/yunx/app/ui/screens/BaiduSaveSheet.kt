@@ -18,16 +18,18 @@
 
 package com.yunx.app.ui.screens
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import com.yunx.app.ui.SnackbarController
+import androidx.compose.runtime.LaunchedEffect
+import com.yunx.app.R
 import com.yunx.app.ui.drive.CloudDriveUiState
 import com.yunx.app.ui.drive.CloudPickerSheet
+import com.yunx.app.ui.SnackbarController
 import com.yunx.app.ui.viewmodel.BaiduCloudUiState
 import com.yunx.app.ui.viewmodel.BaiduCloudViewModel
 import com.yunx.app.ui.viewmodel.ResolveViewModel
+import com.yunx.app.util.AppStrings
 
 /**
  * 转存到百度网盘转存底部抽屉：浏览目标网盘目录，确认后把当前解析出的内容转存到该目录。
@@ -52,7 +54,7 @@ fun BaiduSaveSheet(
     }
 
     CloudPickerSheet(
-        title = "转存到百度网盘",
+        title = AppStrings.get(R.string.csa_save_to_baidu),
         targetName = resolveViewModel.saveTarget?.fname ?: "",
         state = cloudState.toDrivePickerState(),
         onDismiss = onDismiss,

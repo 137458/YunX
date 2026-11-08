@@ -23,29 +23,31 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.automirrored.outlined.DriveFileMove
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Download
-import androidx.compose.material.icons.automirrored.outlined.DriveFileMove
 import androidx.compose.material.icons.outlined.SaveAlt
 import androidx.compose.material.icons.outlined.SelectAll
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.yunx.app.R
+import com.yunx.app.util.AppStrings
 import top.yukonga.miuix.kmp.basic.FloatingToolbar
 import top.yukonga.miuix.kmp.basic.FloatingToolbarDefaults
 import top.yukonga.miuix.kmp.basic.Icon
@@ -152,7 +154,7 @@ internal fun MultiSelectBar(
         if (onSelectAll != null) {
             add(
                 MultiSelectAction(
-                    label = if (isAllSelected) "取消全选" else "全选",
+                    label = if (isAllSelected) AppStrings.get(R.string.csa_deselect_all) else AppStrings.get(R.string.csa_select_all),
                     icon = if (isAllSelected) Icons.Outlined.CheckCircle else Icons.Outlined.SelectAll,
                     tint = MiuixTheme.colorScheme.primary,
                     onClick = onSelectAll
@@ -162,7 +164,7 @@ internal fun MultiSelectBar(
         if (onDownload != null) {
             add(
                 MultiSelectAction(
-                    label = "下载",
+                    label = AppStrings.get(R.string.csa_download),
                     icon = Icons.Outlined.Download,
                     tint = MiuixTheme.colorScheme.primary,
                     onClick = onDownload
@@ -172,7 +174,7 @@ internal fun MultiSelectBar(
         if (onMove != null) {
             add(
                 MultiSelectAction(
-                    label = "移动",
+                    label = AppStrings.get(R.string.csa_move),
                     icon = Icons.AutoMirrored.Outlined.DriveFileMove,
                     tint = MiuixTheme.colorScheme.primary,
                     onClick = onMove
@@ -182,7 +184,7 @@ internal fun MultiSelectBar(
         if (onSave != null) {
             add(
                 MultiSelectAction(
-                    label = "转存",
+                    label = AppStrings.get(R.string.rs_transfer),
                     icon = Icons.Outlined.SaveAlt,
                     tint = MiuixTheme.colorScheme.primary,
                     onClick = onSave
@@ -192,7 +194,7 @@ internal fun MultiSelectBar(
         if (onDelete != null) {
             add(
                 MultiSelectAction(
-                    label = "删除",
+                    label = AppStrings.get(R.string.csa_delete),
                     icon = Icons.Outlined.Delete,
                     tint = MiuixTheme.colorScheme.error,
                     destructive = true,

@@ -79,4 +79,32 @@
     <string name="em_update_download_failed">更新包下载失败</string>
     <string name="em_update_package_missing">安装包已不存在，请重新下载</string>
     <string name="em_update_digest_mismatch">安装包校验失败（SHA-256 不匹配），请重新下载</string>
+
+    <!-- 云盘浏览与账号抽屉（本地差异文案） -->
+    <string name="csa_move_up">上移 %1$s</string>
+    <string name="csa_move_down">下移 %1$s</string>
+    <string name="csa_primary_account_hint">主账号用于列目录、转存、上传等需要单一身份的操作；开启「多账号下载」后，下载会自动用上同一网盘的其他账号。</string>
+    <string name="csa_new_or_upload">新建或上传</string>
+    <string name="csa_new_folder">新建文件夹</string>
+    <string name="csa_new_folder_desc">在当前目录下创建新文件夹</string>
+    <string name="csa_upload_desc">从本机选择文件上传到当前目录</string>
+    <string name="csa_delete_desc_recycle">删除到回收站</string>
+    <string name="csa_delete_file_message">确定要删除「%1$s」吗？删除后将移入回收站。</string>
+    <string name="csa_delete_selected_message">确定要删除选中的 %1$d 项吗？删除后将移入回收站。</string>
+    <string name="csa_share_text_platform">我用%1$s分享了「%2$s」\n</string>
+    <string name="csa_share_passcode_line">\n提取码：%1$s</string>
+    <string name="csa_share_expiry_label">有效期：</string>
+    <string name="csa_cancel_upload">取消上传</string>
+    <string name="csa_access_token_copied">Access Token 已复制</string>
+    <string name="csb_drive_logged_in_with_name">%1$s · 已登录</string>
+    <string name="csb_secret_copied">%1$s 已复制</string>
+    <string name="csb_share_title">生成分享链接</string>
+    <string name="csb_baidu_share_title">生成分享链接（带提取码）</string>
+    <string name="csb_baidu_share_hint">百度分享必须带 4 位提取码</string>
+    <string name="csb_c139_share_title">生成分享链接（自动生成提取码）</string>
+    <string name="csb_c139_share_hint">提取码由系统自动生成</string>
+    <string name="csb_pan115_share_title">生成分享链接（自动生成访问码）</string>
+    <string name="csb_pan115_share_hint">访问码由系统自动生成</string>
+    <string name="csb_xunlei_share_title">生成分享链接（带提取码）</string>
+    <string name="csb_xunlei_share_hint">迅雷分享必须带提取码，可自定义 4 位（留空自动生成）</string>
 </resources>

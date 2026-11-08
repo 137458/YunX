@@ -28,46 +28,46 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.MoreVert
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
@@ -90,6 +90,7 @@ import com.yunx.app.data.network.model.QuotaInfo
 import com.yunx.app.data.network.video.VideoParsers
 import com.yunx.app.data.network.video.VideoPlatform
 import com.yunx.app.data.prefs.SettingsRepository
+import com.yunx.app.R
 import com.yunx.app.ui.components.LocalScaffoldPadding
 import com.yunx.app.ui.items.drivePlatformLogoRes
 import com.yunx.app.ui.viewmodel.BaiduCloudViewModel
@@ -104,6 +105,7 @@ import com.yunx.app.ui.viewmodel.Pan123CloudViewModel
 import com.yunx.app.ui.viewmodel.QuarkCloudViewModel
 import com.yunx.app.ui.viewmodel.UCCoudViewModel
 import com.yunx.app.ui.viewmodel.XunleiCloudViewModel
+import com.yunx.app.util.AppStrings
 import com.yunx.app.util.ByteFormat
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.CardDefaults
@@ -113,12 +115,12 @@ import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.LinearProgressIndicator
 import top.yukonga.miuix.kmp.basic.ProgressIndicatorDefaults
 import top.yukonga.miuix.kmp.basic.PullToRefresh
+import top.yukonga.miuix.kmp.basic.rememberPullToRefreshState
 import top.yukonga.miuix.kmp.basic.ScrollBehavior
 import top.yukonga.miuix.kmp.basic.Surface
 import top.yukonga.miuix.kmp.basic.Switch
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
-import top.yukonga.miuix.kmp.basic.rememberPullToRefreshState
 import top.yukonga.miuix.kmp.overlay.OverlayBottomSheet
 import top.yukonga.miuix.kmp.overlay.OverlayDialog
 import top.yukonga.miuix.kmp.theme.MiuixTheme
@@ -275,79 +277,79 @@ fun DriveScreen(
     // 夸克：登录态由数据库驱动；已登录则副标题显示昵称
     val quark = DriveAccount(
         id = "quark",
-        name = "夸克网盘",
-        description = quarkAccount?.nickname ?: "点击登录，支持解析下载",
-        avatarText = "夸",
+        name = AppStrings.get(R.string.csa_platform_quark),
+        description = quarkAccount?.nickname ?: AppStrings.get(R.string.csb_drive_desc_login),
+        avatarText = AppStrings.get(R.string.csb_drive_avatar_quark),
         isLoggedIn = quarkAccount != null
     )
     val uc = DriveAccount(
         id = "uc",
-        name = "UC网盘",
-        description = ucAccount?.nickname ?: "点击登录，支持解析下载",
+        name = AppStrings.get(R.string.csa_platform_uc),
+        description = ucAccount?.nickname ?: AppStrings.get(R.string.csb_drive_desc_login),
         avatarText = "UC",
         isLoggedIn = ucAccount != null
     )
     val xunlei = DriveAccount(
         id = "xunlei",
-        name = "迅雷网盘",
-        description = xunleiAccount?.nickname ?: "点击登录，支持解析下载",
-        avatarText = "迅",
+        name = AppStrings.get(R.string.csa_platform_xunlei),
+        description = xunleiAccount?.nickname ?: AppStrings.get(R.string.csb_drive_desc_login),
+        avatarText = AppStrings.get(R.string.csb_drive_avatar_xunlei),
         isLoggedIn = xunleiAccount != null
     )
     val baidu = DriveAccount(
         id = "baidu",
-        name = "百度网盘",
-        description = baiduAccount?.nickname ?: "点击登录，支持解析下载",
-        avatarText = "度",
+        name = AppStrings.get(R.string.csa_platform_baidu),
+        description = baiduAccount?.nickname ?: AppStrings.get(R.string.csb_drive_desc_login),
+        avatarText = AppStrings.get(R.string.csb_drive_avatar_baidu),
         isLoggedIn = baiduAccount != null
     )
     val c139 = DriveAccount(
         id = "c139",
-        name = "139网盘",
-        description = c139Account?.nickname ?: "点击登录，支持解析下载",
+        name = AppStrings.get(R.string.csa_platform_139),
+        description = c139Account?.nickname ?: AppStrings.get(R.string.csb_drive_desc_login),
         avatarText = "139",
         isLoggedIn = c139Account != null
     )
     val pan123 = DriveAccount(
         id = "pan123",
-        name = "123云盘",
-        description = pan123Account?.nickname ?: "点击登录，支持解析下载",
+        name = AppStrings.get(R.string.csa_platform_123),
+        description = pan123Account?.nickname ?: AppStrings.get(R.string.csb_drive_desc_login),
         avatarText = "123",
         isLoggedIn = pan123Account != null
     )
     val pan115 = DriveAccount(
         id = "pan115",
-        name = "115网盘",
-        description = pan115Account?.nickname ?: "点击登录，支持解析下载",
+        name = AppStrings.get(R.string.csa_platform_115),
+        description = pan115Account?.nickname ?: AppStrings.get(R.string.csb_drive_desc_login),
         avatarText = "115",
         isLoggedIn = pan115Account != null
     )
     val guangya = DriveAccount(
         id = "guangya",
-        name = "光鸭云盘",
-        description = guangyaAccount?.nickname ?: "点击登录，支持解析下载",
-        avatarText = "光",
+        name = AppStrings.get(R.string.csa_platform_guangya),
+        description = guangyaAccount?.nickname ?: AppStrings.get(R.string.csb_drive_desc_login),
+        avatarText = AppStrings.get(R.string.csb_drive_avatar_guangya),
         isLoggedIn = guangyaAccount != null
     )
     val ilanzou = DriveAccount(
         id = "ilanzou",
-        name = "蓝奏云优享版",
-        description = ilanzouAccount?.nickname?.let { maskAccount(it) } ?: "点击登录，支持解析下载",
-        avatarText = "蓝优",
+        name = AppStrings.get(R.string.csa_platform_ilanzou),
+        description = ilanzouAccount?.nickname?.let { maskAccount(it) } ?: AppStrings.get(R.string.csb_drive_desc_login),
+        avatarText = AppStrings.get(R.string.csb_drive_avatar_ilanzou),
         isLoggedIn = ilanzouAccount != null
     )
     val lanzou = DriveAccount(
         id = "lanzou",
-        name = "蓝奏云",
-        description = lanzouAccount?.nickname?.let { maskAccount(it) } ?: "点击登录，支持解析下载",
-        avatarText = "蓝",
+        name = AppStrings.get(R.string.csb_drive_name_lanzou),
+        description = lanzouAccount?.nickname?.let { maskAccount(it) } ?: AppStrings.get(R.string.csb_drive_desc_login),
+        avatarText = AppStrings.get(R.string.csb_drive_avatar_lanzou),
         isLoggedIn = lanzouAccount != null
     )
     // GitHub：把 GitHub 当网盘浏览下载；此处仅做 Token 管理（提升 API 限额），浏览入口在解析页
     val github = DriveAccount(
         id = "github",
         name = "GitHub",
-        description = if (githubHasToken) "已配置 Token" else "点击配置 Token",
+        description = if (githubHasToken) AppStrings.get(R.string.csb_drive_github_configured) else AppStrings.get(R.string.csb_drive_github_config_prompt),
         avatarText = "GH",
         isLoggedIn = githubHasToken
     )
@@ -511,8 +513,8 @@ fun DriveScreen(
         0
     }
     val hiddenHint = listOfNotNull(
-        hiddenUnloggedCount.takeIf { it > 0 }?.let { "$it 个未登录的网盘" },
-        hiddenVideoCount.takeIf { it > 0 }?.let { "$it 个未登录的视频平台" }
+        hiddenUnloggedCount.takeIf { it > 0 }?.let { AppStrings.get(R.string.csb_drive_hidden_drives_count, it) },
+        hiddenVideoCount.takeIf { it > 0 }?.let { AppStrings.get(R.string.csb_drive_hidden_videos_count, it) }
     ).joinToString("、")
 
     // 进入网盘页加载空间详情（仅已登录平台）
@@ -635,11 +637,11 @@ fun DriveScreen(
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         item {
-                            AccountSectionLabel("网盘账号")
+                            AccountSectionLabel(AppStrings.get(R.string.csb_drive_section_accounts))
                         }
                         item {
                             Text(
-                                text = "登录后即可自动携带凭证解析与下载",
+                                text = AppStrings.get(R.string.csb_drive_accounts_subtitle),
                                 style = MiuixTheme.textStyles.footnote1,
                                 color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                                 modifier = Modifier.padding(start = 12.dp, end = 12.dp, bottom = 4.dp)
@@ -668,7 +670,7 @@ fun DriveScreen(
                                             modifier = Modifier.weight(1f)
                                         )
                                         TextButton(
-                                            text = "重试",
+                                            text = AppStrings.get(R.string.csa_retry),
                                             onClick = { driveQuotaViewModel.loadAll() },
                                             textStyle = MiuixTheme.textStyles.button.copy(
                                                 color = MiuixTheme.colorScheme.onErrorContainer
@@ -692,7 +694,7 @@ fun DriveScreen(
                             // 别让账号「凭空消失」：明确告诉用户藏了什么、去哪恢复
                             item(key = "drive_hidden_hint") {
                                 Text(
-                                    text = "已隐藏 $hiddenHint，点右上角排序可恢复",
+                                    text = AppStrings.get(R.string.csb_drive_hidden_hint, hiddenHint),
                                     style = MiuixTheme.textStyles.footnote1,
                                     color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                                     modifier = Modifier.padding(horizontal = 12.dp)
@@ -701,7 +703,7 @@ fun DriveScreen(
                         }
                         // 视频解析：平台列表与登录态全部由 VideoAccountSection 自己呈现，这里只透传数据与回调
                         item(key = "video_section_label") {
-                            AccountSectionLabel("视频解析")
+                            AccountSectionLabel(AppStrings.get(R.string.csb_drive_section_video))
                         }
                         item(key = "video_section") {
                             VideoAccountSection(
@@ -891,7 +893,7 @@ fun DriveScreen(
                 Spacer(modifier = Modifier.height(8.dp))
                 // 浏览我的主页
                 TextButton(
-                    text = "浏览我的主页",
+                    text = AppStrings.get(R.string.csb_drive_github_browse_home),
                     onClick = {
                         showGitHubSheet = false
                         onGitHubBrowseHome()
@@ -900,7 +902,7 @@ fun DriveScreen(
                 )
                 // 配置 Token
                 TextButton(
-                    text = "配置 Token",
+                    text = AppStrings.get(R.string.csb_drive_github_config_token),
                     onClick = {
                         showGitHubSheet = false
                         onGitHubTokenClick()
@@ -909,7 +911,7 @@ fun DriveScreen(
                 )
                 // 清除 Token
                 TextButton(
-                    text = "清除 Token",
+                    text = AppStrings.get(R.string.csb_drive_github_clear_token),
                     onClick = {
                         showGitHubSheet = false
                         onGitHubClearToken()
@@ -1067,13 +1069,13 @@ private fun DriveAccountCardContent(
             account.isLoggedIn && onMoreClick != null -> IconButton(onClick = onMoreClick) {
                 Icon(
                     imageVector = Icons.Outlined.MoreVert,
-                    contentDescription = "更多",
+                    contentDescription = AppStrings.get(R.string.csb_drive_more),
                     tint = MiuixTheme.colorScheme.onSurfaceVariantActions
                 )
             }
             account.isLoggedIn -> LoginBadge(isLoggedIn = true)
             clickable -> Text(
-                text = "去登录",
+                text = AppStrings.get(R.string.csb_drive_go_login),
                 style = MiuixTheme.textStyles.body2,
                 color = MiuixTheme.colorScheme.primary,
                 fontWeight = FontWeight.Medium
@@ -1093,7 +1095,7 @@ private fun QuotaInlineBar(quota: QuotaInfo) {
     }
     Column {
         Text(
-            text = "已用 ${ByteFormat.size(quota.used)} / ${ByteFormat.size(quota.total)}",
+            text = AppStrings.get(R.string.csb_drive_quota_used, ByteFormat.size(quota.used), ByteFormat.size(quota.total)),
             style = MiuixTheme.textStyles.footnote1,
             color = MiuixTheme.colorScheme.onSurfaceVariantSummary
         )
@@ -1113,9 +1115,9 @@ private fun QuotaInlineBar(quota: QuotaInfo) {
 @Composable
 private fun LoginBadge(isLoggedIn: Boolean) {
     val (label, color) = if (isLoggedIn) {
-        "已登录" to MiuixTheme.colorScheme.primary
+        AppStrings.get(R.string.csb_drive_logged_in) to MiuixTheme.colorScheme.primary
     } else {
-        "未登录" to MiuixTheme.colorScheme.disabledOnSecondaryVariant
+        AppStrings.get(R.string.csb_drive_not_logged_in) to MiuixTheme.colorScheme.disabledOnSecondaryVariant
     }
     Row(verticalAlignment = Alignment.CenterVertically) {
         Box(
@@ -1158,7 +1160,7 @@ private fun DriveSortDialog(
 ) {
     OverlayDialog(
         show = true,
-        title = "排序与显示",
+        title = AppStrings.get(R.string.csb_drive_sort_title),
         onDismissRequest = onDismiss
     ) {
         Column(
@@ -1175,9 +1177,9 @@ private fun DriveSortDialog(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(text = "隐藏未登录的网盘", style = MiuixTheme.textStyles.body2)
+                    Text(text = AppStrings.get(R.string.csb_drive_hide_unlogged), style = MiuixTheme.textStyles.body2)
                     Text(
-                        text = "只显示已登录的账号，随时可以在这里恢复",
+                        text = AppStrings.get(R.string.csb_drive_hide_unlogged_desc),
                         style = MiuixTheme.textStyles.footnote1,
                         color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                     )
@@ -1191,12 +1193,12 @@ private fun DriveSortDialog(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "顺序",
+                    text = AppStrings.get(R.string.csb_drive_order_label),
                     style = MiuixTheme.textStyles.footnote1,
                     color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                     modifier = Modifier.weight(1f)
                 )
-                TextButton(text = "恢复默认", onClick = onReset)
+                TextButton(text = AppStrings.get(R.string.csb_drive_restore_default), onClick = onReset)
             }
             // 11 行会超出弹窗高度：给上限再滚动，别把「完成」顶出屏幕
             Column(
@@ -1230,7 +1232,7 @@ private fun DriveSortDialog(
                         )
                         if (!account.isLoggedIn) {
                             Text(
-                                text = "未登录",
+                                text = AppStrings.get(R.string.csb_drive_not_logged_in),
                                 style = MiuixTheme.textStyles.footnote1,
                                 color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                                 modifier = Modifier.padding(end = 4.dp)
@@ -1239,7 +1241,7 @@ private fun DriveSortDialog(
                         IconButton(onClick = { if (canUp) onMove(index, index - 1) }) {
                             Icon(
                                 imageVector = Icons.Filled.KeyboardArrowUp,
-                                contentDescription = "上移 " + account.name,
+                                contentDescription = AppStrings.get(R.string.csa_move_up, account.name),
                                 tint = if (canUp) {
                                     MiuixTheme.colorScheme.onSurfaceVariantActions
                                 } else {
@@ -1250,7 +1252,7 @@ private fun DriveSortDialog(
                         IconButton(onClick = { if (canDown) onMove(index, index + 1) }) {
                             Icon(
                                 imageVector = Icons.Filled.KeyboardArrowDown,
-                                contentDescription = "下移 " + account.name,
+                                contentDescription = AppStrings.get(R.string.csa_move_down, account.name),
                                 tint = if (canDown) {
                                     MiuixTheme.colorScheme.onSurfaceVariantActions
                                 } else {
@@ -1263,7 +1265,7 @@ private fun DriveSortDialog(
             }
             Spacer(modifier = Modifier.height(12.dp))
             TextButton(
-                text = "完成",
+                text = AppStrings.get(R.string.csa_done),
                 onClick = onDismiss,
                 modifier = Modifier.fillMaxWidth()
             )

@@ -30,30 +30,32 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.Icons
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.yunx.app.ui.theme.SquircleShape
+import com.yunx.app.R
 import com.yunx.app.ui.theme.effectsDefault
 import com.yunx.app.ui.theme.effectsFast
 import com.yunx.app.ui.theme.spatialDefault
 import com.yunx.app.ui.theme.spatialFast
+import com.yunx.app.ui.theme.SquircleShape
+import com.yunx.app.util.AppStrings
 import top.yukonga.miuix.kmp.basic.FloatingActionButton
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.Text
@@ -169,7 +171,7 @@ fun BoxScope.CustomFabMenu(
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Icon(
                                     imageVector = Icons.Filled.Check,
-                                    contentDescription = "已选择",
+                                    contentDescription = AppStrings.get(R.string.content_desc_selected),
                                     modifier = Modifier.size(16.dp),
                                     tint = MiuixTheme.colorScheme.onPrimary
                                 )
@@ -192,7 +194,7 @@ fun BoxScope.CustomFabMenu(
             ) {
                 Icon(
                     imageVector = if (expanded) Icons.Filled.Close else Icons.Filled.Add,
-                    contentDescription = if (expanded) "关闭菜单" else "打开菜单",
+                    contentDescription = if (expanded) AppStrings.get(R.string.content_desc_close_menu) else AppStrings.get(R.string.content_desc_open_menu),
                     tint = MiuixTheme.colorScheme.onPrimary,
                     modifier = Modifier
                         .size(24.dp)

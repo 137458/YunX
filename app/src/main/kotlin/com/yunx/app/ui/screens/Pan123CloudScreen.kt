@@ -18,14 +18,15 @@
 
 package com.yunx.app.ui.screens
 
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.DriveFileMove
-import androidx.compose.runtime.Composable
+import androidx.compose.material.icons.Icons
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import com.yunx.app.data.network.model.ShareExpire
+import com.yunx.app.R
 import com.yunx.app.ui.drive.CloudDriveBrowser
 import com.yunx.app.ui.drive.CloudDriveUiState
 import com.yunx.app.ui.drive.DriveActions
@@ -34,20 +35,21 @@ import com.yunx.app.ui.drive.DriveSpec
 import com.yunx.app.ui.drive.PasscodePolicy
 import com.yunx.app.ui.viewmodel.Pan123CloudUiState
 import com.yunx.app.ui.viewmodel.Pan123CloudViewModel
+import com.yunx.app.util.AppStrings
 import top.yukonga.miuix.kmp.basic.ScrollBehavior
 
 /** 平台差异：文案 + 有效期编码 + 提取码策略 */
 private val pan123DriveSpec = DriveSpec(
-    title = "123云盘",
-    shareDesc = "生成分享链接（可设提取码/有效期）",
+    title = AppStrings.get(R.string.csa_platform_123),
+    shareDesc = AppStrings.get(R.string.csa_action_share_desc),
     shareHint = null,
     expiryOptions = listOf<DriveExpiryOption<Any?>>(
-        DriveExpiryOption("永久有效", ShareExpire.FOREVER),
-        DriveExpiryOption("1 天", ShareExpire.ONE_DAY),
-        DriveExpiryOption("7 天", ShareExpire.SEVEN_DAYS),
-        DriveExpiryOption("30 天", ShareExpire.THIRTY_DAYS)
+        DriveExpiryOption(AppStrings.get(R.string.csa_expire_forever), ShareExpire.FOREVER),
+        DriveExpiryOption(AppStrings.get(R.string.csa_expire_1day), ShareExpire.ONE_DAY),
+        DriveExpiryOption(AppStrings.get(R.string.csa_expire_7days), ShareExpire.SEVEN_DAYS),
+        DriveExpiryOption(AppStrings.get(R.string.csa_expire_30days), ShareExpire.THIRTY_DAYS)
     ),
-    passcode = PasscodePolicy.Optional(label = "4 位提取码"),
+    passcode = PasscodePolicy.Optional(label = AppStrings.get(R.string.csa_passcode_4digit)),
     folderIcon = Icons.AutoMirrored.Outlined.DriveFileMove
 )
 

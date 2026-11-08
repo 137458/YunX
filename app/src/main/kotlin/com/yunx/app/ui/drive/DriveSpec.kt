@@ -18,10 +18,12 @@
 
 package com.yunx.app.ui.drive
 
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.DriveFileMove
+import androidx.compose.material.icons.Icons
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.yunx.app.data.network.model.ShareFile
+import com.yunx.app.R
+import com.yunx.app.util.AppStrings
 
 /**
  * 网盘平台差异的数据载体。
@@ -44,7 +46,7 @@ data class DriveSpec(
     /** 文件夹图标（操作抽屉头部的文件夹图标；移动按钮统一使用 [DriveIcons.move]） */
     val folderIcon: ImageVector = Icons.AutoMirrored.Outlined.DriveFileMove,
     /** 浏览页空目录提示 */
-    val emptyText: String = "此目录为空"
+    val emptyText: String = AppStrings.get(R.string.csa_dir_empty)
 )
 
 /** 有效期选项：名称 + 平台原始编码值（值为 Any? 以同时容纳 Int 与 Int? 两套编码） */

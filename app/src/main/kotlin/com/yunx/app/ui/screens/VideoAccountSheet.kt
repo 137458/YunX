@@ -18,37 +18,39 @@
 
 package com.yunx.app.ui.screens
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.Icons
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.yunx.app.data.db.VideoAccountEntity
 import com.yunx.app.data.network.video.VideoPlatform
+import com.yunx.app.R
 import com.yunx.app.ui.items.logoRes
+import com.yunx.app.util.AppStrings
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Card
@@ -122,9 +124,9 @@ internal fun VideoAccountSheet(
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
                             text = if (accounts.size > 1) {
-                                "已登录 · 共 ${accounts.size} 个账号"
+                                AppStrings.get(R.string.sh_logged_in_accounts, accounts.size)
                             } else {
-                                "已登录"
+                                AppStrings.get(R.string.csb_drive_logged_in)
                             },
                             style = MiuixTheme.textStyles.footnote1,
                             color = MiuixTheme.colorScheme.onSurfaceVariantSummary
@@ -135,7 +137,7 @@ internal fun VideoAccountSheet(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            SmallTitle(text = "账号（${accounts.size}）")
+            SmallTitle(text = AppStrings.get(R.string.sh_accounts_count, accounts.size))
             Card(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp)) {
                 accounts.forEach { account ->
                     AccountRow(
@@ -161,7 +163,7 @@ internal fun VideoAccountSheet(
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = "添加账号",
+                        text = AppStrings.get(R.string.sh_add_account),
                         style = MiuixTheme.textStyles.body1,
                         color = MiuixTheme.colorScheme.primary
                     )
@@ -175,7 +177,7 @@ internal fun VideoAccountSheet(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "退出全部账号",
+                        text = AppStrings.get(R.string.sh_logout_all_accounts),
                         style = MiuixTheme.textStyles.body1,
                         color = MiuixTheme.colorScheme.error
                     )
@@ -199,11 +201,11 @@ internal fun VideoAccountSheet(
         WindowDialog(
             show = showRemoveAll,
             onDismissRequest = { showRemoveAll = false },
-            title = "退出全部账号"
+            title = AppStrings.get(R.string.sh_logout_all_accounts)
         ) {
             Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    text = "确定要退出「${platform.displayName}」的全部 ${accounts.size} 个账号吗？只清除本机保存的登录凭证。",
+                    text = AppStrings.get(R.string.sh_logout_all_confirm, platform.displayName, accounts.size),
                     style = MiuixTheme.textStyles.body1,
                     color = MiuixTheme.colorScheme.onSurface,
                     modifier = Modifier.padding(bottom = 16.dp)
@@ -214,7 +216,7 @@ internal fun VideoAccountSheet(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     TextButton(
-                        text = "取消",
+                        text = AppStrings.get(R.string.csa_cancel),
                         onClick = { showRemoveAll = false },
                         modifier = Modifier.weight(1f)
                     )
@@ -229,7 +231,7 @@ internal fun VideoAccountSheet(
                         ),
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text("全部退出", style = MiuixTheme.textStyles.button)
+                        Text(AppStrings.get(R.string.sh_logout_all), style = MiuixTheme.textStyles.button)
                     }
                 }
             }

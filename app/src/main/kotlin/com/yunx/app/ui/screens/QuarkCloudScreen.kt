@@ -18,13 +18,14 @@
 
 package com.yunx.app.ui.screens
 
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.DriveFileMove
-import androidx.compose.runtime.Composable
+import androidx.compose.material.icons.Icons
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import com.yunx.app.R
 import com.yunx.app.ui.drive.CloudDriveBrowser
 import com.yunx.app.ui.drive.CloudDriveUiState
 import com.yunx.app.ui.drive.DriveActions
@@ -33,20 +34,21 @@ import com.yunx.app.ui.drive.DriveSpec
 import com.yunx.app.ui.drive.PasscodePolicy
 import com.yunx.app.ui.viewmodel.QuarkCloudUiState
 import com.yunx.app.ui.viewmodel.QuarkCloudViewModel
+import com.yunx.app.util.AppStrings
 import top.yukonga.miuix.kmp.basic.ScrollBehavior
 
 /** 夸克网盘平台差异：文案 + 有效期编码 1/2/3/4 + 可选提取码 */
 private val quarkDriveSpec = DriveSpec(
-    title = "夸克网盘",
-    shareDesc = "生成分享链接（可设提取码/有效期）",
+    title = AppStrings.get(R.string.csa_platform_quark),
+    shareDesc = AppStrings.get(R.string.csa_action_share_desc),
     shareHint = null,
     expiryOptions = listOf<DriveExpiryOption<Any?>>(
-        DriveExpiryOption("永久有效", 1),
-        DriveExpiryOption("1 天", 2),
-        DriveExpiryOption("7 天", 3),
-        DriveExpiryOption("30 天", 4)
+        DriveExpiryOption(AppStrings.get(R.string.csa_expire_forever), 1),
+        DriveExpiryOption(AppStrings.get(R.string.csa_expire_1day), 2),
+        DriveExpiryOption(AppStrings.get(R.string.csa_expire_7days), 3),
+        DriveExpiryOption(AppStrings.get(R.string.csa_expire_30days), 4)
     ),
-    passcode = PasscodePolicy.Optional(label = "4 位提取码"),
+    passcode = PasscodePolicy.Optional(label = AppStrings.get(R.string.csa_passcode_4digit)),
     folderIcon = Icons.AutoMirrored.Outlined.DriveFileMove
 )
 

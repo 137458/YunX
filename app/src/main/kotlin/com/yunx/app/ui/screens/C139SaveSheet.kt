@@ -22,7 +22,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import com.yunx.app.R
 import com.yunx.app.ui.SnackbarController
+import com.yunx.app.util.AppStrings
 import com.yunx.app.ui.drive.CloudDriveUiState
 import com.yunx.app.ui.drive.CloudPickerSheet
 import com.yunx.app.ui.viewmodel.C139CloudUiState
@@ -52,7 +54,7 @@ fun C139SaveSheet(
     }
 
     CloudPickerSheet(
-        title = "转存到 139 网盘",
+        title = AppStrings.get(R.string.csa_save_to_139),
         targetName = resolveViewModel.saveTarget?.fname ?: "",
         state = cloudState.toDrivePickerState(),
         onDismiss = onDismiss,

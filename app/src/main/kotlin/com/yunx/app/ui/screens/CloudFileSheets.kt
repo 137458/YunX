@@ -18,8 +18,8 @@
 
 package com.yunx.app.ui.screens
 
-import android.content.ClipData
 import android.content.ClipboardManager
+import android.content.ClipData
 import android.content.Context
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -28,19 +28,19 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -50,10 +50,12 @@ import androidx.compose.ui.unit.sp
 import com.yunx.app.data.network.model.ShareInfo
 import com.yunx.app.data.upload.UploadPhase
 import com.yunx.app.data.upload.UploadProgress
+import com.yunx.app.R
 import com.yunx.app.ui.AppSnackbarHost
-import com.yunx.app.ui.SnackbarController
 import com.yunx.app.ui.rememberGlobalSnackbarHostState
+import com.yunx.app.ui.SnackbarController
 import com.yunx.app.ui.theme.SquircleShape
+import com.yunx.app.util.AppStrings
 import com.yunx.app.util.ByteFormat
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
@@ -71,24 +73,24 @@ internal fun ShareResultDialog(
 ) {
     val context = LocalContext.current
     val platformName = when {
-        info.shareUrl.contains("139.com") -> "139网盘"
-        info.shareUrl.contains("123pan") || info.shareUrl.contains("123865") -> "123云盘"
-        info.shareUrl.contains("uc.cn") -> "UC网盘"
-        info.shareUrl.contains("xunlei.com") -> "迅雷网盘"
-        info.shareUrl.contains("baidu.com") -> "百度网盘"
-        else -> "夸克网盘"
+        info.shareUrl.contains("139.com") -> AppStrings.get(R.string.csa_platform_139)
+        info.shareUrl.contains("123pan") || info.shareUrl.contains("123865") -> AppStrings.get(R.string.csa_platform_123)
+        info.shareUrl.contains("uc.cn") -> AppStrings.get(R.string.csa_platform_uc)
+        info.shareUrl.contains("xunlei.com") -> AppStrings.get(R.string.csa_platform_xunlei)
+        info.shareUrl.contains("baidu.com") -> AppStrings.get(R.string.csa_platform_baidu)
+        else -> AppStrings.get(R.string.csa_platform_quark)
     }
     val shareText = buildString {
-        append("我用${platformName}分享了「${info.title}」\n")
-        append("链接：${info.shareUrl}")
+        append(AppStrings.get(R.string.csa_share_text_platform, platformName, info.title))
+        append(AppStrings.get(R.string.csa_share_text_link, info.shareUrl))
         if (info.passcode.isNotBlank()) {
-            append("\n提取码：${info.passcode}")
+            append(AppStrings.get(R.string.csa_share_passcode_line, info.passcode))
         }
     }
     WindowDialog(
         show = true,
         onDismissRequest = onDismiss,
-        title = "分享成功"
+        title = AppStrings.get(R.string.csa_share_success)
     ) {
         Column(
             modifier = Modifier
@@ -110,7 +112,7 @@ internal fun ShareResultDialog(
             }
             Spacer(modifier = Modifier.height(12.dp))
             Text(
-                text = "有效期：" + expireLabel(info.expiredType),
+                text = AppStrings.get(R.string.csa_share_expiry_label) + expireLabel(info.expiredType),
                 style = MiuixTheme.textStyles.body2,
                 color = MiuixTheme.colorScheme.onSurfaceVariantSummary
             )
@@ -121,11 +123,11 @@ internal fun ShareResultDialog(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 TextButton(
-                    text = "复制全部",
+                    text = AppStrings.get(R.string.csa_copy_all),
                     onClick = {
                         val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                         cm.setPrimaryClip(ClipData.newPlainText("share_text", shareText))
-                        SnackbarController.show("分享文案已复制")
+                        SnackbarController.show(AppStrings.get(R.string.csa_share_text_copied))
                     },
                     modifier = Modifier.weight(1f)
                 )
@@ -134,7 +136,7 @@ internal fun ShareResultDialog(
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColorsPrimary()
                 ) {
-                    Text("完成", style = MiuixTheme.textStyles.button)
+                    Text(AppStrings.get(R.string.csa_done), style = MiuixTheme.textStyles.button)
                 }
             }
         }
@@ -143,10 +145,10 @@ internal fun ShareResultDialog(
 }
 
 private fun expireLabel(type: Int): String = when (type) {
-    2 -> "1 天"
-    3 -> "7 天"
-    4 -> "30 天"
-    else -> "永久有效"
+    2 -> AppStrings.get(R.string.csa_expire_1day)
+    3 -> AppStrings.get(R.string.csa_expire_7days)
+    4 -> AppStrings.get(R.string.csa_expire_30days)
+    else -> AppStrings.get(R.string.csa_expire_forever)
 }
 
 /**
@@ -179,9 +181,9 @@ internal fun UploadProgressDialog(progress: UploadProgress, onCancel: () -> Unit
         // 上传在后台真跑，随手关弹窗会让人误以为停了：仅「取消」能结束
         onDismissRequest = { },
         title = if (progress.count > 1) {
-            "正在上传（${progress.index}/${progress.count}）"
+            AppStrings.get(R.string.csa_uploading_progress, progress.index, progress.count)
         } else {
-            "正在上传"
+            AppStrings.get(R.string.csa_uploading)
         }
     ) {
         Column(
@@ -217,9 +219,9 @@ internal fun UploadProgressDialog(progress: UploadProgress, onCancel: () -> Unit
             ) {
                 Text(
                     text = when (progress.phase) {
-                        UploadPhase.PREPARING -> "正在校验文件…"
-                        UploadPhase.UPLOADING -> "正在上传"
-                        UploadPhase.FINISHING -> "等待网盘确认…"
+                        UploadPhase.PREPARING -> AppStrings.get(R.string.csa_upload_phase_preparing)
+                        UploadPhase.UPLOADING -> AppStrings.get(R.string.csa_uploading)
+                        UploadPhase.FINISHING -> AppStrings.get(R.string.csa_upload_phase_finishing)
                     },
                     style = MiuixTheme.textStyles.footnote1,
                     color = MiuixTheme.colorScheme.onSurfaceVariantSummary
@@ -238,7 +240,7 @@ internal fun UploadProgressDialog(progress: UploadProgress, onCancel: () -> Unit
                 colors = ButtonDefaults.buttonColorsPrimary()
             ) {
                 Text(
-                    text = if (progress.cancelling) "正在取消…" else "取消上传",
+                    text = if (progress.cancelling) AppStrings.get(R.string.csa_cancelling) else AppStrings.get(R.string.csa_cancel_upload),
                     style = MiuixTheme.textStyles.button
                 )
             }

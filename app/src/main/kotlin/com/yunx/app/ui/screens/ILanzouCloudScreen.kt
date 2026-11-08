@@ -25,6 +25,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
+import com.yunx.app.R
 import com.yunx.app.ui.drive.CloudDriveBrowser
 import com.yunx.app.ui.drive.CloudDriveUiState
 import com.yunx.app.ui.drive.DriveActions
@@ -32,11 +33,12 @@ import com.yunx.app.ui.drive.DriveSpec
 import com.yunx.app.ui.drive.PasscodePolicy
 import com.yunx.app.ui.viewmodel.ILanzouCloudUiState
 import com.yunx.app.ui.viewmodel.ILanzouCloudViewModel
+import com.yunx.app.util.AppStrings
 import top.yukonga.miuix.kmp.basic.ScrollBehavior
 
 private val ilanzouDriveSpec = DriveSpec(
-    title = "蓝奏优享",
-    shareDesc = "生成分享链接",
+    title = AppStrings.get(R.string.csa_platform_ilanzou),
+    shareDesc = AppStrings.get(R.string.csb_share_title),
     shareHint = null,
     expiryOptions = emptyList(),
     passcode = PasscodePolicy.Auto,

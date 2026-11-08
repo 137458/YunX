@@ -20,12 +20,12 @@ package com.yunx.app.ui.drive
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Share
@@ -36,7 +36,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.yunx.app.R
 import com.yunx.app.ui.screens.CloudSelectChip
+import com.yunx.app.util.AppStrings
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Icon
@@ -70,7 +72,7 @@ fun ShareFormSheet(
             .fillMaxWidth()
             .padding(start = 24.dp, end = 24.dp, top = 4.dp, bottom = 32.dp)
     ) {
-        CloudStepHeader(title = "分享文件", subtitle = subtitle, onBack = onBack)
+        CloudStepHeader(title = AppStrings.get(R.string.csa_share_file_title), subtitle = subtitle, onBack = onBack)
         Spacer(modifier = Modifier.height(8.dp))
 
         when (policy) {
@@ -98,7 +100,7 @@ fun ShareFormSheet(
             // UC/123：可无提取码，也可设置（设置时自动填随机码）
             is PasscodePolicy.Optional -> {
                 Text(
-                    text = "提取码",
+                    text = AppStrings.get(R.string.csa_passcode),
                     style = MiuixTheme.textStyles.headline2,
                     color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                 )
@@ -106,12 +108,12 @@ fun ShareFormSheet(
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     CloudSelectChip(
                         selected = !withPasscode,
-                        label = "无提取码",
+                        label = AppStrings.get(R.string.csa_no_passcode),
                         onClick = { withPasscode = false }
                     )
                     CloudSelectChip(
                         selected = withPasscode,
-                        label = "设置提取码",
+                        label = AppStrings.get(R.string.csa_set_passcode),
                         onClick = {
                             withPasscode = true
                             if (passcode.isBlank() && policy.autoGenerate) {
@@ -148,7 +150,7 @@ fun ShareFormSheet(
         }
 
         Text(
-            text = "有效期",
+            text = AppStrings.get(R.string.csa_validity),
             style = MiuixTheme.textStyles.headline2,
             color = MiuixTheme.colorScheme.onSurfaceVariantSummary
         )
@@ -182,7 +184,7 @@ fun ShareFormSheet(
                 modifier = Modifier.size(18.dp)
             )
             Spacer(modifier = Modifier.width(8.dp))
-            Text("创建分享", style = MiuixTheme.textStyles.button)
+            Text(AppStrings.get(R.string.csa_create_share), style = MiuixTheme.textStyles.button)
         }
     }
 }

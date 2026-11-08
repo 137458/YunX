@@ -79,4 +79,32 @@
     <string name="em_update_download_failed">Update package download failed</string>
     <string name="em_update_package_missing">The installer is gone; please download again</string>
     <string name="em_update_digest_mismatch">Installer verification failed (SHA-256 mismatch); please download again</string>
+
+    <!-- Cloud browsing and account sheets (local wording) -->
+    <string name="csa_move_up">Move %1$s up</string>
+    <string name="csa_move_down">Move %1$s down</string>
+    <string name="csa_primary_account_hint">The primary account handles actions that need a single identity, such as listing, saving and uploading; with Multi-account download enabled, downloads automatically use the other accounts on the same drive.</string>
+    <string name="csa_new_or_upload">New or upload</string>
+    <string name="csa_new_folder">New folder</string>
+    <string name="csa_new_folder_desc">Create a folder in the current directory</string>
+    <string name="csa_upload_desc">Pick files from this device and upload to the current directory</string>
+    <string name="csa_delete_desc_recycle">Delete to recycle bin</string>
+    <string name="csa_delete_file_message">Delete “%1$s”? It will be moved to the recycle bin.</string>
+    <string name="csa_delete_selected_message">Delete the %1$d selected items? They will be moved to the recycle bin.</string>
+    <string name="csa_share_text_platform">I shared “%2$s” via %1$s\n</string>
+    <string name="csa_share_passcode_line">\nPasscode: %1$s</string>
+    <string name="csa_share_expiry_label">Valid for: </string>
+    <string name="csa_cancel_upload">Cancel upload</string>
+    <string name="csa_access_token_copied">Access Token copied</string>
+    <string name="csb_drive_logged_in_with_name">%1$s · Signed in</string>
+    <string name="csb_secret_copied">%1$s copied</string>
+    <string name="csb_share_title">Create share link</string>
+    <string name="csb_baidu_share_title">Create share link (with passcode)</string>
+    <string name="csb_baidu_share_hint">Baidu shares require a 4-digit passcode</string>
+    <string name="csb_c139_share_title">Create share link (passcode generated)</string>
+    <string name="csb_c139_share_hint">The passcode is generated automatically</string>
+    <string name="csb_pan115_share_title">Create share link (access code generated)</string>
+    <string name="csb_pan115_share_hint">The access code is generated automatically</string>
+    <string name="csb_xunlei_share_title">Create share link (with passcode)</string>
+    <string name="csb_xunlei_share_hint">Xunlei shares require a passcode; enter 4 digits or leave blank to generate one</string>
 </resources>

@@ -26,18 +26,18 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.Icons
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -47,10 +47,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import top.yukonga.miuix.kmp.basic.BreadcrumbBar
-import top.yukonga.miuix.kmp.basic.BreadcrumbItem
+import com.yunx.app.R
 import com.yunx.app.ui.resolve.BackToParentItem
 import com.yunx.app.ui.resolve.ShareFileRow
+import com.yunx.app.util.AppStrings
+import top.yukonga.miuix.kmp.basic.BreadcrumbBar
+import top.yukonga.miuix.kmp.basic.BreadcrumbItem
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Icon
@@ -93,7 +95,7 @@ fun DriveDirPicker(
     onConfirm: () -> Unit,
     modifier: Modifier = Modifier,
     loading: Boolean = false,
-    emptyText: String = "当前目录没有子文件夹，可直接移动到此处",
+    emptyText: String = AppStrings.get(R.string.csa_no_subfolders_move_here),
     contentLabel: String = "moveState"
 ) {
     val loaded = state as? CloudDriveUiState.Loaded
@@ -146,7 +148,7 @@ fun DriveDirPicker(
             }
         }
         Spacer(modifier = Modifier.height(16.dp))
-        val dirName = pathNames.lastOrNull() ?: "根目录"
+        val dirName = pathNames.lastOrNull() ?: AppStrings.get(R.string.csa_root_dir)
         Button(
             onClick = onConfirm,
             enabled = !loading,
@@ -231,7 +233,7 @@ fun DrivePickerErrorPane(
                 modifier = Modifier.padding(horizontal = 24.dp)
             )
             Spacer(modifier = Modifier.height(12.dp))
-            TextButton(text = "重试", onClick = onRetry)
+            TextButton(text = AppStrings.get(R.string.csa_retry), onClick = onRetry)
         }
     }
 }
@@ -265,7 +267,7 @@ fun DriveSaveEmptyPane(modifier: Modifier = Modifier) {
         contentAlignment = Alignment.Center
     ) {
         Text(
-            text = "当前目录没有子文件夹，可直接转存到此目录",
+            text = AppStrings.get(R.string.csa_no_subfolders_save_here),
             style = MiuixTheme.textStyles.body2,
             color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
             textAlign = TextAlign.Center
@@ -297,14 +299,14 @@ fun DriveSaveErrorPane(
                 modifier = Modifier.padding(horizontal = 24.dp)
             )
             Spacer(modifier = Modifier.height(8.dp))
-            TextButton(text = "重试", onClick = onRetry)
+            TextButton(text = AppStrings.get(R.string.csa_retry), onClick = onRetry)
         }
     }
 }
 
 /** 目录层级 → 面包屑项（根节点固定为「根目录」） */
 internal fun List<String>.toBreadcrumbs(): List<BreadcrumbItem> = buildList {
-    add(BreadcrumbItem(path = "root", text = "根目录"))
+    add(BreadcrumbItem(path = "root", text = AppStrings.get(R.string.csa_root_dir)))
     this@toBreadcrumbs.forEachIndexed { index, name ->
         add(BreadcrumbItem(path = (index + 1).toString(), text = name))
     }
@@ -317,7 +319,7 @@ fun CloudStepHeader(title: String, subtitle: String, onBack: () -> Unit) {
         IconButton(onClick = onBack) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "返回",
+                contentDescription = AppStrings.get(R.string.csa_back),
                 tint = MiuixTheme.colorScheme.onSurface
             )
         }

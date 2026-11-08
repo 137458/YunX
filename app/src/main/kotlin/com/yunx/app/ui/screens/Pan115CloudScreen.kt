@@ -18,14 +18,15 @@
 
 package com.yunx.app.ui.screens
 
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.DriveFileMove
-import androidx.compose.runtime.Composable
+import androidx.compose.material.icons.Icons
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import com.yunx.app.data.network.model.ShareExpire
+import com.yunx.app.R
 import com.yunx.app.ui.drive.CloudDriveBrowser
 import com.yunx.app.ui.drive.CloudDriveUiState
 import com.yunx.app.ui.drive.DriveActions
@@ -34,13 +35,14 @@ import com.yunx.app.ui.drive.DriveSpec
 import com.yunx.app.ui.drive.PasscodePolicy
 import com.yunx.app.ui.viewmodel.Pan115CloudUiState
 import com.yunx.app.ui.viewmodel.Pan115CloudViewModel
+import com.yunx.app.util.AppStrings
 import top.yukonga.miuix.kmp.basic.ScrollBehavior
 
 /** 平台差异：文案 + 有效期编码 + 提取码策略（115 服务端自动生成访问码） */
 private val pan115DriveSpec = DriveSpec(
-    title = "115网盘",
-    shareDesc = "生成分享链接（自动生成访问码）",
-    shareHint = "访问码由系统自动生成",
+    title = AppStrings.get(R.string.csa_platform_115),
+    shareDesc = AppStrings.get(R.string.csb_pan115_share_title),
+    shareHint = AppStrings.get(R.string.csb_pan115_share_hint),
     expiryOptions = ShareExpire.PAN115_OPTIONS.map { (label, value) ->
         DriveExpiryOption(label, value)
     },

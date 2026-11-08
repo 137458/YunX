@@ -21,14 +21,14 @@ package com.yunx.app.ui.screens
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.DriveFileMove
-import androidx.compose.runtime.Composable
+import androidx.compose.material.icons.Icons
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,7 +39,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.unit.dp
 import com.yunx.app.data.prefs.SettingsRepository
-import com.yunx.app.ui.rememberGlobalSnackbarHostState
+import com.yunx.app.R
 import com.yunx.app.ui.AppSnackbarHost
 import com.yunx.app.ui.drive.CloudDriveBrowser
 import com.yunx.app.ui.drive.CloudDriveUiState
@@ -47,8 +47,10 @@ import com.yunx.app.ui.drive.DriveActions
 import com.yunx.app.ui.drive.DriveExpiryOption
 import com.yunx.app.ui.drive.DriveSpec
 import com.yunx.app.ui.drive.PasscodePolicy
+import com.yunx.app.ui.rememberGlobalSnackbarHostState
 import com.yunx.app.ui.viewmodel.BaiduCloudUiState
 import com.yunx.app.ui.viewmodel.BaiduCloudViewModel
+import com.yunx.app.util.AppStrings
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Checkbox
@@ -63,16 +65,16 @@ private const val BAIDU_LIMIT_BYTES = 300L * 1024 * 1024
 
 /** 百度网盘平台差异：文案 + 有效期编码 0/1/7/30（默认 0）+ 必带 4 位提取码 */
 private val baiduDriveSpec = DriveSpec(
-    title = "百度网盘",
-    shareDesc = "生成分享链接（带提取码）",
-    shareHint = "百度分享必须带 4 位提取码",
+    title = AppStrings.get(R.string.csa_platform_baidu),
+    shareDesc = AppStrings.get(R.string.csb_baidu_share_title),
+    shareHint = AppStrings.get(R.string.csb_baidu_share_hint),
     expiryOptions = listOf<DriveExpiryOption<Any?>>(
-        DriveExpiryOption("永久有效", 0),
-        DriveExpiryOption("1 天", 1),
-        DriveExpiryOption("7 天", 7),
-        DriveExpiryOption("30 天", 30)
+        DriveExpiryOption(AppStrings.get(R.string.csa_expire_forever), 0),
+        DriveExpiryOption(AppStrings.get(R.string.csa_expire_1day), 1),
+        DriveExpiryOption(AppStrings.get(R.string.csa_expire_7days), 7),
+        DriveExpiryOption(AppStrings.get(R.string.csa_expire_30days), 30)
     ),
-    passcode = PasscodePolicy.Fixed(label = "提取码（4 位字母数字）"),
+    passcode = PasscodePolicy.Fixed(label = AppStrings.get(R.string.csa_passcode_label_required)),
     folderIcon = Icons.AutoMirrored.Outlined.DriveFileMove
 )
 
@@ -173,14 +175,14 @@ fun BaiduCloudScreen(
         WindowDialog(
             show = true,
             onDismissRequest = { showLimitDialog = false },
-            title = "下载大文件提示"
+            title = AppStrings.get(R.string.csa_baidu_limit_title)
         ) {
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Text(
-                    text = "百度网盘非会员超过300MB会被限速，下载速度可能较慢。是否继续下载？",
+                    text = AppStrings.get(R.string.csa_baidu_limit_message),
                     style = MiuixTheme.textStyles.body1
                 )
                 Row(
@@ -194,14 +196,14 @@ fun BaiduCloudScreen(
                         onClick = { neverShow = !neverShow }
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("不再显示此提示", style = MiuixTheme.textStyles.body2)
+                    Text(AppStrings.get(R.string.csa_do_not_show_again), style = MiuixTheme.textStyles.body2)
                 }
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     TextButton(
-                        text = "取消",
+                        text = AppStrings.get(R.string.csa_cancel),
                         onClick = { showLimitDialog = false },
                         modifier = Modifier.weight(1f)
                     )
@@ -218,7 +220,7 @@ fun BaiduCloudScreen(
                         modifier = Modifier.weight(1f),
                         colors = ButtonDefaults.buttonColorsPrimary()
                     ) {
-                        Text("继续下载", style = MiuixTheme.textStyles.button)
+                        Text(AppStrings.get(R.string.csa_continue_download), style = MiuixTheme.textStyles.button)
                     }
                 }
             }

@@ -18,13 +18,14 @@
 
 package com.yunx.app.ui.screens
 
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.DriveFileMove
-import androidx.compose.runtime.Composable
+import androidx.compose.material.icons.Icons
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import com.yunx.app.R
 import com.yunx.app.ui.drive.CloudDriveBrowser
 import com.yunx.app.ui.drive.CloudDriveUiState
 import com.yunx.app.ui.drive.DriveActions
@@ -33,20 +34,21 @@ import com.yunx.app.ui.drive.DriveSpec
 import com.yunx.app.ui.drive.PasscodePolicy
 import com.yunx.app.ui.viewmodel.XunleiCloudUiState
 import com.yunx.app.ui.viewmodel.XunleiCloudViewModel
+import com.yunx.app.util.AppStrings
 import top.yukonga.miuix.kmp.basic.ScrollBehavior
 
 /** 平台差异：文案 + 有效期编码 + 提取码策略 */
 private val xunleiDriveSpec = DriveSpec(
-    title = "迅雷网盘",
-    shareDesc = "生成分享链接（带提取码）",
-    shareHint = "迅雷分享必须带提取码，可自定义 4 位（留空自动生成）",
+    title = AppStrings.get(R.string.csa_platform_xunlei),
+    shareDesc = AppStrings.get(R.string.csb_xunlei_share_title),
+    shareHint = AppStrings.get(R.string.csb_xunlei_share_hint),
     expiryOptions = listOf<DriveExpiryOption<Any?>>(
-        DriveExpiryOption("永久有效", 1),
-        DriveExpiryOption("1 天", 2),
-        DriveExpiryOption("7 天", 3),
-        DriveExpiryOption("30 天", 4)
+        DriveExpiryOption(AppStrings.get(R.string.csa_expire_forever), 1),
+        DriveExpiryOption(AppStrings.get(R.string.csa_expire_1day), 2),
+        DriveExpiryOption(AppStrings.get(R.string.csa_expire_7days), 3),
+        DriveExpiryOption(AppStrings.get(R.string.csa_expire_30days), 4)
     ),
-    passcode = PasscodePolicy.Fixed(label = "提取码（4 位字母数字，可留空）"),
+    passcode = PasscodePolicy.Fixed(label = AppStrings.get(R.string.csa_passcode_label_optional)),
     folderIcon = Icons.AutoMirrored.Outlined.DriveFileMove
 )
 

@@ -27,36 +27,36 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.icons.Icons
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CreateNewFolder
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Upload
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
@@ -64,48 +64,50 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.yunx.app.data.network.model.ShareFile
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.withContext
-import com.yunx.app.ui.rememberGlobalSnackbarHostState
+import com.yunx.app.R
 import com.yunx.app.ui.AppSnackbarHost
-import top.yukonga.miuix.kmp.basic.BreadcrumbBar
-import top.yukonga.miuix.kmp.basic.BreadcrumbItem
-// CloudStepHeader / DrivePickerErrorPane 已下沉为 ui/drive 通用件；
-// 此处别名引入，保持同包调用点（CloudDriveScreen.kt）不变
-import com.yunx.app.ui.drive.CloudStepHeader as CloudStepHeader
-import com.yunx.app.ui.drive.DrivePickerErrorPane as DrivePickerErrorPane
 import com.yunx.app.ui.components.LocalScaffoldPadding
 import com.yunx.app.ui.components.ScrollToTopButton
+import com.yunx.app.ui.drive.CloudStepHeader as CloudStepHeader
+import com.yunx.app.ui.drive.DrivePickerErrorPane as DrivePickerErrorPane
 import com.yunx.app.ui.items.MultiSelectAction
 import com.yunx.app.ui.items.MultiSelectBar
+import com.yunx.app.ui.rememberGlobalSnackbarHostState
 import com.yunx.app.ui.resolve.BackToParentItem
 import com.yunx.app.ui.resolve.ShareFileRow
 import com.yunx.app.ui.theme.SquircleShape
+import com.yunx.app.util.AppStrings
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import top.yukonga.miuix.kmp.basic.BreadcrumbBar
+import top.yukonga.miuix.kmp.basic.BreadcrumbItem
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.InfiniteProgressIndicator
 import top.yukonga.miuix.kmp.basic.PullToRefresh
+import top.yukonga.miuix.kmp.basic.rememberPullToRefreshState
 import top.yukonga.miuix.kmp.basic.ScrollBehavior
 import top.yukonga.miuix.kmp.basic.Surface
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.basic.TextField
-import top.yukonga.miuix.kmp.basic.rememberPullToRefreshState
 import top.yukonga.miuix.kmp.overlay.OverlayBottomSheet
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.window.WindowDialog
+// CloudStepHeader / DrivePickerErrorPane 已下沉为 ui/drive 通用件；
+// 此处别名引入，保持同包调用点（CloudDriveScreen.kt）不变
 
 /**
  * 6 大云盘通用内容骨架：
@@ -205,31 +207,31 @@ internal fun CloudDriveScaffold(
                                 IconButton(onClick = onExitMultiSelect) {
                                     Icon(
                                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                        contentDescription = "取消选择",
+                                        contentDescription = AppStrings.get(R.string.csa_cd_cancel_selection),
                                         tint = MiuixTheme.colorScheme.onSurface
                                     )
                                 }
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
-                                        text = "已选 ${selectedFiles.size} 项",
+                                        text = AppStrings.get(R.string.csa_selected_count, selectedFiles.size),
                                         style = MiuixTheme.textStyles.title4,
                                         fontWeight = FontWeight.Medium
                                     )
                                     Text(
-                                        text = if (displayFiles.isNotEmpty() && selectedFiles.size == displayFiles.size) "已全选" else "点击选择更多文件",
+                                        text = if (displayFiles.isNotEmpty() && selectedFiles.size == displayFiles.size) AppStrings.get(R.string.csa_all_selected) else AppStrings.get(R.string.csa_click_select_more),
                                         style = MiuixTheme.textStyles.footnote1,
                                         color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                                     )
                                 }
                                 TextButton(
-                                    text = if (displayFiles.isNotEmpty() && selectedFiles.size == displayFiles.size) "取消全选" else "全选",
+                                    text = if (displayFiles.isNotEmpty() && selectedFiles.size == displayFiles.size) AppStrings.get(R.string.csa_deselect_all) else AppStrings.get(R.string.csa_select_all),
                                     onClick = { onToggleSelectAll(displayFiles) }
                                 )
                             } else {
                                 IconButton(onClick = onExit) {
                                     Icon(
                                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                        contentDescription = "返回",
+                                        contentDescription = AppStrings.get(R.string.csa_back),
                                         tint = MiuixTheme.colorScheme.onSurface
                                     )
                                 }
@@ -242,8 +244,8 @@ internal fun CloudDriveScaffold(
                                         overflow = TextOverflow.Ellipsis
                                     )
                                     Text(
-                                        text = if (searchQuery.isBlank()) "共 ${files.size} 项"
-                                        else "匹配 ${displayFiles.size} / ${files.size} 项",
+                                        text = if (searchQuery.isBlank()) AppStrings.get(R.string.csa_total_count, files.size)
+                                        else AppStrings.get(R.string.csa_match_count, displayFiles.size, files.size),
                                         style = MiuixTheme.textStyles.footnote1,
                                         color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                                     )
@@ -253,7 +255,7 @@ internal fun CloudDriveScaffold(
                                     IconButton(onClick = { showAddMenu = true }) {
                                         Icon(
                                             imageVector = Icons.Filled.Add,
-                                            contentDescription = "新建或上传",
+                                            contentDescription = AppStrings.get(R.string.csa_new_or_upload),
                                             tint = MiuixTheme.colorScheme.onSurface
                                         )
                                     }
@@ -261,7 +263,7 @@ internal fun CloudDriveScaffold(
                                 IconButton(onClick = { showSearch = !showSearch }) {
                                     Icon(
                                         imageVector = Icons.Outlined.Search,
-                                        contentDescription = if (showSearch) "关闭搜索" else "搜索文件",
+                                        contentDescription = if (showSearch) AppStrings.get(R.string.csa_cd_close_search) else AppStrings.get(R.string.csa_cd_search_files),
                                         tint = if (showSearch) MiuixTheme.colorScheme.primary else MiuixTheme.colorScheme.onSurfaceVariantActions
                                     )
                                 }
@@ -298,7 +300,7 @@ internal fun CloudDriveScaffold(
                                     value = searchQuery,
                                     onValueChange = { searchQuery = it },
                                     modifier = Modifier.fillMaxWidth(),
-                                    label = "搜索当前目录文件",
+                                    label = AppStrings.get(R.string.csa_search_current_dir),
                                     useLabelAsPlaceholder = true,
                                     leadingIcon = {
                                         Icon(
@@ -313,7 +315,7 @@ internal fun CloudDriveScaffold(
                                             IconButton(onClick = { searchQuery = "" }) {
                                                 Icon(
                                                     imageVector = Icons.Filled.Close,
-                                                    contentDescription = "清空搜索",
+                                                    contentDescription = AppStrings.get(R.string.csa_cd_clear_search),
                                                     tint = MiuixTheme.colorScheme.onSurfaceVariantActions
                                                 )
                                             }
@@ -398,8 +400,8 @@ internal fun CloudDriveScaffold(
                     if (onCreateFolder != null) {
                         CloudActionItem(
                             icon = Icons.Outlined.CreateNewFolder,
-                            title = "新建文件夹",
-                            desc = "在当前目录下创建新文件夹",
+                            title = AppStrings.get(R.string.csa_new_folder),
+                            desc = AppStrings.get(R.string.csa_new_folder_desc),
                             tint = MiuixTheme.colorScheme.primary,
                             onClick = {
                                 showAddMenu = false
@@ -410,8 +412,8 @@ internal fun CloudDriveScaffold(
                     if (onUploadFile != null) {
                         CloudActionItem(
                             icon = Icons.Outlined.Upload,
-                            title = "上传文件",
-                            desc = "从本机选择文件上传到当前目录",
+                            title = AppStrings.get(R.string.csa_upload_file),
+                            desc = AppStrings.get(R.string.csa_upload_desc),
                             tint = MiuixTheme.colorScheme.primary,
                             onClick = {
                                 showAddMenu = false
@@ -432,8 +434,8 @@ internal fun CloudDriveScaffold(
             initialName = "",
             onConfirm = { name -> createFolder(name) },
             onDismiss = { showCreateFolder = false },
-            title = "新建文件夹",
-            label = "文件夹名称"
+            title = AppStrings.get(R.string.csa_new_folder),
+            label = AppStrings.get(R.string.csa_folder_name)
         )
     }
 }
@@ -472,13 +474,13 @@ fun CloudDriveErrorView(
             Spacer(modifier = Modifier.height(16.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Button(onClick = onExit) {
-                    Text("返回", style = MiuixTheme.textStyles.button)
+                    Text(AppStrings.get(R.string.csa_back), style = MiuixTheme.textStyles.button)
                 }
                 Button(
                     onClick = onRetry,
                     colors = ButtonDefaults.buttonColorsPrimary()
                 ) {
-                    Text("重试", style = MiuixTheme.textStyles.button)
+                    Text(AppStrings.get(R.string.csa_retry), style = MiuixTheme.textStyles.button)
                 }
             }
         }
@@ -507,7 +509,7 @@ fun CloudDriveEmptyView(
     modifier: Modifier = Modifier
 ) {
     Text(
-        text = if (isEmpty) "此目录为空" else "未找到匹配「${searchQuery.trim()}」的文件",
+        text = if (isEmpty) AppStrings.get(R.string.csa_dir_empty) else AppStrings.get(R.string.csa_no_match_files, searchQuery.trim()),
         style = MiuixTheme.textStyles.body2,
         color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
         modifier = modifier
@@ -522,7 +524,7 @@ fun CloudDriveEmptyView(
 fun CloudDriveDeleteDialog(
     show: Boolean,
     onDismissRequest: () -> Unit,
-    title: String = "删除文件",
+    title: String = AppStrings.get(R.string.csa_delete_file_title),
     message: String,
     onConfirm: () -> Unit
 ) {
@@ -543,7 +545,7 @@ fun CloudDriveDeleteDialog(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 TextButton(
-                    text = "取消",
+                    text = AppStrings.get(R.string.csa_cancel),
                     onClick = onDismissRequest,
                     modifier = Modifier.weight(1f)
                 )
@@ -558,7 +560,7 @@ fun CloudDriveDeleteDialog(
                         contentColor = MiuixTheme.colorScheme.onError
                     )
                 ) {
-                    Text("删除", style = MiuixTheme.textStyles.button)
+                    Text(AppStrings.get(R.string.csa_delete), style = MiuixTheme.textStyles.button)
                 }
             }
         }
@@ -574,10 +576,10 @@ fun CloudDriveDeleteDialog(
 internal fun cloudNameError(raw: String): String? {
     val name = raw.trim()
     return when {
-        name.isEmpty() -> "名称不能为空"
-        name == "." || name == ".." -> "名称不能是 . 或 .."
-        name.length > 255 -> "名称最多 255 个字符"
-        name.any { it == '/' || it == '\\' || it.code < 0x20 } -> "名称不能含 / \\ 或控制字符"
+        name.isEmpty() -> AppStrings.get(R.string.csa_name_error_empty)
+        name == "." || name == ".." -> AppStrings.get(R.string.csa_name_error_dots)
+        name.length > 255 -> AppStrings.get(R.string.csa_name_error_too_long)
+        name.any { it == '/' || it == '\\' || it.code < 0x20 } -> AppStrings.get(R.string.csa_name_error_invalid_chars)
         else -> null
     }
 }
@@ -590,9 +592,9 @@ fun CloudDriveRenameDialog(
     onConfirm: (String) -> Unit,
     onDismiss: () -> Unit,
     /** 弹窗标题；新建文件夹时传「新建文件夹」即可复用本弹窗 */
-    title: String = "重命名",
+    title: String = AppStrings.get(R.string.csa_rename),
     /** 输入框占位文案 */
-    label: String = "新文件名",
+    label: String = AppStrings.get(R.string.csa_new_file_name),
 ) {
     if (!show) return
     var name by remember(initialName) { mutableStateOf(initialName) }
@@ -630,7 +632,7 @@ fun CloudDriveRenameDialog(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 TextButton(
-                    text = "取消",
+                    text = AppStrings.get(R.string.csa_cancel),
                     onClick = onDismiss,
                     modifier = Modifier.weight(1f)
                 )
@@ -645,7 +647,7 @@ fun CloudDriveRenameDialog(
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColorsPrimary()
                 ) {
-                    Text("确定", style = MiuixTheme.textStyles.button)
+                    Text(AppStrings.get(R.string.rs_confirm), style = MiuixTheme.textStyles.button)
                 }
             }
         }

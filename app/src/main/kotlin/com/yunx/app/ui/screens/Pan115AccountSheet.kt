@@ -18,21 +18,21 @@
 
 package com.yunx.app.ui.screens
 
-import android.content.ClipData
 import android.content.ClipboardManager
+import android.content.ClipData
 import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -51,19 +51,21 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.yunx.app.data.db.Pan115AccountEntity
 import com.yunx.app.data.db.MultiAccountEntity
+import com.yunx.app.data.db.Pan115AccountEntity
 import com.yunx.app.data.network.Pan115Constants
+import com.yunx.app.R
 import com.yunx.app.ui.SnackbarController
+import com.yunx.app.util.AppStrings
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Surface
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.overlay.OverlayBottomSheet
 import top.yukonga.miuix.kmp.theme.MiuixTheme
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 /**
  * 已登录 115 账号的底部弹窗：展示账号信息、登录时间、Cookie（可展开/复制），并提供多账号管理（主账号 / 备注 / 退出该账号 / 添加账号）。
@@ -146,7 +148,7 @@ fun Pan115AccountSheet(
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = "115网盘 · 已登录",
+                            text = AppStrings.get(R.string.sh_pan115_logged_in),
                             style = MiuixTheme.textStyles.body2,
                             color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                             maxLines = 1,
@@ -160,7 +162,7 @@ fun Pan115AccountSheet(
 
             // 登录信息
             Text(
-                text = "登录信息",
+                text = AppStrings.get(R.string.sh_login_info),
                 style = MiuixTheme.textStyles.body2,
                 color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                 modifier = Modifier.padding(horizontal = 12.dp)
@@ -172,15 +174,15 @@ fun Pan115AccountSheet(
             ) {
                 Column {
                     InfoRow(
-                        label = "登录账号",
+                        label = AppStrings.get(R.string.sh_login_account),
                         value = Pan115Constants.cookieValue(account.cookie, "UID").orEmpty()
                             .ifBlank { account.nickname }
                     )
                     Spacer(modifier = Modifier.height(12.dp))
-                    InfoRow(label = "登录时间", value = loginTime)
+                    InfoRow(label = AppStrings.get(R.string.sh_login_time), value = loginTime)
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
-                        text = "登录 Cookie",
+                        text = AppStrings.get(R.string.sh_pan115_login_cookie),
                         style = MiuixTheme.textStyles.body2,
                         color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                     )
@@ -200,16 +202,16 @@ fun Pan115AccountSheet(
                     ) {
                         if (cookieTruncated) {
                             TextButton(
-                                text = if (showFullCookie) "收起" else "展开全部",
+                                text = if (showFullCookie) AppStrings.get(R.string.dl_collapse) else AppStrings.get(R.string.sh_expand_all),
                                 onClick = { showFullCookie = !showFullCookie }
                             )
                         }
                         TextButton(
-                            text = "复制",
+                            text = AppStrings.get(R.string.sh_copy),
                             onClick = {
                                 val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                                 clipboard.setPrimaryClip(ClipData.newPlainText("pan115_cookie", account.cookie))
-                                SnackbarController.show("Cookie 已复制")
+                                SnackbarController.show(AppStrings.get(R.string.sh_cookie_copied))
                             }
                         )
                     }

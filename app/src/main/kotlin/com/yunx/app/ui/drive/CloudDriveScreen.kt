@@ -27,33 +27,33 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.automirrored.outlined.DriveFileMove
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.CreateNewFolder
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Download
-import androidx.compose.material.icons.automirrored.outlined.DriveFileMove
 import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material.icons.outlined.CreateNewFolder
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.Upload
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -61,7 +61,7 @@ import com.yunx.app.data.network.model.DownloadLink
 import com.yunx.app.data.network.model.ShareFile
 import com.yunx.app.data.network.model.ShareInfo
 import com.yunx.app.data.upload.UploadProgress
-import com.yunx.app.ui.SnackbarController
+import com.yunx.app.R
 import com.yunx.app.ui.items.MultiSelectAction
 import com.yunx.app.ui.preview.CloudPreview
 import com.yunx.app.ui.resolve.DownloadLinkDialog
@@ -71,10 +71,12 @@ import com.yunx.app.ui.screens.CloudDriveErrorView
 import com.yunx.app.ui.screens.CloudDriveLoadingView
 import com.yunx.app.ui.screens.CloudDriveRenameDialog
 import com.yunx.app.ui.screens.CloudDriveScaffold
+import com.yunx.app.ui.screens.rememberUploadPicker
 import com.yunx.app.ui.screens.ShareResultDialog
 import com.yunx.app.ui.screens.UploadProgressDialog
-import com.yunx.app.ui.screens.rememberUploadPicker
+import com.yunx.app.ui.SnackbarController
 import com.yunx.app.ui.theme.SquircleShape
+import com.yunx.app.util.AppStrings
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.ScrollBehavior
 import top.yukonga.miuix.kmp.basic.Surface
@@ -216,22 +218,22 @@ fun CloudDriveBrowser(
                     // 数量不变的选择变化拿到旧闭包，下载/分享会读到过期的选择集。
                     val multiSelectActions = listOf(
                         MultiSelectAction(
-                            label = "下载",
+                            label = AppStrings.get(R.string.csa_download),
                             icon = Icons.Outlined.Download,
                             onClick = { requestDownload(selected) { actions.downloadSelected() } }
                         ),
                         MultiSelectAction(
-                            label = "分享",
+                            label = AppStrings.get(R.string.csa_share),
                             icon = Icons.Outlined.Share,
                             onClick = { step = DriveStep.SHARE }
                         ),
                         MultiSelectAction(
-                            label = "移动",
+                            label = AppStrings.get(R.string.csa_move),
                             icon = Icons.AutoMirrored.Outlined.DriveFileMove,
                             onClick = { actions.openMoveRoot(); step = DriveStep.MOVE }
                         ),
                         MultiSelectAction(
-                            label = "删除",
+                            label = AppStrings.get(R.string.csa_delete),
                             icon = Icons.Outlined.Delete,
                             onClick = { showDeleteConfirm = true }
                         )
@@ -283,8 +285,8 @@ fun CloudDriveBrowser(
                 if (!file.isdir) {
                     CloudActionItem(
                         icon = Icons.Outlined.Download,
-                        title = "下载",
-                        desc = "使用内置下载功能保存到本机",
+                        title = AppStrings.get(R.string.csa_download),
+                        desc = AppStrings.get(R.string.csa_action_download_desc),
                         tint = MiuixTheme.colorScheme.primary,
                         onClick = {
                             val target = file
@@ -295,8 +297,8 @@ fun CloudDriveBrowser(
                 } else {
                     CloudActionItem(
                         icon = Icons.Outlined.Download,
-                        title = "下载文件夹",
-                        desc = "递归下载整个文件夹，保持目录结构",
+                        title = AppStrings.get(R.string.csa_download_folder),
+                        desc = AppStrings.get(R.string.csa_action_download_folder_desc),
                         tint = MiuixTheme.colorScheme.primary,
                         onClick = {
                             val target = file
@@ -311,8 +313,8 @@ fun CloudDriveBrowser(
                 if (!file.isdir && preview != null && CloudPreview.canPreview(file)) {
                     CloudActionItem(
                         icon = Icons.Outlined.Visibility,
-                        title = "在线预览",
-                        desc = "不下载，直接在应用内查看",
+                        title = AppStrings.get(R.string.csa_online_preview),
+                        desc = AppStrings.get(R.string.csa_action_preview_desc),
                         tint = MiuixTheme.colorScheme.primary,
                         onClick = {
                             hideSheet()
@@ -322,29 +324,29 @@ fun CloudDriveBrowser(
                 }
                 CloudActionItem(
                     icon = Icons.Outlined.Share,
-                    title = "分享",
+                    title = AppStrings.get(R.string.csa_share),
                     desc = spec.shareDesc,
                     tint = MiuixTheme.colorScheme.primary,
                     onClick = { step = DriveStep.SHARE }
                 )
                 CloudActionItem(
                     icon = Icons.AutoMirrored.Outlined.DriveFileMove,
-                    title = "移动到",
-                    desc = "移动到网盘的其他目录",
+                    title = AppStrings.get(R.string.csa_move_to),
+                    desc = AppStrings.get(R.string.csa_action_move_desc),
                     tint = MiuixTheme.colorScheme.primary,
                     onClick = { actions.openMoveRoot(); step = DriveStep.MOVE }
                 )
                 CloudActionItem(
                     icon = Icons.Outlined.Edit,
-                    title = "重命名",
-                    desc = "修改文件名",
+                    title = AppStrings.get(R.string.csa_rename),
+                    desc = AppStrings.get(R.string.csa_action_rename_desc),
                     tint = MiuixTheme.colorScheme.primary,
                     onClick = { step = DriveStep.RENAME }
                 )
                 CloudActionItem(
                     icon = Icons.Outlined.Delete,
-                    title = "删除",
-                    desc = "删除到回收站",
+                    title = AppStrings.get(R.string.csa_delete),
+                    desc = AppStrings.get(R.string.csa_delete_desc_recycle),
                     tint = MiuixTheme.colorScheme.error,
                     onClick = { step = DriveStep.DELETE }
                 )
@@ -355,15 +357,15 @@ fun CloudDriveBrowser(
             DriveStep.MOVE -> OverlayBottomSheet(show = true, onDismissRequest = { step = DriveStep.MENU }) {
                 Column(modifier = sheetColumnModifier()) {
                     DriveDirPicker(
-                        title = "移动到",
-                        subtitle = if (multiSelectMode) "已选 " + selected.size + " 项" else file.fname,
+                        title = AppStrings.get(R.string.csa_move_to),
+                        subtitle = if (multiSelectMode) AppStrings.get(R.string.csa_selected_count, selected.size) else file.fname,
                         state = moveState,
                         onBack = { step = DriveStep.MENU },
                         onNavigateToLevel = actions.moveNavigateToLevel,
                         onBackToParent = actions.moveBack,
                         onOpenFolder = actions.openMoveFolder,
                         onRetry = actions.retryMove,
-                        confirmText = "移动到此处（%s）",
+                        confirmText = AppStrings.get(R.string.csa_move_here),
                         onConfirm = {
                             val to = (moveState as? CloudDriveUiState.Loaded)?.dir ?: ""
                             actions.move(to, multiSelectMode)
@@ -377,7 +379,7 @@ fun CloudDriveBrowser(
 
             DriveStep.SHARE -> OverlayBottomSheet(show = true, onDismissRequest = { step = DriveStep.MENU }) {
                 ShareFormSheet(
-                    subtitle = if (multiSelectMode) "已选 " + selected.size + " 项" else file.fname,
+                    subtitle = if (multiSelectMode) AppStrings.get(R.string.csa_selected_count, selected.size) else file.fname,
                     spec = spec,
                     onBack = { step = DriveStep.MENU },
                     onSubmit = { expiry, passcode ->
@@ -404,8 +406,8 @@ fun CloudDriveBrowser(
             DriveStep.DELETE -> CloudDriveDeleteDialog(
                 show = true,
                 onDismissRequest = { step = DriveStep.MENU },
-                title = "删除文件",
-                message = "确定要删除「" + file.fname + "」吗？删除后将移入回收站。",
+                title = AppStrings.get(R.string.csa_delete_file_title),
+                message = AppStrings.get(R.string.csa_delete_file_message, file.fname),
                 onConfirm = {
                     actions.deleteFile()
                     closeActions()
@@ -420,8 +422,8 @@ fun CloudDriveBrowser(
     CloudDriveDeleteDialog(
         show = showDeleteConfirm,
         onDismissRequest = { showDeleteConfirm = false },
-        title = "删除文件",
-        message = "确定要删除选中的 " + selected.size + " 项吗？删除后将移入回收站。",
+        title = AppStrings.get(R.string.csa_delete_file_title),
+        message = AppStrings.get(R.string.csa_delete_selected_message, selected.size),
         onConfirm = { actions.deleteSelected() }
     )
 
@@ -436,8 +438,8 @@ fun CloudDriveBrowser(
                 if (onCreateFolder != null) {
                     CloudActionItem(
                         icon = Icons.Outlined.CreateNewFolder,
-                        title = "新建文件夹",
-                        desc = "在当前目录下创建新文件夹",
+                        title = AppStrings.get(R.string.csa_new_folder),
+                        desc = AppStrings.get(R.string.csa_new_folder_desc),
                         tint = MiuixTheme.colorScheme.primary,
                         onClick = {
                             showAddSheet = false
@@ -448,8 +450,8 @@ fun CloudDriveBrowser(
                 if (onUploadFiles != null) {
                     CloudActionItem(
                         icon = Icons.Outlined.Upload,
-                        title = "上传文件",
-                        desc = "从本机选择文件上传到当前目录",
+                        title = AppStrings.get(R.string.csa_upload_file),
+                        desc = AppStrings.get(R.string.csa_upload_desc),
                         tint = MiuixTheme.colorScheme.primary,
                         onClick = {
                             showAddSheet = false
@@ -469,8 +471,8 @@ fun CloudDriveBrowser(
             initialName = "",
             onConfirm = { name -> createFolder(name) },
             onDismiss = { showCreateFolder = false },
-            title = "新建文件夹",
-            label = "文件夹名称"
+            title = AppStrings.get(R.string.csa_new_folder),
+            label = AppStrings.get(R.string.csa_folder_name)
         )
     }
 
@@ -506,7 +508,7 @@ private fun DriveActionHeader(file: ShareFile, folderIcon: ImageVector) {
                 overflow = TextOverflow.Ellipsis
             )
             Text(
-                text = if (file.isdir) "文件夹" else "文件",
+                text = if (file.isdir) AppStrings.get(R.string.csa_label_folder) else AppStrings.get(R.string.csa_label_file),
                 style = MiuixTheme.textStyles.footnote1,
                 color = MiuixTheme.colorScheme.onSurfaceVariantSummary
             )

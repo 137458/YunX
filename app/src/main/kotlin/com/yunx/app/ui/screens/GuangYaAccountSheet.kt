@@ -18,21 +18,21 @@
 
 package com.yunx.app.ui.screens
 
-import android.content.ClipData
 import android.content.ClipboardManager
+import android.content.ClipData
 import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -53,16 +53,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.yunx.app.data.db.GuangYaAccountEntity
 import com.yunx.app.data.db.MultiAccountEntity
+import com.yunx.app.R
 import com.yunx.app.ui.SnackbarController
+import com.yunx.app.util.AppStrings
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Surface
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.overlay.OverlayBottomSheet
 import top.yukonga.miuix.kmp.theme.MiuixTheme
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 /**
  * 已登录光鸭账号的底部弹窗：展示用户信息、登录时间、access token（可展开/复制），并提供多账号管理（主账号 / 备注 / 退出该账号 / 添加账号）。
@@ -119,7 +121,7 @@ fun GuangYaAccountSheet(
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Text(
-                            text = account.nickname.take(1).ifBlank { "光" },
+                            text = account.nickname.take(1).ifBlank { AppStrings.get(R.string.csb_drive_avatar_guangya) },
                             style = MiuixTheme.textStyles.title3,
                             fontWeight = FontWeight.SemiBold,
                             color = MiuixTheme.colorScheme.onPrimaryVariant
@@ -129,7 +131,7 @@ fun GuangYaAccountSheet(
                 Spacer(modifier = Modifier.width(16.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = account.nickname.ifBlank { "光鸭用户" },
+                        text = account.nickname.ifBlank { AppStrings.get(R.string.er_guangya_default_nickname) },
                         style = MiuixTheme.textStyles.title4,
                         fontWeight = FontWeight.Medium,
                         maxLines = 2,
@@ -144,7 +146,7 @@ fun GuangYaAccountSheet(
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = "光鸭云盘 · 已登录",
+                            text = AppStrings.get(R.string.sh_guangya_logged_in),
                             style = MiuixTheme.textStyles.body2,
                             color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                             maxLines = 1,
@@ -157,7 +159,7 @@ fun GuangYaAccountSheet(
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                text = "登录信息",
+                text = AppStrings.get(R.string.sh_login_info),
                 style = MiuixTheme.textStyles.body2,
                 color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                 modifier = Modifier.padding(horizontal = 12.dp)
@@ -168,9 +170,9 @@ fun GuangYaAccountSheet(
                 insideMargin = PaddingValues(16.dp)
             ) {
                 Column {
-                    InfoRow(label = "登录账号", value = account.account.ifBlank { account.nickname.ifBlank { "光鸭用户" } })
+                    InfoRow(label = AppStrings.get(R.string.sh_login_account), value = account.account.ifBlank { account.nickname.ifBlank { AppStrings.get(R.string.er_guangya_default_nickname) } })
                     Spacer(modifier = Modifier.height(12.dp))
-                    InfoRow(label = "登录时间", value = loginTime)
+                    InfoRow(label = AppStrings.get(R.string.sh_login_time), value = loginTime)
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
                         text = "Token（access）",
@@ -190,16 +192,16 @@ fun GuangYaAccountSheet(
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                         if (tokenTruncated) {
                             TextButton(
-                                text = if (showFullToken) "收起" else "展开全部",
+                                text = if (showFullToken) AppStrings.get(R.string.dl_collapse) else AppStrings.get(R.string.sh_expand_all),
                                 onClick = { showFullToken = !showFullToken }
                             )
                         }
                         TextButton(
-                            text = "复制",
+                            text = AppStrings.get(R.string.sh_copy),
                             onClick = {
                                 val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                                 clipboard.setPrimaryClip(ClipData.newPlainText("guangya_token", account.accessToken))
-                                SnackbarController.show("Token 已复制")
+                                SnackbarController.show(AppStrings.get(R.string.sh_token_copied))
                             }
                         )
                     }

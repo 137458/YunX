@@ -18,13 +18,14 @@
 
 package com.yunx.app.ui.screens
 
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.DriveFileMove
-import androidx.compose.runtime.Composable
+import androidx.compose.material.icons.Icons
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import com.yunx.app.R
 import com.yunx.app.ui.drive.CloudDriveBrowser
 import com.yunx.app.ui.drive.CloudDriveUiState
 import com.yunx.app.ui.drive.DriveActions
@@ -32,11 +33,12 @@ import com.yunx.app.ui.drive.DriveSpec
 import com.yunx.app.ui.drive.PasscodePolicy
 import com.yunx.app.ui.viewmodel.LanzouCloudUiState
 import com.yunx.app.ui.viewmodel.LanzouCloudViewModel
+import com.yunx.app.util.AppStrings
 import top.yukonga.miuix.kmp.basic.ScrollBehavior
 
 private val lanzouDriveSpec = DriveSpec(
-    title = "蓝奏云",
-    shareDesc = "生成分享链接",
+    title = AppStrings.get(R.string.csb_drive_name_lanzou),
+    shareDesc = AppStrings.get(R.string.csb_share_title),
     shareHint = null,
     expiryOptions = emptyList(),
     passcode = PasscodePolicy.Auto,

@@ -18,16 +18,18 @@
 
 package com.yunx.app.ui.screens
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import com.yunx.app.ui.SnackbarController
+import androidx.compose.runtime.LaunchedEffect
+import com.yunx.app.R
 import com.yunx.app.ui.drive.CloudDriveUiState
 import com.yunx.app.ui.drive.CloudPickerSheet
+import com.yunx.app.ui.SnackbarController
 import com.yunx.app.ui.viewmodel.QuarkCloudUiState
 import com.yunx.app.ui.viewmodel.QuarkCloudViewModel
 import com.yunx.app.ui.viewmodel.ResolveViewModel
+import com.yunx.app.util.AppStrings
 
 /**
  * 转存到夸克网盘底部抽屉：浏览夸克个人网盘目录，确认后转存到当前目录。
@@ -52,7 +54,7 @@ fun SaveToCloudSheet(
     }
 
     CloudPickerSheet(
-        title = "转存到夸克网盘",
+        title = AppStrings.get(R.string.sh_save_to_quark),
         targetName = resolveViewModel.saveTarget?.fname ?: "",
         state = cloudState.toQuarkPickerState(),
         onDismiss = onDismiss,

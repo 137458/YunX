@@ -18,21 +18,21 @@
 
 package com.yunx.app.ui.screens
 
-import android.content.ClipData
 import android.content.ClipboardManager
+import android.content.ClipData
 import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -51,10 +51,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.yunx.app.data.db.MultiAccountEntity
 import com.yunx.app.data.db.C139AccountEntity
-import com.yunx.app.ui.SnackbarController
+import com.yunx.app.data.db.MultiAccountEntity
+import com.yunx.app.R
 import com.yunx.app.ui.drive.formatCloudLoginTime
+import com.yunx.app.ui.SnackbarController
+import com.yunx.app.util.AppStrings
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Surface
 import top.yukonga.miuix.kmp.basic.Text
@@ -141,7 +143,7 @@ fun C139AccountSheet(
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = "139网盘 · 已登录",
+                            text = AppStrings.get(R.string.sh_c139_logged_in),
                             style = MiuixTheme.textStyles.body2,
                             color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                             maxLines = 1,
@@ -154,7 +156,7 @@ fun C139AccountSheet(
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                text = "登录信息",
+                text = AppStrings.get(R.string.sh_login_info),
                 style = MiuixTheme.textStyles.body2,
                 color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                 modifier = Modifier.padding(horizontal = 12.dp)
@@ -165,7 +167,7 @@ fun C139AccountSheet(
                 insideMargin = PaddingValues(16.dp)
             ) {
                 Column {
-                    InfoRow(label = "登录时间", value = loginTime)
+                    InfoRow(label = AppStrings.get(R.string.sh_login_time), value = loginTime)
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
                         text = "Cookie",
@@ -188,15 +190,15 @@ fun C139AccountSheet(
                     ) {
                         if (secretTruncated) {
                             TextButton(
-                                text = if (showFullSecret) "收起" else "展开全部",
+                                text = if (showFullSecret) AppStrings.get(R.string.dl_collapse) else AppStrings.get(R.string.sh_expand_all),
                                 onClick = { showFullSecret = !showFullSecret }
                             )
                         }
                         TextButton(
-                            text = "复制",
+                            text = AppStrings.get(R.string.sh_copy),
                             onClick = {
                                 copyToClipboard(context, account.cookie, "c139_cookie")
-                                SnackbarController.show("Cookie 已复制")
+                                SnackbarController.show(AppStrings.get(R.string.sh_cookie_copied))
                             }
                         )
                     }

@@ -21,25 +21,27 @@ package com.yunx.app.ui.screens
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.yunx.app.data.db.VideoAccountEntity
 import com.yunx.app.data.network.video.VideoParsers
 import com.yunx.app.data.network.video.VideoPlatform
+import com.yunx.app.R
 import com.yunx.app.ui.items.logoRes
+import com.yunx.app.util.AppStrings
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.SmallTitle
 import top.yukonga.miuix.kmp.basic.Text
@@ -175,8 +177,8 @@ private fun VideoPlatformCardContent(
 
         when {
             !enabled -> Unit
-            account != null -> TextButton(text = "管理", onClick = { onManage(platform) })
-            else -> TextButton(text = "登录", onClick = { onLogin(platform) })
+            account != null -> TextButton(text = AppStrings.get(R.string.rs_manage), onClick = { onManage(platform) })
+            else -> TextButton(text = AppStrings.get(R.string.lg_login), onClick = { onLogin(platform) })
         }
     }
 }
@@ -187,10 +189,10 @@ private fun videoStatusText(
     account: VideoAccountEntity?,
     accountCount: Int
 ): String = when {
-    !platform.needsLogin -> "无需登录，直接解析"
-    account == null -> "未登录"
+    !platform.needsLogin -> AppStrings.get(R.string.sh_no_login_needed)
+    account == null -> AppStrings.get(R.string.csb_drive_not_logged_in)
     else -> {
-        val name = account.remark.ifBlank { account.nickname }.ifBlank { "已登录" }
-        if (accountCount > 1) "$name · 共 $accountCount 个账号" else name
+        val name = account.remark.ifBlank { account.nickname }.ifBlank { AppStrings.get(R.string.csb_drive_logged_in) }
+        if (accountCount > 1) AppStrings.get(R.string.sh_name_accounts, name, accountCount) else name
     }
 }

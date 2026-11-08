@@ -18,8 +18,12 @@
 
 package com.yunx.app.ui.screens
 
+import com.yunx.app.R
+import com.yunx.app.util.AppStrings
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Before
 import org.junit.Test
 
 /**
@@ -29,6 +33,23 @@ import org.junit.Test
  * 迁移到共享弹窗后，规则一旦走样，用户会把含 `/` 的名称提交给网盘而不是在本地被拦下。
  */
 class CloudNameErrorTest {
+    /** 校验函数走 AppStrings，单测用中文模板替身还原真实取值 */
+    @Before
+    fun installStringResolver() {
+        val templates = mapOf(
+            R.string.csa_name_error_empty to "名称不能为空",
+            R.string.csa_name_error_dots to "名称不能是 . 或 ..",
+            R.string.csa_name_error_too_long to "名称最多 255 个字符",
+            R.string.csa_name_error_invalid_chars to "名称不能含 / \\ 或控制字符",
+        )
+        AppStrings.installResolverForTest { resId, _ -> templates[resId] ?: resId.toString() }
+    }
+
+    @After
+    fun clearStringResolver() {
+        AppStrings.installResolverForTest(null)
+    }
+
     @Test
     fun blankNameIsRejected() {
         assertEquals("名称不能为空", cloudNameError(""))

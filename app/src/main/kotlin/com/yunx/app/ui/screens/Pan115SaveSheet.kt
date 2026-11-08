@@ -22,7 +22,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import com.yunx.app.R
 import com.yunx.app.ui.SnackbarController
+import com.yunx.app.util.AppStrings
 import com.yunx.app.ui.drive.CloudDriveUiState
 import com.yunx.app.ui.drive.CloudPickerSheet
 import com.yunx.app.ui.viewmodel.Pan115CloudUiState
@@ -52,7 +54,7 @@ fun Pan115SaveSheet(
     }
 
     CloudPickerSheet(
-        title = "转存到 115 网盘",
+        title = AppStrings.get(R.string.csb_save_to_pan115_title),
         targetName = resolveViewModel.saveTarget?.fname ?: "",
         state = cloudState.toDrivePickerState(),
         onDismiss = onDismiss,

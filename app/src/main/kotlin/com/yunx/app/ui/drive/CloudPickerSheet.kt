@@ -26,16 +26,16 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.SaveAlt
@@ -46,10 +46,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.yunx.app.data.network.model.ShareFile
+import com.yunx.app.R
 import com.yunx.app.ui.resolve.BackToParentItem
 import com.yunx.app.ui.resolve.CrumbBar
 import com.yunx.app.ui.resolve.ShareFileRow
 import com.yunx.app.ui.theme.SquircleShape
+import com.yunx.app.util.AppStrings
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Icon
@@ -127,7 +129,7 @@ fun CloudPickerSheet(
             Spacer(modifier = Modifier.height(16.dp))
 
             CrumbBar(
-                rootTitle = "根目录",
+                rootTitle = AppStrings.get(R.string.csa_root_dir),
                 pathNames = pathNames,
                 onNavigate = onNavigateToLevel
             )
@@ -174,7 +176,7 @@ fun CloudPickerSheet(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            val currentDirName = pathNames.lastOrNull() ?: "根目录"
+            val currentDirName = pathNames.lastOrNull() ?: AppStrings.get(R.string.csa_root_dir)
             Button(
                 onClick = onConfirm,
                 enabled = !saving,
@@ -196,7 +198,7 @@ fun CloudPickerSheet(
                         tint = MiuixTheme.colorScheme.onPrimary
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("转存到此目录（$currentDirName）", style = MiuixTheme.textStyles.button)
+                    Text(AppStrings.get(R.string.csa_save_here, currentDirName), style = MiuixTheme.textStyles.button)
                 }
             }
         }
