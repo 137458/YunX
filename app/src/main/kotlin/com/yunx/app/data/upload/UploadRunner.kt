@@ -143,7 +143,7 @@ class UploadRunner(
                             error = AppStrings.get(
                                 R.string.em_upload_file_failed,
                                 source.name,
-                                e.message ?: AppStrings.get(R.string.em_upload_network_error)
+                                e.message ?: AppStrings.get(R.string.er_account_network_error)
                             )
                         }
                         break@loop

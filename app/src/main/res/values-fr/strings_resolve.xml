@@ -52,8 +52,8 @@
     <string name="rs_no_audio_stream">Cette plateforme n\'a pas de flux audio séparé ; la vidéo complète sera d\'abord téléchargée, puis la piste audio extraite</string>
     <string name="rs_unrecognized_link">Lien de partage non reconnu</string>
     <string name="rs_parse_failed">Échec de l\'analyse</string>
-    <string name="rs_guest_retry_hint">%1$s (non connecté ; allez sur la page Drive pour vous connecter à %2$s et réessayer)</string>
-    <string name="rs_update_quark_guest_limit">Ce paquet de mise à jour dépasse la limite de téléchargement invité de Quark (environ 50 Mo). Connectez-vous à Quark Drive pour le télécharger directement.</string>
+    <string name="rs_guest_retry_hint">%1$s (non connecté ; allez sur la page Cloud pour vous connecter à %2$s et réessayer)</string>
+    <string name="rs_update_quark_guest_limit">Ce paquet de mise à jour dépasse la limite de téléchargement invité de Quark (environ 50 Mo). Connectez-vous à Quark Cloud pour le télécharger directement.</string>
     <string name="rs_repo_info_failed">Impossible d\'obtenir les informations du dépôt : %1$s/%2$s</string>
     <string name="rs_parent_repo_failed">Impossible d\'ouvrir le dépôt amont : %1$s</string>
     <string name="rs_github_code">Code</string>
@@ -96,7 +96,7 @@
     <string name="rs_transfer">Transférer</string>
     <string name="rs_download">Télécharger</string>
     <string name="rs_large_file_title">Téléchargement d\'un gros fichier</string>
-    <string name="rs_baidu_limit_message">Baidu Drive limite le débit des non-membres au-delà de 300 Mo ; le téléchargement peut être lent. Continuer ?</string>
+    <string name="rs_baidu_limit_message">Baidu Cloud limite le débit des non-membres au-delà de 300 Mo ; le téléchargement peut être lent. Continuer ?</string>
     <string name="rs_dont_show_again">Ne plus afficher ce message</string>
     <string name="rs_continue_download">Continuer le téléchargement</string>
     <string name="rs_cancel">Annuler</string>
@@ -104,9 +104,9 @@
     <string name="rs_batch_processing">Traitement par lots</string>
     <string name="rs_fetching_link_progress">Obtention du lien de téléchargement %1$s</string>
     <string name="rs_batch_processing_wait">Traitement par lots en cours, veuillez patienter…</string>
-    <string name="rs_guest_notice_quark">Navigation en invité : les petits fichiers jusqu\'à environ 50 Mo peuvent être téléchargés directement ; les fichiers plus volumineux et les transferts nécessitent une connexion sur la page Drive</string>
-    <string name="rs_guest_notice_uc">Navigation en invité : le téléchargement est autorisé sans limite de taille ; les transferts nécessitent une connexion sur la page Drive</string>
-    <string name="rs_guest_notice_default">Navigation en invité : vous pouvez consulter la liste des fichiers ; le téléchargement et les transferts nécessitent une connexion sur la page Drive</string>
+    <string name="rs_guest_notice_quark">Navigation en invité : les petits fichiers jusqu\'à environ 50 Mo peuvent être téléchargés directement ; les fichiers plus volumineux et les transferts nécessitent une connexion sur la page Cloud</string>
+    <string name="rs_guest_notice_uc">Navigation en invité : le téléchargement est autorisé sans limite de taille ; les transferts nécessitent une connexion sur la page Cloud</string>
+    <string name="rs_guest_notice_default">Navigation en invité : vous pouvez consulter la liste des fichiers ; le téléchargement et les transferts nécessitent une connexion sur la page Cloud</string>
     <string name="rs_go_up">Remonter d\'un niveau</string>
     <string name="rs_root_dir">Racine</string>
     <string name="rs_folder">Dossier</string>
@@ -116,7 +116,7 @@
     <string name="rs_fetch_link_title">Obtenir le lien de téléchargement</string>
     <string name="rs_fetching_link_wait">Obtention du lien de téléchargement, veuillez patienter…</string>
     <string name="rs_input_hint">Collez un lien de partage ou un code pour analyser le contenu partagé en un geste</string>
-    <string name="rs_input_placeholder">Ex. : https://pan.quark.cn/s/xxxx, un code Xunlei ou un code 139 Drive</string>
+    <string name="rs_input_placeholder">Ex. : https://pan.quark.cn/s/xxxx, un code Xunlei ou un code 139 Cloud</string>
     <string name="rs_clear_link">Effacer le lien</string>
     <string name="rs_extract_code_optional">Code d\'extraction (facultatif)</string>
     <string name="rs_auto_or_manual">Détection automatique ou saisie manuelle</string>
@@ -181,8 +181,8 @@
     <!-- Onboarding -->
     <string name="rs_app_name">YunX</string>
     <string name="rs_app_icon_desc">Icône YunX</string>
-    <string name="rs_onboarding_tagline">Analyse de liens Drive et vidéo · Aperçu en ligne · Téléchargements rapides</string>
-    <string name="rs_fact_drives">10 drives</string>
+    <string name="rs_onboarding_tagline">Analyse de liens Cloud et vidéo · Aperçu en ligne · Téléchargements rapides</string>
+    <string name="rs_fact_drives">10 clouds</string>
     <string name="rs_fact_video_platforms">7 plateformes vidéo</string>
     <string name="rs_fact_chunked_download">Téléchargement segmenté</string>
     <string name="rs_fact_free">Entièrement gratuit</string>
@@ -193,9 +193,9 @@
     <string name="rs_read_before_use">À lire avant utilisation</string>
     <string name="rs_terms_intro">YunX est un outil open source. Les conditions et la clause de non-responsabilité sont ci-dessous.</string>
     <string name="rs_terms_title">Conditions d\'utilisation</string>
-    <string name="rs_terms_1">Cette application est un outil open source d\'analyse et de téléchargement de liens de partage de drives, destiné uniquement à l\'étude personnelle et aux échanges techniques. Ne l\'utilisez à aucune fin commerciale.</string>
-    <string name="rs_terms_2">Respectez les conditions d\'utilisation des drives que vous utilisez ainsi que les lois locales. N\'utilisez pas cette application pour télécharger ou diffuser des contenus contrefaisants ou illégaux.</string>
-    <string name="rs_terms_3">Les identifiants de compte Drive (Cookie / Token) sont stockés uniquement sur cet appareil et ne sont jamais envoyés à un serveur.</string>
+    <string name="rs_terms_1">Cette application est un outil open source d\'analyse et de téléchargement de liens de partage de clouds, destiné uniquement à l\'étude personnelle et aux échanges techniques. Ne l\'utilisez à aucune fin commerciale.</string>
+    <string name="rs_terms_2">Respectez les conditions d\'utilisation des clouds que vous utilisez ainsi que les lois locales. N\'utilisez pas cette application pour télécharger ou diffuser des contenus contrefaisants ou illégaux.</string>
+    <string name="rs_terms_3">Les identifiants de compte Cloud (Cookie / Token) sont stockés uniquement sur cet appareil et ne sont jamais envoyés à un serveur.</string>
     <string name="rs_terms_4">L\'application est fournie « en l\'état ». Aucune garantie n\'est donnée quant au taux de réussite de l\'analyse ou à la vitesse de téléchargement, et aucun engagement n\'est pris sur vos résultats.</string>
     <string name="rs_disclaimer_title">Clause de non-responsabilité</string>
     <string name="rs_disclaimer_1">Le contenu téléchargé reste la propriété de ses auteurs originaux. Veuillez le supprimer dans les 24 heures suivant le téléchargement.</string>
@@ -236,15 +236,15 @@
     <string name="rs_category_archive">Archives</string>
     <string name="rs_category_other">Autre</string>
     <string name="rs_extract_code_optional_auto">Code d\'accès (facultatif ; détection automatique ou saisie manuelle)</string>
-    <string name="rs_platform_generic">Drive</string>
+    <string name="rs_platform_generic">Cloud</string>
 
 
     <!-- 多语言改造补充（原 strings_ui_extra） -->
     <string name="rs_onboarding_feature_link_title">Analyse des liens de partage en un clic</string>
-    <string name="rs_onboarding_feature_link_desc">Détecte les liens de partage de 10 disques (Quark, UC, Xunlei, Baidu, 139, 123, 115, GuangYa, Lanzou, etc.) ; connectez-vous pour analyser et télécharger</string>
+    <string name="rs_onboarding_feature_link_desc">Détecte les liens de partage de 10 clouds (Quark, UC, Xunlei, Baidu, 139, 123, 115, GuangYa, Lanzou, etc.) ; connectez-vous pour analyser et télécharger</string>
     <string name="rs_onboarding_feature_video_desc">Douyin, Xiaohongshu, Kuaishou, Weibo et AcFun ne nécessitent pas de connexion ; Bilibili offre une meilleure qualité après connexion. Les liens des 7 grandes plateformes vidéo sont résolus en URL directes, et images, vidéos et audios se prévisualisent en ligne</string>
     <string name="rs_onboarding_feature_multi_title">Multi-plateforme</string>
-    <string name="rs_onboarding_feature_multi_desc">Gérez plusieurs comptes de disques dans une seule application, avec un point d\'entrée unique d\'analyse et de téléchargement</string>
+    <string name="rs_onboarding_feature_multi_desc">Gérez plusieurs comptes de clouds dans une seule application, avec un point d\'entrée unique d\'analyse et de téléchargement</string>
     <string name="rs_onboarding_feature_privacy_title">Confidentialité et sécurité</string>
     <string name="rs_onboarding_feature_privacy_desc">Les identifiants restent sur l\'appareil et ne sont jamais envoyés</string>
     <string name="rs_onboarding_free_hint">Sans publicité ni achat intégré, toutes les fonctions sont gratuites à vie</string>

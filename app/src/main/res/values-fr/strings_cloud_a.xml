@@ -145,7 +145,7 @@
     <!-- 多语言改造补充（原 strings_ui_extra） -->
     <string name="csa_move_up">Déplacer %1$s vers le haut</string>
     <string name="csa_move_down">Déplacer %1$s vers le bas</string>
-    <string name="csa_primary_account_hint">Le compte principal sert aux opérations exigeant une identité unique (liste, enregistrement, envoi) ; avec « Téléchargement multi-comptes », les téléchargements utilisent automatiquement les autres comptes du même disque.</string>
+    <string name="csa_primary_account_hint">Le compte principal sert aux opérations exigeant une identité unique (liste, enregistrement, envoi) ; avec « Téléchargement multi-comptes », les téléchargements utilisent automatiquement les autres comptes du même cloud.</string>
     <string name="csa_new_or_upload">Créer ou envoyer</string>
     <string name="csa_new_folder">Nouveau dossier</string>
     <string name="csa_new_folder_desc">Créer un dossier dans le répertoire actuel</string>

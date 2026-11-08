@@ -7,7 +7,7 @@
     <!-- Partagé par AccountListSection / VideoAccountSheet -->
     <string name="sh_accounts_count">Comptes (%1$d)</string>
     <string name="sh_add_account">Ajouter un compte</string>
-    <string name="sh_account_list_hint">Le compte principal sert aux actions nécessitant une identité unique (lister, enregistrer, téléverser) ; une fois le « téléchargement multi-comptes » activé, les téléchargements utilisent automatiquement les autres comptes du même disque.</string>
+    <string name="sh_account_list_hint">Le compte principal sert aux actions nécessitant une identité unique (lister, enregistrer, téléverser) ; une fois le « téléchargement multi-comptes » activé, les téléchargements utilisent automatiquement les autres comptes du même cloud.</string>
     <string name="sh_primary_account">Compte principal</string>
     <string name="sh_tap_to_set_primary">Appuyez pour définir comme principal</string>
     <string name="sh_account_actions">Actions du compte</string>
@@ -15,7 +15,7 @@
     <string name="sh_logout_account">Supprimer ce compte</string>
     <string name="sh_remark">Note</string>
     <string name="sh_remark_placeholder">Laisser vide pour afficher le pseudo</string>
-    <string name="sh_remark_hint">Lorsque plusieurs comptes du même disque sont connectés, une note permet de les distinguer (la vider affiche le pseudo).</string>
+    <string name="sh_remark_hint">Lorsque plusieurs comptes du même cloud sont connectés, une note permet de les distinguer (la vider affiche le pseudo).</string>
     <string name="sh_video_remark_hint">Lorsque plusieurs comptes de la même plateforme sont connectés, une note permet de les distinguer (la vider affiche le pseudo).</string>
     <string name="sh_save">Enregistrer</string>
     <string name="sh_cancel">Annuler</string>
@@ -23,17 +23,17 @@
     <string name="sh_logout">Supprimer</string>
     <string name="sh_unnamed_account">Compte sans nom</string>
 
-    <!-- Fiches de compte par disque -->
+    <!-- Fiches de compte par cloud -->
     <string name="sh_baidu_logged_in">Baidu Netdisk · Connecté</string>
-    <string name="sh_c139_logged_in">139 Drive · Connecté</string>
-    <string name="sh_guangya_logged_in">GuangYa Drive · Connecté</string>
+    <string name="sh_c139_logged_in">139 Cloud · Connecté</string>
+    <string name="sh_guangya_logged_in">GuangYa Cloud · Connecté</string>
     <string name="sh_ilanzou_logged_in">Lanzou Premium · Connecté</string>
     <string name="sh_lanzou_logged_in">Lanzou · Connecté</string>
-    <string name="sh_pan115_logged_in">115 Drive · Connecté</string>
-    <string name="sh_pan123_logged_in">123 Drive · Connecté</string>
-    <string name="sh_quark_logged_in">Quark Drive · Connecté</string>
-    <string name="sh_uc_logged_in">UC Drive · Connecté</string>
-    <string name="sh_xunlei_logged_in">Xunlei Drive · Connecté</string>
+    <string name="sh_pan115_logged_in">115 Cloud · Connecté</string>
+    <string name="sh_pan123_logged_in">123 Cloud · Connecté</string>
+    <string name="sh_quark_logged_in">Quark Cloud · Connecté</string>
+    <string name="sh_uc_logged_in">UC Cloud · Connecté</string>
+    <string name="sh_xunlei_logged_in">Xunlei Cloud · Connecté</string>
     <string name="sh_login_info">Infos de connexion</string>
     <string name="sh_login_time">Date de connexion</string>
     <string name="sh_login_account">Compte de connexion</string>
@@ -92,7 +92,7 @@
     <string name="sh_download">Télécharger</string>
 
     <!-- Enregistrer vers le cloud -->
-    <string name="sh_save_to_quark">Enregistrer vers Quark Drive</string>
+    <string name="sh_save_to_quark">Enregistrer vers Quark Cloud</string>
     <string name="sh_root_dir">Racine</string>
     <string name="sh_retry">Réessayer</string>
     <string name="sh_empty_dir_hint">Aucun sous-dossier ici ; vous pouvez enregistrer directement dans ce dossier</string>
@@ -105,8 +105,8 @@
     <string name="sh_preview_online">Aperçu en ligne</string>
     <string name="sh_preview_online_desc">Afficher directement dans l\'application sans télécharger</string>
     <string name="sh_save_to_cloud">Enregistrer</string>
-    <string name="sh_save_folder_desc">Enregistrer tout le dossier vers mon disque</string>
-    <string name="sh_save_file_desc">Enregistrer le fichier vers mon disque</string>
+    <string name="sh_save_folder_desc">Enregistrer tout le dossier vers mon cloud</string>
+    <string name="sh_save_file_desc">Enregistrer le fichier vers mon cloud</string>
 
     <!-- Boîte de dialogue du lien de téléchargement -->
     <string name="sh_direct_link_generated">Lien de téléchargement généré (valable environ 15-30 minutes)</string>

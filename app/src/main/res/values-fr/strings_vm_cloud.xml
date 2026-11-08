@@ -38,19 +38,19 @@
     <string name="vc_upload_done">%1$d fichier(s) téléversé(s)</string>
 
     <!-- Connexion requise -->
-    <string name="vc_login_required_uc">Veuillez d\'abord vous connecter à UC Drive</string>
-    <string name="vc_login_required_quark">Veuillez d\'abord vous connecter à Quark Drive</string>
-    <string name="vc_login_required_xunlei">Veuillez d\'abord vous connecter à Xunlei Drive</string>
+    <string name="vc_login_required_uc">Veuillez d\'abord vous connecter à UC Cloud</string>
+    <string name="vc_login_required_quark">Veuillez d\'abord vous connecter à Quark Cloud</string>
+    <string name="vc_login_required_xunlei">Veuillez d\'abord vous connecter à Xunlei Cloud</string>
     <string name="vc_login_required_xunlei_cloud">Veuillez d\'abord vous connecter à Xunlei Cloud</string>
-    <string name="vc_login_required_139">Veuillez d\'abord vous connecter à 139 Drive</string>
+    <string name="vc_login_required_139">Veuillez d\'abord vous connecter à 139 Cloud</string>
     <string name="vc_login_required_cmcc">Veuillez d\'abord vous connecter à China Mobile Cloud</string>
     <string name="vc_login_required_baidu">Veuillez d\'abord vous connecter à Baidu Netdisk</string>
     <string name="vc_login_required_pan123">Veuillez d\'abord vous connecter à 123 Cloud</string>
     <string name="vc_login_required_pan123_spaced">Veuillez d\'abord vous connecter à 123 Cloud</string>
-    <string name="vc_login_required_guangya">Veuillez d\'abord vous connecter à GuangYa Drive</string>
+    <string name="vc_login_required_guangya">Veuillez d\'abord vous connecter à GuangYa Cloud</string>
     <string name="vc_login_required_lanzou">Veuillez d\'abord vous connecter à Lanzou Cloud</string>
     <string name="vc_login_required_ilanzou">Veuillez d\'abord vous connecter à Lanzou Cloud Premium</string>
-    <string name="vc_login_required_pan115">Veuillez d\'abord vous connecter à 115 Drive</string>
+    <string name="vc_login_required_pan115">Veuillez d\'abord vous connecter à 115 Cloud</string>
 
     <!-- Messages spécifiques à la plateforme -->
     <string name="vc_xunlei_device_id_missing">Identifiant de l\'appareil manquant, veuillez vous reconnecter à Xunlei Cloud</string>

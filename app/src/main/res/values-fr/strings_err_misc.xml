@@ -125,7 +125,6 @@
     <string name="em_upload_unnamed_file">Fichier sans nom</string>
     <string name="em_upload_size_unreadable">Impossible de lire la taille du fichier sélectionné. Choisissez un autre fichier et réessayez.</string>
     <string name="em_upload_file_failed">Échec de l\'envoi de « %1$s » : %2$s</string>
-    <string name="em_upload_network_error">Erreur réseau. Veuillez réessayer.</string>
     <string name="em_upload_interrupted">Envoi interrompu. Veuillez réessayer.</string>
     <string name="em_upload_cancelled">Envoi annulé</string>
     <string name="em_upload_bad_credentials">Le cloud n\'a pas renvoyé d\'identifiants d\'envoi complets</string>

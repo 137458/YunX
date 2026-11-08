@@ -249,9 +249,9 @@
     <string name="vm_drive_quota_error">次のドライブの容量情報を取得できませんでした：%1$s</string>
 
     <!-- 多语言改造补充（原 strings_ui_extra） -->
-    <string name="vm_about_intro">雲析（YunX）は、クラウドドライブ／動画共有リンクの解析と高速ダウンロードを行うツールです。リンクを貼り付けるだけ：クラウドドライブの共有は内容を閲覧して高速ダウンロードでき、動画リンクは直リンクと元画像を解析できます。画像／動画／音声はすべてオンラインプレビューに対応しています。</string>
+    <string name="vm_about_intro">YunX は、クラウドドライブ／動画共有リンクの解析と高速ダウンロードを行うツールです。リンクを貼り付けるだけ：クラウドドライブの共有は内容を閲覧して高速ダウンロードでき、動画リンクは直リンクと元画像を解析できます。画像／動画／音声はすべてオンラインプレビューに対応しています。</string>
     <string name="vm_about_terms_title">利用規約と免責事項</string>
-    <string name="vm_about_version">雲析 v%1$s · Made with DeepSeek</string>
+    <string name="vm_about_version">YunX v%1$s · Made with DeepSeek</string>
     <string name="vm_bookmark_empty_filtered">このカテゴリにはまだブックマークがありません</string>
     <string name="vm_bookmark_empty_filtered_hint">別のカテゴリに切り替えるか、絞り込みを解除してすべて表示</string>
     <string name="vm_bookmark_delete_title">ブックマークを削除</string>

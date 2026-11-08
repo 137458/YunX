@@ -29,14 +29,14 @@
     <string name="vm_crash_desc">Désolé, l\'application a rencontré une erreur inattendue. Vous pouvez copier les infos de plantage pour les signaler au développeur, ou redémarrer l\'application pour continuer.</string>
 
     <!-- Ouverture des liens : cibles -->
-    <string name="vm_link_target_quark">Quark Drive</string>
-    <string name="vm_link_target_uc">UC Drive</string>
-    <string name="vm_link_target_xunlei">Xunlei Drive</string>
-    <string name="vm_link_target_baidu">Baidu Drive</string>
+    <string name="vm_link_target_quark">Quark Cloud</string>
+    <string name="vm_link_target_uc">UC Cloud</string>
+    <string name="vm_link_target_xunlei">Xunlei Cloud</string>
+    <string name="vm_link_target_baidu">Baidu Cloud</string>
     <string name="vm_link_target_c139">139 (HeCaiYun)</string>
-    <string name="vm_link_target_pan123">123 Drive</string>
-    <string name="vm_link_target_pan115">115 Drive</string>
-    <string name="vm_link_target_guangya">Guangya Drive</string>
+    <string name="vm_link_target_pan123">123 Cloud</string>
+    <string name="vm_link_target_pan115">115 Cloud</string>
+    <string name="vm_link_target_guangya">GuangYa Cloud</string>
     <string name="vm_link_target_lanzou">Lanzou Cloud / Premium</string>
     <string name="vm_link_target_magnet">Lien magnet</string>
     <string name="vm_link_target_yunx">Schéma personnalisé yunx://</string>
@@ -47,12 +47,12 @@
 
     <!-- Ouverture des liens -->
     <string name="vm_link_open_title">Ouverture des liens</string>
-    <string name="vm_link_open_intro">Touchez un lien de partage de drive dans un navigateur ou une autre application : le système vous demandera quelle application utiliser. Choisissez « YunX » et cochez « Toujours », puis les liens s\'ouvriront directement ici pour l\'analyse.</string>
-    <string name="vm_link_open_verified_zero">L\'entrée « Liens vérifiés » dans les réglages système restera toujours à 0 : la vérification exige de placer le fichier de vérification de cette application (assetlinks.json) sur le serveur de chaque domaine de drive, et ces domaines n\'appartiennent pas à ce projet, ce qu\'une application tierce ne peut pas faire (activer la vérification automatique peut même faire disparaître YunX du sélecteur).</string>
-    <string name="vm_link_open_manual_associate">La méthode officielle pour les applications tierces qui ne peuvent pas vérifier de domaine est d\'associer les domaines manuellement : dans « Ouverture par défaut → Ouvrir les liens pris en charge » du système, cochez les domaines de drive pour YunX. Le résultat est identique à la vérification (plus de sélecteur), mais ils sont enregistrés dans « Liens à ouvrir dans cette application ».</string>
-    <string name="vm_link_open_disable_hint">Désactiver un élément = ne plus prendre en charge ce type de lien (le système le rendra au navigateur ou à l\'application officielle du drive) ; les modifications prennent effet immédiatement, sans redémarrage.</string>
+    <string name="vm_link_open_intro">Touchez un lien de partage de cloud dans un navigateur ou une autre application : le système vous demandera quelle application utiliser. Choisissez « YunX » et cochez « Toujours », puis les liens s\'ouvriront directement ici pour l\'analyse.</string>
+    <string name="vm_link_open_verified_zero">L\'entrée « Liens vérifiés » dans les réglages système restera toujours à 0 : la vérification exige de placer le fichier de vérification de cette application (assetlinks.json) sur le serveur de chaque domaine de cloud, et ces domaines n\'appartiennent pas à ce projet, ce qu\'une application tierce ne peut pas faire (activer la vérification automatique peut même faire disparaître YunX du sélecteur).</string>
+    <string name="vm_link_open_manual_associate">La méthode officielle pour les applications tierces qui ne peuvent pas vérifier de domaine est d\'associer les domaines manuellement : dans « Ouverture par défaut → Ouvrir les liens pris en charge » du système, cochez les domaines de cloud pour YunX. Le résultat est identique à la vérification (plus de sélecteur), mais ils sont enregistrés dans « Liens à ouvrir dans cette application ».</string>
+    <string name="vm_link_open_disable_hint">Désactiver un élément = ne plus prendre en charge ce type de lien (le système le rendra au navigateur ou à l\'application officielle du cloud) ; les modifications prennent effet immédiatement, sans redémarrage.</string>
     <string name="vm_link_open_open_settings">Associer les domaines dans les réglages système</string>
-    <string name="vm_link_open_settings_desc">Ouvrez « Ouverture par défaut → Ouvrir les liens pris en charge » et cochez pour YunX les domaines de drive à prendre en charge</string>
+    <string name="vm_link_open_settings_desc">Ouvrez « Ouverture par défaut → Ouvrir les liens pris en charge » et cochez pour YunX les domaines de cloud à prendre en charge</string>
     <string name="vm_link_open_enabled_count">Activés %1$d / %2$d</string>
     <string name="vm_link_open_enabled_toast">Les liens « %1$s » sont désormais pris en charge</string>
     <string name="vm_link_open_disabled_toast">Les liens « %1$s » ne sont plus pris en charge</string>
@@ -93,7 +93,7 @@
     <string name="vm_update_current_version">Actuelle %1$s</string>
     <string name="vm_update_changelog">Nouveautés</string>
     <string name="vm_update_no_changelog">Aucun journal des modifications</string>
-    <string name="vm_update_netdisk">Mise à jour du drive</string>
+    <string name="vm_update_netdisk">Mise à jour du cloud</string>
     <string name="vm_update_download_from_github">Télécharger depuis GitHub</string>
     <string name="vm_update_github_download">Téléchargement GitHub</string>
     <string name="vm_update_mirror_download">Télécharger via un miroir</string>
@@ -106,22 +106,22 @@
     <!-- À propos -->
     <string name="vm_about_title">À propos de YunX</string>
     <string name="vm_about_intro_title">À propos de l\'application</string>
-    <string name="vm_about_intro_desc">YunX est un outil d\'analyse et de téléchargement rapide de liens de partage de drives / vidéos. Collez un lien : les partages de drive peuvent être parcourus et téléchargés rapidement, les liens vidéo sont analysés en liens directs et images originales, et les images / vidéos / audios peuvent être prévisualisés et lus en ligne.</string>
+    <string name="vm_about_intro_desc">YunX est un outil d\'analyse et de téléchargement rapide de liens de partage de clouds / vidéos. Collez un lien : les partages de cloud peuvent être parcourus et téléchargés rapidement, les liens vidéo sont analysés en liens directs et images originales, et les images / vidéos / audios peuvent être prévisualisés et lus en ligne.</string>
     <string name="vm_about_license">Ce projet est open source sous licence GNU AGPL-3.0</string>
     <string name="vm_about_version_footer">YunX v%1$s · Made with ❤ and deepseek</string>
     <string name="vm_about_icon">Icône YunX</string>
     <string name="vm_about_app_name">YunX</string>
     <string name="vm_about_version_name">YunX · v%1$s (%2$d)</string>
-    <string name="vm_about_tagline">Analyse de liens de drive / vidéo et téléchargements rapides</string>
+    <string name="vm_about_tagline">Analyse de liens de cloud / vidéo et téléchargements rapides</string>
     <string name="vm_about_supported_platforms">Plateformes prises en charge</string>
-    <string name="vm_about_drives">Drives</string>
+    <string name="vm_about_drives">Clouds</string>
     <string name="vm_about_video_parsing">Analyse vidéo</string>
-    <string name="vm_about_feature_netdisk_title">Analyse des partages de drive</string>
-    <string name="vm_about_feature_netdisk_desc">Détection des liens directs pour Quark / UC / Xunlei / Baidu / 139 / 123 / 115 / Guangya / Lanzou / Lanzou Premium</string>
+    <string name="vm_about_feature_netdisk_title">Analyse des partages de cloud</string>
+    <string name="vm_about_feature_netdisk_desc">Détection des liens directs pour Quark / UC / Xunlei / Baidu / 139 / 123 / 115 / GuangYa / Lanzou / Lanzou Premium</string>
     <string name="vm_about_feature_video_title">Analyse des liens vidéo</string>
     <string name="vm_about_feature_video_desc">Douyin / Xiaohongshu / Kuaishou / Weibo / AcFun sans connexion ; Bilibili offre une meilleure qualité après connexion ; Pixiv ne résout que certaines œuvres publiques sans connexion, collez le cookie de votre navigateur pour résoudre toutes les œuvres</string>
     <string name="vm_about_feature_preview_title">Aperçu et lecture en ligne</string>
-    <string name="vm_about_feature_preview_desc">Affichez images / vidéos / audios en ligne (en-têtes de requête ajoutés automatiquement) ; les fichiers texte des drives peuvent aussi être ouverts</string>
+    <string name="vm_about_feature_preview_desc">Affichez images / vidéos / audios en ligne (en-têtes de requête ajoutés automatiquement) ; les fichiers texte des clouds peuvent aussi être ouverts</string>
     <string name="vm_about_feature_mux_title">Fusion audio/vidéo</string>
     <string name="vm_about_feature_mux_desc">La haute définition de Bilibili est séparée en pistes audio et vidéo ; l\'application les fusionne en interne, aucun ffmpeg supplémentaire n\'est nécessaire</string>
     <string name="vm_about_feature_download_title">Téléchargement fragmenté haute vitesse</string>
@@ -167,8 +167,8 @@
     <string name="vm_main_verify_incomplete">Vérification incomplète. Veuillez réessayer.</string>
     <string name="vm_main_announcements_unread">Annonces (%1$d non lues)</string>
     <string name="vm_main_announcements">Annonces</string>
-    <string name="vm_main_bookmark_links">Liens de drives en favoris</string>
-    <string name="vm_main_sort_drives">Trier les drives</string>
+    <string name="vm_main_bookmark_links">Liens de clouds en favoris</string>
+    <string name="vm_main_sort_drives">Trier les clouds</string>
     <string name="vm_main_github_account_failed">Impossible d\'obtenir les informations du compte GitHub. Vérifiez votre réseau ou reconfigurez le Token.</string>
     <string name="vm_main_added_download_install_hint">Ajouté aux téléchargements. Touchez « Ouvrir » une fois terminé pour installer.</string>
     <string name="vm_main_apk_not_found">Aucun lien de téléchargement APK trouvé</string>
@@ -191,7 +191,7 @@
     <string name="vm_github_clear_token_message">Après l\'effacement, l\'API GitHub revient à la limite anonyme (60 requêtes/heure/IP).</string>
 
     <!-- Favoris -->
-    <string name="vm_bookmark_enter_link">Veuillez saisir un lien de drive</string>
+    <string name="vm_bookmark_enter_link">Veuillez saisir un lien de cloud</string>
     <string name="vm_bookmark_added">Ajouté aux favoris</string>
     <string name="vm_bookmark_moved">Déplacé vers « %1$s »</string>
     <string name="vm_bookmark_deleted">Supprimé</string>
@@ -203,8 +203,8 @@
     <!-- ViewModels de compte -->
     <string name="vm_ilanzou_enter_account_password">Veuillez saisir votre compte et mot de passe Lanzou Premium</string>
     <string name="vm_ilanzou_login_failed">Échec de la connexion Lanzou Premium. Vérifiez votre compte et votre mot de passe.</string>
-    <string name="vm_guangya_enter_account_password">Veuillez saisir votre compte et mot de passe Guangya</string>
-    <string name="vm_guangya_login_failed">Échec de la connexion Guangya. Vérifiez votre compte et mot de passe, ou passez à la connexion web.</string>
+    <string name="vm_guangya_enter_account_password">Veuillez saisir votre compte et mot de passe GuangYa</string>
+    <string name="vm_guangya_login_failed">Échec de la connexion GuangYa. Vérifiez votre compte et mot de passe, ou passez à la connexion web.</string>
     <string name="vm_guangya_enter_phone">Veuillez saisir votre numéro de téléphone</string>
     <string name="vm_guangya_send_sms_failed">Échec de l\'envoi du code de vérification</string>
     <string name="vm_guangya_get_code_first">Veuillez d\'abord obtenir un code de vérification</string>
@@ -247,7 +247,7 @@
     <string name="vm_video_download_selected">Télécharger la sélection</string>
     <string name="vm_video_download_selected_count">Télécharger la sélection (%1$d)</string>
     <string name="vm_video_motion_badge">Live</string>
-    <string name="vm_drive_quota_error">Impossible d\'obtenir le quota de ces lecteurs : %1$s</string>
+    <string name="vm_drive_quota_error">Impossible d\'obtenir le quota de ces clouds : %1$s</string>
 
     <!-- 多语言改造补充（原 strings_ui_extra） -->
     <string name="vm_about_intro">YunX est un outil d\'analyse de liens de partage (cloud et vidéo) et de téléchargement rapide. Collez un lien : les partages cloud se parcourent et se téléchargent rapidement, les liens vidéo sont résolus en URL directes et en images d\'origine, et les images, vidéos et audios peuvent être prévisualisés en ligne.</string>

@@ -125,7 +125,6 @@
     <string name="em_upload_unnamed_file">名前のないファイル</string>
     <string name="em_upload_size_unreadable">選択したファイルのサイズを読み取れません。別のファイルを選んで再試行してください</string>
     <string name="em_upload_file_failed">「%1$s」のアップロードに失敗しました：%2$s</string>
-    <string name="em_upload_network_error">通信エラーです。再試行してください</string>
     <string name="em_upload_interrupted">アップロードが中断されました。再試行してください</string>
     <string name="em_upload_cancelled">アップロードはキャンセルされました</string>
     <string name="em_upload_bad_credentials">クラウドストレージが完全なアップロード認証情報を返しませんでした</string>

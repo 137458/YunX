@@ -1,12 +1,12 @@
 <resources>
-    <string name="csb_drive_name_quark">Quark Drive</string>
-    <string name="csb_drive_name_uc">UC Drive</string>
-    <string name="csb_drive_name_xunlei">Xunlei Drive</string>
-    <string name="csb_drive_name_baidu">Baidu Drive</string>
-    <string name="csb_drive_name_c139">139 Drive</string>
+    <string name="csb_drive_name_quark">Quark Cloud</string>
+    <string name="csb_drive_name_uc">UC Cloud</string>
+    <string name="csb_drive_name_xunlei">Xunlei Cloud</string>
+    <string name="csb_drive_name_baidu">Baidu Cloud</string>
+    <string name="csb_drive_name_c139">139 Cloud</string>
     <string name="csb_drive_name_pan123">123 Cloud</string>
-    <string name="csb_drive_name_pan115">115 Drive</string>
-    <string name="csb_drive_name_guangya">Guangya Cloud</string>
+    <string name="csb_drive_name_pan115">115 Cloud</string>
+    <string name="csb_drive_name_guangya">GuangYa Cloud</string>
     <string name="csb_drive_name_ilanzou">Lanzou Cloud Premium</string>
     <string name="csb_drive_name_lanzou">Lanzou Cloud</string>
     <string name="csb_drive_desc_login">Appuyez pour vous connecter et activer l\'analyse et le téléchargement</string>
@@ -69,10 +69,10 @@
     <string name="csb_move_root_dir">Dossier racine</string>
     <string name="csb_move_no_subfolder">Ce dossier ne contient aucun sous-dossier. Vous pouvez y déplacer des éléments directement.</string>
     <string name="csb_move_here_with_dir">Déplacer ici (%1$s)</string>
-    <string name="csb_save_to_pan115_title">Enregistrer sur 115 Drive</string>
+    <string name="csb_save_to_pan115_title">Enregistrer sur 115 Cloud</string>
     <string name="csb_save_to_pan123_title">Enregistrer sur 123 Cloud</string>
-    <string name="csb_save_to_uc_title">Enregistrer sur UC Drive</string>
-    <string name="csb_save_to_xunlei_title">Enregistrer sur Xunlei Drive</string>
+    <string name="csb_save_to_uc_title">Enregistrer sur UC Cloud</string>
+    <string name="csb_save_to_xunlei_title">Enregistrer sur Xunlei Cloud</string>
     <string name="csb_save_no_subfolder">Ce dossier ne contient aucun sous-dossier. Vous pouvez y enregistrer directement.</string>
     <string name="csb_save_here_with_dir">Enregistrer dans ce dossier (%1$s)</string>
 

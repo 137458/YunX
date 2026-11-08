@@ -13,7 +13,7 @@
     <string name="e2_starsea_unavailable">L\'adresse du service d\'analyse de commandes est indisponible</string>
     <string name="e2_starsea_http_failed">Échec de l\'analyse de la commande (HTTP %1$d)</string>
 
-    <!-- Connexion à 123 cloud drive -->
+    <!-- Connexion à 123 cloud -->
     <string name="e2_pan123_too_frequent">Les demandes de connexion 123 sont trop fréquentes, veuillez réessayer plus tard</string>
     <string name="e2_pan123_login_failed">Échec de la connexion à 123, veuillez vérifier votre compte et votre mot de passe puis réessayer</string>
     <string name="e2_pan123_verify_required">123 nécessite une vérification de sécurité supplémentaire, veuillez passer à la connexion web pour la terminer</string>
@@ -23,17 +23,17 @@
     <!-- Durée de partage -->
     <string name="e2_share_expire_unknown">Code de durée de partage inconnu : %1$d</string>
 
-    <!-- Commande 139 cloud drive -->
-    <string name="e2_c139_kouling_missing_info">Échec de l\'analyse de la commande 139 cloud drive : la réponse ne contient pas les informations de partage</string>
-    <string name="e2_c139_kouling_missing_link">Échec de l\'analyse de la commande 139 cloud drive : la réponse ne contient pas de lien de partage</string>
-    <string name="e2_c139_kouling_no_url">Échec de l\'analyse de la commande 139 cloud drive : aucun lien de partage renvoyé</string>
-    <string name="e2_c139_kouling_bad_response">Échec de l\'analyse de la commande 139 cloud drive : format de réponse du serveur inattendu</string>
-    <string name="e2_c139_kouling_failed_code">Échec de l\'analyse de la commande 139 cloud drive (%1$s)</string>
-    <string name="e2_c139_kouling_failed_desc">Échec de l\'analyse de la commande 139 cloud drive : %1$s (%2$s)</string>
+    <!-- Commande 139 cloud -->
+    <string name="e2_c139_kouling_missing_info">Échec de l\'analyse de la commande 139 cloud : la réponse ne contient pas les informations de partage</string>
+    <string name="e2_c139_kouling_missing_link">Échec de l\'analyse de la commande 139 cloud : la réponse ne contient pas de lien de partage</string>
+    <string name="e2_c139_kouling_no_url">Échec de l\'analyse de la commande 139 cloud : aucun lien de partage renvoyé</string>
+    <string name="e2_c139_kouling_bad_response">Échec de l\'analyse de la commande 139 cloud : format de réponse du serveur inattendu</string>
+    <string name="e2_c139_kouling_failed_code">Échec de l\'analyse de la commande 139 cloud (%1$s)</string>
+    <string name="e2_c139_kouling_failed_desc">Échec de l\'analyse de la commande 139 cloud : %1$s (%2$s)</string>
     <!-- Xunlei -->
     <string name="e2_xunlei_sms_sent">SMS envoyé</string>
     <string name="e2_xunlei_login_success">Connexion réussie</string>
-    <string name="e2_xunlei_empty_file_unsupported">Xunlei cloud drive ne prend pas en charge l\'envoi de fichiers vides</string>
+    <string name="e2_xunlei_empty_file_unsupported">Xunlei cloud ne prend pas en charge l\'envoi de fichiers vides</string>
     <string name="e2_xunlei_share_enter_passcode">Veuillez saisir le code d\'accès</string>
     <string name="e2_xunlei_share_passcode_wrong">Code d\'accès incorrect</string>
     <string name="e2_xunlei_share_passcode_required">Ce partage nécessite un code d\'accès</string>
@@ -45,9 +45,9 @@
     <string name="e2_xunlei_kouling_http_failed">Échec de l\'analyse de la commande (HTTP %1$d)</string>
     <string name="e2_xunlei_kouling_bad_response">Échec de l\'analyse de la commande : format de réponse inattendu</string>
     <string name="e2_xunlei_kouling_no_share">La commande « %1$s » n\'a pas de partage cloud correspondant</string>
-    <!-- 139 cloud drive -->
-    <string name="e2_c139_kouling_response_empty">Échec de l\'analyse de la commande 139 cloud drive : réponse vide</string>
-    <string name="e2_c139_kouling_decrypt_failed">Échec de l\'analyse de la commande 139 cloud drive : échec du déchiffrement de la réponse</string>
+    <!-- 139 cloud -->
+    <string name="e2_c139_kouling_response_empty">Échec de l\'analyse de la commande 139 cloud : réponse vide</string>
+    <string name="e2_c139_kouling_decrypt_failed">Échec de l\'analyse de la commande 139 cloud : échec du déchiffrement de la réponse</string>
     <string name="e2_c139_missing_authorization">L\'état de connexion ne contient pas d\'autorisation, veuillez vous reconnecter</string>
     <string name="e2_c139_account_parse_failed">Impossible d\'analyser le compte depuis l\'état de connexion, veuillez vous reconnecter</string>
     <string name="e2_c139_no_folder_id">China Mobile Cloud n\'a pas renvoyé d\'ID de dossier</string>
@@ -61,7 +61,7 @@
     <string name="e2_c139_transfer_create_failed">Échec de la création de la tâche de transfert (%1$s)</string>
     <string name="e2_c139_transfer_query_failed">Échec de l\'interrogation du résultat du transfert (%1$s)</string>
 
-    <!-- Erreurs d\'opération cloud drive courantes -->
+    <!-- Erreurs d\'opération cloud courantes -->
     <string name="e2_get_file_list_failed">Échec de la récupération de la liste des fichiers</string>
     <string name="e2_get_file_list_failed_code">Échec de la récupération de la liste des fichiers (%1$s)</string>
     <string name="e2_get_folder_list_failed">Échec de la récupération de la liste des dossiers</string>
@@ -125,26 +125,26 @@
     <string name="e2_request_failed">Échec de la requête</string>
 
     <!-- Limites invité Quark -->
-    <string name="e2_quark_guest_size_limit">Ce fichier dépasse la limite de taille pour les invités (environ 50 Mo pour Quark). Connectez-vous à Quark Drive avant de télécharger</string>
-    <string name="e2_quark_guest_login_required">Ce partage nécessite une connexion à Quark Drive pour être téléchargé</string>
-    <string name="e2_quark_login_expired">Votre session Quark a expiré. Reconnectez-vous depuis la page « Drive » puis réessayez</string>
+    <string name="e2_quark_guest_size_limit">Ce fichier dépasse la limite de taille pour les invités (environ 50 Mo pour Quark). Connectez-vous à Quark Cloud avant de télécharger</string>
+    <string name="e2_quark_guest_login_required">Ce partage nécessite une connexion à Quark Cloud pour être téléchargé</string>
+    <string name="e2_quark_login_expired">Votre session Quark a expiré. Reconnectez-vous depuis la page « Cloud » puis réessayez</string>
     <string name="e2_quark_guest_server_limit">Le serveur a refusé ce fichier en raison des limites invité (plafond d\'environ 50 Mo de Quark)</string>
 
     <!-- Limites invité UC -->
-    <string name="e2_uc_guest_login_required">Ce partage nécessite une connexion à UC Drive pour être téléchargé</string>
-    <string name="e2_uc_guest_size_limit">Ce fichier dépasse la limite de taille pour les invités. Connectez-vous à UC Drive avant de télécharger</string>
+    <string name="e2_uc_guest_login_required">Ce partage nécessite une connexion à UC Cloud pour être téléchargé</string>
+    <string name="e2_uc_guest_size_limit">Ce fichier dépasse la limite de taille pour les invités. Connectez-vous à UC Cloud avant de télécharger</string>
     <string name="e2_uc_share_invalid">Le partage a expiré ou le code d\'extraction est incorrect. Analysez-le à nouveau</string>
     <string name="e2_uc_token_expired">Le jeton du fichier a expiré. Analysez à nouveau le partage</string>
 
-    <!-- Erreurs communes d\'envoi vers un drive -->
-    <string name="e2_upload_empty_file">Ce drive ne prend pas en charge l\'envoi de fichiers vides</string>
-    <string name="e2_upload_task_missing">Le drive n\'a pas renvoyé de tâche d\'envoi</string>
-    <string name="e2_upload_host_missing">Le drive n\'a pas renvoyé de serveur d\'envoi</string>
-    <string name="e2_upload_credential_missing">Le drive n\'a pas renvoyé d\'identifiants d\'envoi complets</string>
-    <string name="e2_upload_auth_missing">Le drive n\'a pas délivré d\'autorisation d\'envoi</string>
-    <string name="e2_upload_part_unconfirmed">Le drive n\'a pas confirmé le segment envoyé</string>
-    <string name="e2_upload_callback_missing">Le drive n\'a pas renvoyé de rappel d\'envoi</string>
-    <string name="e2_upload_merge_failed_generic">Le drive n\'a pas terminé la fusion des segments envoyés</string>
+    <!-- Erreurs communes d\'envoi vers un cloud -->
+    <string name="e2_upload_empty_file">Ce cloud ne prend pas en charge l\'envoi de fichiers vides</string>
+    <string name="e2_upload_task_missing">Le cloud n\'a pas renvoyé de tâche d\'envoi</string>
+    <string name="e2_upload_host_missing">Le cloud n\'a pas renvoyé de serveur d\'envoi</string>
+    <string name="e2_upload_credential_missing">Le cloud n\'a pas renvoyé d\'identifiants d\'envoi complets</string>
+    <string name="e2_upload_auth_missing">Le cloud n\'a pas délivré d\'autorisation d\'envoi</string>
+    <string name="e2_upload_part_unconfirmed">Le cloud n\'a pas confirmé le segment envoyé</string>
+    <string name="e2_upload_callback_missing">Le cloud n\'a pas renvoyé de rappel d\'envoi</string>
+    <string name="e2_upload_merge_failed_generic">Le cloud n\'a pas terminé la fusion des segments envoyés</string>
 
     <!-- Lanzou -->
     <string name="e2_lanzou_login_invalid">La session Lanzou est invalide. Reconnectez-vous</string>

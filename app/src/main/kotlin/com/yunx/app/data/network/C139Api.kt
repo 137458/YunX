@@ -888,7 +888,8 @@ class C139Api(
             .put("catalogInfoList", JSONArray().apply { catalogIDLst.forEach { put(it) } })
             .put("newCatalogID", toFolderId)
             .put("linkID", linkID)
-            .put("newCatalogName", "手机图片")
+            // 固定 ASCII 目录名，避免随界面语言变化影响分享目录
+            .put("newCatalogName", "Mobile Pictures")
             .put("needPassword", true)
         val req = JSONObject()
             .put("createOuterLinkBatchOprTaskReq", JSONObject()

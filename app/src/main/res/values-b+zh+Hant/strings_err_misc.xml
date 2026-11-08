@@ -125,7 +125,6 @@
     <string name="em_upload_unnamed_file">未命名檔案</string>
     <string name="em_upload_size_unreadable">無法讀取所選檔案的大小，請換一個檔案後再試</string>
     <string name="em_upload_file_failed">「%1$s」上傳失敗：%2$s</string>
-    <string name="em_upload_network_error">網路異常，請重試</string>
     <string name="em_upload_interrupted">上傳已中斷，請重試</string>
     <string name="em_upload_cancelled">上傳已取消</string>
     <string name="em_upload_bad_credentials">網盤未傳回完整上傳憑證</string>

@@ -1200,14 +1200,14 @@ class ResolveViewModel(
 
     /**
      * 音频文件名：沿用视频文件名的主干（解析器已经按作品取过名），后缀统一换成 `.m4a`，
-     * 并加「_音频」后缀 —— 与同作品下过视频时不会互相覆盖，下载页里也一眼看得出是音频。
+     * 并加「_audio」后缀 —— 与同作品下过视频时不会互相覆盖，下载页里也一眼看得出是音频。
      * 多条视频时补序号，避免同名（下载页按文件名分组，重名会串在一起）。
      */
     private fun videoAudioFileName(title: String, mediaFileName: String, index: Int): String {
         val base = mediaFileName.substringBeforeLast('.').takeIf { it.isNotBlank() }
             ?: title.ifBlank { "video" }.take(40)
         val unique = if (index > 1) "${base}_$index" else base
-        return "${DownloadPathPolicy.sanitizeName(unique).take(60)}_音频.m4a"
+        return "${DownloadPathPolicy.sanitizeName(unique).take(60)}_audio.m4a"
     }
 
     /** 视频媒体文件名的兜底：`标题_序号.扩展名`（扩展名按媒体类型推断） */

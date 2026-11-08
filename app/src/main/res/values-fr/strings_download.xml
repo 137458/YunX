@@ -66,7 +66,7 @@
     <string name="dl_engine_title">Moteur de téléchargement</string>
     <string name="dl_engine_page_hint">Le moteur détermine qui exécute les nouvelles tâches. Les tâches existantes ne sont pas affectées.</string>
     <string name="dl_engine_builtin">Téléchargeur segmenté intégré</string>
-    <string name="dl_engine_builtin_desc">Le téléchargeur fourni avec l\'application : parallélisme par segments selon le lecteur, reprise après interruption, enregistrement via SAF / MediaStore du système (aucune autorisation de stockage requise sur Android 10+).</string>
+    <string name="dl_engine_builtin_desc">Le téléchargeur fourni avec l\'application : parallélisme par segments selon le cloud, reprise après interruption, enregistrement via SAF / MediaStore du système (aucune autorisation de stockage requise sur Android 10+).</string>
     <string name="dl_engine_switch_here">Basculer vers ce moteur</string>
     <string name="dl_engine_in_use">Utilisé</string>
     <string name="dl_engine_gopeed">Moteur Gopeed</string>
@@ -105,7 +105,7 @@
     <string name="dl_kernel_size_known">Taille %1$s</string>
     <string name="dl_kernel_size_unknown">Taille inconnue</string>
     <string name="dl_kernel_auto_import_hint">Il est décompressé et importé automatiquement après le téléchargement ; le paquet temporaire ne reste pas dans le dossier Download</string>
-    <string name="dl_kernel_pan_download">Téléchargement auto via le lecteur</string>
+    <string name="dl_kernel_pan_download">Téléchargement auto via le cloud</string>
     <string name="dl_kernel_github_download">Téléchargement GitHub</string>
     <string name="dl_kernel_github_direct">Téléchargement direct GitHub</string>
     <string name="dl_kernel_github_mirror">Téléchargement via miroir GitHub</string>
@@ -160,11 +160,11 @@
 
     <!-- ================= Téléchargement multi-comptes ================= -->
     <string name="dl_ma_title">Téléchargement multi-comptes</string>
-    <string name="dl_ma_intro">Fonction expérimentale : connectez d\'abord plusieurs comptes pour le même lecteur sur la page du lecteur ; les options ci-dessous n\'auront alors d\'effet réel.</string>
+    <string name="dl_ma_intro">Fonction expérimentale : connectez d\'abord plusieurs comptes pour le même cloud sur la page du cloud ; les options ci-dessous n\'auront alors d\'effet réel.</string>
     <string name="dl_ma_desc1">Téléchargement multi-comptes : lors d\'un téléchargement en lot, chaque fichier alterne entre différents comptes pour obtenir les liens, contournant la limite de parallélisme / de vitesse d\'un seul compte (chaque fichier est toujours téléchargé par un seul compte).</string>
     <string name="dl_ma_desc2">Segmentation multi-source d\'un même fichier : le même fichier obtient un lien direct par compte, et les segments sont confiés à tour de rôle à différents liens directs, accélérant réellement un même gros fichier ; actuellement effectif uniquement sur Quark / UC / Xunlei / Baidu, les autres plateformes téléchargent toujours en source unique.</string>
-    <string name="dl_ma_desc3">Les deux fonctions font que plusieurs comptes sollicitent le même lecteur en peu de temps, ce qui déclenche plus facilement le contrôle des risques ; en cas de captcha, de limitation ou de ralentissement, désactivez les options pour revenir à la normale.</string>
-    <string name="dl_ma_subtitle">Alterner les comptes d\'un lecteur pour obtenir les liens</string>
+    <string name="dl_ma_desc3">Les deux fonctions font que plusieurs comptes sollicitent le même cloud en peu de temps, ce qui déclenche plus facilement le contrôle des risques ; en cas de captcha, de limitation ou de ralentissement, désactivez les options pour revenir à la normale.</string>
+    <string name="dl_ma_subtitle">Alterner les comptes d\'un cloud pour obtenir les liens</string>
     <string name="dl_ms_title">Segmentation multi-source d\'un même fichier</string>
     <string name="dl_ms_subtitle">Un fichier, un lien direct par compte, segments alternés</string>
     <string name="dl_ms_needs_ma">Nécessite d\'abord « Téléchargement multi-comptes »</string>
@@ -174,7 +174,7 @@
     <string name="dl_ma_on">Téléchargement multi-comptes activé</string>
     <string name="dl_ms_on">Segmentation multi-source activée</string>
     <string name="dl_ma_confirm_title">Activer « Téléchargement multi-comptes » ?</string>
-    <string name="dl_ma_confirm_message">Veuillez ne vous connecter qu\'à vos propres comptes. Alterner fréquemment plusieurs comptes pour obtenir des liens sur le même réseau peut déclencher le contrôle des risques sur certains lecteurs (surtout Baidu et Quark) : captchas, limitation temporaire, voire restriction de téléchargement du compte à court terme. La fonction est encore expérimentale ; vous pouvez la désactiver à tout moment en cas de problème.</string>
+    <string name="dl_ma_confirm_message">Veuillez ne vous connecter qu\'à vos propres comptes. Alterner fréquemment plusieurs comptes pour obtenir des liens sur le même réseau peut déclencher le contrôle des risques sur certains clouds (surtout Baidu et Quark) : captchas, limitation temporaire, voire restriction de téléchargement du compte à court terme. La fonction est encore expérimentale ; vous pouvez la désactiver à tout moment en cas de problème.</string>
     <string name="dl_ms_confirm_title">Activer « Segmentation multi-source d\'un même fichier » ?</string>
     <string name="dl_ms_confirm_message">Le même fichier sera récupéré simultanément par plusieurs comptes, ce qui déclenche plus facilement le contrôle des risques que le téléchargement multi-comptes ; vous risquez un taux d\'échec de segments plus élevé, des téléchargements plus lents ou un compte temporairement restreint. Seuls Quark / UC / Xunlei / Baidu sont pris en charge. La fonction est encore expérimentale ; évaluez le risque vous-même.</string>
     <string name="dl_confirm_enable">Activer</string>

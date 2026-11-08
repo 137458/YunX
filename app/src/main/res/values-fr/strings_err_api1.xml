@@ -53,7 +53,7 @@
     <string name="e1_baidu_list_incomplete">Réponse incomplète de la liste des fichiers Baidu, veuillez actualiser et réessayer</string>
     <string name="e1_baidu_login_expired_suffix">, la session a expiré. Veuillez vous reconnecter à Baidu Netdisk</string>
 
-    <!-- 123 Cloud Drive -->
+    <!-- 123 Cloud -->
     <string name="e1_123_enter_account_pwd">Veuillez saisir votre compte et votre mot de passe</string>
     <string name="e1_123_account_pwd_too_long">Le compte ou le mot de passe est trop long</string>
     <string name="e1_123_login_network_error">Erreur réseau, impossible de joindre le service de connexion 123. Veuillez réessayer plus tard</string>
@@ -69,7 +69,7 @@
     <string name="e1_123_create_share_no_data">Échec de la création du partage : aucune donnée renvoyée</string>
     <string name="e1_123_create_share_no_key">Échec de la création du partage : ShareKey non renvoyé</string>
 
-    <!-- 115 Cloud Drive -->
+    <!-- 115 Cloud -->
     <string name="e1_115_missing_pickcode">Pickcode manquant, impossible d\'obtenir le lien de téléchargement</string>
     <string name="e1_115_upload_too_large">L\'interface web de 115 est limitée à 5 Go par fichier ; utilisez le client officiel pour les fichiers plus volumineux</string>
     <string name="e1_115_invalid_upload_server">115 a renvoyé un serveur d\'envoi invalide</string>

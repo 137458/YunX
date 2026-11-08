@@ -16,7 +16,7 @@
     <string name="lg_baidu_title">Connexion Baidu Netdisk</string>
     <string name="lg_baidu_risk_title">À lire avant utilisation</string>
     <string name="lg_baidu_risk_1">Baidu Netdisk applique un contrôle des risques strict, qui peut restreindre votre compte.</string>
-    <string name="lg_baidu_risk_2">Les problèmes suivants sont généralement dus au contrôle des risques, pas à un bug logiciel :\n· Échec de l\'obtention du bdstoken\n· La liste des fichiers du disque personnel ne se charge pas</string>
+    <string name="lg_baidu_risk_2">Les problèmes suivants sont généralement dus au contrôle des risques, pas à un bug logiciel :\n· Échec de l\'obtention du bdstoken\n· La liste des fichiers du cloud personnel ne se charge pas</string>
     <string name="lg_baidu_risk_3">Évitez les opérations à haute fréquence (analyses/transferts/téléchargements/envois fréquents). En cas d\'anomalie, réduisez la fréquence ou réessayez plus tard.</string>
     <string name="lg_baidu_risk_ack">J\'ai lu et compris les risques ci-dessus</string>
     <string name="lg_baidu_tutorial_1">1. Connectez-vous à votre compte Baidu dans la page web ci-dessous</string>
@@ -61,7 +61,7 @@
     <string name="lg_lanzou_hint">Connectez-vous avec votre compte Lanzou (API officielle, captcha validé automatiquement)</string>
     <string name="lg_lanzou_username_label">Nom d\'utilisateur / Compte / Téléphone</string>
     <string name="lg_lanzou_tutorial_1">1. Saisissez votre compte Lanzou (nom d\'utilisateur ou téléphone) et votre mot de passe, puis appuyez sur « Se connecter ».</string>
-    <string name="lg_lanzou_tutorial_2">2. Après la connexion, le Cookie est chiffré et stocké localement pour le disque personnel et les transferts de partages.</string>
+    <string name="lg_lanzou_tutorial_2">2. Après la connexion, le Cookie est chiffré et stocké localement pour le cloud personnel et les transferts de partages.</string>
     <string name="lg_lanzou_tutorial_3">3. Si le mot de passe est signalé comme incorrect, vérifiez-le et réessayez (attendez un peu après plusieurs échecs).</string>
     <string name="lg_login_failed_check">Échec de la connexion. Vérifiez le compte et le mot de passe</string>
 

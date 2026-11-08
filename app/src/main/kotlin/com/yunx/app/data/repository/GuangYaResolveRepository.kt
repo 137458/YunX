@@ -140,8 +140,8 @@ class GuangYaResolveRepository(
     ): DownloadLink {
         val token = cookie.takeIf { it.isNotBlank() } ?: tokenProvider()
             ?: throw IllegalStateException(AppStrings.get(R.string.er_guangya_login_required))
-        // 名称规则固定，便于识别与清理
-        val folderName = "AsterLink临时转存_${UUID.randomUUID()}"
+        // 名称规则固定，便于识别与清理；与其它网盘的临时目录保持同一品牌前缀
+        val folderName = "YunX临时转存_${UUID.randomUUID()}"
         val folderId = api.createDir(token, "", folderName)
         try {
             api.restoreShare(token, freshShareToken(session), listOf(file.fid), folderId)

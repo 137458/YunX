@@ -223,13 +223,13 @@
     <string name="content_desc_close_menu">Fermer le menu</string>
     <string name="content_desc_open_menu">Ouvrir le menu</string>
     <!-- Settings / NetworkUpdate snackbar & platform names -->
-    <string name="platform_quark">Quark Drive</string>
-    <string name="platform_uc">UC Drive</string>
-    <string name="platform_xunlei">Xunlei Drive</string>
-    <string name="platform_baidu">Baidu Drive</string>
-    <string name="platform_c139">139 Drive</string>
+    <string name="platform_quark">Quark Cloud</string>
+    <string name="platform_uc">UC Cloud</string>
+    <string name="platform_xunlei">Xunlei Cloud</string>
+    <string name="platform_baidu">Baidu Cloud</string>
+    <string name="platform_c139">139 Cloud</string>
     <string name="platform_pan123">123 Cloud</string>
-    <string name="platform_pan115">115 Drive</string>
+    <string name="platform_pan115">115 Cloud</string>
     <string name="platform_guangya">GuangYa Cloud</string>
     <string name="platform_ilanzou">Lanzou Cloud Premium</string>
     <string name="platform_lanzou">Lanzou Cloud</string>
@@ -286,7 +286,7 @@
 
     <!-- 多语言改造补充（原 strings_ui_extra） -->
     <string name="settings_thread_platform_generic">Générique / Manuel</string>
-    <string name="settings_download_threads_desc_note">Définir la concurrence des fragments par disque (32 par défaut, max 512) ; s\'applique aux nouvelles tâches</string>
+    <string name="settings_download_threads_desc_note">Définir la concurrence des fragments par cloud (32 par défaut, max 512) ; s\'applique aux nouvelles tâches</string>
     <string name="settings_download_dir_system_default">Download par défaut du système (toucher pour personnaliser)</string>
     <string name="settings_download_dir_reset">Rétablir le dossier par défaut</string>
     <string name="settings_download_dir_reset_desc">Toucher pour revenir au dossier par défaut du système</string>
