@@ -30,7 +30,7 @@ import java.util.Locale
 object ByteFormat {
 
     /**
-     * 字节数 → 可读字符串（B/KB/MB/GB/TB，保留一位小数）。
+     * 字节数 → 可读字符串（B/KB/MB/GB/TB，B 级取整，其余保留一位小数）。
      * 非正值统一显示 0 B：调用方拿到的 0 既可能是「未知」也可能是真空文件，
      * 两种情况给用户的观感一致，不必区分。
      */
@@ -51,6 +51,8 @@ object ByteFormat {
             value /= 1024
             unitIndex++
         }
+        // 字节级不保留小数：以 B 计时「512.0 B」是无意义精度
+        if (unitIndex == 0) return "$bytes ${units[0]}"
         return String.format(Locale.US, "%.1f %s", value, units[unitIndex])
     }
 }

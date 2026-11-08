@@ -24,6 +24,7 @@ import com.yunx.app.data.network.ShareLinkParser
 import com.yunx.app.data.network.model.DownloadLink
 import com.yunx.app.data.network.model.ShareFile
 import com.yunx.app.data.network.model.ShareSession
+import com.yunx.app.util.ByteFormat
 import kotlinx.coroutines.delay
 
 /**
@@ -267,22 +268,9 @@ class Pan115ResolveRepository(private val api: Pan115Api) : ShareResolveReposito
         val free = quota.total - quota.used
         if (free in 1 until size) {
             throw IllegalStateException(
-                "网盘剩余空间不足：该分享内容需要 ${readableSize(size)}，可用 ${readableSize(free)}，" +
+                "网盘剩余空间不足：该分享内容需要 ${ByteFormat.size(size)}，可用 ${ByteFormat.size(free)}，" +
                     "请先清理空间或改用其它方式下载"
             )
         }
-    }
-
-    /** 体积展示（只用于错误提示，避免数据层依赖 UI 层） */
-    private fun readableSize(bytes: Long): String {
-        if (bytes <= 0L) return "0 B"
-        val units = arrayOf("B", "KB", "MB", "GB", "TB")
-        var value = bytes.toDouble()
-        var i = 0
-        while (value >= 1024 && i < units.size - 1) {
-            value /= 1024
-            i++
-        }
-        return String.format("%.1f %s", value, units[i])
     }
 }

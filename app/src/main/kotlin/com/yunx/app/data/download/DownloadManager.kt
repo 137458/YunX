@@ -20,6 +20,7 @@ package com.yunx.app.data.download
 
 import android.content.Context
 import android.util.Log
+import com.yunx.app.util.ByteFormat
 import com.yunx.app.util.DiagnosticLog
 import com.yunx.app.util.DownloadFileNames
 import com.yunx.app.util.LogRedactor
@@ -410,17 +411,9 @@ class DownloadManager(
         }
     }
 
-    private fun formatSpeed(bytesPerSec: Long): String {
-        if (bytesPerSec <= 0) return ""
-        val units = arrayOf("B/s", "KB/s", "MB/s", "GB/s")
-        var value = bytesPerSec.toDouble()
-        var i = 0
-        while (value >= 1024 && i < units.size - 1) {
-            value /= 1024
-            i++
-        }
-        return String.format("%.1f %s", value, units[i])
-    }
+    /** 通知栏速度文本（复用 [ByteFormat]）；0 返回空串 */
+    private fun formatSpeed(bytesPerSec: Long): String =
+        if (bytesPerSec <= 0) "" else ByteFormat.speed(bytesPerSec)
 
     /**
      * 刷新每路在飞分片的瞬时速度（抢占判定的依据，不产生日志）。

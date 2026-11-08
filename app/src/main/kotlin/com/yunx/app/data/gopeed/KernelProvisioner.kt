@@ -39,6 +39,7 @@ import com.yunx.app.data.prefs.SettingsRepository
 import com.yunx.app.data.repository.QuarkAccountRepository
 import com.yunx.app.data.repository.QuarkResolveRepository
 import com.yunx.app.data.update.UpdateChecker
+import com.yunx.app.util.ByteFormat
 import com.yunx.app.util.LogRedactor
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -692,18 +693,9 @@ object KernelProvisioner {
         runCatching { DownloadService.update(context, title, percent, "", false) }
     }
 
-    /** 速度文本（与内置下载器同一个格式）；0 返回空串 */
-    private fun formatSpeed(bytesPerSec: Long): String {
-        if (bytesPerSec <= 0L) return ""
-        val units = arrayOf("B/s", "KB/s", "MB/s", "GB/s")
-        var value = bytesPerSec.toDouble()
-        var i = 0
-        while (value >= 1024 && i < units.size - 1) {
-            value /= 1024
-            i++
-        }
-        return String.format("%.1f %s", value, units[i])
-    }
+    /** 速度文本（复用 [ByteFormat]，与内置下载器同一个格式）；0 返回空串 */
+    private fun formatSpeed(bytesPerSec: Long): String =
+        if (bytesPerSec <= 0L) "" else ByteFormat.speed(bytesPerSec)
 
     /** 校验 GitHub 给的 sha256 摘要（网盘通道拿不到摘要，跳过）。失败即视为损坏，绝不拿去导入。 */
     private fun verifyDigest(target: File, digest: String) {
