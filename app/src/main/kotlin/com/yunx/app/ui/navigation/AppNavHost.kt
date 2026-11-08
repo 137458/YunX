@@ -38,22 +38,28 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavDestination.Companion.hasRoute
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.yunx.app.data.prefs.SettingsRepository
 import com.yunx.app.ui.AppSnackbarHost
 import com.yunx.app.ui.MainScreen
 import com.yunx.app.ui.components.liquid.BottomBarStyle
 import com.yunx.app.ui.rememberGlobalSnackbarHostState
+import com.yunx.app.ui.screens.AboutScreen
 import com.yunx.app.ui.screens.LanguageScreen
 import com.yunx.app.ui.screens.LinkOpenScreen
 import com.yunx.app.ui.screens.MultiAccountDownloadScreen
+import com.yunx.app.ui.screens.OnboardingScreen
 import com.yunx.app.ui.screens.SupportScreen
 import com.yunx.app.ui.screens.ThemeScreen
 import com.yunx.app.ui.theme.AppThemeManager
@@ -96,6 +102,13 @@ fun AppNavHost(
     onIncomingAddUrlConsumed: () -> Unit = {}
 ) {
     val navController = rememberNavController()
+    val context = LocalContext.current
+    val settings = remember(context) { SettingsRepository(context) }
+    // 首次启动直接以引导页作为图起点，避免先组合主框架再跳转造成一帧闪烁；
+    // 引导完成后的「清空整栈再进主页」见 OnboardingRoute 的 onFinish。
+    val startDestination: AppRoute = remember(settings) {
+        if (settings.onboardingShown) MainRoute else OnboardingRoute
+    }
     val snackbarHostState = rememberGlobalSnackbarHostState()
     val currentEntry by navController.currentBackStackEntryAsState()
     // 只有停在主框架时才有底栏，提示条要抬到它上方；覆盖页没有底栏，按普通页面避让
@@ -118,7 +131,25 @@ fun AppNavHost(
         }
 
         Box(modifier = Modifier.fillMaxSize()) {
-            NavHost(navController = navController, startDestination = MainRoute) {
+            NavHost(navController = navController, startDestination = startDestination) {
+                composable<OnboardingRoute>(
+                    enterTransition = { EnterTransition.None },
+                    exitTransition = { ExitTransition.None },
+                    popEnterTransition = { EnterTransition.None },
+                    popExitTransition = { ExitTransition.None }
+                ) {
+                    OnboardingScreen(
+                        onFinish = {
+                            settings.onboardingShown = true
+                            // 引导可能作为图起点（首次启动），也可能叠在「关于页预览」之上；
+                            // 两种栈形态都清空，再落到主页，返回不会退回引导
+                            navController.navigate(MainRoute) {
+                                popUpTo(navController.graph.findStartDestination().id) { inclusive = true }
+                            }
+                        }
+                    )
+                }
+
                 // 主框架是常驻底页：自身不参与覆盖层过渡，否则每次进出覆盖页底页都会闪一下
                 composable<MainRoute>(
                     enterTransition = { EnterTransition.None },
@@ -170,6 +201,22 @@ fun AppNavHost(
                     popExitTransition = OverlayExit
                 ) {
                     MultiAccountDownloadScreen(onBack = { navController.popBackStack() })
+                }
+
+                composable<AboutRoute>(
+                    enterTransition = OverlayEnter,
+                    popExitTransition = OverlayExit
+                ) {
+                    AboutScreen(
+                        onBack = { navController.popBackStack() },
+                        onPreviewOnboarding = {
+                            settings.onboardingShown = false
+                            navController.navigate(OnboardingRoute) {
+                                // 与迁移前一致：预览引导时先关掉关于页
+                                popUpTo(AboutRoute) { inclusive = true }
+                            }
+                        }
+                    )
                 }
             }
 

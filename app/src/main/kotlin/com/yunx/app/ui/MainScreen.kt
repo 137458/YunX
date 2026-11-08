@@ -158,6 +158,7 @@ import com.yunx.app.ui.login.VideoLoginScreen
 import com.yunx.app.ui.login.XunleiLoginScreen
 import com.yunx.app.ui.login.XunleiVerifyWebViewScreen
 import com.yunx.app.ui.login.XunleiWebLoginScreen
+import com.yunx.app.ui.navigation.AboutRoute
 import com.yunx.app.ui.navigation.LanguageRoute
 import com.yunx.app.ui.navigation.LinkOpenRoute
 import com.yunx.app.ui.navigation.MainTab
@@ -167,7 +168,6 @@ import com.yunx.app.ui.navigation.ThemeRoute
 import com.yunx.app.ui.preview.MediaPreviewScreen
 import com.yunx.app.ui.preview.PreviewLauncher
 import com.yunx.app.ui.rememberGlobalSnackbarHostState
-import com.yunx.app.ui.screens.AboutScreen
 import com.yunx.app.ui.screens.AnnouncementPopupDialog
 import com.yunx.app.ui.screens.AnnouncementScreen
 import com.yunx.app.ui.screens.AnnouncementUnreadBadge
@@ -177,7 +177,6 @@ import com.yunx.app.ui.screens.DriveScreen
 import com.yunx.app.ui.screens.LanguageScreen
 import com.yunx.app.ui.screens.LinkOpenScreen
 import com.yunx.app.ui.screens.MultiAccountDownloadScreen
-import com.yunx.app.ui.screens.OnboardingScreen
 import com.yunx.app.ui.screens.rememberUpdateDialogState
 import com.yunx.app.ui.screens.ResolveScreen
 import com.yunx.app.ui.screens.SettingsScreen
@@ -298,7 +297,6 @@ fun MainScreen(
     var showBaiduLogin by rememberSaveable { mutableStateOf(false) }
     var showC139Login by rememberSaveable { mutableStateOf(false) }
     var showPan123Login by rememberSaveable { mutableStateOf(false) }
-    var showAbout by rememberSaveable { mutableStateOf(false) }
     var showBookmarks by rememberSaveable { mutableStateOf(false) }
     var showXunleiWebLogin by rememberSaveable { mutableStateOf(false) }
     var showPan115Login by rememberSaveable { mutableStateOf(false) }
@@ -322,8 +320,6 @@ fun MainScreen(
     // 底栏样式由「主题与外观」页写入，经 AppThemeManager 的内存态即时响应
     val bottomBarStyle = BottomBarStyle.fromPersisted(AppThemeManager.bottomBarStyle)
     val blurBackdrop = rememberBlurBackdrop()
-    // 首次启动引导页：初值同步读取，避免先渲染一帧主界面再被引导页覆盖（启动瞬间闪主页）
-    var showOnboarding by remember { mutableStateOf(!settings.onboardingShown) }
 
     // 更新检测：请求 GitHub 最新 Release（仓库无 Release / 网络失败则不提示）
     var showUpdateDialog by remember { mutableStateOf(false) }
@@ -824,16 +820,7 @@ fun MainScreen(
     }
 
 
-    // 首次启动引导页：全屏覆盖（优先级最高）
-    if (showOnboarding) {
-        OnboardingScreen(
-            onFinish = {
-                settings.onboardingShown = true
-                showOnboarding = false
-            }
-        )
-        return
-    }
+    // 首次启动引导页已迁出为 NavHost destination（OnboardingRoute），见 AppNavHost
 
     // 夸克登录页：全屏覆盖
     if (showQuarkLogin) {
@@ -1304,7 +1291,7 @@ fun MainScreen(
                         scrollBehavior = scrollBehavior,
                         onThemeClick = { navController.navigate(ThemeRoute) },
                         onLanguageClick = { navController.navigate(LanguageRoute) },
-                        onAboutClick = { showAbout = true },
+                        onAboutClick = { navController.navigate(AboutRoute) },
                         onSupportClick = { navController.navigate(SupportRoute) },
                         onLinkOpenClick = { navController.navigate(LinkOpenRoute) },
                         onMultiAccountDownloadClick = { navController.navigate(MultiAccountDownloadRoute) },
@@ -1377,23 +1364,6 @@ fun MainScreen(
                 }
             }
         }
-    }
-
-    // 关于云析：叠加覆盖层（淡入 + 轻微缩放过渡）
-    AnimatedVisibility(
-        visible = showAbout,
-        enter = fadeIn(tween(220)) + scaleIn(tween(220), initialScale = 0.96f),
-        exit = fadeOut(tween(160)) + scaleOut(tween(160), targetScale = 0.96f),
-        modifier = Modifier.fillMaxSize()
-    ) {
-        AboutScreen(
-            onBack = { showAbout = false },
-            onPreviewOnboarding = {
-                settings.onboardingShown = false
-                showAbout = false
-                showOnboarding = true
-            }
-        )
     }
 
     // 收藏网盘链接：叠加覆盖层（淡入 + 轻微缩放过渡）
