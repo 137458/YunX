@@ -273,4 +273,14 @@
     <string name="snack_proxy_port_invalid">Le port du proxy doit être un nombre entre 1 et 65535</string>
     <string name="snack_proxy_enabled">Proxy activé : %1$s</string>
     <string name="snack_proxy_disabled">Proxy désactivé ; connexion directe rétablie</string>
+
+    <!-- Avis de sécurité au démarrage -->
+    <string name="sn_title">Avis de sécurité</string>
+    <string name="sn_body">Cette application est entièrement gratuite. Dépôt open source : %1$s. Si vous l\'avez obtenue via un canal non officiel et qu\'on vous a demandé de payer, vous avez téléchargé une version falsifiée. Désinstallez-la immédiatement.</string>
+    <string name="sn_official">Version open source officielle</string>
+    <string name="sn_url">https://github.com/CYQawa/YunX</string>
+    <string name="sn_copy">Copier le lien</string>
+    <string name="sn_copied">Copié</string>
+    <string name="sn_ack">J\'ai compris</string>
+    <string name="sn_countdown">Fermeture possible dans %1$d s</string>
 </resources>

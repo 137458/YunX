@@ -308,4 +308,14 @@
     <string name="snack_proxy_port_invalid">代理端口需为 1-65535 之间的数字</string>
     <string name="snack_proxy_enabled">代理已启用：%1$s</string>
     <string name="snack_proxy_disabled">已关闭代理，恢复直连</string>
+
+    <!-- 启动安全提示 -->
+    <string name="sn_title">安全提示</string>
+    <string name="sn_body">本应用完全免费，开源地址：%1$s。若您从非官方渠道获取并被要求付费，说明您下载了被篡改的版本，请立即卸载。</string>
+    <string name="sn_official">官方开源版</string>
+    <string name="sn_url">https://github.com/CYQawa/YunX</string>
+    <string name="sn_copy">复制链接</string>
+    <string name="sn_copied">已复制</string>
+    <string name="sn_ack">我知道了</string>
+    <string name="sn_countdown">%1$d 秒后可关闭</string>
 </resources>

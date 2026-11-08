@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import com.yunx.app.ui.navigation.MainTab
 import top.yukonga.miuix.kmp.basic.NavigationBar
 import top.yukonga.miuix.kmp.basic.NavigationBarItem
@@ -52,7 +53,7 @@ fun AppStandardBottomBar(
                     onTabSelected(tab)
                 },
                 icon = if (isSelected) tab.selectedIcon else tab.unselectedIcon,
-                label = tab.title
+                label = stringResource(tab.titleRes)
             )
         }
     }

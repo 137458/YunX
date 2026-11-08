@@ -80,6 +80,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -1061,8 +1062,8 @@ fun MainScreen(
     // 顶部大标题（竖屏 / 横屏共用）
     val topBarContent: @Composable () -> Unit = {
         TopAppBar(
-            title = currentTab.title,
-            largeTitle = currentTab.title,
+            title = stringResource(currentTab.titleRes),
+            largeTitle = stringResource(currentTab.titleRes),
             scrollBehavior = scrollBehavior,
             color = if (blurBackdrop != null) Color.Transparent else MiuixTheme.colorScheme.surface,
             actions = {
@@ -1791,7 +1792,7 @@ private fun MainNavigationRail(
                 selected = currentTab == tab,
                 onClick = { onTabSelected(tab) },
                 icon = if (currentTab == tab) tab.selectedIcon else tab.unselectedIcon,
-                label = tab.title
+                label = stringResource(tab.titleRes)
             )
         }
     }

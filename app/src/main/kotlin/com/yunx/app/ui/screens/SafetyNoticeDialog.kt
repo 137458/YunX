@@ -37,9 +37,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.yunx.app.R
 import com.yunx.app.ui.AppSnackbarHost
 import com.yunx.app.ui.SnackbarController
 import com.yunx.app.ui.rememberGlobalSnackbarHostState
@@ -56,6 +58,8 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 @Composable
 fun SafetyNoticeDialog() {
     val context = LocalContext.current
+    val url = stringResource(R.string.sn_url)
+    val copiedMessage = stringResource(R.string.sn_copied)
     val lockSeconds = 2
     var visible by remember { mutableStateOf(!isAcknowledged(context)) }
     var seconds by remember { mutableIntStateOf(lockSeconds) }
@@ -75,7 +79,7 @@ fun SafetyNoticeDialog() {
             // 点弹窗外部只关闭，不写入「已知晓」：否则用户误触一次后安全提示永久不再出现
             if (seconds <= 0) visible = false
         },
-        title = TextCipher.dTitle,
+        title = stringResource(R.string.sn_title),
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             Row(
@@ -89,7 +93,7 @@ fun SafetyNoticeDialog() {
                     color = MiuixTheme.colorScheme.secondaryVariant
                 ) {
                     Text(
-                        text = TextCipher.dOfficial,
+                        text = stringResource(R.string.sn_official),
                         style = MiuixTheme.textStyles.body2,
                         color = MiuixTheme.colorScheme.onSecondaryVariant,
                         fontWeight = FontWeight.Medium,
@@ -98,7 +102,7 @@ fun SafetyNoticeDialog() {
                 }
             }
             Text(
-                text = TextCipher.dBody,
+                text = stringResource(R.string.sn_body, stringResource(R.string.sn_url)),
                 style = MiuixTheme.textStyles.body1,
                 lineHeight = 22.sp,
                 modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp)
@@ -111,7 +115,7 @@ fun SafetyNoticeDialog() {
                 color = MiuixTheme.colorScheme.surfaceContainer
             ) {
                 Text(
-                    text = TextCipher.dUrl,
+                    text = stringResource(R.string.sn_url),
                     style = MiuixTheme.textStyles.body2,
                     color = MiuixTheme.colorScheme.primary,
                     fontWeight = FontWeight.Medium,
@@ -124,8 +128,14 @@ fun SafetyNoticeDialog() {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 TextButton(
-                    text = TextCipher.dCopy,
-                    onClick = { copyUrl(context) },
+                    text = stringResource(R.string.sn_copy),
+                    onClick = {
+                        copyUrl(
+                            context,
+                            url = url,
+                            copiedMessage = copiedMessage
+                        )
+                    },
                     modifier = Modifier.weight(1f)
                 )
                 Button(
@@ -139,9 +149,9 @@ fun SafetyNoticeDialog() {
                 ) {
                     Text(
                         text = if (seconds > 0) {
-                            TextCipher.dCountdown.replace("%d", seconds.toString())
+                            stringResource(R.string.sn_countdown, seconds)
                         } else {
-                            TextCipher.dBtn
+                            stringResource(R.string.sn_ack)
                         },
                         style = MiuixTheme.textStyles.button
                     )
@@ -168,11 +178,11 @@ private fun acknowledge(context: Context) {
     }
 }
 
-private fun copyUrl(context: Context) {
+private fun copyUrl(context: Context, url: String, copiedMessage: String) {
     runCatching {
         val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        cm.setPrimaryClip(ClipData.newPlainText(TextCipher.dUrl, TextCipher.dUrl))
+        cm.setPrimaryClip(ClipData.newPlainText(url, url))
         // 统一走全局 Snackbar：项目其余位置已不用 Toast
-        SnackbarController.show(TextCipher.dCopied)
+        SnackbarController.show(copiedMessage)
     }
 }
