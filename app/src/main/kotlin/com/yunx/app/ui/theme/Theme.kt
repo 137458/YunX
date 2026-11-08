@@ -117,6 +117,8 @@ fun ComposeEmptyActivityTheme(
 ) {
     val context = LocalContext.current
     AppThemeManager.init(context)
+    // 应用语言状态（首次从 SharedPreferences 加载；真正的资源切换在 Activity.attachBaseContext）
+    LocaleController.init(context)
     // 订阅设置写入版本号：设置页绕过 AppThemeManager 直接写 SettingsRepository 时，
     // 这里会重新同步内存状态并触发重组，避免「设置写完主题不刷新」。
     AppThemeManager.syncFromSettings(context)

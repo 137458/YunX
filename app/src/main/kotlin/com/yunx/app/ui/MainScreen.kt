@@ -163,6 +163,7 @@ import com.yunx.app.ui.screens.OnboardingScreen
 import com.yunx.app.ui.screens.ResolveScreen
 import com.yunx.app.ui.screens.SettingsScreen
 import com.yunx.app.ui.screens.SupportScreen
+import com.yunx.app.ui.screens.LanguageScreen
 import com.yunx.app.ui.screens.ThemeScreen
 import com.yunx.app.ui.screens.UpdateDialog
 import com.yunx.app.ui.screens.rememberUpdateDialogState
@@ -292,6 +293,7 @@ fun MainScreen(
     var showAbout by rememberSaveable { mutableStateOf(false) }
     var showSupport by rememberSaveable { mutableStateOf(false) }
     var showTheme by rememberSaveable { mutableStateOf(false) }
+    var showLanguage by rememberSaveable { mutableStateOf(false) }
     var showLinkOpen by rememberSaveable { mutableStateOf(false) }
     var showMultiAccountDownload by rememberSaveable { mutableStateOf(false) }
     var showBookmarks by rememberSaveable { mutableStateOf(false) }
@@ -1299,6 +1301,7 @@ fun MainScreen(
                     MainTab.Settings -> SettingsScreen(
                         scrollBehavior = scrollBehavior,
                         onThemeClick = { showTheme = true },
+                        onLanguageClick = { showLanguage = true },
                         onAboutClick = { showAbout = true },
                         onSupportClick = { showSupport = true },
                         onLinkOpenClick = { showLinkOpen = true },
@@ -1412,6 +1415,18 @@ fun MainScreen(
     ) {
         ThemeScreen(
             onBack = { showTheme = false }
+        )
+    }
+
+    // 语言：叠加覆盖层（淡入 + 轻微缩放过渡）
+    AnimatedVisibility(
+        visible = showLanguage,
+        enter = fadeIn(tween(220)) + scaleIn(tween(220), initialScale = 0.96f),
+        exit = fadeOut(tween(160)) + scaleOut(tween(160), targetScale = 0.96f),
+        modifier = Modifier.fillMaxSize()
+    ) {
+        LanguageScreen(
+            onBack = { showLanguage = false }
         )
     }
 

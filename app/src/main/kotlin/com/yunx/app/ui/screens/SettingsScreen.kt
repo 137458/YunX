@@ -62,6 +62,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -70,6 +71,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.yunx.app.R
 import com.yunx.app.data.backup.AuthBackupManager
 import com.yunx.app.data.backup.AuthCrypto
 import com.yunx.app.data.download.DownloadDebugLog
@@ -78,6 +80,7 @@ import com.yunx.app.data.download.DownloadSaver
 import com.yunx.app.data.prefs.SettingsRepository
 import com.yunx.app.ui.SnackbarController
 import com.yunx.app.ui.theme.AppThemeManager
+import com.yunx.app.ui.theme.LocaleController
 import com.yunx.app.util.DiagnosticLog
 import com.yunx.app.util.LogExporter
 import kotlinx.coroutines.Dispatchers
@@ -155,6 +158,8 @@ fun SettingsScreen(
     onLinkOpenClick: () -> Unit,
     /** 打开「多账号下载」页（两个实验性开关：多账号轮流取链 / 单文件多源分片） */
     onMultiAccountDownloadClick: () -> Unit,
+    /** 打开「语言」页（界面语言单选列表） */
+    onLanguageClick: () -> Unit,
     backupManager: AuthBackupManager,
     /** 检查更新：结果弹窗（含下载进度与安装入口）由 MainScreen 统一承载，这里只发请求 */
     onCheckUpdate: () -> Unit,
@@ -396,6 +401,23 @@ fun SettingsScreen(
                 title = "主题与外观",
                 summary = "主题色、动态色彩与深色模式",
                 onClick = onThemeClick
+            )
+        }
+
+        // ---------- 分类 2.5: 语言 ----------
+        SmallTitle(text = stringResource(R.string.section_language))
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 12.dp, end = 12.dp, bottom = CardGap)
+        ) {
+            ArrowPreference(
+                title = stringResource(R.string.settings_language),
+                summary = stringResource(
+                    R.string.settings_language_desc,
+                    stringResource(LocaleController.language.labelRes)
+                ),
+                onClick = onLanguageClick
             )
         }
 
