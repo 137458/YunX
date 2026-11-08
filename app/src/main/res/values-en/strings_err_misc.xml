@@ -222,4 +222,5 @@
     <string name="em_log_logcat_unavailable">(Failed to read logs: logcat unavailable on this device)\n</string>
     <string name="em_log_no_output">(no output)\n</string>
     <string name="em_log_share_title">Share logs</string>
+    <string name="em_cannot_open_browser">Cannot open browser</string>
 </resources>

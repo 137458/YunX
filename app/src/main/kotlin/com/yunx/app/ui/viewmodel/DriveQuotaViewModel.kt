@@ -28,16 +28,18 @@ import com.yunx.app.data.network.C139Api
 import com.yunx.app.data.network.GuangYaApi
 import com.yunx.app.data.network.GuangYaDevice
 import com.yunx.app.data.network.ILanzouApi
+import com.yunx.app.data.network.model.QuotaInfo
 import com.yunx.app.data.network.Pan115Api
 import com.yunx.app.data.network.Pan123Api
 import com.yunx.app.data.network.QuarkApi
 import com.yunx.app.data.network.UCApi
 import com.yunx.app.data.network.XunleiApi
-import com.yunx.app.data.network.model.QuotaInfo
+import com.yunx.app.R
+import com.yunx.app.util.AppStrings
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
 /**
@@ -119,7 +121,7 @@ class DriveQuotaViewModel(
                     if (qc != null) {
                         runCatching { quarkApi.getQuota(qc) }
                             .onSuccess { _quarkQuota.value = it }
-                            .onFailure { failed += "夸克" }
+                            .onFailure { failed += AppStrings.get(R.string.rs_short_quark) }
                     }
                 }
                 // UC
@@ -139,7 +141,7 @@ class DriveQuotaViewModel(
                         val captcha = xunleiCaptcha() ?: ""
                         runCatching { xunleiApi.getQuota(xl, deviceId, captcha) }
                             .onSuccess { _xunleiQuota.value = it }
-                            .onFailure { failed += "迅雷" }
+                            .onFailure { failed += AppStrings.get(R.string.rs_short_xunlei) }
                     }
                 }
                 // 百度
@@ -148,7 +150,7 @@ class DriveQuotaViewModel(
                     if (bd != null) {
                         runCatching { baiduApi.getQuota(bd) }
                             .onSuccess { _baiduQuota.value = it }
-                            .onFailure { failed += "百度" }
+                            .onFailure { failed += AppStrings.get(R.string.rs_short_baidu) }
                     }
                 }
                 // 139
@@ -197,7 +199,7 @@ class DriveQuotaViewModel(
             }
             _quotaError.value = failed
                 .takeIf { it.isNotEmpty() }
-                ?.let { "以下网盘空间信息获取失败：" + it.joinToString("、") }
+                ?.let { AppStrings.get(R.string.vm_drive_quota_error, it.joinToString("、")) }
             loading.value = false
         }
     }

@@ -18,11 +18,18 @@
 
 package com.yunx.app.ui
 
-import com.yunx.app.ui.rememberGlobalSnackbarHostState
-import com.yunx.app.ui.theme.BOTTOM_BAR_CONTENT_PADDING_DP
-import com.yunx.app.ui.theme.isWideWindow
-import com.yunx.app.ui.theme.shouldShowBottomBar
-import com.yunx.app.ui.theme.shouldShowNavigationRail
+import android.content.ClipboardManager
+import android.content.ClipData
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.Manifest
+import android.net.Uri
+import android.os.Build
+import android.os.PowerManager
+import android.provider.Settings
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -34,51 +41,34 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.calculateEndPadding
-import androidx.compose.foundation.layout.calculateStartPadding
-import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.only
-import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.foundation.layout.Arrangement
-import com.yunx.app.ui.AppSnackbarHost
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.ui.unit.dp
-import top.yukonga.miuix.kmp.basic.Button
-import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
-import top.yukonga.miuix.kmp.basic.ScrollBehavior
-import top.yukonga.miuix.kmp.basic.TextButton
-import top.yukonga.miuix.kmp.window.WindowDialog
-import com.yunx.app.ui.components.LocalScaffoldPadding
-import top.yukonga.miuix.kmp.basic.NavigationRail
-import top.yukonga.miuix.kmp.basic.NavigationRailItem
-import top.yukonga.miuix.kmp.basic.rememberNavigationRailState
-import top.yukonga.miuix.kmp.basic.Scaffold
-import top.yukonga.miuix.kmp.basic.Text
-import top.yukonga.miuix.kmp.basic.TopAppBar
-import top.yukonga.miuix.kmp.theme.MiuixTheme
-import androidx.compose.ui.graphics.Color
-import com.yunx.app.ui.components.BlurredBar
-import com.yunx.app.ui.components.blurBackdropSource
-import com.yunx.app.ui.components.rememberBlurBackdrop
-import com.yunx.app.ui.components.AppBottomBar
-import com.yunx.app.ui.components.liquid.BottomBarStyle
-import com.yunx.app.ui.theme.AppThemeManager
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Campaign
+import androidx.compose.material.icons.outlined.Visibility
+import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -86,42 +76,41 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
-import androidx.lifecycle.viewmodel.compose.viewModel
-import android.Manifest
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
-import android.content.Intent
-import android.content.pm.PackageManager
-import android.net.Uri
-import android.os.Build
-import android.os.PowerManager
-import android.provider.Settings
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.yunx.app.data.announcement.AnnouncementReadStore
+import com.yunx.app.data.backup.AuthBackupManager
 import com.yunx.app.data.db.AppDatabase
 import com.yunx.app.data.db.DownloadTaskEntity
 import com.yunx.app.data.download.ChunkDownloader
 import com.yunx.app.data.download.DownloadManager
 import com.yunx.app.data.download.DownloadPlatform
-import com.yunx.app.data.backup.AuthBackupManager
 import com.yunx.app.data.network.BaiduApi
 import com.yunx.app.data.network.C139Api
 import com.yunx.app.data.network.C139DeviceInfo
+import com.yunx.app.data.network.GitHubApi
+import com.yunx.app.data.network.GitHubLinkParser
+import com.yunx.app.data.network.GitHubTokenStore
+import com.yunx.app.data.network.GuangYaApi
+import com.yunx.app.data.network.HttpClients
+import com.yunx.app.data.network.ILanzouApi
+import com.yunx.app.data.network.LanzouApi
 import com.yunx.app.data.network.Pan115Api
 import com.yunx.app.data.network.Pan123Api
 import com.yunx.app.data.network.QuarkApi
+import com.yunx.app.data.network.TokenCheck
 import com.yunx.app.data.network.UCApi
+import com.yunx.app.data.network.video.VideoPlatform
 import com.yunx.app.data.network.XunleiApi
-import com.yunx.app.data.network.GuangYaApi
-import com.yunx.app.data.network.ILanzouApi
-import com.yunx.app.data.network.LanzouApi
 import com.yunx.app.data.prefs.SettingsRepository
-import com.yunx.app.data.update.UpdateChecker
 import com.yunx.app.data.repository.AccountDirectory
 import com.yunx.app.data.repository.BaiduAccountRepository
 import com.yunx.app.data.repository.BaiduResolveRepository
@@ -141,34 +130,61 @@ import com.yunx.app.data.repository.QuarkAccountRepository
 import com.yunx.app.data.repository.QuarkResolveRepository
 import com.yunx.app.data.repository.UCAccountRepository
 import com.yunx.app.data.repository.UCResolveRepository
-import com.yunx.app.data.repository.XunleiAccountRepository
-import com.yunx.app.data.repository.XunleiResolveRepository
 import com.yunx.app.data.repository.VideoAccountRepository
 import com.yunx.app.data.repository.VideoParseRepository
+import com.yunx.app.data.repository.XunleiAccountRepository
+import com.yunx.app.data.repository.XunleiResolveRepository
+import com.yunx.app.data.update.UpdateChecker
+import com.yunx.app.R
+import com.yunx.app.ui.AppSnackbarHost
+import com.yunx.app.ui.components.AppBottomBar
+import com.yunx.app.ui.components.blurBackdropSource
+import com.yunx.app.ui.components.BlurredBar
+import com.yunx.app.ui.components.liquid.BottomBarStyle
+import com.yunx.app.ui.components.LocalScaffoldPadding
+import com.yunx.app.ui.components.rememberBlurBackdrop
 import com.yunx.app.ui.login.BaiduLoginScreen
 import com.yunx.app.ui.login.C139LoginScreen
+import com.yunx.app.ui.login.GuangYaLoginScreen
+import com.yunx.app.ui.login.ILanzouLoginScreen
+import com.yunx.app.ui.login.LanzouLoginScreen
+import com.yunx.app.ui.login.Pan115LoginScreen
 import com.yunx.app.ui.login.Pan123LoginScreen
 import com.yunx.app.ui.login.QuarkLoginScreen
 import com.yunx.app.ui.login.UCLoginScreen
+import com.yunx.app.ui.login.VideoLoginScreen
 import com.yunx.app.ui.login.XunleiLoginScreen
 import com.yunx.app.ui.login.XunleiVerifyWebViewScreen
+import com.yunx.app.ui.login.XunleiWebLoginScreen
 import com.yunx.app.ui.navigation.MainTab
 import com.yunx.app.ui.preview.MediaPreviewScreen
 import com.yunx.app.ui.preview.PreviewLauncher
+import com.yunx.app.ui.rememberGlobalSnackbarHostState
 import com.yunx.app.ui.screens.AboutScreen
+import com.yunx.app.ui.screens.AnnouncementPopupDialog
+import com.yunx.app.ui.screens.AnnouncementScreen
+import com.yunx.app.ui.screens.AnnouncementUnreadBadge
 import com.yunx.app.ui.screens.BookmarkScreen
 import com.yunx.app.ui.screens.DownloadScreen
 import com.yunx.app.ui.screens.DriveScreen
+import com.yunx.app.ui.screens.LanguageScreen
+import com.yunx.app.ui.screens.LinkOpenScreen
+import com.yunx.app.ui.screens.MultiAccountDownloadScreen
 import com.yunx.app.ui.screens.OnboardingScreen
+import com.yunx.app.ui.screens.rememberUpdateDialogState
 import com.yunx.app.ui.screens.ResolveScreen
 import com.yunx.app.ui.screens.SettingsScreen
 import com.yunx.app.ui.screens.SupportScreen
-import com.yunx.app.ui.screens.LanguageScreen
 import com.yunx.app.ui.screens.ThemeScreen
 import com.yunx.app.ui.screens.UpdateDialog
-import com.yunx.app.ui.screens.rememberUpdateDialogState
 import com.yunx.app.ui.screens.UpdateDialogState
+import com.yunx.app.ui.theme.AppThemeManager
+import com.yunx.app.ui.theme.BOTTOM_BAR_CONTENT_PADDING_DP
+import com.yunx.app.ui.theme.isWideWindow
+import com.yunx.app.ui.theme.shouldShowBottomBar
+import com.yunx.app.ui.theme.shouldShowNavigationRail
 import com.yunx.app.ui.util.installApk
+import com.yunx.app.ui.viewmodel.AnnouncementViewModel
 import com.yunx.app.ui.viewmodel.BaiduAccountViewModel
 import com.yunx.app.ui.viewmodel.BaiduCloudViewModel
 import com.yunx.app.ui.viewmodel.BookmarkViewModel
@@ -176,49 +192,6 @@ import com.yunx.app.ui.viewmodel.C139AccountViewModel
 import com.yunx.app.ui.viewmodel.C139CloudViewModel
 import com.yunx.app.ui.viewmodel.DownloadViewModel
 import com.yunx.app.ui.viewmodel.DriveQuotaViewModel
-import com.yunx.app.ui.viewmodel.Pan123AccountViewModel
-import com.yunx.app.ui.viewmodel.Pan123CloudViewModel
-import com.yunx.app.ui.viewmodel.QuarkAccountViewModel
-import com.yunx.app.ui.viewmodel.QuarkCloudViewModel
-import com.yunx.app.ui.viewmodel.ResolveViewModel
-import com.yunx.app.ui.viewmodel.UCCoudViewModel
-import com.yunx.app.ui.viewmodel.UCAccountViewModel
-import com.yunx.app.ui.viewmodel.XunleiAccountViewModel
-import com.yunx.app.ui.viewmodel.XunleiCloudViewModel
-import com.yunx.app.ui.viewmodel.VideoAccountViewModel
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import com.yunx.app.data.network.HttpClients
-import com.yunx.app.util.AppLinks
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Campaign
-import androidx.compose.material.icons.outlined.Visibility
-import androidx.compose.material.icons.outlined.VisibilityOff
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
-import com.yunx.app.data.announcement.AnnouncementReadStore
-import com.yunx.app.data.network.GitHubApi
-import com.yunx.app.data.network.GitHubLinkParser
-import com.yunx.app.data.network.GitHubTokenStore
-import com.yunx.app.data.network.TokenCheck
-import com.yunx.app.data.network.video.VideoPlatform
-import com.yunx.app.ui.login.GuangYaLoginScreen
-import com.yunx.app.ui.login.ILanzouLoginScreen
-import com.yunx.app.ui.login.LanzouLoginScreen
-import com.yunx.app.ui.login.Pan115LoginScreen
-import com.yunx.app.ui.login.VideoLoginScreen
-import com.yunx.app.ui.login.XunleiWebLoginScreen
-import com.yunx.app.ui.screens.AnnouncementPopupDialog
-import com.yunx.app.ui.screens.AnnouncementScreen
-import com.yunx.app.ui.screens.AnnouncementUnreadBadge
-import com.yunx.app.ui.screens.LinkOpenScreen
-import com.yunx.app.ui.screens.MultiAccountDownloadScreen
-import com.yunx.app.ui.viewmodel.AnnouncementViewModel
 import com.yunx.app.ui.viewmodel.GuangYaAccountViewModel
 import com.yunx.app.ui.viewmodel.GuangYaCloudViewModel
 import com.yunx.app.ui.viewmodel.ILanzouAccountViewModel
@@ -228,9 +201,38 @@ import com.yunx.app.ui.viewmodel.LanzouCloudViewModel
 import com.yunx.app.ui.viewmodel.MultiAccountViewModel
 import com.yunx.app.ui.viewmodel.Pan115AccountViewModel
 import com.yunx.app.ui.viewmodel.Pan115CloudViewModel
+import com.yunx.app.ui.viewmodel.Pan123AccountViewModel
+import com.yunx.app.ui.viewmodel.Pan123CloudViewModel
+import com.yunx.app.ui.viewmodel.QuarkAccountViewModel
+import com.yunx.app.ui.viewmodel.QuarkCloudViewModel
+import com.yunx.app.ui.viewmodel.ResolveViewModel
+import com.yunx.app.ui.viewmodel.UCAccountViewModel
+import com.yunx.app.ui.viewmodel.UCCoudViewModel
+import com.yunx.app.ui.viewmodel.VideoAccountViewModel
+import com.yunx.app.ui.viewmodel.XunleiAccountViewModel
+import com.yunx.app.ui.viewmodel.XunleiCloudViewModel
+import com.yunx.app.util.AppLinks
+import com.yunx.app.util.AppStrings
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
+import top.yukonga.miuix.kmp.basic.NavigationRail
+import top.yukonga.miuix.kmp.basic.NavigationRailItem
+import top.yukonga.miuix.kmp.basic.rememberNavigationRailState
+import top.yukonga.miuix.kmp.basic.Scaffold
+import top.yukonga.miuix.kmp.basic.ScrollBehavior
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.basic.TextField
+import top.yukonga.miuix.kmp.basic.TopAppBar
+import top.yukonga.miuix.kmp.theme.MiuixTheme
+import top.yukonga.miuix.kmp.window.WindowDialog
 import top.yukonga.miuix.kmp.window.WindowDialog
 
 /** 提示条避让：在底栏的内容避让之上再抬一点，避免提示条贴着底栏上沿。 */
@@ -374,7 +376,7 @@ fun MainScreen(
             scope.launch {
                 GitHubTokenStore.setToken(context, null)
                 githubHasTokenState = false
-                SnackbarController.show("GitHub Token 无效或已过期，已自动清除并回退匿名限额，请重新配置")
+                SnackbarController.show(AppStrings.get(R.string.vm_main_github_token_invalid_cleared))
             }
         }
     }
@@ -753,7 +755,7 @@ fun MainScreen(
     fun enqueueUpdateApk(release: UpdateChecker.Release, mirror: Boolean) {
         val apk = release.assets.firstOrNull { it.name.endsWith(".apk", true) }
         if (apk == null) {
-            SnackbarController.show("未找到 APK 下载链接")
+            SnackbarController.show(AppStrings.get(R.string.vm_main_apk_not_found))
             return
         }
         val url = if (mirror) UpdateChecker.mirrorUrl(apk.downloadUrl) else apk.downloadUrl
@@ -769,7 +771,7 @@ fun MainScreen(
     /** 检查更新（设置页入口）：有新版才弹窗；preview=true 为隐藏调试菜单的强制预览 */
     fun checkForUpdate(preview: Boolean) {
         scope.launch {
-            if (!preview) SnackbarController.show("正在检查更新…")
+            if (!preview) SnackbarController.show(AppStrings.get(R.string.vm_main_checking_update))
             val checkResult = runCatching {
                 UpdateChecker.fetchLatestRelease(includePrerelease = settings.acceptPrereleaseUpdate)
             }.getOrNull()
@@ -777,8 +779,8 @@ fun MainScreen(
             when {
                 release == null && preview -> showUpdateDialogFor(
                     UpdateChecker.Release(
-                        tagName = "v1.2.4（预览）",
-                        body = "这是调试预览弹窗，用于查看更新弹窗 UI（含镜像站下载按钮）。",
+                        tagName = AppStrings.get(R.string.vm_update_preview_version),
+                        body = AppStrings.get(R.string.vm_update_preview_body),
                         assets = emptyList(),
                         publishedAt = "",
                         htmlUrl = ""
@@ -786,12 +788,15 @@ fun MainScreen(
                 )
                 release == null -> {
                     val reason = (checkResult as? UpdateChecker.CheckResult.Failure)?.reason
-                    SnackbarController.show(if (reason.isNullOrBlank()) "检查更新失败，请检查网络" else "检查更新失败：$reason")
+                    SnackbarController.show(
+                        if (reason.isNullOrBlank()) AppStrings.get(R.string.vm_main_update_check_failed_network)
+                        else AppStrings.get(R.string.vm_main_update_check_failed, reason)
+                    )
                 }
                 preview -> showUpdateDialogFor(release)
                 UpdateChecker.compareVersions(release.tagName, UpdateChecker.currentVersion(context)) > 0 ->
                     showUpdateDialogFor(release)
-                else -> SnackbarController.show("已是最新版本")
+                else -> SnackbarController.show(AppStrings.get(R.string.vm_main_up_to_date))
             }
         }
     }
@@ -885,10 +890,10 @@ fun MainScreen(
                 showXunleiLogin = true // 回到登录页
                 if (success) {
                     // 设备已验证受信任：自动重试密码登录（应直接成功并自动关闭登录页）
-                    SnackbarController.show("验证完成，正在自动登录…")
+                    SnackbarController.show(AppStrings.get(R.string.vm_main_verify_done_logging_in))
                     xunleiViewModel.retryLoginAfterVerify()
                 } else {
-                    SnackbarController.show("验证未完成，请重试")
+                    SnackbarController.show(AppStrings.get(R.string.vm_main_verify_incomplete))
                 }
             },
             onBack = {
@@ -1074,9 +1079,9 @@ fun MainScreen(
                         Icon(
                             imageVector = Icons.Outlined.Campaign,
                             contentDescription = if (unreadAnnouncementCount > 0) {
-                                "公告（$unreadAnnouncementCount 条未读）"
+                                AppStrings.get(R.string.vm_main_announcements_unread, unreadAnnouncementCount)
                             } else {
-                                "公告"
+                                AppStrings.get(R.string.vm_announcements_title)
                             }
                         )
                     }
@@ -1094,7 +1099,7 @@ fun MainScreen(
                 // 用户既认不出图标含义，也不知道这里能进收藏夹。
                 if (currentTab == MainTab.Resolve) {
                     TextButton(
-                        text = "收藏",
+                        text = AppStrings.get(R.string.rs_bookmark),
                         onClick = { showBookmarks = true }
                     )
                 }
@@ -1104,7 +1109,7 @@ fun MainScreen(
                 // 与上面「收藏」同样用带文字的按钮：排序是低频入口，纯图标认不出含义。
                 if (currentTab == MainTab.Drive && !driveSubPageOpen) {
                     TextButton(
-                        text = "排序",
+                        text = AppStrings.get(R.string.vm_main_sort),
                         onClick = { showDriveSort = true }
                     )
                 }
@@ -1253,7 +1258,7 @@ fun MainScreen(
                                     currentTab = MainTab.Resolve
                                 } else {
                                     // 取不到 login：Token 无效/已过期，或网络异常
-                                    SnackbarController.show("无法获取 GitHub 账号信息，请检查网络或重新配置 Token")
+                                    SnackbarController.show(AppStrings.get(R.string.vm_main_github_account_failed))
                                 }
                             }
                         },
@@ -1546,37 +1551,34 @@ fun MainScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
-                    text = "Token 仅用于提升 API 限额（匿名 60/小时，认证后 5000/小时）。经 Android Keystore AES-GCM 加密存储。",
+                    text = AppStrings.get(R.string.vm_github_token_usage),
                     style = MiuixTheme.textStyles.body2,
                     color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                 )
                 Text(
-                    text = "如何获取 Token：",
+                    text = AppStrings.get(R.string.vm_github_token_howto_title),
                     style = MiuixTheme.textStyles.body2,
                     color = MiuixTheme.colorScheme.onSurface
                 )
                 Text(
-                    text = "1. 电脑浏览器打开 GitHub，右上角头像 → Settings\n" +
-                        "2. 左侧 Developer settings → Personal access tokens → Tokens (classic) → Generate new token\n" +
-                        "3. 勾选 public_repo 即可浏览公开仓库；如需在主页看到自己的私有仓库，再勾选 repo\n" +
-                        "4. 有效期建议选 90 天或 No expiration，生成后复制粘贴到上方输入框",
+                    text = AppStrings.get(R.string.vm_github_token_howto_body),
                     style = MiuixTheme.textStyles.body2,
                     color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                 )
                 // 上面四步是电脑上的翻页路径，手机上一路点下来很容易翻丢 —— 直接给一个直达入口，
                 // 链接里已预填 public_repo 权限与说明，生成后复制回来粘到下方输入框即可。
                 TextButton(
-                    text = "↗ 从 GitHub 获取 Token",
+                    text = AppStrings.get(R.string.vm_github_get_token),
                     onClick = {
                         // 与设置页「GitHub 仓库」同一口径：没有可用浏览器就复制链接，不静默失败
                         if (!AppLinks.openGitHubTokenPage(context)) {
                             copyToClipboard(context, AppLinks.GITHUB_TOKEN_PAGE)
-                            SnackbarController.show("未找到可用浏览器，链接已复制")
+                            SnackbarController.show(AppStrings.get(R.string.vm_github_no_browser_link_copied))
                         }
                     }
                 )
                 Text(
-                    text = "安全提示：仅给最小权限，勿勾选删除/管理类权限；Token 不明文保存、不上传，清除只需清空后保存。",
+                    text = AppStrings.get(R.string.vm_github_token_security_tip),
                     style = MiuixTheme.textStyles.body2,
                     color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                 )
@@ -1597,7 +1599,7 @@ fun MainScreen(
                             Icon(
                                 imageVector = if (passwordVisible) Icons.Outlined.Visibility
                                 else Icons.Outlined.VisibilityOff,
-                                contentDescription = if (passwordVisible) "隐藏" else "显示"
+                                contentDescription = if (passwordVisible) AppStrings.get(R.string.vm_password_hide) else AppStrings.get(R.string.vm_password_show)
                             )
                         }
                     }
@@ -1616,7 +1618,7 @@ fun MainScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 TextButton(
-                    text = "取消",
+                    text = AppStrings.get(R.string.csa_cancel),
                     onClick = { showGitHubTokenDialog = false },
                     modifier = Modifier.weight(1f)
                 )
@@ -1628,7 +1630,7 @@ fun MainScreen(
                             GitHubTokenStore.setToken(context, null)
                             githubHasTokenState = false
                             showGitHubTokenDialog = false
-                            SnackbarController.show("已清除 GitHub Token")
+                            SnackbarController.show(AppStrings.get(R.string.vm_github_token_cleared))
                         } else {
                             // 保存前先校验：无效 Token 会让 GitHub 拒绝之后的所有请求（含公开仓库解析）
                             scope.launch {
@@ -1639,20 +1641,20 @@ fun MainScreen(
                                         if (GitHubTokenStore.setToken(context, input)) {
                                             githubHasTokenState = true
                                             showGitHubTokenDialog = false
-                                            SnackbarController.show("GitHub Token 已保存（@${check.login}）")
+                                            SnackbarController.show(AppStrings.get(R.string.vm_github_token_saved, check.login))
                                         } else {
-                                            tokenError = "保存失败：本机加密密钥暂时不可用，请稍后重试"
+                                            tokenError = AppStrings.get(R.string.vm_github_token_save_failed)
                                         }
                                     }
-                                    TokenCheck.Invalid -> tokenError = "Token 无效或已过期，请重新生成后再保存"
-                                    TokenCheck.Unknown -> tokenError = "无法校验 Token（网络异常），请联网后重试"
+                                    TokenCheck.Invalid -> tokenError = AppStrings.get(R.string.vm_github_token_invalid)
+                                    TokenCheck.Unknown -> tokenError = AppStrings.get(R.string.vm_github_token_check_failed)
                                 }
                             }
                         }
                     },
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text("保存")
+                    Text(AppStrings.get(R.string.lg_save))
                 }
             }
 
@@ -1665,12 +1667,12 @@ fun MainScreen(
     if (showGitHubClearConfirm) {
         WindowDialog(
             show = true,
-            title = "清除 GitHub Token？",
+            title = AppStrings.get(R.string.vm_github_clear_token_title),
             onDismissRequest = { showGitHubClearConfirm = false }
         ) {
             Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    text = "清除后 GitHub API 回退匿名限额（60 次/小时/IP）。",
+                    text = AppStrings.get(R.string.vm_github_clear_token_message),
                     style = MiuixTheme.textStyles.body1,
                     color = MiuixTheme.colorScheme.onSurface,
                     modifier = Modifier.padding(bottom = 16.dp)
@@ -1681,7 +1683,7 @@ fun MainScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     TextButton(
-                        text = "取消",
+                        text = AppStrings.get(R.string.csa_cancel),
                         onClick = { showGitHubClearConfirm = false },
                         modifier = Modifier.weight(1f)
                     )
@@ -1690,11 +1692,11 @@ fun MainScreen(
                             GitHubTokenStore.setToken(context, null)
                             githubHasTokenState = false
                             showGitHubClearConfirm = false
-                            SnackbarController.show("已清除 GitHub Token")
+                            SnackbarController.show(AppStrings.get(R.string.vm_github_token_cleared))
                         },
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text("清除")
+                        Text(AppStrings.get(R.string.vm_clear))
                     }
                 }
             }
@@ -1715,7 +1717,7 @@ fun MainScreen(
                 onInstall = {
                     val path = (updateState as? UpdateDialogState.Done)?.savePath
                     if (path.isNullOrBlank()) {
-                        SnackbarController.show("安装包不存在，请重新下载")
+                        SnackbarController.show(AppStrings.get(R.string.em_update_package_missing))
                     } else {
                         installApk(context, path)
                     }
@@ -1734,7 +1736,7 @@ fun MainScreen(
                     }
                     runCatching {
                         context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
-                    }.onFailure { SnackbarController.show("无法打开浏览器") }
+                    }.onFailure { SnackbarController.show(AppStrings.get(R.string.em_cannot_open_browser)) }
                 },
                 onLater = { showUpdateDialog = false },
                 onIgnore = {
@@ -1742,8 +1744,8 @@ fun MainScreen(
                     showUpdateDialog = false
                     // 忽略是不可见状态，给一次撤销机会，避免用户误点后再也等不到提示
                     SnackbarController.show(
-                        message = "已忽略 ${release.tagName}，该版本不再提示",
-                        actionLabel = "撤销",
+                        message = AppStrings.get(R.string.vm_update_ignored_toast, release.tagName),
+                        actionLabel = AppStrings.get(R.string.sh_undo),
                         onAction = { settings.ignoredUpdateVersion = "" }
                     )
                 }

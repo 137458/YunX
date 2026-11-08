@@ -22,7 +22,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.yunx.app.R
 import com.yunx.app.ui.theme.SquircleShape
+import com.yunx.app.util.AppStrings
 import top.yukonga.miuix.kmp.basic.Surface
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.theme.MiuixTheme
@@ -34,7 +36,7 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
  */
 @Composable
 internal fun ExperimentalBadge(
-    text: String = "实验性",
+    text: String = AppStrings.get(R.string.dl_badge_experimental),
     modifier: Modifier = Modifier
 ) {
     Surface(

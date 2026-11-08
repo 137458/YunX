@@ -234,4 +234,17 @@
     <string name="vm_video_benefit_pixiv">Without login only some public works are available; paste the cookie from your browser to resolve all works (including R18 and restricted works).</string>
     <string name="vm_link_open_features">What it does</string>
     <string name="vm_link_open_shortcuts">Shortcut</string>
+
+    <!-- Main screen, update dialog and video results (local additions) -->
+    <string name="vm_update_preview_version">v1.2.4 (preview)</string>
+    <string name="vm_update_preview_body">This is a debug preview dialog for checking the update dialog UI (including the mirror download button).</string>
+    <string name="vm_main_update_check_failed_network">Update check failed. Please check your network.</string>
+    <string name="vm_main_sort">Sort</string>
+    <string name="vm_update_ignored_toast">Ignored %1$s; this version won\'t be shown again</string>
+    <string name="vm_video_result_title">Parse result</string>
+    <string name="vm_video_gallery_title">Gallery result</string>
+    <string name="vm_video_download_selected">Download selected</string>
+    <string name="vm_video_download_selected_count">Download selected (%1$d)</string>
+    <string name="vm_video_motion_badge">Live</string>
+    <string name="vm_drive_quota_error">Failed to get quota info for these drives: %1$s</string>
 </resources>

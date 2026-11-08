@@ -247,4 +247,5 @@
     <string name="rs_category_image">圖片</string>
     <string name="rs_category_archive">壓縮檔</string>
     <string name="rs_category_other">其他</string>
+    <string name="rs_extract_code_optional_auto">提取碼（可選，自動識別或手動輸入）</string>
 </resources>

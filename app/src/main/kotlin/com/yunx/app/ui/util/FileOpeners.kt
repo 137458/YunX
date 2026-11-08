@@ -24,7 +24,9 @@ import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import androidx.core.content.FileProvider
+import com.yunx.app.R
 import com.yunx.app.ui.SnackbarController
+import com.yunx.app.util.AppStrings
 import java.io.File
 
 /**
@@ -48,29 +50,29 @@ internal fun openSavedFile(context: Context, savePath: String) {
         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     }
     runCatching {
-        context.startActivity(Intent.createChooser(intent, "打开文件"))
+        context.startActivity(Intent.createChooser(intent, AppStrings.get(R.string.dl_chooser_open_file)))
     }.onFailure {
-        SnackbarController.show("无法打开该文件")
+        SnackbarController.show(AppStrings.get(R.string.dl_snack_cannot_open_file))
     }
 }
 
 /** 安装 APK：检查「安装未知来源应用」权限（Android 8+），ACTION_VIEW 调起系统安装器 */
 internal fun installApk(context: Context, savePath: String) {
     if (savePath.isBlank()) {
-        SnackbarController.show("文件不存在")
+        SnackbarController.show(AppStrings.get(R.string.dl_snack_file_not_exist))
         return
     }
     // Android 8+：需先授予「安装未知来源应用」
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
         !context.packageManager.canRequestPackageInstalls()
     ) {
-        SnackbarController.show("请先允许安装未知来源应用")
+        SnackbarController.show(AppStrings.get(R.string.dl_snack_allow_unknown_sources))
         val intent = Intent(
             Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
             Uri.parse("package:${context.packageName}")
         )
         runCatching { context.startActivity(intent) }.onFailure {
-            SnackbarController.show("无法打开设置")
+            SnackbarController.show(AppStrings.get(R.string.dl_snack_cannot_open_settings))
         }
         return
     }
@@ -85,8 +87,8 @@ internal fun installApk(context: Context, savePath: String) {
         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     }
     runCatching {
-        context.startActivity(Intent.createChooser(intent, "安装应用"))
+        context.startActivity(Intent.createChooser(intent, AppStrings.get(R.string.dl_chooser_install_app)))
     }.onFailure {
-        SnackbarController.show("无法打开安装器")
+        SnackbarController.show(AppStrings.get(R.string.dl_snack_cannot_open_installer))
     }
 }

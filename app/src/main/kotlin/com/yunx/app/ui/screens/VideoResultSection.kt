@@ -18,31 +18,31 @@
 
 package com.yunx.app.ui.screens
 
-import android.content.ClipData
 import android.content.ClipboardManager
+import android.content.ClipData
 import android.content.Context
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.MusicNote
@@ -56,10 +56,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.text.font.FontWeight
@@ -68,13 +68,15 @@ import androidx.compose.ui.unit.dp
 import com.yunx.app.data.network.video.VideoMedia
 import com.yunx.app.data.network.video.VideoMediaKind
 import com.yunx.app.data.network.video.VideoParseResult
-import com.yunx.app.ui.SnackbarController
+import com.yunx.app.R
 import com.yunx.app.ui.components.RemoteImage
-import com.yunx.app.ui.theme.SquircleShape
 import com.yunx.app.ui.preview.MediaPlayerPane
 import com.yunx.app.ui.preview.PreviewKind
 import com.yunx.app.ui.preview.PreviewLauncher
 import com.yunx.app.ui.preview.PreviewMedia
+import com.yunx.app.ui.SnackbarController
+import com.yunx.app.ui.theme.SquircleShape
+import com.yunx.app.util.AppStrings
 import com.yunx.app.util.ByteFormat
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -133,7 +135,7 @@ fun VideoResultSection(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = result.title.ifBlank { "解析结果" },
+                    text = result.title.ifBlank { AppStrings.get(R.string.vm_video_result_title) },
                     style = MiuixTheme.textStyles.title3,
                     fontWeight = FontWeight.Medium,
                     maxLines = 2,
@@ -143,7 +145,7 @@ fun VideoResultSection(
                 IconButton(onClick = onBack) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "返回",
+                        contentDescription = AppStrings.get(R.string.csa_back),
                         tint = MiuixTheme.colorScheme.onSurfaceSecondary
                     )
                 }
@@ -268,7 +270,7 @@ private fun VideoMediaGridLayout(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = result.title.ifBlank { "图集解析" },
+                text = result.title.ifBlank { AppStrings.get(R.string.vm_video_gallery_title) },
                 style = MiuixTheme.textStyles.title3,
                 fontWeight = FontWeight.Medium,
                 maxLines = 2,
@@ -278,7 +280,7 @@ private fun VideoMediaGridLayout(
             IconButton(onClick = onBack) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "返回",
+                    contentDescription = AppStrings.get(R.string.csa_back),
                     tint = MiuixTheme.colorScheme.onSurfaceSecondary
                 )
             }
@@ -369,7 +371,7 @@ private fun BatchDownloadBar(
             verticalAlignment = Alignment.CenterVertically
         ) {
             TextButton(
-                text = if (selectedCount == totalCount) "取消全选" else "全选",
+                text = if (selectedCount == totalCount) AppStrings.get(R.string.csa_deselect_all) else AppStrings.get(R.string.csa_select_all),
                 onClick = onToggleSelectAll
             )
             Spacer(modifier = Modifier.weight(1f))
@@ -377,7 +379,10 @@ private fun BatchDownloadBar(
                 onClick = onDownloadSelected,
                 enabled = selectedCount > 0
             ) {
-                Text(if (selectedCount > 0) "下载选中（$selectedCount）" else "下载选中")
+                Text(
+                    if (selectedCount > 0) AppStrings.get(R.string.vm_video_download_selected_count, selectedCount)
+                    else AppStrings.get(R.string.vm_video_download_selected)
+                )
             }
         }
     }
@@ -422,7 +427,7 @@ private fun MediaGridCell(
 
             if (media.motionUrl.isNotBlank()) {
                 CellBadge(
-                    text = "实况",
+                    text = AppStrings.get(R.string.vm_video_motion_badge),
                     modifier = Modifier
                         .align(Alignment.TopStart)
                         .padding(6.dp)
@@ -456,7 +461,7 @@ private fun MediaGridCell(
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.Check,
-                        contentDescription = "已选中",
+                        contentDescription = AppStrings.get(R.string.content_desc_selected),
                         modifier = Modifier.size(16.dp),
                         tint = MiuixTheme.colorScheme.primary
                     )
@@ -495,7 +500,7 @@ private fun DownloadAllBar(result: VideoParseResult, onDownloadAll: () -> Unit) 
                 .padding(horizontal = 16.dp, vertical = 10.dp)
                 .height(48.dp)
         ) {
-            Text("全部下载（${result.medias.size} 项）")
+            Text(AppStrings.get(R.string.sh_download_all_count, result.medias.size))
         }
     }
 }
@@ -509,7 +514,7 @@ private fun VideoMetaBlock(result: VideoParseResult, modifier: Modifier = Modifi
         if (result.author.isNotBlank()) add(result.author)
         val date = formatVideoDate(result.timestampSeconds)
         if (date.isNotBlank()) add(date)
-        if (result.medias.isNotEmpty()) add("共 ${result.medias.size} 项")
+        if (result.medias.isNotEmpty()) add(AppStrings.get(R.string.csa_total_count, result.medias.size))
     }.joinToString("  ·  ")
 
     Column(modifier = modifier.padding(bottom = 12.dp)) {
@@ -539,7 +544,7 @@ private fun VideoMetaBlock(result: VideoParseResult, modifier: Modifier = Modifi
             Row(modifier = Modifier.padding(top = 2.dp), verticalAlignment = Alignment.CenterVertically) {
                 if (canExpand) {
                     Text(
-                        text = if (expanded) "收起" else "展开",
+                        text = if (expanded) AppStrings.get(R.string.dl_collapse) else AppStrings.get(R.string.dl_expand),
                         style = MiuixTheme.textStyles.footnote1,
                         color = MiuixTheme.colorScheme.primary,
                         modifier = Modifier
@@ -559,7 +564,7 @@ private fun VideoMetaBlock(result: VideoParseResult, modifier: Modifier = Modifi
                         tint = MiuixTheme.colorScheme.primary
                     )
                     Text(
-                        text = "复制文案",
+                        text = AppStrings.get(R.string.sh_copy_caption),
                         style = MiuixTheme.textStyles.footnote1,
                         color = MiuixTheme.colorScheme.primary,
                         modifier = Modifier.padding(start = 4.dp)
@@ -636,7 +641,7 @@ private fun VideoMediaRow(
             IconButton(onClick = onPreview, modifier = Modifier.size(36.dp)) {
                 Icon(
                     imageVector = Icons.Outlined.Visibility,
-                    contentDescription = "预览",
+                    contentDescription = AppStrings.get(R.string.rs_preview),
                     modifier = Modifier.size(20.dp),
                     tint = MiuixTheme.colorScheme.primary
                 )
@@ -646,14 +651,14 @@ private fun VideoMediaRow(
                 IconButton(onClick = onDownloadAudio, modifier = Modifier.size(36.dp)) {
                     Icon(
                         imageVector = Icons.Outlined.MusicNote,
-                        contentDescription = "仅下载音频",
+                        contentDescription = AppStrings.get(R.string.sh_download_audio_only),
                         modifier = Modifier.size(20.dp),
                         tint = MiuixTheme.colorScheme.primary
                     )
                 }
             }
             TextButton(
-                text = "下载",
+                text = AppStrings.get(R.string.csa_download),
                 onClick = onDownload
             )
         }
@@ -662,9 +667,9 @@ private fun VideoMediaRow(
 
 /** 媒体类型中文标签 */
 private fun videoMediaKindLabel(kind: VideoMediaKind): String = when (kind) {
-    VideoMediaKind.VIDEO -> "视频"
-    VideoMediaKind.IMAGE -> "图片"
-    VideoMediaKind.AUDIO -> "音频"
+    VideoMediaKind.VIDEO -> AppStrings.get(R.string.rs_category_video)
+    VideoMediaKind.IMAGE -> AppStrings.get(R.string.rs_category_image)
+    VideoMediaKind.AUDIO -> AppStrings.get(R.string.sh_media_audio)
 }
 
 /** 发布时间戳（秒）→ yyyy-MM-dd */
@@ -686,7 +691,7 @@ private fun copyVideoCaption(context: Context, text: String) {
     runCatching {
         clipboard.setPrimaryClip(ClipData.newPlainText("yunx_video_caption", text))
     }.onSuccess {
-        SnackbarController.show("文案已复制")
+        SnackbarController.show(AppStrings.get(R.string.sh_caption_copied))
     }
 }
 

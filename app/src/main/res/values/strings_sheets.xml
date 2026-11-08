@@ -116,4 +116,5 @@
     <string name="sh_download_start_hint">开始下载后，可在「下载」页查看保存进度</string>
     <string name="sh_start_download">开始下载</string>
     <string name="sh_close">关闭</string>
+    <string name="sh_undo">撤销</string>
 </resources>

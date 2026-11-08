@@ -27,12 +27,12 @@ import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -40,40 +40,30 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.VisibilityOff
-import com.yunx.app.ui.components.EmptyState
-import com.yunx.app.ui.AppSnackbarHost
-import top.yukonga.miuix.kmp.basic.HorizontalDivider
-import top.yukonga.miuix.kmp.basic.Icon
-import top.yukonga.miuix.kmp.basic.IconButton
-import top.yukonga.miuix.kmp.basic.Scaffold
-import top.yukonga.miuix.kmp.basic.Surface
-import top.yukonga.miuix.kmp.basic.Text
-import top.yukonga.miuix.kmp.basic.TopAppBar
-import top.yukonga.miuix.kmp.theme.MiuixTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
@@ -87,18 +77,30 @@ import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.source.MergingMediaSource
 import androidx.media3.ui.PlayerView
 import coil3.compose.AsyncImage
-import coil3.network.NetworkHeaders
 import coil3.network.httpHeaders
+import coil3.network.NetworkHeaders
 import coil3.request.ImageRequest
 import com.mikepenz.markdown.m3.Markdown
 import com.yunx.app.data.network.video.VideoHttp
-import com.yunx.app.ui.SnackbarController
+import com.yunx.app.R
+import com.yunx.app.ui.AppSnackbarHost
+import com.yunx.app.ui.components.compactMarkdownTypography
+import com.yunx.app.ui.components.EmptyState
 import com.yunx.app.ui.components.GitHubMarkdownImageTransformer
 import com.yunx.app.ui.components.YunXWavyLoading
-import com.yunx.app.ui.components.compactMarkdownTypography
 import com.yunx.app.ui.rememberGlobalSnackbarHostState
+import com.yunx.app.ui.SnackbarController
+import com.yunx.app.util.AppStrings
 import java.net.URI
 import kotlinx.coroutines.CancellationException
+import top.yukonga.miuix.kmp.basic.HorizontalDivider
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.Scaffold
+import top.yukonga.miuix.kmp.basic.Surface
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.basic.TopAppBar
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /**
  * 全屏在线预览页：图片 / 视频 / 音频 / 文本。
@@ -140,13 +142,13 @@ fun MediaPreviewScreen(
                     color = MiuixTheme.colorScheme.surface,
                     navigationIcon = {
                         IconButton(onClick = onClose) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = AppStrings.get(R.string.csa_back))
                         }
                     },
                     actions = {
                         if (downloadCurrent != null) {
                             IconButton(onClick = { downloadCurrent(currentPage) }) {
-                                Icon(Icons.Outlined.Download, contentDescription = "下载")
+                                Icon(Icons.Outlined.Download, contentDescription = AppStrings.get(R.string.csa_download))
                             }
                         }
                     }
@@ -181,7 +183,7 @@ fun MediaPreviewScreen(
 /** 标题：优先请求自带的标题，其次第一条媒体标题（文本预览退文件名），都没有就用「预览」 */
 private fun previewTitle(request: PreviewRequest): String {
     val fromMedia = request.media.firstOrNull()?.title.orEmpty()
-    return request.title.ifBlank { fromMedia.ifBlank { request.textFileName } }.ifBlank { "预览" }
+    return request.title.ifBlank { fromMedia.ifBlank { request.textFileName } }.ifBlank { AppStrings.get(R.string.rs_preview) }
 }
 
 // ---------------------------------------------------------------------------
@@ -230,7 +232,7 @@ private fun MediaPager(
                 )
                 // 文本不走媒体列表（由 PreviewLauncher.openText 单独发起），真出现就如实说明
                 PreviewKind.TEXT -> EmptyPreview(
-                    message = "该文件请用「文本预览」打开",
+                    message = AppStrings.get(R.string.rs_open_with_text_preview),
                     modifier = Modifier.fillMaxSize()
                 )
             }
@@ -323,14 +325,14 @@ private fun ZoomableImage(media: PreviewMedia, modifier: Modifier = Modifier) {
     ) {
         AsyncImage(
             model = request,
-            contentDescription = media.title.ifBlank { "预览图片" },
+            contentDescription = media.title.ifBlank { AppStrings.get(R.string.rs_preview_image) },
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Fit,
             onLoading = { loading = true },
             onSuccess = { loading = false },
             onError = {
                 loading = false
-                SnackbarController.show("图片加载失败：直链可能已失效或需要鉴权，可先下载后查看")
+                SnackbarController.show(AppStrings.get(R.string.rs_image_load_failed))
             }
         )
         if (loading) {
@@ -399,7 +401,7 @@ internal fun MediaPlayerPane(
             override fun onPlayerError(error: PlaybackException) {
                 if (!activeState.value) return
                 SnackbarController.show(
-                    "在线播放失败（${error.errorCodeName}）：可先下载后用本地播放器打开"
+                    AppStrings.get(R.string.rs_online_play_failed, error.errorCodeName)
                 )
             }
         }
@@ -535,7 +537,7 @@ private fun TextPreviewPane(request: PreviewRequest, modifier: Modifier = Modifi
             val loaded = PreviewTextLoader.load(request.textUrl, request.textHeaders)
             if (loaded.content.isBlank()) {
                 // 取到了但没内容（空文件 / 全是不可解码的字节）：不能留一个空白页
-                val message = "文件内容为空或无法解码"
+                val message = AppStrings.get(R.string.rs_content_empty)
                 SnackbarController.show(message)
                 TextPreviewState.Failed(message)
             } else {
@@ -545,7 +547,10 @@ private fun TextPreviewPane(request: PreviewRequest, modifier: Modifier = Modifi
             // 页面已经关掉 / 请求被取消：这不是失败，别弹提示
             throw cancellation
         } catch (error: Throwable) {
-            val message = "读取文件失败：${error.message ?: "未知错误"}"
+            val message = AppStrings.get(
+                R.string.rs_read_file_failed,
+                error.message ?: AppStrings.get(R.string.rs_unknown_error)
+            )
             SnackbarController.show(message)
             TextPreviewState.Failed(message)
         }
@@ -557,7 +562,7 @@ private fun TextPreviewPane(request: PreviewRequest, modifier: Modifier = Modifi
                 YunXWavyLoading(modifier = Modifier.width(160.dp))
                 Spacer(modifier = Modifier.size(12.dp))
                 Text(
-                    text = "正在读取前 512KB…",
+                    text = AppStrings.get(R.string.rs_reading_prefix),
                     style = MiuixTheme.textStyles.footnote2,
                     color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                 )
@@ -595,14 +600,14 @@ private fun TextContentPane(
             verticalArrangement = Arrangement.spacedBy(2.dp)
         ) {
             Text(
-                text = request.textFileName.ifBlank { "文本文件" },
+                text = request.textFileName.ifBlank { AppStrings.get(R.string.rs_text_file) },
                 style = MiuixTheme.textStyles.title4,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
             if (content.truncated) {
                 Text(
-                    text = "已截断，完整内容请下载后查看（仅读取前 512KB）",
+                    text = AppStrings.get(R.string.rs_truncated_notice),
                     style = MiuixTheme.textStyles.footnote2,
                     color = MiuixTheme.colorScheme.primary
                 )
@@ -675,7 +680,7 @@ private val MD_LINK_TARGET = Regex("""\]\(\s*([^)\s]+)""")
 @Composable
 private fun EmptyPreview(
     modifier: Modifier = Modifier,
-    message: String = "没有可预览的内容"
+    message: String = AppStrings.get(R.string.rs_no_preview_content)
 ) {
     EmptyState(
         icon = Icons.Outlined.VisibilityOff,

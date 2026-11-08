@@ -115,4 +115,5 @@
     <string name="sh_download_start_hint">Après le démarrage, suivez la progression sur la page « Téléchargements »</string>
     <string name="sh_start_download">Démarrer le téléchargement</string>
     <string name="sh_close">Fermer</string>
+    <string name="sh_undo">Annuler</string>
 </resources>

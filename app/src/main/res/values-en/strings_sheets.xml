@@ -115,4 +115,5 @@
     <string name="sh_download_start_hint">After starting, you can check the progress on the \"Downloads\" page</string>
     <string name="sh_start_download">Start download</string>
     <string name="sh_close">Close</string>
+    <string name="sh_undo">Undo</string>
 </resources>

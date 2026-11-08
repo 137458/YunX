@@ -22,46 +22,48 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Download
+import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.SaveAlt
 import androidx.compose.material.icons.outlined.Visibility
-import com.yunx.app.ui.components.rememberOperationSheetState
-import com.yunx.app.ui.components.OperationSheet
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.outlined.Folder
+import com.yunx.app.data.network.model.ShareFile
+import com.yunx.app.R
+import com.yunx.app.ui.components.FileNameText
+import com.yunx.app.ui.components.OperationSheet
+import com.yunx.app.ui.components.rememberOperationSheetState
+import com.yunx.app.ui.theme.effectsDefault
+import com.yunx.app.ui.theme.effectsFast
 import com.yunx.app.ui.theme.SquircleShape
+import com.yunx.app.util.AppStrings
+import kotlinx.coroutines.launch
 import top.yukonga.miuix.kmp.basic.HorizontalDivider
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.Surface
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.theme.MiuixTheme
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.text.font.FontWeight
-import com.yunx.app.data.network.model.ShareFile
-import com.yunx.app.ui.components.FileNameText
-import com.yunx.app.ui.theme.effectsDefault
-import com.yunx.app.ui.theme.effectsFast
-import kotlinx.coroutines.launch
 
 /** 解析页文件操作弹窗内的步骤：主菜单 / 转存目录选择 */
 private enum class ResolveActionStep { MENU, SAVE }
@@ -144,16 +146,16 @@ internal fun ResolveFileActionSheet(
                     if (file.isdir) {
                         ActionItem(
                             icon = Icons.Outlined.Download,
-                            title = "下载文件夹",
-                            desc = "递归下载整个文件夹，保持目录结构",
+                            title = AppStrings.get(R.string.csa_download_folder),
+                            desc = AppStrings.get(R.string.csa_action_download_folder_desc),
                             tint = MiuixTheme.colorScheme.primary,
                             onClick = { act(onDownloadFolder) }
                         )
                     } else {
                         ActionItem(
                             icon = Icons.Outlined.Download,
-                            title = "下载",
-                            desc = "获取下载链接并保存到本机",
+                            title = AppStrings.get(R.string.csa_download),
+                            desc = AppStrings.get(R.string.sh_download_desc),
                             tint = MiuixTheme.colorScheme.primary,
                             onClick = { act(onDownload) }
                         )
@@ -163,8 +165,8 @@ internal fun ResolveFileActionSheet(
                     if (!file.isdir && onPreview != null) {
                         ActionItem(
                             icon = Icons.Outlined.Visibility,
-                            title = "在线预览",
-                            desc = "不下载，直接在应用内查看",
+                            title = AppStrings.get(R.string.csa_online_preview),
+                            desc = AppStrings.get(R.string.csa_action_preview_desc),
                             tint = MiuixTheme.colorScheme.primary,
                             onClick = { act(onPreview) }
                         )
@@ -173,8 +175,8 @@ internal fun ResolveFileActionSheet(
                     if (canSave) {
                         ActionItem(
                             icon = Icons.Outlined.SaveAlt,
-                            title = "转存",
-                            desc = if (file.isdir) "把整个文件夹存到我的网盘" else "把文件存到我的网盘",
+                            title = AppStrings.get(R.string.rs_transfer),
+                            desc = if (file.isdir) AppStrings.get(R.string.sh_save_folder_desc) else AppStrings.get(R.string.sh_save_file_desc),
                             tint = MiuixTheme.colorScheme.primary,
                             // 不关弹窗：先准备转存状态，再切到转存步骤（内容淡入）
                             onClick = {
@@ -255,7 +257,7 @@ internal fun FileSheetHeader(file: ShareFile) {
                 fontWeight = FontWeight.Medium
             )
             Text(
-                text = if (file.isdir) "文件夹" else "文件",
+                text = if (file.isdir) AppStrings.get(R.string.csa_label_folder) else AppStrings.get(R.string.csa_label_file),
                 style = MiuixTheme.textStyles.body2,
                 color = MiuixTheme.colorScheme.onSurfaceVariantSummary
             )

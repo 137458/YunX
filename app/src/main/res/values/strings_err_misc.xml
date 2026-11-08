@@ -223,4 +223,5 @@
     <string name="em_log_logcat_unavailable">（读取日志失败：本机 logcat 不可用）\n</string>
     <string name="em_log_no_output">（无输出）\n</string>
     <string name="em_log_share_title">分享日志</string>
+    <string name="em_cannot_open_browser">无法打开浏览器</string>
 </resources>

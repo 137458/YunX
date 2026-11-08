@@ -235,4 +235,17 @@
     <string name="vm_video_benefit_pixiv">Sans connexion, seules certaines œuvres publiques sont disponibles ; collez le cookie de votre navigateur pour analyser toutes les œuvres (y compris R18 et les œuvres restreintes).</string>
     <string name="vm_link_open_features">Fonctionnement</string>
     <string name="vm_link_open_shortcuts">Accès rapide</string>
+
+    <!-- Écran principal, dialogue de mise à jour et résultats vidéo (ajouts locaux) -->
+    <string name="vm_update_preview_version">v1.2.4 (aperçu)</string>
+    <string name="vm_update_preview_body">Boîte de dialogue d\'aperçu de débogage, destinée à vérifier l\'interface de mise à jour (y compris le bouton de téléchargement via miroir).</string>
+    <string name="vm_main_update_check_failed_network">Échec de la vérification des mises à jour. Vérifiez votre réseau.</string>
+    <string name="vm_main_sort">Trier</string>
+    <string name="vm_update_ignored_toast">%1$s ignoré ; cette version ne sera plus signalée</string>
+    <string name="vm_video_result_title">Résultat de l\'analyse</string>
+    <string name="vm_video_gallery_title">Résultat de la galerie</string>
+    <string name="vm_video_download_selected">Télécharger la sélection</string>
+    <string name="vm_video_download_selected_count">Télécharger la sélection (%1$d)</string>
+    <string name="vm_video_motion_badge">Live</string>
+    <string name="vm_drive_quota_error">Impossible d\'obtenir le quota de ces lecteurs : %1$s</string>
 </resources>

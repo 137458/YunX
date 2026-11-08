@@ -234,4 +234,17 @@
     <string name="vm_video_benefit_pixiv">未登入只能拿到一部分公開作品；貼上瀏覽器裡的 Cookie 後可解析全部作品（含 R18 與受限作品）</string>
     <string name="vm_link_open_features">功能說明</string>
     <string name="vm_link_open_shortcuts">快捷入口</string>
+
+    <!-- 主介面、更新對話框與影片結果（本地差異文案） -->
+    <string name="vm_update_preview_version">v1.2.4（預覽）</string>
+    <string name="vm_update_preview_body">這是除錯預覽對話框，用於檢視更新對話框 UI（含鏡像站下載按鈕）。</string>
+    <string name="vm_main_update_check_failed_network">檢查更新失敗，請檢查網路</string>
+    <string name="vm_main_sort">排序</string>
+    <string name="vm_update_ignored_toast">已忽略 %1$s，該版本不再提示</string>
+    <string name="vm_video_result_title">解析結果</string>
+    <string name="vm_video_gallery_title">圖集解析</string>
+    <string name="vm_video_download_selected">下載已選取</string>
+    <string name="vm_video_download_selected_count">下載已選取（%1$d）</string>
+    <string name="vm_video_motion_badge">實況</string>
+    <string name="vm_drive_quota_error">以下網盤空間資訊取得失敗：%1$s</string>
 </resources>

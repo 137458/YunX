@@ -222,4 +222,5 @@
     <string name="em_log_logcat_unavailable">(Échec de la lecture des journaux : logcat indisponible sur cet appareil)\n</string>
     <string name="em_log_no_output">(aucune sortie)\n</string>
     <string name="em_log_share_title">Partager les journaux</string>
+    <string name="em_cannot_open_browser">Impossible d\'ouvrir le navigateur</string>
 </resources>

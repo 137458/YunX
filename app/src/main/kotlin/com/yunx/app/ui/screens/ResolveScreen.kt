@@ -36,53 +36,54 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.Link
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.yunx.app.data.network.C139KoulingParser
 import com.yunx.app.data.network.GitHubLinkParser
 import com.yunx.app.data.network.ShareLinkParser
 import com.yunx.app.data.network.SharePlatform
 import com.yunx.app.data.network.video.VideoLinkParser
+import com.yunx.app.R
 import com.yunx.app.ui.AppSnackbarHost
-import com.yunx.app.ui.SnackbarController
-import com.yunx.app.ui.rememberGlobalSnackbarHostState
 import com.yunx.app.ui.components.LocalScaffoldPadding
 import com.yunx.app.ui.items.logoRes
+import com.yunx.app.ui.rememberGlobalSnackbarHostState
 import com.yunx.app.ui.resolve.DownloadLinkDialog
 import com.yunx.app.ui.resolve.ShareDetailScreen
+import com.yunx.app.ui.SnackbarController
 import com.yunx.app.ui.viewmodel.BaiduCloudViewModel
 import com.yunx.app.ui.viewmodel.BookmarkViewModel
 import com.yunx.app.ui.viewmodel.C139CloudViewModel
@@ -94,6 +95,7 @@ import com.yunx.app.ui.viewmodel.ResolveUiState
 import com.yunx.app.ui.viewmodel.ResolveViewModel
 import com.yunx.app.ui.viewmodel.UCCoudViewModel
 import com.yunx.app.ui.viewmodel.XunleiCloudViewModel
+import com.yunx.app.util.AppStrings
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Card
@@ -334,7 +336,7 @@ fun ResolveScreen(
                     githubParsed != null -> "GitHub"
                     shareParsed != null -> shareParsed.platform.displayName
                     c139Parsed != null -> SharePlatform.C139.displayName
-                    else -> "网盘"
+                    else -> AppStrings.get(R.string.rs_platform_generic)
                 }
                 val platformLogo = when {
                     videoParsed != null -> videoParsed.platform.logoRes()
@@ -368,7 +370,7 @@ fun ResolveScreen(
     WindowDialog(
         show = viewModel.isFetchingDownloadLink,
         onDismissRequest = { },
-        title = "获取下载链接"
+        title = AppStrings.get(R.string.rs_fetch_link_title)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -380,7 +382,7 @@ fun ResolveScreen(
             )
             Spacer(modifier = Modifier.width(12.dp))
             Text(
-                text = "正在获取下载链接，请稍候…",
+                text = AppStrings.get(R.string.rs_fetching_link_wait),
                 style = MiuixTheme.textStyles.body1,
                 color = MiuixTheme.colorScheme.onSurface
             )
@@ -427,7 +429,7 @@ private fun ResolveInputContent(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
-            text = "粘贴分享链接或口令，一键解析分享内容",
+            text = AppStrings.get(R.string.rs_input_hint),
             style = MiuixTheme.textStyles.body2,
             color = MiuixTheme.colorScheme.onSurfaceVariantSummary
         )
@@ -437,7 +439,7 @@ private fun ResolveInputContent(
             onValueChange = onLinkChange,
             modifier = Modifier.fillMaxWidth(),
             // 上游 v1.3.1：提示文案补充「口令」（含 139 云盘口令），本地保留 miuix TextField 的 label 风格
-            label = "例如：https://pan.quark.cn/s/xxxx、迅雷口令或 139 云盘口令",
+            label = AppStrings.get(R.string.rs_input_placeholder),
             useLabelAsPlaceholder = true,
             leadingIcon = {
                 Icon(
@@ -454,7 +456,7 @@ private fun ResolveInputContent(
                     IconButton(onClick = onClearLink) {
                         Icon(
                             imageVector = Icons.Filled.Close,
-                            contentDescription = "清空链接",
+                            contentDescription = AppStrings.get(R.string.rs_clear_link),
                             tint = MiuixTheme.colorScheme.onSurfaceVariantSummary
                         )
                     }
@@ -468,14 +470,14 @@ private fun ResolveInputContent(
             value = pwd,
             onValueChange = onPwdChange,
             modifier = Modifier.fillMaxWidth(),
-            label = "提取码（可选，自动识别或手动输入）",
+            label = AppStrings.get(R.string.rs_extract_code_optional_auto),
             useLabelAsPlaceholder = true,
             trailingIcon = if (pwd.isNotEmpty()) {
                 {
                     IconButton(onClick = onClearPwd) {
                         Icon(
                             imageVector = Icons.Filled.Close,
-                            contentDescription = "清空提取码",
+                            contentDescription = AppStrings.get(R.string.rs_clear_code),
                             tint = MiuixTheme.colorScheme.onSurfaceVariantSummary
                         )
                     }
@@ -501,9 +503,9 @@ private fun ResolveInputContent(
                     color = MiuixTheme.colorScheme.onPrimary
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("解析中…", style = MiuixTheme.textStyles.button)
+                Text(AppStrings.get(R.string.rs_parsing), style = MiuixTheme.textStyles.button)
             } else {
-                Text("开始解析", style = MiuixTheme.textStyles.button)
+                Text(AppStrings.get(R.string.rs_start_resolve), style = MiuixTheme.textStyles.button)
             }
         }
 
@@ -551,7 +553,7 @@ private fun LoadingContent() {
             )
             Spacer(modifier = Modifier.height(12.dp))
             Text(
-                text = "加载中…",
+                text = AppStrings.get(R.string.rs_loading),
                 style = MiuixTheme.textStyles.body2,
                 color = MiuixTheme.colorScheme.onSurfaceVariantSummary
             )
@@ -604,13 +606,13 @@ private fun ClipboardSuggestCard(
                 Spacer(modifier = Modifier.width(10.dp))
                 Column {
                     Text(
-                        text = "检测到 $platformName 分享链接",
+                        text = AppStrings.get(R.string.rs_detected_share, platformName),
                         style = MiuixTheme.textStyles.title4,
                         fontWeight = FontWeight.Medium,
                         color = MiuixTheme.colorScheme.onPrimaryContainer
                     )
                     Text(
-                        text = "是否粘贴到解析框并开始解析？",
+                        text = AppStrings.get(R.string.rs_paste_and_resolve_q),
                         style = MiuixTheme.textStyles.body2,
                         color = MiuixTheme.colorScheme.onPrimaryContainer
                     )
@@ -623,7 +625,7 @@ private fun ClipboardSuggestCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 TextButton(
-                    text = "忽略",
+                    text = AppStrings.get(R.string.rs_ignore),
                     onClick = onDismiss,
                     textStyle = MiuixTheme.textStyles.button.copy(color = MiuixTheme.colorScheme.onPrimaryContainer)
                 )
@@ -632,7 +634,7 @@ private fun ClipboardSuggestCard(
                     onClick = onPaste,
                     colors = ButtonDefaults.buttonColorsPrimary()
                 ) {
-                    Text("粘贴并解析", style = MiuixTheme.textStyles.button)
+                    Text(AppStrings.get(R.string.rs_paste_and_resolve), style = MiuixTheme.textStyles.button)
                 }
             }
         }

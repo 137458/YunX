@@ -25,32 +25,31 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import com.yunx.app.ui.theme.SquircleShape
-import androidx.compose.ui.graphics.Shape
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.InsertDriveFile
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowUpward
 import androidx.compose.material.icons.outlined.BookmarkAdd
 import androidx.compose.material.icons.outlined.ChevronRight
@@ -58,23 +57,23 @@ import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.FolderOpen
 import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.automirrored.outlined.InsertDriveFile
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.SaveAlt
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.text.font.FontWeight
@@ -85,19 +84,20 @@ import coil3.compose.AsyncImage
 import coil3.network.httpHeaders
 import coil3.request.ImageRequest
 import com.yunx.app.data.db.BookmarkEntity
-import com.yunx.app.data.network.SharePlatform
 import com.yunx.app.data.network.model.ShareFile
 import com.yunx.app.data.network.model.ShareSession
+import com.yunx.app.data.network.SharePlatform
 import com.yunx.app.data.prefs.SettingsRepository
-import com.yunx.app.ui.rememberGlobalSnackbarHostState
+import com.yunx.app.R
 import com.yunx.app.ui.AppSnackbarHost
 import com.yunx.app.ui.components.LocalScaffoldPadding
 import com.yunx.app.ui.components.ScrollToTopButton
 import com.yunx.app.ui.items.MultiSelectAction
 import com.yunx.app.ui.items.MultiSelectBar
 import com.yunx.app.ui.preview.PreviewKind
-import com.yunx.app.ui.preview.PreviewTypes
 import com.yunx.app.ui.preview.previewNetworkHeaders
+import com.yunx.app.ui.preview.PreviewTypes
+import com.yunx.app.ui.rememberGlobalSnackbarHostState
 import com.yunx.app.ui.screens.AddToBookmarkDialog
 import com.yunx.app.ui.screens.BaiduSaveSheet
 import com.yunx.app.ui.screens.C139SaveSheet
@@ -106,6 +106,7 @@ import com.yunx.app.ui.screens.SaveToCloudSheet
 import com.yunx.app.ui.screens.UCSaveSheet
 import com.yunx.app.ui.screens.XunleiSaveSheet
 import com.yunx.app.ui.theme.AppThemeManager
+import com.yunx.app.ui.theme.SquircleShape
 import com.yunx.app.ui.viewmodel.BaiduCloudViewModel
 import com.yunx.app.ui.viewmodel.C139CloudViewModel
 import com.yunx.app.ui.viewmodel.Pan123CloudViewModel
@@ -113,7 +114,13 @@ import com.yunx.app.ui.viewmodel.QuarkCloudViewModel
 import com.yunx.app.ui.viewmodel.ResolveViewModel
 import com.yunx.app.ui.viewmodel.UCCoudViewModel
 import com.yunx.app.ui.viewmodel.XunleiCloudViewModel
+import com.yunx.app.util.AppStrings
 import com.yunx.app.util.ByteFormat
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Card
@@ -129,11 +136,6 @@ import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.basic.TextField
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.window.WindowDialog
-import java.text.SimpleDateFormat
-import java.util.Calendar
-import java.util.Date
-import java.util.Locale
-import java.util.TimeZone
 
 /** 百度非会员限速阈值：>300MB 提示 */
 private const val BAIDU_LIMIT_BYTES = 300L * 1024 * 1024
@@ -235,38 +237,38 @@ fun ShareDetailScreen(
                             IconButton(onClick = { viewModel.exitMultiSelect() }) {
                                 Icon(
                                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                    contentDescription = "取消选择",
+                                    contentDescription = AppStrings.get(R.string.csa_cd_cancel_selection),
                                     tint = MiuixTheme.colorScheme.onSurface
                                 )
                             }
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = "已选 ${viewModel.selected.size} 项",
+                                    text = AppStrings.get(R.string.csa_selected_count, viewModel.selected.size),
                                     style = MiuixTheme.textStyles.title4,
                                     fontWeight = FontWeight.Medium,
                                     color = MiuixTheme.colorScheme.onSurface
                                 )
                                 Text(
-                                    text = if (viewModel.selected.size == displayFiles.size) "已全选" else "点击选择更多文件",
+                                    text = if (viewModel.selected.size == displayFiles.size) AppStrings.get(R.string.csa_all_selected) else AppStrings.get(R.string.csa_click_select_more),
                                     style = MiuixTheme.textStyles.body2,
                                     color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                                 )
                             }
                             TextButton(
-                                text = if (viewModel.selected.size == displayFiles.size) "取消全选" else "全选",
+                                text = if (viewModel.selected.size == displayFiles.size) AppStrings.get(R.string.csa_deselect_all) else AppStrings.get(R.string.csa_select_all),
                                 onClick = { viewModel.toggleSelectAll(displayFiles) }
                             )
                         } else {
                             IconButton(onClick = onExit) {
                                 Icon(
                                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                    contentDescription = "返回",
+                                    contentDescription = AppStrings.get(R.string.csa_back),
                                     tint = MiuixTheme.colorScheme.onSurface
                                 )
                             }
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = session.title.ifBlank { "分享内容" },
+                                    text = session.title.ifBlank { AppStrings.get(R.string.rs_share_content) },
                                     style = MiuixTheme.textStyles.title4,
                                     fontWeight = FontWeight.Medium,
                                     maxLines = 1,
@@ -274,8 +276,8 @@ fun ShareDetailScreen(
                                     color = MiuixTheme.colorScheme.onSurface
                                 )
                                 Text(
-                                    text = if (searchQuery.isBlank()) "共 ${files.size} 项"
-                                    else "匹配 ${displayFiles.size} / ${files.size} 项",
+                                    text = if (searchQuery.isBlank()) AppStrings.get(R.string.csa_total_count, files.size)
+                                    else AppStrings.get(R.string.csa_match_count, displayFiles.size, files.size),
                                     style = MiuixTheme.textStyles.body2,
                                     color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                                 )
@@ -283,14 +285,14 @@ fun ShareDetailScreen(
                             IconButton(onClick = { showAddBookmark = true }) {
                                 Icon(
                                     imageVector = Icons.Outlined.BookmarkAdd,
-                                    contentDescription = "添加至收藏",
+                                    contentDescription = AppStrings.get(R.string.rs_add_to_bookmark),
                                     tint = MiuixTheme.colorScheme.primary
                                 )
                             }
                             IconButton(onClick = { showSearch = !showSearch }) {
                                 Icon(
                                     imageVector = Icons.Outlined.Search,
-                                    contentDescription = if (showSearch) "关闭搜索" else "搜索文件",
+                                    contentDescription = if (showSearch) AppStrings.get(R.string.csa_cd_close_search) else AppStrings.get(R.string.csa_cd_search_files),
                                     tint = if (showSearch) {
                                         MiuixTheme.colorScheme.primary
                                     } else {
@@ -303,7 +305,7 @@ fun ShareDetailScreen(
                     // 可点击面包屑（多选模式下隐藏）
                     if (!viewModel.multiSelectMode) {
                         CrumbBar(
-                            rootTitle = session.title.ifBlank { "分享内容" },
+                            rootTitle = session.title.ifBlank { AppStrings.get(R.string.rs_share_content) },
                             pathNames = pathNames,
                             onNavigate = { level ->
                                 scrollPositions[currentDirKey] = listState.firstVisibleItemIndex
@@ -323,7 +325,7 @@ fun ShareDetailScreen(
                                 value = searchQuery,
                                 onValueChange = { searchQuery = it },
                                 modifier = Modifier.fillMaxWidth(),
-                                label = "搜索当前目录文件",
+                                label = AppStrings.get(R.string.csa_search_current_dir),
                                 useLabelAsPlaceholder = true,
                                 leadingIcon = {
                                     Icon(
@@ -338,7 +340,7 @@ fun ShareDetailScreen(
                                         IconButton(onClick = { searchQuery = "" }) {
                                             Icon(
                                                 imageVector = Icons.Filled.Close,
-                                                contentDescription = "清空搜索",
+                                                contentDescription = AppStrings.get(R.string.csa_cd_clear_search),
                                                 tint = MiuixTheme.colorScheme.onSurfaceVariantSummary
                                             )
                                         }
@@ -370,7 +372,7 @@ fun ShareDetailScreen(
             if (displayFiles.isEmpty()) {
                 item {
                     Text(
-                        text = if (files.isEmpty()) "此目录为空" else "未找到匹配「${searchQuery.trim()}」的文件",
+                        text = if (files.isEmpty()) AppStrings.get(R.string.csa_dir_empty) else AppStrings.get(R.string.csa_no_match_files, searchQuery.trim()),
                         style = MiuixTheme.textStyles.body1,
                         color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                         modifier = Modifier
@@ -442,13 +444,13 @@ fun ShareDetailScreen(
                     // 转存仅夸克分享支持
                     if (viewModel.canSave) {
                         add(
-                            MultiSelectAction("转存", Icons.Outlined.SaveAlt, MiuixTheme.colorScheme.primary) {
+                            MultiSelectAction(AppStrings.get(R.string.rs_transfer), Icons.Outlined.SaveAlt, MiuixTheme.colorScheme.primary) {
                                 viewModel.batchSaveToCloud()
                             }
                         )
                     }
                     add(
-                        MultiSelectAction("下载", Icons.Outlined.Download, MiuixTheme.colorScheme.primary) {
+                        MultiSelectAction(AppStrings.get(R.string.csa_download), Icons.Outlined.Download, MiuixTheme.colorScheme.primary) {
                             // 百度批量下载：选中项含 >300MB 文件时先弹限速提示
                             val hasBig = viewModel.selected.any { it.fsize > BAIDU_LIMIT_BYTES }
                             if (viewModel.isBaidu && !baiduLimitDismissed && hasBig) {
@@ -470,14 +472,14 @@ fun ShareDetailScreen(
         WindowDialog(
             show = showBaiduLimitDialog,
             onDismissRequest = { showBaiduLimitDialog = false },
-            title = "下载大文件提示"
+            title = AppStrings.get(R.string.csa_baidu_limit_title)
         ) {
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Text(
-                    text = "百度网盘非会员超过300MB会被限速，下载速度可能较慢。是否继续下载？",
+                    text = AppStrings.get(R.string.csa_baidu_limit_message),
                     style = MiuixTheme.textStyles.body1,
                     color = MiuixTheme.colorScheme.onSurface
                 )
@@ -491,7 +493,7 @@ fun ShareDetailScreen(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "不再显示此提示",
+                        text = AppStrings.get(R.string.csa_do_not_show_again),
                         style = MiuixTheme.textStyles.body2,
                         color = MiuixTheme.colorScheme.onSurfaceVariantSummary
                     )
@@ -503,7 +505,7 @@ fun ShareDetailScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     TextButton(
-                        text = "取消",
+                        text = AppStrings.get(R.string.csa_cancel),
                         onClick = { showBaiduLimitDialog = false },
                         modifier = Modifier.weight(1f)
                     )
@@ -518,7 +520,7 @@ fun ShareDetailScreen(
                         modifier = Modifier.weight(1f),
                         colors = ButtonDefaults.buttonColorsPrimary()
                     ) {
-                        Text("继续下载", style = MiuixTheme.textStyles.button)
+                        Text(AppStrings.get(R.string.csa_continue_download), style = MiuixTheme.textStyles.button)
                     }
                 }
             }
@@ -531,7 +533,7 @@ fun ShareDetailScreen(
         WindowDialog(
             show = viewModel.isBatchWorking,
             onDismissRequest = { },
-            title = "批量处理中"
+            title = AppStrings.get(R.string.rs_batch_processing)
         ) {
             Column(modifier = Modifier.fillMaxWidth()) {
                 Row(
@@ -544,8 +546,8 @@ fun ShareDetailScreen(
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = viewModel.batchProgress?.let { "正在获取下载链接 $it" }
-                            ?: "正在批量处理，请稍候…",
+                        text = viewModel.batchProgress?.let { AppStrings.get(R.string.rs_fetching_link_progress, it) }
+                            ?: AppStrings.get(R.string.rs_batch_processing_wait),
                         style = MiuixTheme.textStyles.body1,
                         color = MiuixTheme.colorScheme.onSurface
                     )
@@ -555,7 +557,7 @@ fun ShareDetailScreen(
                     horizontalArrangement = Arrangement.End
                 ) {
                     TextButton(
-                        text = "中断",
+                        text = AppStrings.get(R.string.csa_interrupt),
                         onClick = { viewModel.cancelBatch() },
                         colors = ButtonDefaults.textButtonColors(
                             color = MiuixTheme.colorScheme.error
@@ -570,7 +572,7 @@ fun ShareDetailScreen(
     // 添加至收藏弹窗（当前分享链接，支持自定义标题与分类）
     if (showAddBookmark) {
         AddToBookmarkDialog(
-            title = session.title.ifBlank { "分享内容" },
+            title = session.title.ifBlank { AppStrings.get(R.string.rs_share_content) },
             initialCategory = BookmarkEntity.DEFAULT_CATEGORY,
             categories = BookmarkEntity.PRESET_CATEGORIES,
             onConfirm = { title, category ->
@@ -644,11 +646,11 @@ private fun GuestBrowseNotice(platform: SharePlatform) {
             Text(
                 text = when (platform) {
                     SharePlatform.QUARK ->
-                        "未登录浏览：可直接下载约 50MB 以内的小文件；更大的文件和转存需先到「网盘」页登录"
+                        AppStrings.get(R.string.rs_guest_notice_quark)
                     SharePlatform.UC ->
-                        "未登录浏览：可直接下载（不限大小）；转存需先到「网盘」页登录"
+                        AppStrings.get(R.string.rs_guest_notice_uc)
                     else ->
-                        "未登录浏览：可查看文件列表，下载/转存需先到「网盘」页登录"
+                        AppStrings.get(R.string.rs_guest_notice_default)
                 },
                 style = MiuixTheme.textStyles.body2,
                 color = MiuixTheme.colorScheme.onSurfaceVariantSummary
@@ -677,7 +679,7 @@ internal fun BackToParentItem(onClick: () -> Unit) {
             )
             Spacer(modifier = Modifier.width(10.dp))
             Text(
-                text = "返回上一级",
+                text = AppStrings.get(R.string.rs_go_up),
                 style = MiuixTheme.textStyles.body1,
                 color = MiuixTheme.colorScheme.primary,
                 fontWeight = FontWeight.Medium
@@ -699,7 +701,7 @@ internal fun CrumbBar(
     modifier: Modifier = Modifier
 ) {
     val crumbs = buildList {
-        add(rootTitle.ifBlank { "根目录" })
+        add(rootTitle.ifBlank { AppStrings.get(R.string.csa_root_dir) })
         pathNames.forEach { add(it) }
     }
     val scroll = rememberScrollState()
@@ -817,7 +819,7 @@ internal fun ShareFileRow(
                 // 副标题行：文件夹/大小 + 修改时间（同一行展示）
                 Text(
                     text = buildString {
-                        append(if (file.isdir) "文件夹" else ByteFormat.size(file.fsize))
+                        append(if (file.isdir) AppStrings.get(R.string.csa_label_folder) else ByteFormat.size(file.fsize))
                         val time = formatModifyTime(file.modifyTime)
                         if (time.isNotBlank()) {
                             append("  ·  ")
@@ -834,7 +836,7 @@ internal fun ShareFileRow(
                 IconButton(onClick = onPreview, modifier = Modifier.size(48.dp)) {
                     Icon(
                         imageVector = Icons.Outlined.Visibility,
-                        contentDescription = "预览",
+                        contentDescription = AppStrings.get(R.string.rs_preview),
                         modifier = Modifier.size(18.dp),
                         tint = if (selected) MiuixTheme.colorScheme.onPrimaryContainer else MiuixTheme.colorScheme.onSurfaceVariantActions
                     )
@@ -846,7 +848,7 @@ internal fun ShareFileRow(
                 IconButton(onClick = onSave, modifier = Modifier.size(48.dp)) {
                     Icon(
                         imageVector = Icons.Outlined.SaveAlt,
-                        contentDescription = "转存",
+                        contentDescription = AppStrings.get(R.string.rs_transfer),
                         modifier = Modifier.size(18.dp),
                         tint = if (selected) MiuixTheme.colorScheme.onPrimaryContainer else MiuixTheme.colorScheme.primary
                     )
@@ -856,7 +858,7 @@ internal fun ShareFileRow(
                 IconButton(onClick = onMore, modifier = Modifier.size(48.dp)) {
                     Icon(
                         imageVector = Icons.Outlined.MoreVert,
-                        contentDescription = "更多",
+                        contentDescription = AppStrings.get(R.string.csb_drive_more),
                         modifier = Modifier.size(18.dp),
                         tint = if (selected) MiuixTheme.colorScheme.onPrimaryContainer else MiuixTheme.colorScheme.onSurfaceVariantActions
                     )

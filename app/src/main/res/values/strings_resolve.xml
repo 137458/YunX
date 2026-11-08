@@ -248,4 +248,5 @@
     <string name="rs_category_image">图片</string>
     <string name="rs_category_archive">压缩包</string>
     <string name="rs_category_other">其他</string>
+    <string name="rs_extract_code_optional_auto">提取码（可选，自动识别或手动输入）</string>
 </resources>

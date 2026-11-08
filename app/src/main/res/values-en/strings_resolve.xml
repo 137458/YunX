@@ -247,4 +247,5 @@
     <string name="rs_category_image">Images</string>
     <string name="rs_category_archive">Archives</string>
     <string name="rs_category_other">Other</string>
+    <string name="rs_extract_code_optional_auto">Passcode (optional; auto-detected or enter manually)</string>
 </resources>

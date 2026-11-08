@@ -222,4 +222,5 @@
     <string name="em_log_logcat_unavailable">（ログの読み取りに失敗：本機の logcat が使用できません）\n</string>
     <string name="em_log_no_output">（出力なし）\n</string>
     <string name="em_log_share_title">ログを共有</string>
+    <string name="em_cannot_open_browser">ブラウザを開けません</string>
 </resources>

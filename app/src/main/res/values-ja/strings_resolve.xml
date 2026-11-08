@@ -247,4 +247,5 @@
     <string name="rs_category_image">画像</string>
     <string name="rs_category_archive">圧縮ファイル</string>
     <string name="rs_category_other">その他</string>
+    <string name="rs_extract_code_optional_auto">パスコード（任意。自動認識または手動入力）</string>
 </resources>

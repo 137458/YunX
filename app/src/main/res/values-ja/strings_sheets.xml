@@ -115,4 +115,5 @@
     <string name="sh_download_start_hint">ダウンロード開始後、「ダウンロード」ページで保存の進捗を確認できます</string>
     <string name="sh_start_download">ダウンロード開始</string>
     <string name="sh_close">閉じる</string>
+    <string name="sh_undo">元に戻す</string>
 </resources>

@@ -18,35 +18,35 @@
 
 package com.yunx.app.ui.screens
 
-import android.content.ClipData
 import android.content.ClipboardManager
+import android.content.ClipData
 import android.content.Context
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.icons.Icons
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.InsertDriveFile
+import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Pause
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -57,19 +57,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.yunx.app.R
-import com.yunx.app.util.AppStrings
 import com.yunx.app.data.db.DownloadTaskEntity
 import com.yunx.app.data.download.ChunkDebug
 import com.yunx.app.data.download.DownloadDebugLog
 import com.yunx.app.data.download.DownloadResourceDebug
 import com.yunx.app.data.download.DownloadStats
-import com.yunx.app.ui.SnackbarController
+import com.yunx.app.R
 import com.yunx.app.ui.components.FileNameText
+import com.yunx.app.ui.SnackbarController
 import com.yunx.app.ui.viewmodel.DownloadViewModel
+import com.yunx.app.util.AppStrings
 import com.yunx.app.util.LogExporter
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -556,7 +556,7 @@ private fun buildSnapshotText(
     if (stats != null) {
         appendLine("实时：${formatSpeed(stats.speed)}　剩余 ${formatRemain(stats.remainMillis)}　${stats.chunkCount} 线程")
     }
-    if (task.errorMsg.isNotBlank()) appendLine("失败原因：${task.errorMsg}")
+    if (task.errorMsg.isNotBlank()) appendLine(AppStrings.get(R.string.dl_fail_reason, task.errorMsg))
     appendLine()
     appendLine("---------- 在飞分片（${chunks.size}）----------")
     if (chunks.isEmpty()) {

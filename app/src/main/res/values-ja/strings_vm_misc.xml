@@ -234,4 +234,17 @@
     <string name="vm_video_benefit_pixiv">未ログインでは一部の公開作品のみ取得できます。ブラウザの Cookie を貼り付けるとすべての作品（R18 および制限作品を含む）を解析できます</string>
     <string name="vm_link_open_features">機能説明</string>
     <string name="vm_link_open_shortcuts">ショートカット</string>
+
+    <!-- メイン画面、更新ダイアログ、動画結果（ローカル追加分） -->
+    <string name="vm_update_preview_version">v1.2.4（プレビュー）</string>
+    <string name="vm_update_preview_body">これはデバッグ用のプレビュー表示で、更新ダイアログの UI（ミラーサイトのダウンロードボタンを含む）を確認するためのものです。</string>
+    <string name="vm_main_update_check_failed_network">更新の確認に失敗しました。ネットワークを確認してください。</string>
+    <string name="vm_main_sort">並べ替え</string>
+    <string name="vm_update_ignored_toast">%1$s を無視しました。このバージョンは今後表示されません</string>
+    <string name="vm_video_result_title">解析結果</string>
+    <string name="vm_video_gallery_title">ギャラリー解析</string>
+    <string name="vm_video_download_selected">選択項目をダウンロード</string>
+    <string name="vm_video_download_selected_count">選択項目をダウンロード（%1$d）</string>
+    <string name="vm_video_motion_badge">実況</string>
+    <string name="vm_drive_quota_error">次のドライブの容量情報を取得できませんでした：%1$s</string>
 </resources>

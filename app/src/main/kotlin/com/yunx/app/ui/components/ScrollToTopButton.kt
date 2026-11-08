@@ -24,8 +24,8 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.KeyboardArrowUp
@@ -34,9 +34,11 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.yunx.app.R
+import com.yunx.app.util.AppStrings
 import kotlinx.coroutines.launch
 import top.yukonga.miuix.kmp.basic.FloatingActionButton
 import top.yukonga.miuix.kmp.basic.Icon
@@ -75,7 +77,7 @@ internal fun ScrollToTopButton(
         ) {
             Icon(
                 imageVector = Icons.Outlined.KeyboardArrowUp,
-                contentDescription = "返回顶部",
+                contentDescription = AppStrings.get(R.string.content_desc_scroll_to_top),
                 tint = MiuixTheme.colorScheme.onPrimary,
                 modifier = Modifier.padding(bottom = 2.dp) // 视觉微调：箭头视觉居中
             )
