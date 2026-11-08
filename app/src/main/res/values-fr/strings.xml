@@ -230,7 +230,7 @@
     <string name="platform_c139">139 Drive</string>
     <string name="platform_pan123">123 Cloud</string>
     <string name="platform_pan115">115 Drive</string>
-    <string name="platform_guangya">Guangya Cloud</string>
+    <string name="platform_guangya">GuangYa Cloud</string>
     <string name="platform_ilanzou">Lanzou Cloud Premium</string>
     <string name="platform_lanzou">Lanzou Cloud</string>
     <string name="platform_github">GitHub</string>
@@ -283,4 +283,39 @@
     <string name="sn_copied">Copié</string>
     <string name="sn_ack">J\'ai compris</string>
     <string name="sn_countdown">Fermeture possible dans %1$d s</string>
+
+    <!-- 多语言改造补充（原 strings_ui_extra） -->
+    <string name="settings_thread_platform_generic">Générique / Manuel</string>
+    <string name="settings_download_threads_desc_note">Définir la concurrence des fragments par disque (32 par défaut, max 512) ; s\'applique aux nouvelles tâches</string>
+    <string name="settings_download_dir_system_default">Download par défaut du système (toucher pour personnaliser)</string>
+    <string name="settings_download_dir_reset">Rétablir le dossier par défaut</string>
+    <string name="settings_download_dir_reset_desc">Toucher pour revenir au dossier par défaut du système</string>
+    <string name="settings_max_tasks_desc_bg">Télécharger %1$d tâches à la fois (limite la concurrence en arrière-plan)</string>
+    <string name="settings_value_task_count">%1$d tâches</string>
+    <string name="settings_auto_retry_value_never">Aucun nouvel essai</string>
+    <string name="settings_auto_retry_value_times">%1$d fois</string>
+    <string name="settings_keep_downloading_desc_short">Maintient un WakeLock pendant le téléchargement et permet de s\'ajouter à la liste blanche</string>
+    <string name="settings_github_repo_no_browser">Aucun navigateur trouvé ; lien copié : %1$s</string>
+    <string name="settings_diagnostic_path">Les journaux détaillés sont écrits dans Android/data/%1$s/files/diagnostic_logs</string>
+    <string name="settings_diag_zip_shared">Journaux de diagnostic empaquetés et partagés (%1$s)</string>
+    <string name="theme_bottom_bar_section">Barre de navigation inférieure</string>
+    <string name="theme_bottom_bar_desc">Choisir le style de la barre inférieure</string>
+    <string name="theme_bottom_bar_liquid">Verre liquide</string>
+    <string name="theme_bottom_bar_frosted">Verre dépoli</string>
+    <string name="theme_bottom_bar_standard">Standard</string>
+    <string name="theme_bottom_bar_hint_liquid">Capsule flottante + réfraction de lentille et halo de dispersion, avec reflets spéculaires selon l\'inclinaison ; nécessite Android 13+, sinon repli sur une couleur unie translucide.</string>
+    <string name="theme_bottom_bar_hint_frosted">Capsule flottante + flou gaussien de l\'arrière-plan, proche du verre liquide sans réfraction ; nécessite Android 13+, sinon repli sur une couleur unie translucide.</string>
+    <string name="theme_bottom_bar_hint_standard">Barre inférieure native Miuix, sans échantillonnage d\'arrière-plan ni coût de shader, la plus économe en énergie.</string>
+    <string name="theme_amoled_switch">Noir pur AMOLED</string>
+    <string name="theme_amoled_on_desc">Pousse l\'arrière-plan et les surfaces des cartes au noir pur en mode sombre pour réduire la consommation OLED</string>
+    <string name="theme_amoled_off_desc">S\'applique uniquement en mode sombre ; l\'apparence actuelle est claire</string>
+    <string name="theme_recommended_colors">Couleurs suggérées</string>
+    <string name="theme_preview_title">Aperçu en direct</string>
+    <string name="theme_preview_desc">Les pastilles ci-dessous proviennent du thème actuel</string>
+    <string name="theme_preview_body">Texte d\'exemple</string>
+    <string name="theme_preview_caption">Texte secondaire d\'exemple</string>
+    <string name="theme_preview_container">Conteneur</string>
+    <string name="theme_preview_container_high">Conteneur élevé</string>
+    <string name="theme_preview_container_highest">Conteneur le plus élevé</string>
+    <string name="theme_custom_color_title">Couleur de thème personnalisée</string>
 </resources>

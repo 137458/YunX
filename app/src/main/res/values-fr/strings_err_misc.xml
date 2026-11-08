@@ -223,4 +223,9 @@
     <string name="em_log_no_output">(aucune sortie)\n</string>
     <string name="em_log_share_title">Partager les journaux</string>
     <string name="em_cannot_open_browser">Impossible d\'ouvrir le navigateur</string>
+
+    <!-- 多语言改造补充（原 strings_ui_extra） -->
+    <string name="em_update_download_failed">Échec du téléchargement du paquet de mise à jour</string>
+    <string name="em_update_package_missing">Le paquet d\'installation a disparu ; retéléchargez-le</string>
+    <string name="em_update_digest_mismatch">Échec de la vérification de l\'installeur (SHA-256 non concordant) ; retéléchargez-le</string>
 </resources>

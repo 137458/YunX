@@ -62,7 +62,7 @@ class C139ResolveRepository(private val api: C139Api) : ShareResolveRepository {
                 IllegalArgumentException(
                     AppStrings.get(
                         R.string.er_share_link_unrecognized_platform,
-                        AppStrings.get(R.string.csa_platform_139)
+                        AppStrings.get(R.string.platform_c139)
                     )
                 )
             )

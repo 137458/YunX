@@ -91,18 +91,6 @@
     <string name="csa_share_text_copied">分享文案已复制</string>
     <string name="csa_copy_all">复制全部</string>
     <string name="csa_done">完成</string>
-
-    <!-- 平台名称 -->
-    <string name="csa_platform_139">139网盘</string>
-    <string name="csa_platform_123">123云盘</string>
-    <string name="csa_platform_uc">UC网盘</string>
-    <string name="csa_platform_xunlei">迅雷网盘</string>
-    <string name="csa_platform_baidu">百度网盘</string>
-    <string name="csa_platform_115">115网盘</string>
-    <string name="csa_platform_quark">夸克网盘</string>
-    <string name="csa_platform_guangya">光鸭云盘</string>
-    <string name="csa_platform_ilanzou">蓝奏云优享版</string>
-
     <!-- 有效期选项 -->
     <string name="csa_expire_forever">永久有效</string>
     <string name="csa_expire_1day">1 天</string>
@@ -149,4 +137,21 @@
     <string name="csa_upload_phase_preparing">正在校验文件…</string>
     <string name="csa_upload_phase_finishing">等待网盘确认…</string>
     <string name="csa_cancelling">正在取消…</string>
+
+    <!-- 多语言改造补充（原 strings_ui_extra） -->
+    <string name="csa_move_up">上移 %1$s</string>
+    <string name="csa_move_down">下移 %1$s</string>
+    <string name="csa_primary_account_hint">主账号用于列目录、转存、上传等需要单一身份的操作；开启「多账号下载」后，下载会自动用上同一网盘的其他账号。</string>
+    <string name="csa_new_or_upload">新建或上传</string>
+    <string name="csa_new_folder">新建文件夹</string>
+    <string name="csa_new_folder_desc">在当前目录下创建新文件夹</string>
+    <string name="csa_upload_desc">从本机选择文件上传到当前目录</string>
+    <string name="csa_delete_desc_recycle">删除到回收站</string>
+    <string name="csa_delete_file_message">确定要删除「%1$s」吗？删除后将移入回收站。</string>
+    <string name="csa_delete_selected_message">确定要删除选中的 %1$d 项吗？删除后将移入回收站。</string>
+    <string name="csa_share_text_platform">我用%1$s分享了「%2$s」\n</string>
+    <string name="csa_share_passcode_line">\n提取码：%1$s</string>
+    <string name="csa_share_expiry_label">有效期：</string>
+    <string name="csa_cancel_upload">取消上传</string>
+    <string name="csa_access_token_copied">Access Token 已复制</string>
 </resources>

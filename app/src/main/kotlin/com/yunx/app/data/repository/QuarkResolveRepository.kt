@@ -42,7 +42,7 @@ class QuarkResolveRepository(private val api: QuarkApi) : ShareResolveRepository
                 IllegalArgumentException(
                     AppStrings.get(
                         R.string.er_share_link_unrecognized_platform,
-                        AppStrings.get(R.string.csa_platform_quark)
+                        AppStrings.get(R.string.platform_quark)
                     )
                 )
             )

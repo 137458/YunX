@@ -75,4 +75,17 @@
     <string name="csb_save_to_xunlei_title">Xunleiドライブに保存</string>
     <string name="csb_save_no_subfolder">このフォルダにはサブフォルダがありません。ここへ直接保存できます</string>
     <string name="csb_save_here_with_dir">このフォルダへ保存（%1$s）</string>
+
+    <!-- 多语言改造补充（原 strings_ui_extra） -->
+    <string name="csb_drive_logged_in_with_name">%1$s · ログイン済み</string>
+    <string name="csb_secret_copied">%1$s をコピーしました</string>
+    <string name="csb_share_title">共有リンクを生成</string>
+    <string name="csb_baidu_share_title">共有リンクを生成（抽出コード付き）</string>
+    <string name="csb_baidu_share_hint">Baidu の共有には 4 桁の抽出コードが必要です</string>
+    <string name="csb_c139_share_title">共有リンクを生成（抽出コード自動生成）</string>
+    <string name="csb_c139_share_hint">抽出コードは自動生成されます</string>
+    <string name="csb_pan115_share_title">共有リンクを生成（アクセスコード自動生成）</string>
+    <string name="csb_pan115_share_hint">アクセスコードは自動生成されます</string>
+    <string name="csb_xunlei_share_title">共有リンクを生成（抽出コード付き）</string>
+    <string name="csb_xunlei_share_hint">迅雷の共有には抽出コードが必要です。4 桁を入力するか、空欄で自動生成</string>
 </resources>

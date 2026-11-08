@@ -1013,17 +1013,17 @@ class ResolveViewModel(
     }
 
     private fun platformName(): String = when (currentPlatform) {
-        SharePlatform.UC -> AppStrings.get(R.string.rs_platform_uc)
-        SharePlatform.XUNLEI -> AppStrings.get(R.string.rs_platform_xunlei)
-        SharePlatform.BAIDU -> AppStrings.get(R.string.rs_platform_baidu)
-        SharePlatform.C139 -> AppStrings.get(R.string.rs_platform_139)
-        SharePlatform.PAN123 -> AppStrings.get(R.string.rs_platform_123)
-        SharePlatform.PAN115 -> AppStrings.get(R.string.rs_platform_115)
-        SharePlatform.GUANGYA -> AppStrings.get(R.string.rs_platform_guangya)
-        SharePlatform.ILANZOU -> AppStrings.get(R.string.rs_platform_ilanzou)
-        SharePlatform.LANZOU -> AppStrings.get(R.string.rs_platform_lanzou)
+        SharePlatform.UC -> AppStrings.get(R.string.platform_uc)
+        SharePlatform.XUNLEI -> AppStrings.get(R.string.platform_xunlei)
+        SharePlatform.BAIDU -> AppStrings.get(R.string.platform_baidu)
+        SharePlatform.C139 -> AppStrings.get(R.string.platform_c139)
+        SharePlatform.PAN123 -> AppStrings.get(R.string.platform_pan123)
+        SharePlatform.PAN115 -> AppStrings.get(R.string.platform_pan115)
+        SharePlatform.GUANGYA -> AppStrings.get(R.string.platform_guangya)
+        SharePlatform.ILANZOU -> AppStrings.get(R.string.platform_ilanzou)
+        SharePlatform.LANZOU -> AppStrings.get(R.string.platform_lanzou)
         SharePlatform.GITHUB -> "GitHub"
-        else -> AppStrings.get(R.string.rs_platform_quark)
+        else -> AppStrings.get(R.string.platform_quark)
     }
 
     // ---------- 视频解析（抖音/小红书/快手/微博/AcFun/B站/Pixiv） ----------

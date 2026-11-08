@@ -223,4 +223,9 @@
     <string name="em_log_no_output">(no output)\n</string>
     <string name="em_log_share_title">Share logs</string>
     <string name="em_cannot_open_browser">Cannot open browser</string>
+
+    <!-- 多语言改造补充（原 strings_ui_extra） -->
+    <string name="em_update_download_failed">Update package download failed</string>
+    <string name="em_update_package_missing">The installer is gone; please download again</string>
+    <string name="em_update_digest_mismatch">Installer verification failed (SHA-256 mismatch); please download again</string>
 </resources>

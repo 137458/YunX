@@ -222,16 +222,16 @@
     <string name="content_desc_close_menu">メニューを閉じる</string>
     <string name="content_desc_open_menu">メニューを開く</string>
     <!-- Settings / NetworkUpdate snackbar & platform names -->
-    <string name="platform_quark">クォークドライブ</string>
-    <string name="platform_uc">UCドライブ</string>
+    <string name="platform_quark">クォーク ドライブ</string>
+    <string name="platform_uc">UC ドライブ</string>
     <string name="platform_xunlei">迅雷ドライブ</string>
     <string name="platform_baidu">百度ドライブ</string>
-    <string name="platform_c139">139ドライブ</string>
-    <string name="platform_pan123">123クラウド</string>
-    <string name="platform_pan115">115ドライブ</string>
-    <string name="platform_guangya">光鴨ドライブ</string>
-    <string name="platform_ilanzou">藍奏雲優享版</string>
-    <string name="platform_lanzou">藍奏雲ドライブ</string>
+    <string name="platform_c139">139 ドライブ</string>
+    <string name="platform_pan123">123 ドライブ</string>
+    <string name="platform_pan115">115 ドライブ</string>
+    <string name="platform_guangya">GuangYa ドライブ</string>
+    <string name="platform_ilanzou">Lanzou ドライブ優享版</string>
+    <string name="platform_lanzou">Lanzou ドライブ</string>
     <string name="platform_github">GitHub</string>
     <string name="snack_no_browser_link_copied">利用できるブラウザが見つからないため、リンクをコピーしました</string>
     <string name="snack_gopeed_dir_updated">Gopeed のダウンロード先を更新しました：%1$s</string>
@@ -282,4 +282,39 @@
     <string name="sn_copied">コピーしました</string>
     <string name="sn_ack">了解しました</string>
     <string name="sn_countdown">%1$d 秒後に閉じられます</string>
+
+    <!-- 多语言改造补充（原 strings_ui_extra） -->
+    <string name="settings_thread_platform_generic">汎用 / 手動追加</string>
+    <string name="settings_download_threads_desc_note">ドライブごとに分割並列数を設定（既定 32、最大 512）。新規タスクのみ有効</string>
+    <string name="settings_download_dir_system_default">システム既定の Download（タップして変更）</string>
+    <string name="settings_download_dir_reset">保存先を既定に戻す</string>
+    <string name="settings_download_dir_reset_desc">タップしてシステム既定のフォルダーに戻す</string>
+    <string name="settings_max_tasks_desc_bg">同時に %1$d 件をダウンロード（バックグラウンド同時数を制限）</string>
+    <string name="settings_value_task_count">%1$d 件</string>
+    <string name="settings_auto_retry_value_never">再試行なし</string>
+    <string name="settings_auto_retry_value_times">%1$d 回</string>
+    <string name="settings_keep_downloading_desc_short">有効にするとダウンロード中に WakeLock で通信を維持し、ホワイトリストに追加できます</string>
+    <string name="settings_github_repo_no_browser">ブラウザが見つかりません。リンクをコピーしました：%1$s</string>
+    <string name="settings_diagnostic_path">詳細ログは Android/data/%1$s/files/diagnostic_logs に書き込みます</string>
+    <string name="settings_diag_zip_shared">診断ログをまとめて共有しました（%1$s）</string>
+    <string name="theme_bottom_bar_section">下部ナビゲーションバー</string>
+    <string name="theme_bottom_bar_desc">下部ナビゲーションバーのスタイルを選択</string>
+    <string name="theme_bottom_bar_liquid">リキッドグラス</string>
+    <string name="theme_bottom_bar_frosted">すりガラス</string>
+    <string name="theme_bottom_bar_standard">標準</string>
+    <string name="theme_bottom_bar_hint_liquid">フローティングカプセル＋レンズ屈折と分散グロー。端末を傾けると鏡面ハイライトが生まれます。Android 13 以降が必要で、それ未満では半透明の単色に自動で切り替わります。</string>
+    <string name="theme_bottom_bar_hint_frosted">フローティングカプセル＋背景ガウスぼかし。屈折なしでリキッドグラスに近い見た目。Android 13 以降が必要で、それ未満では半透明の単色に自動で切り替わります。</string>
+    <string name="theme_bottom_bar_hint_standard">Miuix ネイティブの下部バー。背景サンプリングやシェーダーの負荷がなく最も省電力です。</string>
+    <string name="theme_amoled_switch">AMOLED ピュアブラック</string>
+    <string name="theme_amoled_on_desc">ダーク時に背景とカード表面を純黒にして OLED の消費電力を抑えます</string>
+    <string name="theme_amoled_off_desc">ダークモード時のみ有効です（現在はライト表示）</string>
+    <string name="theme_recommended_colors">おすすめの色</string>
+    <string name="theme_preview_title">ライブプレビュー</string>
+    <string name="theme_preview_desc">以下の色見本は現在のテーマに基づきます</string>
+    <string name="theme_preview_body">本文のサンプルテキスト</string>
+    <string name="theme_preview_caption">補足説明のサンプル</string>
+    <string name="theme_preview_container">コンテナ</string>
+    <string name="theme_preview_container_high">高コンテナ</string>
+    <string name="theme_preview_container_highest">最高コンテナ</string>
+    <string name="theme_custom_color_title">テーマ色をカスタム</string>
 </resources>

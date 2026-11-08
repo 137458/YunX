@@ -223,4 +223,9 @@
     <string name="em_log_no_output">（無輸出）\n</string>
     <string name="em_log_share_title">分享日誌</string>
     <string name="em_cannot_open_browser">無法開啟瀏覽器</string>
+
+    <!-- 多语言改造补充（原 strings_ui_extra） -->
+    <string name="em_update_download_failed">更新套件下載失敗</string>
+    <string name="em_update_package_missing">安裝套件已不存在，請重新下載</string>
+    <string name="em_update_digest_mismatch">安裝套件校驗失敗（SHA-256 不符），請重新下載</string>
 </resources>

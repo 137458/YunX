@@ -63,7 +63,7 @@ class GuangYaResolveRepository(
                 IllegalArgumentException(
                     AppStrings.get(
                         R.string.er_share_link_unrecognized_platform,
-                        AppStrings.get(R.string.csa_platform_guangya)
+                        AppStrings.get(R.string.platform_guangya)
                     )
                 )
             )

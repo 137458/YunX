@@ -40,7 +40,7 @@ import top.yukonga.miuix.kmp.basic.ScrollBehavior
 
 /** 平台差异：文案 + 有效期编码 + 提取码策略（115 服务端自动生成访问码） */
 private fun pan115DriveSpec() = DriveSpec(
-    title = AppStrings.get(R.string.csa_platform_115),
+    title = AppStrings.get(R.string.platform_pan115),
     shareDesc = AppStrings.get(R.string.csb_pan115_share_title),
     shareHint = AppStrings.get(R.string.csb_pan115_share_hint),
     expiryOptions = ShareExpire.PAN115_OPTIONS.map { (label, value) ->

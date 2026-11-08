@@ -39,7 +39,7 @@ import com.yunx.app.util.AppStrings
 import top.yukonga.miuix.kmp.basic.ScrollBehavior
 
 private fun guangyaDriveSpec() = DriveSpec(
-    title = AppStrings.get(R.string.csa_platform_guangya),
+    title = AppStrings.get(R.string.platform_guangya),
     shareDesc = AppStrings.get(R.string.csa_action_share_desc),
     shareHint = null,
     expiryOptions = listOf<DriveExpiryOption<Any?>>(

@@ -46,7 +46,7 @@ class BaiduResolveRepository(private val api: BaiduApi) : ShareResolveRepository
                 ?: throw IllegalArgumentException(
                     AppStrings.get(
                         R.string.er_share_link_unrecognized_platform,
-                        AppStrings.get(R.string.csa_platform_baidu)
+                        AppStrings.get(R.string.platform_baidu)
                     )
                 )
             val surl = parsed.shareId

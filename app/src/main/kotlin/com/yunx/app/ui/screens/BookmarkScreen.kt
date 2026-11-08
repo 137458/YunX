@@ -834,12 +834,12 @@ private fun DeleteBookmarkDialog(
 
 /** 平台枚举名 → 展示名 */
 internal fun bookmarkPlatformLabel(platform: String): String = when (platform) {
-    "QUARK" -> AppStrings.get(R.string.csa_platform_quark)
-    "UC" -> AppStrings.get(R.string.csa_platform_uc)
-    "XUNLEI" -> AppStrings.get(R.string.csa_platform_xunlei)
-    "BAIDU" -> AppStrings.get(R.string.csa_platform_baidu)
-    "C139" -> AppStrings.get(R.string.csa_platform_139)
-    "PAN123" -> AppStrings.get(R.string.csa_platform_123)
+    "QUARK" -> AppStrings.get(R.string.platform_quark)
+    "UC" -> AppStrings.get(R.string.platform_uc)
+    "XUNLEI" -> AppStrings.get(R.string.platform_xunlei)
+    "BAIDU" -> AppStrings.get(R.string.platform_baidu)
+    "C139" -> AppStrings.get(R.string.platform_c139)
+    "PAN123" -> AppStrings.get(R.string.platform_pan123)
     else -> AppStrings.get(R.string.rs_platform_generic)
 }
 

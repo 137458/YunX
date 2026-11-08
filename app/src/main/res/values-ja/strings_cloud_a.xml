@@ -92,16 +92,6 @@
     <string name="csa_done">完了</string>
 
     <!-- プラットフォーム名 -->
-    <string name="csa_platform_139">139 クラウド</string>
-    <string name="csa_platform_123">123 クラウド</string>
-    <string name="csa_platform_uc">UC クラウド</string>
-    <string name="csa_platform_xunlei">迅雷クラウド</string>
-    <string name="csa_platform_baidu">Baidu クラウド</string>
-    <string name="csa_platform_115">115 クラウド</string>
-    <string name="csa_platform_quark">Quark クラウド</string>
-    <string name="csa_platform_guangya">GuangYa クラウド</string>
-    <string name="csa_platform_ilanzou">Lanzou クラウド優享版</string>
-
     <!-- 有効期限の選択肢 -->
     <string name="csa_expire_forever">無期限</string>
     <string name="csa_expire_1day">1 日</string>
@@ -148,4 +138,21 @@
     <string name="csa_upload_phase_preparing">ファイルを検証中…</string>
     <string name="csa_upload_phase_finishing">クラウドの確認を待機中…</string>
     <string name="csa_cancelling">キャンセル中…</string>
+
+    <!-- 多语言改造补充（原 strings_ui_extra） -->
+    <string name="csa_move_up">%1$s を上へ移動</string>
+    <string name="csa_move_down">%1$s を下へ移動</string>
+    <string name="csa_primary_account_hint">メインアカウントは一覧表示・保存・アップロードなど単一のアカウントが必要な操作に使われます。「マルチアカウントダウンロード」を有効にすると、ダウンロードは同じドライブの他のアカウントを自動で使います。</string>
+    <string name="csa_new_or_upload">新規作成またはアップロード</string>
+    <string name="csa_new_folder">新しいフォルダー</string>
+    <string name="csa_new_folder_desc">現在のディレクトリに新しいフォルダーを作成</string>
+    <string name="csa_upload_desc">端末からファイルを選んで現在のディレクトリにアップロード</string>
+    <string name="csa_delete_desc_recycle">ゴミ箱に移動</string>
+    <string name="csa_delete_file_message">「%1$s」を削除しますか？ゴミ箱に移動されます。</string>
+    <string name="csa_delete_selected_message">選択した %1$d 件を削除しますか？ゴミ箱に移動されます。</string>
+    <string name="csa_share_text_platform">%1$s で「%2$s」を共有しました\n</string>
+    <string name="csa_share_passcode_line">\n抽出コード：%1$s</string>
+    <string name="csa_share_expiry_label">有効期限：</string>
+    <string name="csa_cancel_upload">アップロードを中止</string>
+    <string name="csa_access_token_copied">Access Token をコピーしました</string>
 </resources>

@@ -318,4 +318,39 @@
     <string name="sn_copied">已复制</string>
     <string name="sn_ack">我知道了</string>
     <string name="sn_countdown">%1$d 秒后可关闭</string>
+
+    <!-- 多语言改造补充（原 strings_ui_extra） -->
+    <string name="settings_thread_platform_generic">通用 / 手动添加</string>
+    <string name="settings_download_threads_desc_note">按网盘分别设置分片并发数（默认 32，最高 512）；仅对新建任务生效</string>
+    <string name="settings_download_dir_system_default">系统默认 Download（点击自定义）</string>
+    <string name="settings_download_dir_reset">恢复默认下载目录</string>
+    <string name="settings_download_dir_reset_desc">点击恢复为系统默认目录</string>
+    <string name="settings_max_tasks_desc_bg">同时下载 %1$d 个任务（限制后台并发）</string>
+    <string name="settings_value_task_count">%1$d 个</string>
+    <string name="settings_auto_retry_value_never">不重试</string>
+    <string name="settings_auto_retry_value_times">%1$d 次</string>
+    <string name="settings_keep_downloading_desc_short">开启后下载时获取 WakeLock 维持网络，并可加入白名单</string>
+    <string name="settings_github_repo_no_browser">未找到浏览器，链接已复制：%1$s</string>
+    <string name="settings_diagnostic_path">详细日志写入 Android/data/%1$s/files/diagnostic_logs</string>
+    <string name="settings_diag_zip_shared">诊断日志已打包分享（%1$s）</string>
+    <string name="theme_bottom_bar_section">底部导航栏</string>
+    <string name="theme_bottom_bar_desc">选择底部导航栏样式</string>
+    <string name="theme_bottom_bar_liquid">液态玻璃</string>
+    <string name="theme_bottom_bar_frosted">毛玻璃</string>
+    <string name="theme_bottom_bar_standard">标准</string>
+    <string name="theme_bottom_bar_hint_liquid">悬浮胶囊 + 透镜折射与色散光晕，随手机倾斜产生镜面高光；需 Android 13+，低版本自动降级为半透明纯色。</string>
+    <string name="theme_bottom_bar_hint_frosted">悬浮胶囊 + 背景高斯模糊，观感接近液态玻璃但不含折射；需 Android 13+，低版本自动降级为半透明纯色。</string>
+    <string name="theme_bottom_bar_hint_standard">Miuix 原生贴底导航栏，无背景采样与着色器开销，最省电。</string>
+    <string name="theme_amoled_switch">AMOLED 纯黑</string>
+    <string name="theme_amoled_on_desc">深色下把背景与卡片表面压到纯黑，降低 OLED 屏幕耗电</string>
+    <string name="theme_amoled_off_desc">仅深色模式生效，当前为浅色外观</string>
+    <string name="theme_recommended_colors">推荐颜色</string>
+    <string name="theme_preview_title">实时预览</string>
+    <string name="theme_preview_desc">以下色块取自当前主题方案</string>
+    <string name="theme_preview_body">正文示例文字</string>
+    <string name="theme_preview_caption">次要说明文字</string>
+    <string name="theme_preview_container">容器</string>
+    <string name="theme_preview_container_high">高容器</string>
+    <string name="theme_preview_container_highest">最高容器</string>
+    <string name="theme_custom_color_title">自定义主题色</string>
 </resources>

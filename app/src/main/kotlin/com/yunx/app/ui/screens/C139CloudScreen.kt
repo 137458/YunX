@@ -40,7 +40,7 @@ import top.yukonga.miuix.kmp.basic.ScrollBehavior
 
 /** 平台差异：文案 + 有效期编码 + 提取码策略 */
 private fun c139DriveSpec() = DriveSpec(
-    title = AppStrings.get(R.string.csa_platform_139),
+    title = AppStrings.get(R.string.platform_c139),
     shareDesc = AppStrings.get(R.string.csb_c139_share_title),
     shareHint = AppStrings.get(R.string.csb_c139_share_hint),
     expiryOptions = listOf<DriveExpiryOption<Any?>>(

@@ -21,25 +21,13 @@
 -->
 <resources>
     <!-- Platform display names -->
-    <string name="rs_platform_quark">Quark Drive</string>
-    <string name="rs_platform_uc">UC Drive</string>
-    <string name="rs_platform_xunlei">Xunlei Drive</string>
-    <string name="rs_platform_baidu">Baidu Drive</string>
-    <string name="rs_platform_139">139 Drive</string>
-    <string name="rs_platform_123">123 Drive</string>
-    <string name="rs_platform_115">115 Drive</string>
-    <string name="rs_platform_guangya">Guangya Drive</string>
-    <string name="rs_platform_ilanzou">Lanczou Youxiang</string>
-    <string name="rs_platform_lanzou">Lanczou Drive</string>
-    <string name="rs_platform_generic">Drive</string>
-
     <!-- Platform short labels (home shortcut tiles) -->
     <string name="rs_short_quark">Quark</string>
     <string name="rs_short_xunlei">Xunlei</string>
     <string name="rs_short_baidu">Baidu</string>
-    <string name="rs_short_guangya">Guangya</string>
+    <string name="rs_short_guangya">GuangYa</string>
     <string name="rs_short_ilanzou">Youxiang</string>
-    <string name="rs_short_lanzou">Lanczou</string>
+    <string name="rs_short_lanzou">Lanzou</string>
 
     <!-- Resolve / transfer / download status -->
     <string name="rs_login_required_save">Sign in to %1$s to save files (guests can only browse the file list)</string>
@@ -248,4 +236,17 @@
     <string name="rs_category_archive">Archives</string>
     <string name="rs_category_other">Other</string>
     <string name="rs_extract_code_optional_auto">Passcode (optional; auto-detected or enter manually)</string>
+    <string name="rs_platform_generic">Drive</string>
+
+
+    <!-- 多语言改造补充（原 strings_ui_extra） -->
+    <string name="rs_onboarding_feature_link_title">Parse share links instantly</string>
+    <string name="rs_onboarding_feature_link_desc">Detects share links from 10 drives including Quark, UC, Xunlei, Baidu, 139, 123, 115, GuangYa and Lanzou; sign in to browse and download</string>
+    <string name="rs_onboarding_feature_video_desc">Douyin, Xiaohongshu, Kuaishou, Weibo and AcFun need no sign-in; Bilibili offers higher quality after sign-in. Links from 7 major video platforms resolve to direct URLs, and images, videos and audio can be previewed online</string>
+    <string name="rs_onboarding_feature_multi_title">Multi-platform</string>
+    <string name="rs_onboarding_feature_multi_desc">Manage multiple drive accounts in one app with a single parse-and-download entry</string>
+    <string name="rs_onboarding_feature_privacy_title">Privacy and security</string>
+    <string name="rs_onboarding_feature_privacy_desc">Credentials stay on this device and are never uploaded</string>
+    <string name="rs_onboarding_free_hint">No ads, no in-app purchases — all features are free forever</string>
+    <string name="rs_onboarding_disclaimer">Disclaimer: this app is for personal study and technical exchange only; do not use it commercially. Downloaded content remains the copyright of its authors — delete it within 24 hours. You are solely responsible for any consequences of using this app.</string>
 </resources>

@@ -247,4 +247,29 @@
     <string name="vm_video_download_selected_count">選択項目をダウンロード（%1$d）</string>
     <string name="vm_video_motion_badge">ライブフォト</string>
     <string name="vm_drive_quota_error">次のドライブの容量情報を取得できませんでした：%1$s</string>
+
+    <!-- 多语言改造补充（原 strings_ui_extra） -->
+    <string name="vm_about_intro">雲析（YunX）は、クラウドドライブ／動画共有リンクの解析と高速ダウンロードを行うツールです。リンクを貼り付けるだけ：クラウドドライブの共有は内容を閲覧して高速ダウンロードでき、動画リンクは直リンクと元画像を解析できます。画像／動画／音声はすべてオンラインプレビューに対応しています。</string>
+    <string name="vm_about_terms_title">利用規約と免責事項</string>
+    <string name="vm_about_version">雲析 v%1$s · Made with DeepSeek</string>
+    <string name="vm_bookmark_empty_filtered">このカテゴリにはまだブックマークがありません</string>
+    <string name="vm_bookmark_empty_filtered_hint">別のカテゴリに切り替えるか、絞り込みを解除してすべて表示</string>
+    <string name="vm_bookmark_delete_title">ブックマークを削除</string>
+    <string name="vm_bookmark_delete_message">「%1$s」を削除しますか？この操作は取り消せません。</string>
+    <string name="vm_update_mirror_download_cn">ミラーサイトからダウンロード（中国本土で高速）</string>
+    <string name="vm_update_ignore_version">このバージョンを無視</string>
+    <string name="vm_update_open_download_task">ダウンロードタスクへ移動</string>
+    <string name="vm_update_cancel_download">ダウンロードを中止</string>
+    <string name="vm_update_downloading_package">更新パッケージをダウンロード中</string>
+    <string name="vm_update_downloading_package_unknown">更新パッケージをダウンロード中（サイズ不明）</string>
+    <string name="vm_update_notes_collapse">説明を折りたたむ</string>
+    <string name="vm_update_notes_expand_more">すべて表示（残り %1$d 行）</string>
+    <string name="vm_update_version_jump">現在 %1$s → 最新 %2$s</string>
+    <string name="vm_update_progress_detail">%1$s / %2$s%3$s</string>
+    <string name="vm_update_progress_detail_unknown">%1$s · サイズ不明%2$s</string>
+    <string name="vm_update_open_releases">Releases ページを開く</string>
+    <string name="vm_update_downloading_percent">ダウンロード中 %1$s</string>
+    <string name="vm_update_install">更新をインストール</string>
+    <string name="vm_update_download_now">今すぐダウンロード</string>
+    <string name="vm_update_background_download">バックグラウンドでダウンロード</string>
 </resources>

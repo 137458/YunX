@@ -247,4 +247,29 @@
     <string name="vm_video_download_selected_count">Download selected (%1$d)</string>
     <string name="vm_video_motion_badge">Live</string>
     <string name="vm_drive_quota_error">Failed to get quota info for these drives: %1$s</string>
+
+    <!-- 多语言改造补充（原 strings_ui_extra） -->
+    <string name="vm_about_intro">YunX is a link parser and high-speed downloader for cloud-drive and video shares. Just paste a link: cloud-drive shares can be browsed and downloaded at full speed, video links can be resolved into direct URLs and original images, and images, videos and audio can all be previewed online.</string>
+    <string name="vm_about_terms_title">Terms and disclaimer</string>
+    <string name="vm_about_version">YunX v%1$s · Made with DeepSeek</string>
+    <string name="vm_bookmark_empty_filtered">No bookmarks in this category</string>
+    <string name="vm_bookmark_empty_filtered_hint">Switch to another category or clear the filter to see all bookmarks</string>
+    <string name="vm_bookmark_delete_title">Delete bookmark</string>
+    <string name="vm_bookmark_delete_message">Delete “%1$s”? This cannot be undone.</string>
+    <string name="vm_update_mirror_download_cn">Download via mirror (faster in China)</string>
+    <string name="vm_update_ignore_version">Skip this version</string>
+    <string name="vm_update_open_download_task">Go to download task</string>
+    <string name="vm_update_cancel_download">Cancel download</string>
+    <string name="vm_update_downloading_package">Downloading update package</string>
+    <string name="vm_update_downloading_package_unknown">Downloading update package (size unknown)</string>
+    <string name="vm_update_notes_collapse">Collapse notes</string>
+    <string name="vm_update_notes_expand_more">Show all (%1$d more lines)</string>
+    <string name="vm_update_version_jump">Current %1$s → latest %2$s</string>
+    <string name="vm_update_progress_detail">%1$s / %2$s%3$s</string>
+    <string name="vm_update_progress_detail_unknown">%1$s · size unknown%2$s</string>
+    <string name="vm_update_open_releases">Open the Releases page</string>
+    <string name="vm_update_downloading_percent">Downloading %1$s</string>
+    <string name="vm_update_install">Install update</string>
+    <string name="vm_update_download_now">Download now</string>
+    <string name="vm_update_background_download">Download in background</string>
 </resources>

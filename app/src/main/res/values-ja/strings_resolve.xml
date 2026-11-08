@@ -21,18 +21,6 @@
 -->
 <resources>
     <!-- プラットフォーム表示名 -->
-    <string name="rs_platform_quark">クォークドライブ</string>
-    <string name="rs_platform_uc">UCドライブ</string>
-    <string name="rs_platform_xunlei">迅雷ドライブ</string>
-    <string name="rs_platform_baidu">百度ドライブ</string>
-    <string name="rs_platform_139">139ドライブ</string>
-    <string name="rs_platform_123">123ドライブ</string>
-    <string name="rs_platform_115">115ドライブ</string>
-    <string name="rs_platform_guangya">光鴨ドライブ</string>
-    <string name="rs_platform_ilanzou">藍奏雲優享版</string>
-    <string name="rs_platform_lanzou">藍奏雲ドライブ</string>
-    <string name="rs_platform_generic">ドライブ</string>
-
     <!-- プラットフォーム短縮名（ホームショートカットのタイル） -->
     <string name="rs_short_quark">クォーク</string>
     <string name="rs_short_xunlei">迅雷</string>
@@ -248,4 +236,17 @@
     <string name="rs_category_archive">圧縮ファイル</string>
     <string name="rs_category_other">その他</string>
     <string name="rs_extract_code_optional_auto">パスコード（任意。自動認識または手動入力）</string>
+    <string name="rs_platform_generic">ドライブ</string>
+
+
+    <!-- 多语言改造补充（原 strings_ui_extra） -->
+    <string name="rs_onboarding_feature_link_title">共有リンクをワンタップ解析</string>
+    <string name="rs_onboarding_feature_link_desc">Quark / UC / Xunlei / Baidu / 139 / 123 / 115 / GuangYa / Lanzou など 10 のドライブ共有リンクを自動判別。ドライブにログインすれば解析・ダウンロードできます</string>
+    <string name="rs_onboarding_feature_video_desc">抖音 / 小紅書 / Kuaishou / Weibo / AcFun はログイン不要、bilibili はログイン後に高画質になります。7 大動画プラットフォームのリンクを直リンクに解析し、画像／動画／音声をオンラインプレビューできます</string>
+    <string name="rs_onboarding_feature_multi_title">マルチプラットフォーム</string>
+    <string name="rs_onboarding_feature_multi_desc">1 つのアプリで複数のドライブアカウントを管理し、解析とダウンロードを一元化</string>
+    <string name="rs_onboarding_feature_privacy_title">プライバシーと安全</string>
+    <string name="rs_onboarding_feature_privacy_desc">ログイン情報は端末内にのみ保存され、サーバーへ送信されません</string>
+    <string name="rs_onboarding_free_hint">広告なし・課金なし、すべての機能が永久無料</string>
+    <string name="rs_onboarding_disclaimer">免責事項：本アプリは個人の学習と技術交流のみを目的とし、商用利用は禁止です。ダウンロードしたコンテンツの著作権は原作者に帰属します。ダウンロード後 24 時間以内に削除してください。本アプリの使用により生じる結果は利用者の責任です。</string>
 </resources>

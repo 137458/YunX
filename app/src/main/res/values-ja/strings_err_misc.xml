@@ -223,4 +223,9 @@
     <string name="em_log_no_output">（出力なし）\n</string>
     <string name="em_log_share_title">ログを共有</string>
     <string name="em_cannot_open_browser">ブラウザを開けません</string>
+
+    <!-- 多语言改造补充（原 strings_ui_extra） -->
+    <string name="em_update_download_failed">更新パッケージのダウンロードに失敗しました</string>
+    <string name="em_update_package_missing">インストーラーが存在しません。再ダウンロードしてください</string>
+    <string name="em_update_digest_mismatch">インストーラーの検証に失敗しました（SHA-256 不一致）。再ダウンロードしてください</string>
 </resources>

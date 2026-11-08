@@ -37,7 +37,7 @@ import com.yunx.app.util.AppStrings
 import top.yukonga.miuix.kmp.basic.ScrollBehavior
 
 private fun ilanzouDriveSpec() = DriveSpec(
-    title = AppStrings.get(R.string.csa_platform_ilanzou),
+    title = AppStrings.get(R.string.platform_ilanzou),
     shareDesc = AppStrings.get(R.string.csb_share_title),
     shareHint = null,
     expiryOptions = emptyList(),

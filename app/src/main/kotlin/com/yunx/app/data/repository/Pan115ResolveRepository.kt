@@ -48,7 +48,7 @@ class Pan115ResolveRepository(private val api: Pan115Api) : ShareResolveReposito
                 IllegalArgumentException(
                     AppStrings.get(
                         R.string.er_share_link_unrecognized_platform,
-                        AppStrings.get(R.string.csa_platform_115)
+                        AppStrings.get(R.string.platform_pan115)
                     )
                 )
             )

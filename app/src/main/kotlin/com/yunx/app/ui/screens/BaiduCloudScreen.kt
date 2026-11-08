@@ -65,7 +65,7 @@ private const val BAIDU_LIMIT_BYTES = 300L * 1024 * 1024
 
 /** 百度网盘平台差异：文案 + 有效期编码 0/1/7/30（默认 0）+ 必带 4 位提取码 */
 private fun baiduDriveSpec() = DriveSpec(
-    title = AppStrings.get(R.string.csa_platform_baidu),
+    title = AppStrings.get(R.string.platform_baidu),
     shareDesc = AppStrings.get(R.string.csb_baidu_share_title),
     shareHint = AppStrings.get(R.string.csb_baidu_share_hint),
     expiryOptions = listOf<DriveExpiryOption<Any?>>(

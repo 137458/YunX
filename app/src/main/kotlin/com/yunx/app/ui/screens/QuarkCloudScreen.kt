@@ -39,7 +39,7 @@ import top.yukonga.miuix.kmp.basic.ScrollBehavior
 
 /** 夸克网盘平台差异：文案 + 有效期编码 1/2/3/4 + 可选提取码 */
 private fun quarkDriveSpec() = DriveSpec(
-    title = AppStrings.get(R.string.csa_platform_quark),
+    title = AppStrings.get(R.string.platform_quark),
     shareDesc = AppStrings.get(R.string.csa_action_share_desc),
     shareHint = null,
     expiryOptions = listOf<DriveExpiryOption<Any?>>(

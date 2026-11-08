@@ -90,18 +90,6 @@
     <string name="csa_share_text_copied">分享文案已複製</string>
     <string name="csa_copy_all">複製全部</string>
     <string name="csa_done">完成</string>
-
-    <!-- 平台名稱 -->
-    <string name="csa_platform_139">139網盤</string>
-    <string name="csa_platform_123">123雲盤</string>
-    <string name="csa_platform_uc">UC網盤</string>
-    <string name="csa_platform_xunlei">迅雷網盤</string>
-    <string name="csa_platform_baidu">百度網盤</string>
-    <string name="csa_platform_115">115網盤</string>
-    <string name="csa_platform_quark">夸克網盤</string>
-    <string name="csa_platform_guangya">光鴨雲盤</string>
-    <string name="csa_platform_ilanzou">藍奏雲優享版</string>
-
     <!-- 有效期選項 -->
     <string name="csa_expire_forever">永久有效</string>
     <string name="csa_expire_1day">1 天</string>
@@ -148,4 +136,21 @@
     <string name="csa_upload_phase_preparing">正在校驗檔案…</string>
     <string name="csa_upload_phase_finishing">等待網盤確認…</string>
     <string name="csa_cancelling">正在取消…</string>
+
+    <!-- 多语言改造补充（原 strings_ui_extra） -->
+    <string name="csa_move_up">上移 %1$s</string>
+    <string name="csa_move_down">下移 %1$s</string>
+    <string name="csa_primary_account_hint">主帳號用於列出目錄、轉存、上傳等需要單一身分的操作；開啟「多帳號下載」後，下載會自動使用同一網路硬碟的其他帳號。</string>
+    <string name="csa_new_or_upload">新增或上傳</string>
+    <string name="csa_new_folder">新增資料夾</string>
+    <string name="csa_new_folder_desc">在目前目錄下建立新資料夾</string>
+    <string name="csa_upload_desc">從本機選擇檔案上傳到目前目錄</string>
+    <string name="csa_delete_desc_recycle">刪除至回收筒</string>
+    <string name="csa_delete_file_message">確定要刪除「%1$s」嗎？刪除後將移入回收筒。</string>
+    <string name="csa_delete_selected_message">確定要刪除已選的 %1$d 項嗎？刪除後將移入回收筒。</string>
+    <string name="csa_share_text_platform">我用%1$s分享了「%2$s」\n</string>
+    <string name="csa_share_passcode_line">\n提取碼：%1$s</string>
+    <string name="csa_share_expiry_label">有效期：</string>
+    <string name="csa_cancel_upload">取消上傳</string>
+    <string name="csa_access_token_copied">Access Token 已複製</string>
 </resources>

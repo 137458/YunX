@@ -50,7 +50,7 @@ class ILanzouResolveRepository(
                 ?: throw IllegalStateException(
                     AppStrings.get(
                         R.string.er_share_link_unrecognized_platform,
-                        AppStrings.get(R.string.csa_platform_ilanzou)
+                        AppStrings.get(R.string.platform_ilanzou)
                     )
                 )
             ShareSession(shareId = shareId, stoken = shareId, title = AppStrings.get(R.string.er_ilanzou_share_title))

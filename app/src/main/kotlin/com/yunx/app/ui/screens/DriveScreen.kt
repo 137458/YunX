@@ -278,63 +278,63 @@ fun DriveScreen(
     // 夸克：登录态由数据库驱动；已登录则副标题显示昵称
     val quark = DriveAccount(
         id = "quark",
-        name = AppStrings.get(R.string.csa_platform_quark),
+        name = AppStrings.get(R.string.platform_quark),
         description = quarkAccount?.nickname ?: AppStrings.get(R.string.csb_drive_desc_login),
         avatarText = AppStrings.get(R.string.csb_drive_avatar_quark),
         isLoggedIn = quarkAccount != null
     )
     val uc = DriveAccount(
         id = "uc",
-        name = AppStrings.get(R.string.csa_platform_uc),
+        name = AppStrings.get(R.string.platform_uc),
         description = ucAccount?.nickname ?: AppStrings.get(R.string.csb_drive_desc_login),
         avatarText = "UC",
         isLoggedIn = ucAccount != null
     )
     val xunlei = DriveAccount(
         id = "xunlei",
-        name = AppStrings.get(R.string.csa_platform_xunlei),
+        name = AppStrings.get(R.string.platform_xunlei),
         description = xunleiAccount?.let { AccountNames.display(R.string.er_xunlei_default_nickname, it.nickname) } ?: AppStrings.get(R.string.csb_drive_desc_login),
         avatarText = AppStrings.get(R.string.csb_drive_avatar_xunlei),
         isLoggedIn = xunleiAccount != null
     )
     val baidu = DriveAccount(
         id = "baidu",
-        name = AppStrings.get(R.string.csa_platform_baidu),
+        name = AppStrings.get(R.string.platform_baidu),
         description = baiduAccount?.nickname ?: AppStrings.get(R.string.csb_drive_desc_login),
         avatarText = AppStrings.get(R.string.csb_drive_avatar_baidu),
         isLoggedIn = baiduAccount != null
     )
     val c139 = DriveAccount(
         id = "c139",
-        name = AppStrings.get(R.string.csa_platform_139),
+        name = AppStrings.get(R.string.platform_c139),
         description = c139Account?.let { AccountNames.display(R.string.er_c139_default_nickname, it.nickname) } ?: AppStrings.get(R.string.csb_drive_desc_login),
         avatarText = "139",
         isLoggedIn = c139Account != null
     )
     val pan123 = DriveAccount(
         id = "pan123",
-        name = AppStrings.get(R.string.csa_platform_123),
+        name = AppStrings.get(R.string.platform_pan123),
         description = pan123Account?.nickname ?: AppStrings.get(R.string.csb_drive_desc_login),
         avatarText = "123",
         isLoggedIn = pan123Account != null
     )
     val pan115 = DriveAccount(
         id = "pan115",
-        name = AppStrings.get(R.string.csa_platform_115),
+        name = AppStrings.get(R.string.platform_pan115),
         description = pan115Account?.let { AccountNames.display(R.string.er_pan115_default_nickname, it.nickname) } ?: AppStrings.get(R.string.csb_drive_desc_login),
         avatarText = "115",
         isLoggedIn = pan115Account != null
     )
     val guangya = DriveAccount(
         id = "guangya",
-        name = AppStrings.get(R.string.csa_platform_guangya),
+        name = AppStrings.get(R.string.platform_guangya),
         description = guangyaAccount?.let { AccountNames.display(R.string.er_guangya_default_nickname, it.nickname) } ?: AppStrings.get(R.string.csb_drive_desc_login),
         avatarText = AppStrings.get(R.string.csb_drive_avatar_guangya),
         isLoggedIn = guangyaAccount != null
     )
     val ilanzou = DriveAccount(
         id = "ilanzou",
-        name = AppStrings.get(R.string.csa_platform_ilanzou),
+        name = AppStrings.get(R.string.platform_ilanzou),
         description = ilanzouAccount?.let { AccountNames.display(R.string.e2_ilanzou_default_nickname, it.nickname) } ?: AppStrings.get(R.string.csb_drive_desc_login),
         avatarText = AppStrings.get(R.string.csb_drive_avatar_ilanzou),
         isLoggedIn = ilanzouAccount != null

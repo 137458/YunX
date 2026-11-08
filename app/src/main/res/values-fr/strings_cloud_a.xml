@@ -92,16 +92,6 @@
     <string name="csa_done">Terminé</string>
 
     <!-- Noms des plateformes -->
-    <string name="csa_platform_139">139 Cloud</string>
-    <string name="csa_platform_123">123 Cloud</string>
-    <string name="csa_platform_uc">UC Cloud</string>
-    <string name="csa_platform_xunlei">Xunlei Cloud</string>
-    <string name="csa_platform_baidu">Baidu Cloud</string>
-    <string name="csa_platform_115">115 Cloud</string>
-    <string name="csa_platform_quark">Quark Cloud</string>
-    <string name="csa_platform_guangya">GuangYa Cloud</string>
-    <string name="csa_platform_ilanzou">Lanzou Cloud Premium</string>
-
     <!-- Options de durée -->
     <string name="csa_expire_forever">Permanent</string>
     <string name="csa_expire_1day">1 jour</string>
@@ -148,4 +138,21 @@
     <string name="csa_upload_phase_preparing">Vérification des fichiers…</string>
     <string name="csa_upload_phase_finishing">En attente de la confirmation du cloud…</string>
     <string name="csa_cancelling">Annulation…</string>
+
+    <!-- 多语言改造补充（原 strings_ui_extra） -->
+    <string name="csa_move_up">Déplacer %1$s vers le haut</string>
+    <string name="csa_move_down">Déplacer %1$s vers le bas</string>
+    <string name="csa_primary_account_hint">Le compte principal sert aux opérations exigeant une identité unique (liste, enregistrement, envoi) ; avec « Téléchargement multi-comptes », les téléchargements utilisent automatiquement les autres comptes du même disque.</string>
+    <string name="csa_new_or_upload">Créer ou envoyer</string>
+    <string name="csa_new_folder">Nouveau dossier</string>
+    <string name="csa_new_folder_desc">Créer un dossier dans le répertoire actuel</string>
+    <string name="csa_upload_desc">Choisir des fichiers sur l\'appareil et les envoyer dans le répertoire actuel</string>
+    <string name="csa_delete_desc_recycle">Supprimer vers la corbeille</string>
+    <string name="csa_delete_file_message">Supprimer « %1$s » ? Il sera déplacé vers la corbeille.</string>
+    <string name="csa_delete_selected_message">Supprimer les %1$d éléments sélectionnés ? Ils seront déplacés vers la corbeille.</string>
+    <string name="csa_share_text_platform">J\'ai partagé « %2$s » via %1$s\n</string>
+    <string name="csa_share_passcode_line">\nCode d\'extraction : %1$s</string>
+    <string name="csa_share_expiry_label">Validité : </string>
+    <string name="csa_cancel_upload">Annuler l\'envoi</string>
+    <string name="csa_access_token_copied">Access Token copié</string>
 </resources>

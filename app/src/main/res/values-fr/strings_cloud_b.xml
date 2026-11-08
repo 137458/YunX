@@ -75,4 +75,17 @@
     <string name="csb_save_to_xunlei_title">Enregistrer sur Xunlei Drive</string>
     <string name="csb_save_no_subfolder">Ce dossier ne contient aucun sous-dossier. Vous pouvez y enregistrer directement.</string>
     <string name="csb_save_here_with_dir">Enregistrer dans ce dossier (%1$s)</string>
+
+    <!-- 多语言改造补充（原 strings_ui_extra） -->
+    <string name="csb_drive_logged_in_with_name">%1$s · Connecté</string>
+    <string name="csb_secret_copied">%1$s copié</string>
+    <string name="csb_share_title">Créer un lien de partage</string>
+    <string name="csb_baidu_share_title">Créer un lien de partage (avec code)</string>
+    <string name="csb_baidu_share_hint">Les partages Baidu exigent un code à 4 chiffres</string>
+    <string name="csb_c139_share_title">Créer un lien de partage (code généré)</string>
+    <string name="csb_c139_share_hint">Le code est généré automatiquement</string>
+    <string name="csb_pan115_share_title">Créer un lien de partage (code d\'accès généré)</string>
+    <string name="csb_pan115_share_hint">Le code d\'accès est généré automatiquement</string>
+    <string name="csb_xunlei_share_title">Créer un lien de partage (avec code)</string>
+    <string name="csb_xunlei_share_hint">Les partages Xunlei exigent un code ; saisissez 4 chiffres ou laissez vide pour le générer</string>
 </resources>

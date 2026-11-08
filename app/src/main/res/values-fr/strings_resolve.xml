@@ -21,25 +21,13 @@
 -->
 <resources>
     <!-- Noms d\'affichage des plateformes -->
-    <string name="rs_platform_quark">Quark Drive</string>
-    <string name="rs_platform_uc">UC Drive</string>
-    <string name="rs_platform_xunlei">Xunlei Drive</string>
-    <string name="rs_platform_baidu">Baidu Drive</string>
-    <string name="rs_platform_139">139 Drive</string>
-    <string name="rs_platform_123">123 Drive</string>
-    <string name="rs_platform_115">115 Drive</string>
-    <string name="rs_platform_guangya">Guangya Drive</string>
-    <string name="rs_platform_ilanzou">Lanczou Youxiang</string>
-    <string name="rs_platform_lanzou">Lanczou Drive</string>
-    <string name="rs_platform_generic">Drive</string>
-
     <!-- Libellés courts des plateformes (tuiles des raccourcis d\'accueil) -->
     <string name="rs_short_quark">Quark</string>
     <string name="rs_short_xunlei">Xunlei</string>
     <string name="rs_short_baidu">Baidu</string>
-    <string name="rs_short_guangya">Guangya</string>
+    <string name="rs_short_guangya">GuangYa</string>
     <string name="rs_short_ilanzou">Youxiang</string>
-    <string name="rs_short_lanzou">Lanczou</string>
+    <string name="rs_short_lanzou">Lanzou</string>
 
     <!-- État analyse / transfert / téléchargement -->
     <string name="rs_login_required_save">Connectez-vous à %1$s pour transférer (les invités ne peuvent que parcourir la liste des fichiers)</string>
@@ -248,4 +236,17 @@
     <string name="rs_category_archive">Archives</string>
     <string name="rs_category_other">Autre</string>
     <string name="rs_extract_code_optional_auto">Code d\'accès (facultatif ; détection automatique ou saisie manuelle)</string>
+    <string name="rs_platform_generic">Drive</string>
+
+
+    <!-- 多语言改造补充（原 strings_ui_extra） -->
+    <string name="rs_onboarding_feature_link_title">Analyse des liens de partage en un clic</string>
+    <string name="rs_onboarding_feature_link_desc">Détecte les liens de partage de 10 disques (Quark, UC, Xunlei, Baidu, 139, 123, 115, GuangYa, Lanzou, etc.) ; connectez-vous pour analyser et télécharger</string>
+    <string name="rs_onboarding_feature_video_desc">Douyin, Xiaohongshu, Kuaishou, Weibo et AcFun ne nécessitent pas de connexion ; Bilibili offre une meilleure qualité après connexion. Les liens des 7 grandes plateformes vidéo sont résolus en URL directes, et images, vidéos et audios se prévisualisent en ligne</string>
+    <string name="rs_onboarding_feature_multi_title">Multi-plateforme</string>
+    <string name="rs_onboarding_feature_multi_desc">Gérez plusieurs comptes de disques dans une seule application, avec un point d\'entrée unique d\'analyse et de téléchargement</string>
+    <string name="rs_onboarding_feature_privacy_title">Confidentialité et sécurité</string>
+    <string name="rs_onboarding_feature_privacy_desc">Les identifiants restent sur l\'appareil et ne sont jamais envoyés</string>
+    <string name="rs_onboarding_free_hint">Sans publicité ni achat intégré, toutes les fonctions sont gratuites à vie</string>
+    <string name="rs_onboarding_disclaimer">Avertissement : cette application est destinée à un usage personnel d\'étude et d\'échange technique, sans usage commercial. Le contenu téléchargé reste la propriété de ses auteurs — supprimez-le sous 24 heures. Vous assumez l\'entière responsabilité des conséquences de son utilisation.</string>
 </resources>

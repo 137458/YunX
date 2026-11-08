@@ -44,7 +44,7 @@ class UCResolveRepository(private val api: UCApi) : ShareResolveRepository {
                 IllegalArgumentException(
                     AppStrings.get(
                         R.string.er_share_link_unrecognized_platform,
-                        AppStrings.get(R.string.csa_platform_uc)
+                        AppStrings.get(R.string.platform_uc)
                     )
                 )
             )

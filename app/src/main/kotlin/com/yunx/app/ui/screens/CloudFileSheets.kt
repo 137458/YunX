@@ -73,12 +73,12 @@ internal fun ShareResultDialog(
 ) {
     val context = LocalContext.current
     val platformName = when {
-        info.shareUrl.contains("139.com") -> AppStrings.get(R.string.csa_platform_139)
-        info.shareUrl.contains("123pan") || info.shareUrl.contains("123865") -> AppStrings.get(R.string.csa_platform_123)
-        info.shareUrl.contains("uc.cn") -> AppStrings.get(R.string.csa_platform_uc)
-        info.shareUrl.contains("xunlei.com") -> AppStrings.get(R.string.csa_platform_xunlei)
-        info.shareUrl.contains("baidu.com") -> AppStrings.get(R.string.csa_platform_baidu)
-        else -> AppStrings.get(R.string.csa_platform_quark)
+        info.shareUrl.contains("139.com") -> AppStrings.get(R.string.platform_c139)
+        info.shareUrl.contains("123pan") || info.shareUrl.contains("123865") -> AppStrings.get(R.string.platform_pan123)
+        info.shareUrl.contains("uc.cn") -> AppStrings.get(R.string.platform_uc)
+        info.shareUrl.contains("xunlei.com") -> AppStrings.get(R.string.platform_xunlei)
+        info.shareUrl.contains("baidu.com") -> AppStrings.get(R.string.platform_baidu)
+        else -> AppStrings.get(R.string.platform_quark)
     }
     val shareText = buildString {
         append(AppStrings.get(R.string.csa_share_text_platform, platformName, info.title))

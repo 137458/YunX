@@ -92,16 +92,6 @@
     <string name="csa_done">Done</string>
 
     <!-- Platform names -->
-    <string name="csa_platform_139">139 Cloud</string>
-    <string name="csa_platform_123">123 Cloud</string>
-    <string name="csa_platform_uc">UC Cloud</string>
-    <string name="csa_platform_xunlei">Xunlei Cloud</string>
-    <string name="csa_platform_baidu">Baidu Cloud</string>
-    <string name="csa_platform_115">115 Cloud</string>
-    <string name="csa_platform_quark">Quark Cloud</string>
-    <string name="csa_platform_guangya">GuangYa Cloud</string>
-    <string name="csa_platform_ilanzou">Lanzou Cloud Premium</string>
-
     <!-- Expiry options -->
     <string name="csa_expire_forever">Permanent</string>
     <string name="csa_expire_1day">1 day</string>
@@ -148,4 +138,21 @@
     <string name="csa_upload_phase_preparing">Verifying files…</string>
     <string name="csa_upload_phase_finishing">Waiting for the cloud to confirm…</string>
     <string name="csa_cancelling">Cancelling…</string>
+
+    <!-- 多语言改造补充（原 strings_ui_extra） -->
+    <string name="csa_move_up">Move %1$s up</string>
+    <string name="csa_move_down">Move %1$s down</string>
+    <string name="csa_primary_account_hint">The primary account handles actions that need a single identity, such as listing, saving and uploading; with Multi-account download enabled, downloads automatically use the other accounts on the same drive.</string>
+    <string name="csa_new_or_upload">New or upload</string>
+    <string name="csa_new_folder">New folder</string>
+    <string name="csa_new_folder_desc">Create a folder in the current directory</string>
+    <string name="csa_upload_desc">Pick files from this device and upload to the current directory</string>
+    <string name="csa_delete_desc_recycle">Delete to recycle bin</string>
+    <string name="csa_delete_file_message">Delete “%1$s”? It will be moved to the recycle bin.</string>
+    <string name="csa_delete_selected_message">Delete the %1$d selected items? They will be moved to the recycle bin.</string>
+    <string name="csa_share_text_platform">I shared “%2$s” via %1$s\n</string>
+    <string name="csa_share_passcode_line">\nPasscode: %1$s</string>
+    <string name="csa_share_expiry_label">Valid for: </string>
+    <string name="csa_cancel_upload">Cancel upload</string>
+    <string name="csa_access_token_copied">Access Token copied</string>
 </resources>

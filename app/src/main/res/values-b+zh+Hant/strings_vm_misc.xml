@@ -247,4 +247,29 @@
     <string name="vm_video_download_selected_count">下載已選取（%1$d）</string>
     <string name="vm_video_motion_badge">實況</string>
     <string name="vm_drive_quota_error">以下網盤空間資訊取得失敗：%1$s</string>
+
+    <!-- 多语言改造补充（原 strings_ui_extra） -->
+    <string name="vm_about_intro">雲析（YunX）是一款網路硬碟 / 影片分享連結解析與高速下載工具。貼上連結即可：網路硬碟分享能瀏覽內容並高速下載，影片連結能解析出直連與原圖，圖片 / 影片 / 音訊都支援線上預覽播放。</string>
+    <string name="vm_about_terms_title">使用條款與聲明</string>
+    <string name="vm_about_version">雲析 v%1$s · Made with DeepSeek</string>
+    <string name="vm_bookmark_empty_filtered">此分類下尚無收藏</string>
+    <string name="vm_bookmark_empty_filtered_hint">切換到其他分類，或清除篩選查看全部收藏</string>
+    <string name="vm_bookmark_delete_title">刪除收藏</string>
+    <string name="vm_bookmark_delete_message">確定刪除「%1$s」？此操作無法復原。</string>
+    <string name="vm_update_mirror_download_cn">使用鏡像站下載（中國大陸加速）</string>
+    <string name="vm_update_ignore_version">忽略此版本</string>
+    <string name="vm_update_open_download_task">前往下載任務</string>
+    <string name="vm_update_cancel_download">取消下載</string>
+    <string name="vm_update_downloading_package">正在下載更新套件</string>
+    <string name="vm_update_downloading_package_unknown">正在下載更新套件（大小未知）</string>
+    <string name="vm_update_notes_collapse">收合說明</string>
+    <string name="vm_update_notes_expand_more">展開全部（還有 %1$d 行）</string>
+    <string name="vm_update_version_jump">目前 %1$s → 最新 %2$s</string>
+    <string name="vm_update_progress_detail">%1$s / %2$s%3$s</string>
+    <string name="vm_update_progress_detail_unknown">%1$s · 大小未知%2$s</string>
+    <string name="vm_update_open_releases">前往 Releases 頁面</string>
+    <string name="vm_update_downloading_percent">下載中 %1$s</string>
+    <string name="vm_update_install">安裝更新</string>
+    <string name="vm_update_download_now">立即下載</string>
+    <string name="vm_update_background_download">背景下載</string>
 </resources>

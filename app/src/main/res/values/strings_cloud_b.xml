@@ -75,4 +75,17 @@
     <string name="csb_save_to_xunlei_title">转存到迅雷网盘</string>
     <string name="csb_save_no_subfolder">当前目录没有子文件夹，可直接转存到此目录</string>
     <string name="csb_save_here_with_dir">转存到此目录（%1$s）</string>
+
+    <!-- 多语言改造补充（原 strings_ui_extra） -->
+    <string name="csb_drive_logged_in_with_name">%1$s · 已登录</string>
+    <string name="csb_secret_copied">%1$s 已复制</string>
+    <string name="csb_share_title">生成分享链接</string>
+    <string name="csb_baidu_share_title">生成分享链接（带提取码）</string>
+    <string name="csb_baidu_share_hint">百度分享必须带 4 位提取码</string>
+    <string name="csb_c139_share_title">生成分享链接（自动生成提取码）</string>
+    <string name="csb_c139_share_hint">提取码由系统自动生成</string>
+    <string name="csb_pan115_share_title">生成分享链接（自动生成访问码）</string>
+    <string name="csb_pan115_share_hint">访问码由系统自动生成</string>
+    <string name="csb_xunlei_share_title">生成分享链接（带提取码）</string>
+    <string name="csb_xunlei_share_hint">迅雷分享必须带提取码，可自定义 4 位（留空自动生成）</string>
 </resources>

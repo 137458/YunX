@@ -227,11 +227,11 @@
     <string name="platform_xunlei">Xunlei Drive</string>
     <string name="platform_baidu">Baidu Drive</string>
     <string name="platform_c139">139 Drive</string>
-    <string name="platform_pan123">123 Cloud</string>
+    <string name="platform_pan123">123 Drive</string>
     <string name="platform_pan115">115 Drive</string>
-    <string name="platform_guangya">Guangya Cloud</string>
-    <string name="platform_ilanzou">Lanzou Cloud Premium</string>
-    <string name="platform_lanzou">Lanzou Cloud</string>
+    <string name="platform_guangya">GuangYa Drive</string>
+    <string name="platform_ilanzou">Lanzou Drive Premium</string>
+    <string name="platform_lanzou">Lanzou Drive</string>
     <string name="platform_github">GitHub</string>
     <string name="snack_no_browser_link_copied">No browser available; link copied</string>
     <string name="snack_gopeed_dir_updated">Gopeed download directory updated: %1$s</string>
@@ -282,4 +282,39 @@
     <string name="sn_copied">Copied</string>
     <string name="sn_ack">Got it</string>
     <string name="sn_countdown">Closable in %1$d s</string>
+
+    <!-- 多语言改造补充（原 strings_ui_extra） -->
+    <string name="settings_thread_platform_generic">Generic / Manual</string>
+    <string name="settings_download_threads_desc_note">Set chunk concurrency per drive (default 32, max 512); applies to new tasks only</string>
+    <string name="settings_download_dir_system_default">System default Download (tap to customize)</string>
+    <string name="settings_download_dir_reset">Reset download folder</string>
+    <string name="settings_download_dir_reset_desc">Tap to restore the system default folder</string>
+    <string name="settings_max_tasks_desc_bg">Download %1$d tasks at once (limits background concurrency)</string>
+    <string name="settings_value_task_count">%1$d tasks</string>
+    <string name="settings_auto_retry_value_never">No retry</string>
+    <string name="settings_auto_retry_value_times">%1$d times</string>
+    <string name="settings_keep_downloading_desc_short">Keeps a WakeLock while downloading and allows allowlisting</string>
+    <string name="settings_github_repo_no_browser">No browser found; link copied: %1$s</string>
+    <string name="settings_diagnostic_path">Detailed logs are written to Android/data/%1$s/files/diagnostic_logs</string>
+    <string name="settings_diag_zip_shared">Diagnostic logs packaged and shared (%1$s)</string>
+    <string name="theme_bottom_bar_section">Bottom navigation bar</string>
+    <string name="theme_bottom_bar_desc">Choose the bottom bar style</string>
+    <string name="theme_bottom_bar_liquid">Liquid glass</string>
+    <string name="theme_bottom_bar_frosted">Frosted glass</string>
+    <string name="theme_bottom_bar_standard">Standard</string>
+    <string name="theme_bottom_bar_hint_liquid">Floating capsule + lens refraction and dispersion glow, with specular highlights as the phone tilts; requires Android 13+ and falls back to translucent solid color.</string>
+    <string name="theme_bottom_bar_hint_frosted">Floating capsule + background Gaussian blur; close to liquid glass without refraction; requires Android 13+ and falls back to translucent solid color.</string>
+    <string name="theme_bottom_bar_hint_standard">Native Miuix bottom bar with no background sampling or shader cost — the most power-efficient.</string>
+    <string name="theme_amoled_switch">AMOLED pure black</string>
+    <string name="theme_amoled_on_desc">Pushes the background and card surfaces to pure black in dark mode to cut OLED power use</string>
+    <string name="theme_amoled_off_desc">Only applies in dark mode; currently using the light appearance</string>
+    <string name="theme_recommended_colors">Suggested colors</string>
+    <string name="theme_preview_title">Live preview</string>
+    <string name="theme_preview_desc">The swatches below come from the current theme</string>
+    <string name="theme_preview_body">Sample body text</string>
+    <string name="theme_preview_caption">Sample secondary text</string>
+    <string name="theme_preview_container">Container</string>
+    <string name="theme_preview_container_high">High container</string>
+    <string name="theme_preview_container_highest">Highest container</string>
+    <string name="theme_custom_color_title">Custom theme color</string>
 </resources>

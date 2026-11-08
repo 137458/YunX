@@ -20,19 +20,6 @@
     G6 分组：解析 / 分享詳情 / 媒體與文字預覽 / 收藏 / 引導與權限。
 -->
 <resources>
-    <!-- 平台顯示名 -->
-    <string name="rs_platform_quark">夸克網盤</string>
-    <string name="rs_platform_uc">UC 網盤</string>
-    <string name="rs_platform_xunlei">迅雷網盤</string>
-    <string name="rs_platform_baidu">百度網盤</string>
-    <string name="rs_platform_139">139 網盤</string>
-    <string name="rs_platform_123">123雲盤</string>
-    <string name="rs_platform_115">115網盤</string>
-    <string name="rs_platform_guangya">光鴨雲盤</string>
-    <string name="rs_platform_ilanzou">藍奏雲優享版</string>
-    <string name="rs_platform_lanzou">藍奏雲</string>
-    <string name="rs_platform_generic">網盤</string>
-
     <!-- 平台短名（主頁捷徑色塊） -->
     <string name="rs_short_quark">夸克</string>
     <string name="rs_short_xunlei">迅雷</string>
@@ -248,4 +235,17 @@
     <string name="rs_category_archive">壓縮檔</string>
     <string name="rs_category_other">其他</string>
     <string name="rs_extract_code_optional_auto">提取碼（可選，自動識別或手動輸入）</string>
+    <string name="rs_platform_generic">網盤</string>
+
+
+    <!-- 多语言改造补充（原 strings_ui_extra） -->
+    <string name="rs_onboarding_feature_link_title">一鍵解析分享連結</string>
+    <string name="rs_onboarding_feature_link_desc">夸克 / UC / 迅雷 / 百度 / 139 / 123 / 115 / 光鴨 / 藍奏雲 等 10 個網路硬碟分享連結自動辨識，登入網路硬碟帳號後即可解析與下載</string>
+    <string name="rs_onboarding_feature_video_desc">抖音 / 小紅書 / 快手 / 微博 / AcFun 免登入，嗶哩嗶哩登入後畫質更高；7 大影片平台連結解析直連，圖片 / 影片 / 音訊都能線上預覽</string>
+    <string name="rs_onboarding_feature_multi_title">多平台支援</string>
+    <string name="rs_onboarding_feature_multi_desc">一個應用程式管理多個網路硬碟帳號，統一解析下載入口</string>
+    <string name="rs_onboarding_feature_privacy_title">隱私安全</string>
+    <string name="rs_onboarding_feature_privacy_desc">登入憑證僅存本機，不上傳任何伺服器</string>
+    <string name="rs_onboarding_free_hint">無廣告、無內購，所有功能永久免費</string>
+    <string name="rs_onboarding_disclaimer">免責聲明：本應用程式僅供個人學習與技術交流，請勿用於商業用途。下載內容版權歸原作者所有，請於下載後 24 小時內刪除。使用本應用程式產生的任何後果由使用者自行承擔。</string>
 </resources>

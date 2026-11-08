@@ -248,4 +248,29 @@
     <string name="vm_video_download_selected_count">Télécharger la sélection (%1$d)</string>
     <string name="vm_video_motion_badge">Live</string>
     <string name="vm_drive_quota_error">Impossible d\'obtenir le quota de ces lecteurs : %1$s</string>
+
+    <!-- 多语言改造补充（原 strings_ui_extra） -->
+    <string name="vm_about_intro">YunX est un outil d\'analyse de liens de partage (cloud et vidéo) et de téléchargement rapide. Collez un lien : les partages cloud se parcourent et se téléchargent rapidement, les liens vidéo sont résolus en URL directes et en images d\'origine, et les images, vidéos et audios peuvent être prévisualisés en ligne.</string>
+    <string name="vm_about_terms_title">Conditions d\'utilisation et avertissement</string>
+    <string name="vm_about_version">YunX v%1$s · Made with DeepSeek</string>
+    <string name="vm_bookmark_empty_filtered">Aucun signet dans cette catégorie</string>
+    <string name="vm_bookmark_empty_filtered_hint">Changez de catégorie ou effacez le filtre pour voir tous les signets</string>
+    <string name="vm_bookmark_delete_title">Supprimer le signet</string>
+    <string name="vm_bookmark_delete_message">Supprimer « %1$s » ? Cette action est irréversible.</string>
+    <string name="vm_update_mirror_download_cn">Télécharger via un miroir (accéléré en Chine)</string>
+    <string name="vm_update_ignore_version">Ignorer cette version</string>
+    <string name="vm_update_open_download_task">Aller à la tâche de téléchargement</string>
+    <string name="vm_update_cancel_download">Annuler le téléchargement</string>
+    <string name="vm_update_downloading_package">Téléchargement du paquet de mise à jour</string>
+    <string name="vm_update_downloading_package_unknown">Téléchargement du paquet de mise à jour (taille inconnue)</string>
+    <string name="vm_update_notes_collapse">Réduire les notes</string>
+    <string name="vm_update_notes_expand_more">Tout afficher (%1$d lignes de plus)</string>
+    <string name="vm_update_version_jump">Actuel %1$s → dernière %2$s</string>
+    <string name="vm_update_progress_detail">%1$s / %2$s%3$s</string>
+    <string name="vm_update_progress_detail_unknown">%1$s · taille inconnue%2$s</string>
+    <string name="vm_update_open_releases">Ouvrir la page Releases</string>
+    <string name="vm_update_downloading_percent">Téléchargement %1$s</string>
+    <string name="vm_update_install">Installer la mise à jour</string>
+    <string name="vm_update_download_now">Télécharger maintenant</string>
+    <string name="vm_update_background_download">Télécharger en arrière-plan</string>
 </resources>

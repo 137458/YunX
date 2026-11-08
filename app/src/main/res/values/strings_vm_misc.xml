@@ -247,4 +247,29 @@
     <string name="vm_video_download_selected_count">下载选中（%1$d）</string>
     <string name="vm_video_motion_badge">实况</string>
     <string name="vm_drive_quota_error">以下网盘空间信息获取失败：%1$s</string>
+
+    <!-- 多语言改造补充（原 strings_ui_extra） -->
+    <string name="vm_about_intro">云析（YunX）是一款网盘 / 视频分享链接解析与高速下载工具。粘贴链接即可：网盘分享能浏览内容并高速下载，视频链接能解析出直链与原图，图片 / 视频 / 音频都支持在线预览播放。</string>
+    <string name="vm_about_terms_title">使用条款与声明</string>
+    <string name="vm_about_version">云析 v%1$s · Made with DeepSeek</string>
+    <string name="vm_bookmark_empty_filtered">该分类下暂无收藏</string>
+    <string name="vm_bookmark_empty_filtered_hint">切换到其他分类，或清除筛选查看全部收藏</string>
+    <string name="vm_bookmark_delete_title">删除收藏</string>
+    <string name="vm_bookmark_delete_message">确定删除「%1$s」？该操作不可恢复。</string>
+    <string name="vm_update_mirror_download_cn">使用镜像站下载（国内加速）</string>
+    <string name="vm_update_ignore_version">忽略此版本</string>
+    <string name="vm_update_open_download_task">转到下载任务</string>
+    <string name="vm_update_cancel_download">取消下载</string>
+    <string name="vm_update_downloading_package">正在下载更新包</string>
+    <string name="vm_update_downloading_package_unknown">正在下载更新包（大小未知）</string>
+    <string name="vm_update_notes_collapse">收起说明</string>
+    <string name="vm_update_notes_expand_more">展开全部（还有 %1$d 行）</string>
+    <string name="vm_update_version_jump">当前 %1$s → 最新 %2$s</string>
+    <string name="vm_update_progress_detail">%1$s / %2$s%3$s</string>
+    <string name="vm_update_progress_detail_unknown">%1$s · 大小未知%2$s</string>
+    <string name="vm_update_open_releases">前往 Releases 页面</string>
+    <string name="vm_update_downloading_percent">下载中 %1$s</string>
+    <string name="vm_update_install">安装更新</string>
+    <string name="vm_update_download_now">立即下载</string>
+    <string name="vm_update_background_download">后台下载</string>
 </resources>

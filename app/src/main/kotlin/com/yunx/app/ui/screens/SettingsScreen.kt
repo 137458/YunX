@@ -117,11 +117,11 @@ private data class ThreadPlatform(val platform: String, @StringRes val labelRes:
 
 private val threadPlatforms = listOf(
     ThreadPlatform(DownloadPlatform.GENERIC, R.string.settings_thread_platform_generic),
-    ThreadPlatform(DownloadPlatform.QUARK, R.string.csa_platform_quark),
-    ThreadPlatform(DownloadPlatform.UC, R.string.rs_platform_uc),
-    ThreadPlatform(DownloadPlatform.XUNLEI, R.string.csa_platform_xunlei),
-    ThreadPlatform(DownloadPlatform.BAIDU, R.string.csa_platform_baidu),
-    ThreadPlatform(DownloadPlatform.C139, R.string.rs_platform_139),
+    ThreadPlatform(DownloadPlatform.QUARK, R.string.platform_quark),
+    ThreadPlatform(DownloadPlatform.UC, R.string.platform_uc),
+    ThreadPlatform(DownloadPlatform.XUNLEI, R.string.platform_xunlei),
+    ThreadPlatform(DownloadPlatform.BAIDU, R.string.platform_baidu),
+    ThreadPlatform(DownloadPlatform.C139, R.string.platform_c139),
     ThreadPlatform(DownloadPlatform.PAN123, R.string.vm_link_target_pan123),
 )
 

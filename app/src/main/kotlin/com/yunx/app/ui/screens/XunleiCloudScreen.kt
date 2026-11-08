@@ -39,7 +39,7 @@ import top.yukonga.miuix.kmp.basic.ScrollBehavior
 
 /** 平台差异：文案 + 有效期编码 + 提取码策略 */
 private fun xunleiDriveSpec() = DriveSpec(
-    title = AppStrings.get(R.string.csa_platform_xunlei),
+    title = AppStrings.get(R.string.platform_xunlei),
     shareDesc = AppStrings.get(R.string.csb_xunlei_share_title),
     shareHint = AppStrings.get(R.string.csb_xunlei_share_hint),
     expiryOptions = listOf<DriveExpiryOption<Any?>>(

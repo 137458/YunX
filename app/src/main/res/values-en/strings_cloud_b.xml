@@ -75,4 +75,17 @@
     <string name="csb_save_to_xunlei_title">Save to Xunlei Drive</string>
     <string name="csb_save_no_subfolder">This folder has no subfolders. You can save to this folder directly.</string>
     <string name="csb_save_here_with_dir">Save to this folder (%1$s)</string>
+
+    <!-- 多语言改造补充（原 strings_ui_extra） -->
+    <string name="csb_drive_logged_in_with_name">%1$s · Signed in</string>
+    <string name="csb_secret_copied">%1$s copied</string>
+    <string name="csb_share_title">Create share link</string>
+    <string name="csb_baidu_share_title">Create share link (with passcode)</string>
+    <string name="csb_baidu_share_hint">Baidu shares require a 4-digit passcode</string>
+    <string name="csb_c139_share_title">Create share link (passcode generated)</string>
+    <string name="csb_c139_share_hint">The passcode is generated automatically</string>
+    <string name="csb_pan115_share_title">Create share link (access code generated)</string>
+    <string name="csb_pan115_share_hint">The access code is generated automatically</string>
+    <string name="csb_xunlei_share_title">Create share link (with passcode)</string>
+    <string name="csb_xunlei_share_hint">Xunlei shares require a passcode; enter 4 digits or leave blank to generate one</string>
 </resources>
