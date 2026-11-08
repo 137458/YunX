@@ -1030,9 +1030,10 @@ internal fun taskStatusLine(task: DownloadTaskEntity): String {
 }
 
 /**
- * 任务行副标题：状态 + 速度 + 剩余时间 + 线程数，完成态改用平均速度。
+ * 任务行副标题：下载中给「状态 + 速度 + 剩余时间 + 线程数」，其余情况只给状态。
  *
- * 列表与文件夹组共用同一份文案推导，避免同一任务在两种排版下显示不同信息量。
+ * 大小、百分比、完成态平均速度都由底部行承担，副标题不再重复。
+ * 列表与文件夹组共用同一份推导，避免同一任务在两种排版下显示不同信息量。
  */
 internal fun taskRowSubtitle(task: DownloadTaskEntity, stats: DownloadStats?): String {
     val status = DownloadTaskEntity.statusText(task.status)
@@ -1044,10 +1045,9 @@ internal fun taskRowSubtitle(task: DownloadTaskEntity, stats: DownloadStats?): S
         if (stats.chunkCount > 0) parts += "${stats.chunkCount} 线程"
         return parts.joinToString(" · ")
     }
-    if (task.status == DownloadTaskEntity.STATUS_COMPLETED && task.avgSpeed > 0L) {
-        return "$status · 平均 ${formatSpeed(task.avgSpeed)}"
-    }
-    return taskStatusLine(task)
+    // 大小/百分比由底部 progressText 统一展示，完成态的平均速度与总大小也在底部行 —
+    // 副标题这里再拼一遍就是同一数字出现两次（合并任务行时最容易踩的坑）。
+    return status
 }
 
 internal fun progressText(task: DownloadTaskEntity): String {
