@@ -54,6 +54,7 @@ import androidx.compose.ui.unit.sp
 import com.yunx.app.data.db.GuangYaAccountEntity
 import com.yunx.app.data.db.MultiAccountEntity
 import com.yunx.app.R
+import com.yunx.app.util.AccountNames
 import com.yunx.app.ui.SnackbarController
 import com.yunx.app.util.AppStrings
 import java.text.SimpleDateFormat
@@ -121,7 +122,7 @@ fun GuangYaAccountSheet(
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Text(
-                            text = account.nickname.take(1).ifBlank { AppStrings.get(R.string.csb_drive_avatar_guangya) },
+                            text = AccountNames.display(R.string.er_guangya_default_nickname, account.nickname).take(1).ifBlank { AppStrings.get(R.string.csb_drive_avatar_guangya) },
                             style = MiuixTheme.textStyles.title3,
                             fontWeight = FontWeight.SemiBold,
                             color = MiuixTheme.colorScheme.onPrimaryVariant
@@ -131,7 +132,7 @@ fun GuangYaAccountSheet(
                 Spacer(modifier = Modifier.width(16.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = account.nickname.ifBlank { AppStrings.get(R.string.er_guangya_default_nickname) },
+                        text = AccountNames.display(R.string.er_guangya_default_nickname, account.nickname),
                         style = MiuixTheme.textStyles.title4,
                         fontWeight = FontWeight.Medium,
                         maxLines = 2,
@@ -170,7 +171,7 @@ fun GuangYaAccountSheet(
                 insideMargin = PaddingValues(16.dp)
             ) {
                 Column {
-                    InfoRow(label = AppStrings.get(R.string.sh_login_account), value = account.account.ifBlank { account.nickname.ifBlank { AppStrings.get(R.string.er_guangya_default_nickname) } })
+                    InfoRow(label = AppStrings.get(R.string.sh_login_account), value = account.account.ifBlank { AccountNames.display(R.string.er_guangya_default_nickname, account.nickname) })
                     Spacer(modifier = Modifier.height(12.dp))
                     InfoRow(label = AppStrings.get(R.string.sh_login_time), value = loginTime)
                     Spacer(modifier = Modifier.height(12.dp))
@@ -217,7 +218,8 @@ fun GuangYaAccountSheet(
                 onRename = onRename,
                 onRemove = onRemove,
                 onAddAccount = onAddAccount,
-                onEmpty = onDismiss
+                onEmpty = onDismiss,
+                defaultNameRes = R.string.er_guangya_default_nickname
             )
         }
     }

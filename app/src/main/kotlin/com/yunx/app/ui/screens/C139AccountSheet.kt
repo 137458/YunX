@@ -54,6 +54,7 @@ import androidx.compose.ui.unit.sp
 import com.yunx.app.data.db.C139AccountEntity
 import com.yunx.app.data.db.MultiAccountEntity
 import com.yunx.app.R
+import com.yunx.app.util.AccountNames
 import com.yunx.app.ui.drive.formatCloudLoginTime
 import com.yunx.app.ui.SnackbarController
 import com.yunx.app.util.AppStrings
@@ -117,7 +118,7 @@ fun C139AccountSheet(
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Text(
-                            text = account.nickname.take(1),
+                            text = AccountNames.display(R.string.er_c139_default_nickname, account.nickname).take(1),
                             style = MiuixTheme.textStyles.title3,
                             fontWeight = FontWeight.SemiBold,
                             color = MiuixTheme.colorScheme.onPrimaryVariant
@@ -128,7 +129,7 @@ fun C139AccountSheet(
                 Column(modifier = Modifier.weight(1f)) {
                     // 昵称可能很长，限 2 行省略，避免把账号列表顶出可视区
                     Text(
-                        text = account.nickname,
+                        text = AccountNames.display(R.string.er_c139_default_nickname, account.nickname),
                         style = MiuixTheme.textStyles.title4,
                         fontWeight = FontWeight.Medium,
                         maxLines = 2,
@@ -214,7 +215,8 @@ fun C139AccountSheet(
                 onRename = onRename,
                 onRemove = onRemove,
                 onAddAccount = onAddAccount,
-                onEmpty = onDismiss
+                onEmpty = onDismiss,
+                defaultNameRes = R.string.er_c139_default_nickname
             )
         }
     }

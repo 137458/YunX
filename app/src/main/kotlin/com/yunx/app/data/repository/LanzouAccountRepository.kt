@@ -64,7 +64,7 @@ class LanzouAccountRepository(
         val entity = LanzouAccountEntity(
             id = slot.id,
             cookie = cookie,
-            nickname = account.trim().ifBlank { AppStrings.get(R.string.er_lanzou_default_nickname) },
+            nickname = account.trim(),
             isPrimary = slot.isPrimary,
             remark = slot.remark
         )
@@ -87,7 +87,7 @@ class LanzouAccountRepository(
             LanzouAccountEntity(
                 id = slot.id,
                 cookie = c,
-                nickname = AppStrings.get(R.string.er_lanzou_default_nickname),
+                nickname = "",
                 isPrimary = slot.isPrimary,
                 remark = slot.remark
             )

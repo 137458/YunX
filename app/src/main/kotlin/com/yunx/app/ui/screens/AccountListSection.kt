@@ -19,6 +19,7 @@
 package com.yunx.app.ui.screens
 
 import androidx.compose.foundation.clickable
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -45,6 +46,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.yunx.app.data.db.MultiAccountEntity
 import com.yunx.app.R
+import com.yunx.app.util.AccountNames
 import com.yunx.app.util.AppStrings
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
@@ -80,7 +82,8 @@ internal fun AccountListSection(
     onRename: (String, String) -> Unit,
     onRemove: (String) -> Unit,
     onAddAccount: () -> Unit,
-    onEmpty: () -> Unit
+    onEmpty: () -> Unit,
+    @StringRes defaultNameRes: Int? = null
 ) {
     // 最后一个账号被退出后弹窗没有内容可展示了，自动关闭
     LaunchedEffect(accounts.isEmpty()) { if (accounts.isEmpty()) onEmpty() }
@@ -92,7 +95,8 @@ internal fun AccountListSection(
                 account = account,
                 onSetPrimary = onSetPrimary,
                 onRename = onRename,
-                onRemove = onRemove
+                onRemove = onRemove,
+                defaultNameRes = defaultNameRes
             )
         }
         // 添加账号：复用该平台原来的登录入口（网页登录 / 账号密码登录），作为 Card 的直接子项自动带分割线
@@ -131,12 +135,13 @@ internal fun AccountRow(
     account: MultiAccountEntity,
     onSetPrimary: (String) -> Unit,
     onRename: (String, String) -> Unit,
-    onRemove: (String) -> Unit
+    onRemove: (String) -> Unit,
+    @StringRes defaultNameRes: Int? = null
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
     var showRename by remember { mutableStateOf(false) }
     var showRemove by remember { mutableStateOf(false) }
-    val displayName = account.displayName()
+    val displayName = account.displayName(defaultNameRes)
 
     Row(
         modifier = Modifier
@@ -299,6 +304,8 @@ internal fun AccountRow(
     }
 }
 
-/** 账号显示名：备注优先，回退昵称，再回退占位文案 */
-internal fun MultiAccountEntity.displayName(): String =
-    remark.ifBlank { nickname }.ifBlank { AppStrings.get(R.string.sh_unnamed_account) }
+/** 账号显示名：备注优先，回退昵称（空值或旧语言默认名回退到当前语言），再回退占位文案 */
+internal fun MultiAccountEntity.displayName(@StringRes defaultNameRes: Int? = null): String {
+    val nick = if (defaultNameRes != null) AccountNames.display(defaultNameRes, nickname) else nickname
+    return remark.ifBlank { nick }.ifBlank { AppStrings.get(R.string.sh_unnamed_account) }
+}

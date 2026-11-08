@@ -19,8 +19,11 @@
 package com.yunx.app.util
 
 import android.content.Context
+import android.content.res.Configuration
+import android.os.LocaleList
 import androidx.annotation.StringRes
 import com.yunx.app.ui.theme.LocaleController
+import java.util.Locale
 
 /**
  * 「不是 Composable、却要取多语言文案」的全局入口。
@@ -76,6 +79,22 @@ object AppStrings {
                 wrapped ?: base
             }
             if (args.isEmpty()) target.getString(resId) else target.getString(resId, *args)
+        }.getOrDefault("")
+    }
+
+    /**
+     * 取指定语言下的字符串。用于识别存量数据里按旧语言写死的默认值（例如账号默认昵称）：
+     * 把各语言的取值收集起来做比对，而不是只看当前语言。
+     */
+    fun getInLanguage(@StringRes resId: Int, languageTag: String): String {
+        testResolver?.let { return it(resId, emptyArray()) }
+        val base = ctx ?: return ""
+        return runCatching {
+            val locale = Locale.forLanguageTag(languageTag)
+            val config = Configuration(base.resources.configuration)
+            config.setLocale(locale)
+            config.setLocales(LocaleList(locale))
+            base.createConfigurationContext(config).getString(resId)
         }.getOrDefault("")
     }
 }

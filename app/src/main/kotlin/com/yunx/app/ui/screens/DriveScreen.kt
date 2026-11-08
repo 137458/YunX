@@ -105,6 +105,7 @@ import com.yunx.app.ui.viewmodel.Pan123CloudViewModel
 import com.yunx.app.ui.viewmodel.QuarkCloudViewModel
 import com.yunx.app.ui.viewmodel.UCCoudViewModel
 import com.yunx.app.ui.viewmodel.XunleiCloudViewModel
+import com.yunx.app.util.AccountNames
 import com.yunx.app.util.AppStrings
 import com.yunx.app.util.ByteFormat
 import top.yukonga.miuix.kmp.basic.Card
@@ -292,7 +293,7 @@ fun DriveScreen(
     val xunlei = DriveAccount(
         id = "xunlei",
         name = AppStrings.get(R.string.csa_platform_xunlei),
-        description = xunleiAccount?.nickname ?: AppStrings.get(R.string.csb_drive_desc_login),
+        description = xunleiAccount?.let { AccountNames.display(R.string.er_xunlei_default_nickname, it.nickname) } ?: AppStrings.get(R.string.csb_drive_desc_login),
         avatarText = AppStrings.get(R.string.csb_drive_avatar_xunlei),
         isLoggedIn = xunleiAccount != null
     )
@@ -306,7 +307,7 @@ fun DriveScreen(
     val c139 = DriveAccount(
         id = "c139",
         name = AppStrings.get(R.string.csa_platform_139),
-        description = c139Account?.nickname ?: AppStrings.get(R.string.csb_drive_desc_login),
+        description = c139Account?.let { AccountNames.display(R.string.er_c139_default_nickname, it.nickname) } ?: AppStrings.get(R.string.csb_drive_desc_login),
         avatarText = "139",
         isLoggedIn = c139Account != null
     )
@@ -320,28 +321,28 @@ fun DriveScreen(
     val pan115 = DriveAccount(
         id = "pan115",
         name = AppStrings.get(R.string.csa_platform_115),
-        description = pan115Account?.nickname ?: AppStrings.get(R.string.csb_drive_desc_login),
+        description = pan115Account?.let { AccountNames.display(R.string.er_pan115_default_nickname, it.nickname) } ?: AppStrings.get(R.string.csb_drive_desc_login),
         avatarText = "115",
         isLoggedIn = pan115Account != null
     )
     val guangya = DriveAccount(
         id = "guangya",
         name = AppStrings.get(R.string.csa_platform_guangya),
-        description = guangyaAccount?.nickname ?: AppStrings.get(R.string.csb_drive_desc_login),
+        description = guangyaAccount?.let { AccountNames.display(R.string.er_guangya_default_nickname, it.nickname) } ?: AppStrings.get(R.string.csb_drive_desc_login),
         avatarText = AppStrings.get(R.string.csb_drive_avatar_guangya),
         isLoggedIn = guangyaAccount != null
     )
     val ilanzou = DriveAccount(
         id = "ilanzou",
         name = AppStrings.get(R.string.csa_platform_ilanzou),
-        description = ilanzouAccount?.nickname?.let { maskAccount(it) } ?: AppStrings.get(R.string.csb_drive_desc_login),
+        description = ilanzouAccount?.let { AccountNames.display(R.string.e2_ilanzou_default_nickname, it.nickname) } ?: AppStrings.get(R.string.csb_drive_desc_login),
         avatarText = AppStrings.get(R.string.csb_drive_avatar_ilanzou),
         isLoggedIn = ilanzouAccount != null
     )
     val lanzou = DriveAccount(
         id = "lanzou",
         name = AppStrings.get(R.string.csb_drive_name_lanzou),
-        description = lanzouAccount?.nickname?.let { maskAccount(it) } ?: AppStrings.get(R.string.csb_drive_desc_login),
+        description = lanzouAccount?.let { AccountNames.display(R.string.er_lanzou_default_nickname, it.nickname) } ?: AppStrings.get(R.string.csb_drive_desc_login),
         avatarText = AppStrings.get(R.string.csb_drive_avatar_lanzou),
         isLoggedIn = lanzouAccount != null
     )

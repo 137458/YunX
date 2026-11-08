@@ -55,6 +55,7 @@ import com.yunx.app.data.db.MultiAccountEntity
 import com.yunx.app.data.db.Pan115AccountEntity
 import com.yunx.app.data.network.Pan115Constants
 import com.yunx.app.R
+import com.yunx.app.util.AccountNames
 import com.yunx.app.ui.SnackbarController
 import com.yunx.app.util.AppStrings
 import java.text.SimpleDateFormat
@@ -123,7 +124,7 @@ fun Pan115AccountSheet(
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Text(
-                            text = account.nickname.take(1),
+                            text = AccountNames.display(R.string.er_pan115_default_nickname, account.nickname).take(1),
                             style = MiuixTheme.textStyles.title3,
                             fontWeight = FontWeight.SemiBold,
                             color = MiuixTheme.colorScheme.onPrimaryVariant
@@ -133,7 +134,7 @@ fun Pan115AccountSheet(
                 Spacer(modifier = Modifier.width(16.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = account.nickname,
+                        text = AccountNames.display(R.string.er_pan115_default_nickname, account.nickname),
                         style = MiuixTheme.textStyles.title4,
                         fontWeight = FontWeight.Medium,
                         maxLines = 2,
@@ -227,7 +228,8 @@ fun Pan115AccountSheet(
                 onRename = onRename,
                 onRemove = onRemove,
                 onAddAccount = onAddAccount,
-                onEmpty = onDismiss
+                onEmpty = onDismiss,
+                defaultNameRes = R.string.er_pan115_default_nickname
             )
         }
     }

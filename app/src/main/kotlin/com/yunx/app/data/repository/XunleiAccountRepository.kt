@@ -112,7 +112,7 @@ class XunleiAccountRepository(
                     refreshToken = tokens.second,
                     deviceId = deviceId,
                     captchaToken = captchaToken,
-                    nickname = step.nickname.ifBlank { AppStrings.get(R.string.er_xunlei_default_nickname) },
+                    nickname = step.nickname,
                     isPrimary = slot.isPrimary,
                     remark = slot.remark
                 )
@@ -168,7 +168,7 @@ class XunleiAccountRepository(
                     refreshToken = tokens.second,
                     deviceId = deviceId,
                     captchaToken = captchaToken,
-                    nickname = step.nickname.ifBlank { AppStrings.get(R.string.er_xunlei_default_nickname) },
+                    nickname = step.nickname,
                     isPrimary = slot.isPrimary,
                     remark = slot.remark
                 )
@@ -217,7 +217,7 @@ class XunleiAccountRepository(
                 refreshToken = tokens.refreshToken,
                 deviceId = deviceId,
                 captchaToken = tokens.captchaToken,
-                nickname = tokens.nickname.ifBlank { AppStrings.get(R.string.er_xunlei_default_nickname) },
+                nickname = tokens.nickname,
                 authType = XunleiWebCredential.AUTH_TYPE,
                 isPrimary = slot.isPrimary,
                 remark = slot.remark

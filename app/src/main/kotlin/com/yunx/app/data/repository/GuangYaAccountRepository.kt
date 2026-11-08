@@ -18,7 +18,6 @@
 
 package com.yunx.app.data.repository
 
-import com.yunx.app.R
 import com.yunx.app.data.db.GuangYaAccountDao
 import com.yunx.app.data.db.GuangYaAccountEntity
 import com.yunx.app.data.db.resolveAccountSlot
@@ -28,7 +27,6 @@ import com.yunx.app.data.network.GuangYaConstants
 import com.yunx.app.data.network.GuangYaDevice
 import com.yunx.app.data.network.GuangYaSmsChallenge
 import com.yunx.app.data.network.GuangYaTokens
-import com.yunx.app.util.AppStrings
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -182,7 +180,7 @@ class GuangYaAccountRepository(
         return if (local.length >= 11) {
             local.take(3) + "****" + local.takeLast(4)
         } else {
-            AppStrings.get(R.string.er_guangya_default_nickname)
+            ""
         }
     }
 

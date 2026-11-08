@@ -53,6 +53,7 @@ import androidx.compose.ui.unit.sp
 import com.yunx.app.data.db.ILanzouAccountEntity
 import com.yunx.app.data.db.MultiAccountEntity
 import com.yunx.app.R
+import com.yunx.app.util.AccountNames
 import com.yunx.app.ui.SnackbarController
 import com.yunx.app.util.AppStrings
 import java.text.SimpleDateFormat
@@ -91,8 +92,14 @@ fun ILanzouAccountSheet(
     val loginTime = remember(account.updatedAt) {
         SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(Date(account.updatedAt))
     }
-    // 账号可能是手机号/邮箱等敏感信息，展示时脱敏（与其它网盘一致，不明文列出账号）
-    val displayName = maskAccount(account.nickname.ifBlank { account.account }).ifBlank { AppStrings.get(R.string.e2_ilanzou_default_nickname) }
+    // 账号可能是手机号/邮箱等敏感信息，展示时脱敏（与其它网盘一致，不明文列出账号）；
+    // 空值或旧语言写死的默认名不脱敏，直接显示当前语言的默认昵称
+    val rawName = account.nickname.ifBlank { account.account }
+    val displayName = if (AccountNames.isUnset(R.string.e2_ilanzou_default_nickname, rawName)) {
+        AppStrings.get(R.string.e2_ilanzou_default_nickname)
+    } else {
+        maskAccount(rawName)
+    }
 
     val scrollState = rememberScrollState()
 
@@ -212,7 +219,8 @@ fun ILanzouAccountSheet(
                 onRename = onRename,
                 onRemove = onRemove,
                 onAddAccount = onAddAccount,
-                onEmpty = onDismiss
+                onEmpty = onDismiss,
+                defaultNameRes = R.string.e2_ilanzou_default_nickname
             )
         }
     }

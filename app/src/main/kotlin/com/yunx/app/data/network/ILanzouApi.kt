@@ -102,7 +102,7 @@ class ILanzouApi(
             if (userId.isBlank()) return@runCatching null
             val nickname = firstNonBlank(
                 map.optString("nickName"), map.optString("nickname"), map.optString("account")
-            ).ifBlank { AppStrings.get(R.string.e2_ilanzou_default_nickname) }
+            )
             ILanzouAccountInfo(userId, map.optString("account"), nickname)
         }.getOrNull()
     }
