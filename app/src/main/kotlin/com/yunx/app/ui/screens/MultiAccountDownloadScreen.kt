@@ -113,10 +113,10 @@ fun MultiAccountDownloadScreen(onBack: () -> Unit, modifier: Modifier = Modifier
                 .nestedScroll(scrollBehavior.nestedScrollConnection)
                 .blurBackdropSource(backdrop)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp, vertical = 12.dp)
+                .padding(vertical = 12.dp)
         ) {
             SmallTitle(text = "功能说明")
-            Card(modifier = Modifier.fillMaxWidth()) {
+            Card(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp)) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         text = "实验性功能：先在网盘页给同一个网盘登录多个账号，下面的开关才有实际效果。",
@@ -147,7 +147,7 @@ fun MultiAccountDownloadScreen(onBack: () -> Unit, modifier: Modifier = Modifier
             Spacer(modifier = Modifier.height(16.dp))
 
             SmallTitle(text = "策略配置")
-            Card(modifier = Modifier.fillMaxWidth()) {
+            Card(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp)) {
                 SwitchPreference(
                     title = "多账号下载",
                     summary = "同一网盘多个账号轮流取链（实验性）",

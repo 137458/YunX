@@ -51,10 +51,7 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
  */
 @Composable
 internal fun AccountSectionLabel(text: String) {
-    SmallTitle(
-        text = text,
-        modifier = Modifier.padding(start = 4.dp, bottom = 4.dp)
-    )
+    SmallTitle(text = text)
 }
 
 /**
@@ -117,7 +114,7 @@ private fun VideoPlatformCard(
     }
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
         onClick = onClick
     ) {
         VideoPlatformCardContent(

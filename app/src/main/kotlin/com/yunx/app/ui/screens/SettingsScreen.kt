@@ -275,9 +275,7 @@ fun SettingsScreen(
             .verticalScroll(rememberScrollState())
             .padding(
                 top = scaffoldPadding.calculateTopPadding() + 8.dp,
-                bottom = scaffoldPadding.calculateBottomPadding() + 16.dp,
-                start = 16.dp,
-                end = 16.dp
+                bottom = scaffoldPadding.calculateBottomPadding() + 16.dp
             )
     ) {
         // ---------- 分类 1: 下载 ----------
@@ -285,7 +283,7 @@ fun SettingsScreen(
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = CardGap)
+                .padding(start = 12.dp, end = 12.dp, bottom = CardGap)
         ) {
             ArrowPreference(
                 title = "下载线程数",
@@ -392,7 +390,7 @@ fun SettingsScreen(
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = CardGap)
+                .padding(start = 12.dp, end = 12.dp, bottom = CardGap)
         ) {
             ArrowPreference(
                 title = "主题与外观",
@@ -406,7 +404,7 @@ fun SettingsScreen(
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = CardGap)
+                .padding(start = 12.dp, end = 12.dp, bottom = CardGap)
         ) {
             // 上游 v1.3.1 新增「列表缩略图」：关掉后列表行退回文件图标，且不再向网盘发取图请求。
             // 读 AppThemeManager 的 Compose 内存态（改动即时反映到已打开的文件列表），写回同一管理器做持久化。
@@ -457,7 +455,7 @@ fun SettingsScreen(
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = CardGap)
+                .padding(start = 12.dp, end = 12.dp, bottom = CardGap)
         ) {
             ArrowPreference(
                 title = "导出认证信息",
@@ -476,7 +474,7 @@ fun SettingsScreen(
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = CardGap)
+                .padding(start = 12.dp, end = 12.dp, bottom = CardGap)
         ) {
             ArrowPreference(
                 title = "网盘链接一键唤起",
@@ -491,7 +489,7 @@ fun SettingsScreen(
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = CardGap)
+                .padding(start = 12.dp, end = 12.dp, bottom = CardGap)
         ) {
             ArrowPreference(
                 title = "关于云析",

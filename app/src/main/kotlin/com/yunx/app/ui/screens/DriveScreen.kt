@@ -626,9 +626,9 @@ fun DriveScreen(
                         state = accountListState,
                         modifier = modifier.fillMaxSize(),
                         contentPadding = PaddingValues(
-                            start = 16.dp + scaffoldPadding.calculateStartPadding(layoutDirection),
+                            start = scaffoldPadding.calculateStartPadding(layoutDirection),
                             top = 16.dp + scaffoldPadding.calculateTopPadding(),
-                            end = 16.dp + scaffoldPadding.calculateEndPadding(layoutDirection),
+                            end = scaffoldPadding.calculateEndPadding(layoutDirection),
                             bottom = 16.dp + scaffoldPadding.calculateBottomPadding()
                         ),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -641,7 +641,7 @@ fun DriveScreen(
                                 text = "登录后即可自动携带凭证解析与下载",
                                 style = MiuixTheme.textStyles.footnote1,
                                 color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
-                                modifier = Modifier.padding(bottom = 4.dp)
+                                modifier = Modifier.padding(start = 12.dp, end = 12.dp, bottom = 4.dp)
                             )
                         }
                         // 空间信息加载失败提示：失败时卡片只是没有进度条，
@@ -649,7 +649,7 @@ fun DriveScreen(
                         quotaError?.let { message ->
                             item(key = "quota_error") {
                                 Card(
-                                    modifier = Modifier.fillMaxWidth(),
+                                    modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
                                     colors = CardDefaults.defaultColors(
                                         color = MiuixTheme.colorScheme.errorContainer
                                     )
@@ -694,7 +694,7 @@ fun DriveScreen(
                                     text = "已隐藏 $hiddenHint，点右上角排序可恢复",
                                     style = MiuixTheme.textStyles.footnote1,
                                     color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
-                                    modifier = Modifier.padding(horizontal = 4.dp)
+                                    modifier = Modifier.padding(horizontal = 12.dp)
                                 )
                             }
                         }
@@ -969,12 +969,12 @@ private fun DriveAccountCard(
 
     if (onClick != null) {
         Card(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
             onClick = onClick
         ) { content() }
     } else {
         Card(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp)
         ) { content() }
     }
 }

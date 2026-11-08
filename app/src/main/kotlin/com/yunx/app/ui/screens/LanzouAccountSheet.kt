@@ -107,9 +107,12 @@ fun LanzouAccountSheet(
                 // （上游另在 ModalBottomSheet 的 sheetState 上挂了嵌套滚动；本地弹窗是 Miuix OverlayBottomSheet、
                 //  没有 sheetState，故未引入。）
                 .verticalScroll(scrollState)
-                .padding(start = 24.dp, end = 24.dp, top = 4.dp, bottom = 32.dp)
+                .padding(top = 4.dp, bottom = 32.dp)
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                modifier = Modifier.padding(horizontal = 12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Surface(
                     modifier = Modifier.size(52.dp),
                     shape = CircleShape,
@@ -153,11 +156,12 @@ fun LanzouAccountSheet(
             Text(
                 text = "登录信息",
                 style = MiuixTheme.textStyles.footnote2,
-                color = MiuixTheme.colorScheme.onSurfaceVariantSummary
+                color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                modifier = Modifier.padding(horizontal = 12.dp)
             )
             Spacer(modifier = Modifier.height(8.dp))
             Card(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
                 insideMargin = PaddingValues(16.dp)
             ) {
                 Column {

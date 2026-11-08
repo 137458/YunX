@@ -92,10 +92,13 @@ internal fun VideoAccountSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 24.dp, end = 24.dp, top = 4.dp, bottom = 32.dp)
+                .padding(top = 4.dp, bottom = 32.dp)
         ) {
             // 头部：平台 Logo + 平台名 + 登录态
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                modifier = Modifier.padding(horizontal = 12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Image(
                     painter = painterResource(platform.logoRes()),
                     contentDescription = null,
@@ -133,7 +136,7 @@ internal fun VideoAccountSheet(
             Spacer(modifier = Modifier.height(16.dp))
 
             SmallTitle(text = "账号（${accounts.size}）")
-            Card(modifier = Modifier.fillMaxWidth()) {
+            Card(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp)) {
                 accounts.forEach { account ->
                     AccountRow(
                         account = account,
@@ -185,7 +188,8 @@ internal fun VideoAccountSheet(
                 Text(
                     text = platform.loginBenefit,
                     style = MiuixTheme.textStyles.footnote1,
-                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                    modifier = Modifier.padding(horizontal = 12.dp)
                 )
             }
         }

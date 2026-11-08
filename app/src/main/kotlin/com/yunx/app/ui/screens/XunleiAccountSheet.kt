@@ -104,10 +104,13 @@ fun XunleiAccountSheet(
                         Modifier
                     }
                 )
-                .padding(start = 24.dp, end = 24.dp, top = 4.dp, bottom = 32.dp)
+                .padding(top = 4.dp, bottom = 32.dp)
         ) {
             // 用户简要信息：头像首字 + 昵称 + 平台标签
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                modifier = Modifier.padding(horizontal = 12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Surface(
                     modifier = Modifier.size(52.dp),
                     shape = CircleShape,
@@ -156,11 +159,12 @@ fun XunleiAccountSheet(
             Text(
                 text = "登录信息",
                 style = MiuixTheme.textStyles.body2,
-                color = MiuixTheme.colorScheme.onSurfaceVariantSummary
+                color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                modifier = Modifier.padding(horizontal = 12.dp)
             )
             Spacer(modifier = Modifier.height(8.dp))
             Card(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
                 insideMargin = PaddingValues(16.dp)
             ) {
                 Column {

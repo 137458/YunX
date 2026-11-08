@@ -224,9 +224,7 @@ fun ThemeScreen(
                     .verticalScroll(rememberScrollState())
                     .padding(
                         top = innerPadding.calculateTopPadding() + 8.dp,
-                        bottom = innerPadding.calculateBottomPadding() + 16.dp,
-                        start = 16.dp,
-                        end = 16.dp
+                        bottom = innerPadding.calculateBottomPadding() + 16.dp
                     )
             ) {
             // ---------- 外观模式 ----------
@@ -234,7 +232,7 @@ fun ThemeScreen(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 16.dp)
+                    .padding(start = 12.dp, end = 12.dp, bottom = 16.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
@@ -280,7 +278,7 @@ fun ThemeScreen(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 16.dp)
+                    .padding(start = 12.dp, end = 12.dp, bottom = 16.dp)
             ) {
                 // 动态色彩开关（仅 Android 12+）：Miuix 规范使用 SwitchPreference
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -339,7 +337,7 @@ fun ThemeScreen(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 16.dp)
+                    .padding(start = 12.dp, end = 12.dp, bottom = 16.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
@@ -375,7 +373,7 @@ fun ThemeScreen(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 16.dp)
+                    .padding(start = 12.dp, end = 12.dp, bottom = 16.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Row(
@@ -473,7 +471,7 @@ private fun ThemePreviewCard() {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = 16.dp)
+            .padding(start = 12.dp, end = 12.dp, bottom = 16.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(

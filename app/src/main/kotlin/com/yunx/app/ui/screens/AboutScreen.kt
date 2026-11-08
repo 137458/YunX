@@ -138,9 +138,7 @@ fun AboutScreen(
                     .verticalScroll(rememberScrollState())
                     .padding(
                         top = innerPadding.calculateTopPadding() + 8.dp,
-                        bottom = innerPadding.calculateBottomPadding() + 16.dp,
-                        start = 16.dp,
-                        end = 16.dp
+                        bottom = innerPadding.calculateBottomPadding() + 16.dp
                     )
             ) {
             // ---------- App 头部 ----------
@@ -152,7 +150,7 @@ fun AboutScreen(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 12.dp)
+                    .padding(start = 12.dp, end = 12.dp, bottom = 12.dp)
             ) {
                 Row(
                     modifier = Modifier.padding(16.dp),
@@ -184,7 +182,7 @@ fun AboutScreen(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 12.dp)
+                    .padding(start = 12.dp, end = 12.dp, bottom = 12.dp)
             ) {
                 PlatformContent()
             }
@@ -194,7 +192,7 @@ fun AboutScreen(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 12.dp)
+                    .padding(start = 12.dp, end = 12.dp, bottom = 12.dp)
             ) {
                 FeatureContent()
             }
@@ -204,7 +202,7 @@ fun AboutScreen(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 12.dp)
+                    .padding(start = 12.dp, end = 12.dp, bottom = 12.dp)
             ) {
                 TechContent()
             }
@@ -214,7 +212,7 @@ fun AboutScreen(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 12.dp)
+                    .padding(start = 12.dp, end = 12.dp, bottom = 12.dp)
             ) {
                 ArrowPreference(
                     title = "重新预览欢迎界面",
@@ -236,7 +234,7 @@ fun AboutScreen(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 16.dp)
+                    .padding(start = 12.dp, end = 12.dp, bottom = 16.dp)
             ) {
                 Row(
                     modifier = Modifier.padding(16.dp),

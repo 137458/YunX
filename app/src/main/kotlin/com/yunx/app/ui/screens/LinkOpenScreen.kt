@@ -113,13 +113,13 @@ fun LinkOpenScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
                 .padding(innerPadding)
                 .blurBackdropSource(backdrop)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp, vertical = 16.dp)
+                .padding(vertical = 16.dp)
         ) {
             SmallTitle(text = "功能说明")
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 12.dp)
+                    .padding(start = 12.dp, end = 12.dp, bottom = 12.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
@@ -162,7 +162,7 @@ fun LinkOpenScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 12.dp)
+                    .padding(start = 12.dp, end = 12.dp, bottom = 12.dp)
             ) {
                 ArrowPreference(
                     title = "去系统设置关联域名",
@@ -175,7 +175,7 @@ fun LinkOpenScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 16.dp)
+                    .padding(start = 12.dp, end = 12.dp, bottom = 16.dp)
             ) {
                 LinkOpenTarget.entries.forEach { target ->
                     SwitchPreference(

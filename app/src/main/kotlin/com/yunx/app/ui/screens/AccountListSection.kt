@@ -84,7 +84,7 @@ internal fun AccountListSection(
     LaunchedEffect(accounts.isEmpty()) { if (accounts.isEmpty()) onEmpty() }
 
     SmallTitle(text = "账号（${accounts.size}）")
-    Card(modifier = Modifier.fillMaxWidth()) {
+    Card(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp)) {
         accounts.forEach { account ->
             AccountRow(
                 account = account,
@@ -120,7 +120,7 @@ internal fun AccountListSection(
             "开启「多账号下载」后，下载会自动用上同一网盘的其他账号。",
         style = MiuixTheme.textStyles.footnote1,
         color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
-        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+        modifier = Modifier.padding(horizontal = 28.dp, vertical = 8.dp)
     )
 }
 
