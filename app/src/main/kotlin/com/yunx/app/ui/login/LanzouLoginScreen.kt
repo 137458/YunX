@@ -88,7 +88,8 @@ fun LanzouLoginScreen(
     var showTutorial by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { showTutorial = true }
 
-    BackHandler { if (!isSaving) onBack() }
+    // 保存期间禁止返回：只在此时注册回调，平时返回交由 NavHost 处理（保留预测性返回动画）
+    BackHandler(enabled = isSaving) { /* 保存中忽略返回 */ }
 
     Scaffold(
         topBar = {

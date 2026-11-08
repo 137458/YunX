@@ -76,8 +76,20 @@ object PreviewLauncher {
 
     private val _request = MutableStateFlow<PreviewRequest?>(null)
 
-    /** MainScreen 订阅它来挂载预览页（一次性：页面关闭后置空） */
+    /** 预览页 destination 订阅它来渲染内容（一次性：页面关闭后置空） */
     val request: StateFlow<PreviewRequest?> = _request.asStateFlow()
+
+    private var nextSeq = 0
+    private val _seq = MutableStateFlow(0)
+
+    /**
+     * 预览请求序号：每发起一次预览自增。
+     *
+     * 主框架据此判断「这是一次新的预览」并把 PreviewRoute 入栈；
+     * 用序号而不是请求对象本身做去重，是因为手势返回弹出预览页后请求仍然保留（不会重复入栈），
+     * 而序号是 Int，能随导航状态一起保存，进程重建后也不会误判。
+     */
+    val seq: StateFlow<Int> = _seq.asStateFlow()
 
     fun openMedia(
         items: List<PreviewMedia>,
@@ -93,11 +105,13 @@ object PreviewLauncher {
             title = title,
             onDownload = onDownload
         )
+        _seq.value = ++nextSeq
     }
 
     fun openText(url: String, fileName: String, headers: Map<String, String> = emptyMap(), title: String = fileName) {
         if (url.isBlank()) return
         _request.value = PreviewRequest(textUrl = url, textFileName = fileName, textHeaders = headers, title = title)
+        _seq.value = ++nextSeq
     }
 
     fun dismiss() {

@@ -130,7 +130,7 @@ fun XunleiLoginScreen(
         if (loginSucceeded) onSaved()
     }
 
-    BackHandler { onBack() }
+    // 返回由 NavHost 处理（本页已是 destination），系统预测性返回动画得以保留
 
 
     Scaffold(

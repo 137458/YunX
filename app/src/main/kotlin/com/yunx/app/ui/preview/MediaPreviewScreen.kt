@@ -120,8 +120,8 @@ fun MediaPreviewScreen(
     modifier: Modifier = Modifier
 ) {
     val snackbarHostState = rememberGlobalSnackbarHostState()
-    // 系统返回键等价于返回按钮
-    BackHandler(onBack = onClose)
+    // 返回由 NavHost 处理（页面已迁为 PreviewRoute destination），系统预测性返回动画得以保留；
+    // 这里只保留页面内的关闭按钮回调
     // 视频点「全屏」时收起本页自己的顶栏，让画面占满整屏
     var immersive by remember { mutableStateOf(false) }
     val title = remember(request) { previewTitle(request) }

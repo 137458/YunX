@@ -171,7 +171,7 @@ fun XunleiVerifyWebViewScreen(
 
     // 渲染进程崩溃时基类已先销毁过，destroyWebView 保证真正只销毁一次
     DisposableEffect(webView) { onDispose { destroyWebView(webView) } }
-    BackHandler { onBack() }
+    // 返回由 NavHost 处理（本页已是 destination），系统预测性返回动画得以保留
 
     Scaffold(
         topBar = {

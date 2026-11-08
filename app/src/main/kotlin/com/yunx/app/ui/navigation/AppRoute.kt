@@ -75,3 +75,32 @@ data object BookmarkRoute : AppRoute
 /** 应用内公告整页；[initialDetailId] 非空时直接打开详情，否则先看列表。 */
 @Serializable
 data class AnnouncementRoute(val initialDetailId: String? = null) : AppRoute
+
+/**
+ * 网盘账号登录页（各平台共用同一个 destination，按 [platform] 分派）。
+ *
+ * [platform] 取 `AccountLoginPlatform` 的枚举名；[addAccount] = 「添加账号」入口进来的一次登录，
+ * 成功后落成新的一行（标记由本页在离开时清理，避免影响日后的普通重新登录）。
+ */
+@Serializable
+data class AccountLoginRoute(
+    val platform: String,
+    val addAccount: Boolean = false
+) : AppRoute
+
+/** [AccountLoginRoute.platform] 的取值。 */
+enum class AccountLoginPlatform {
+    QUARK, UC, XUNLEI, XUNLEI_WEB, BAIDU, C139, PAN123, PAN115, GUANGYA, ILANZOU, LANZOU
+}
+
+/** 迅雷设备验证页（应用内 WebView 承载）；[verifyUrl] 与 [deviceId] 由登录页给出。 */
+@Serializable
+data class XunleiVerifyRoute(val verifyUrl: String, val deviceId: String) : AppRoute
+
+/** 视频平台登录页（多平台共用一页）；[platformName] 为 `VideoPlatform.name`，[newAccount] 为「添加账号」而非覆盖主账号。 */
+@Serializable
+data class VideoLoginRoute(val platformName: String, val newAccount: Boolean = false) : AppRoute
+
+/** 视频在线预览页。预览请求本身走进程内事件通道（不可序列化），路由只表达「预览页在栈顶」。 */
+@Serializable
+data object PreviewRoute : AppRoute

@@ -87,6 +87,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavHostController
 import com.yunx.app.data.announcement.AnnouncementReadStore
 import com.yunx.app.data.backup.AuthBackupManager
@@ -159,12 +160,20 @@ import com.yunx.app.ui.login.XunleiLoginScreen
 import com.yunx.app.ui.login.XunleiVerifyWebViewScreen
 import com.yunx.app.ui.login.XunleiWebLoginScreen
 import com.yunx.app.ui.navigation.AboutRoute
+import com.yunx.app.ui.navigation.AccountLoginPlatform
+import com.yunx.app.ui.navigation.AccountLoginRoute
+import com.yunx.app.ui.navigation.AnnouncementRoute
+import com.yunx.app.ui.navigation.AppGraph
+import com.yunx.app.ui.navigation.BookmarkRoute
 import com.yunx.app.ui.navigation.LanguageRoute
 import com.yunx.app.ui.navigation.LinkOpenRoute
 import com.yunx.app.ui.navigation.MainTab
 import com.yunx.app.ui.navigation.MultiAccountDownloadRoute
+import com.yunx.app.ui.navigation.PendingResolve
+import com.yunx.app.ui.navigation.PreviewRoute
 import com.yunx.app.ui.navigation.SupportRoute
 import com.yunx.app.ui.navigation.ThemeRoute
+import com.yunx.app.ui.navigation.VideoLoginRoute
 import com.yunx.app.ui.preview.MediaPreviewScreen
 import com.yunx.app.ui.preview.PreviewLauncher
 import com.yunx.app.ui.rememberGlobalSnackbarHostState
@@ -260,6 +269,8 @@ import top.yukonga.miuix.kmp.window.WindowDialog
 fun MainScreen(
     /** 根导航控制器：全屏页迁出为 NavHost destination 后，入口统一从这里 navigate */
     navController: NavHostController,
+    /** 应用级依赖图（网络客户端 / 数据库 / 仓库 / 下载管理器），与各 destination 共享 */
+    graph: AppGraph,
     /** 外部来源请求直接打开的 Tab（如点击实况通知 → 下载页）；null = 用默认「解析」页 */
     openTab: MainTab? = null,
     /** [openTab] 被消费后回调：调用方负责清空它，避免旋转/重组时重复切页 */
@@ -288,27 +299,6 @@ fun MainScreen(
             onOpenTabConsumed()
         }
     }
-    var showQuarkLogin by rememberSaveable { mutableStateOf(false) }
-    var showUCLogin by rememberSaveable { mutableStateOf(false) }
-    var showXunleiLogin by rememberSaveable { mutableStateOf(false) }
-    var showXunleiVerify by rememberSaveable { mutableStateOf(false) }
-    var xunleiVerifyUrl by rememberSaveable { mutableStateOf("") }
-    var xunleiVerifyDeviceId by rememberSaveable { mutableStateOf("") }
-    var showBaiduLogin by rememberSaveable { mutableStateOf(false) }
-    var showC139Login by rememberSaveable { mutableStateOf(false) }
-    var showPan123Login by rememberSaveable { mutableStateOf(false) }
-    var showBookmarks by rememberSaveable { mutableStateOf(false) }
-    var showXunleiWebLogin by rememberSaveable { mutableStateOf(false) }
-    var showPan115Login by rememberSaveable { mutableStateOf(false) }
-    var showGuangYaLogin by rememberSaveable { mutableStateOf(false) }
-    var showILanzouLogin by rememberSaveable { mutableStateOf(false) }
-    var showLanzouLogin by rememberSaveable { mutableStateOf(false) }
-    // 视频解析登录页：打开中的平台（null = 关闭）；videoLoginAsNewAccount = 「添加账号」而非覆盖主账号
-    var videoLoginPlatform by remember { mutableStateOf<VideoPlatform?>(null) }
-    var videoLoginAsNewAccount by remember { mutableStateOf(false) }
-    var showAnnouncements by rememberSaveable { mutableStateOf(false) }
-    // 公告弹窗「查看详情」直接进详情页时带过去的 id（null = 先看列表）
-    var announcementDetailId by rememberSaveable { mutableStateOf<String?>(null) }
     var showGitHubTokenDialog by rememberSaveable { mutableStateOf(false) }
     var showGitHubClearConfirm by rememberSaveable { mutableStateOf(false) }
     val saveableStateHolder = rememberSaveableStateHolder()
@@ -316,7 +306,8 @@ fun MainScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     // 设置仓储：引导页/忽略版本号等 UI 状态也统一从这里读写（构造时会迁移旧的 yunx_prefs 值）
-    val settings = remember { SettingsRepository(context) }
+    // 由 AppGraph 统一持有：主框架在覆盖页（登录/收藏等）入栈时会离开组合，不能在本页 remember
+    val settings = graph.settings
     // 底栏样式由「主题与外观」页写入，经 AppThemeManager 的内存态即时响应
     val bottomBarStyle = BottomBarStyle.fromPersisted(AppThemeManager.bottomBarStyle)
     val blurBackdrop = rememberBlurBackdrop()
@@ -324,7 +315,11 @@ fun MainScreen(
     // 更新检测：请求 GitHub 最新 Release（仓库无 Release / 网络失败则不提示）
     var showUpdateDialog by remember { mutableStateOf(false) }
     var pendingRelease by remember { mutableStateOf<UpdateChecker.Release?>(null) }
+    // 主框架在覆盖页入栈时会离开组合：启动期一次性动作要用 saveable 标记，返回主页时不重复触发
+    var startupUpdateChecked by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(Unit) {
+        if (startupUpdateChecked) return@LaunchedEffect
+        startupUpdateChecked = true
         val checkResult = UpdateChecker.fetchLatestRelease(
             includePrerelease = settings.acceptPrereleaseUpdate
         )
@@ -339,22 +334,18 @@ fun MainScreen(
             showUpdateDialog = true
         }
     }
-    val api = remember { QuarkApi() }
-    val ucApi = remember { UCApi() }
-    val xunleiApi = remember { XunleiApi() }
-    val baiduApi = remember { BaiduApi() }
-    // 139 的口令 XML 接口要带 x-DeviceInfo / x-yun-user-agent 两枚设备头，字段由系统 API 与
-    // 本机安装 ID 动态生成（不读 IMEI / ANDROID_ID，见 C139DeviceInfo KDoc）；不注入就会退化成占位值。
-    val appContext = context.applicationContext
-    val c139Api = remember(appContext) {
-        C139Api(deviceInfoProvider = { C139DeviceInfo.from(appContext) })
-    }
-    val pan123Api = remember { Pan123Api() }
-    val pan115Api = remember { Pan115Api() }
-    val guangyaApi = remember { GuangYaApi() }
-    val ilanzouApi = remember { ILanzouApi() }
-    val lanzouApi = remember { LanzouApi() }
-    val db = remember { AppDatabase.get(context) }
+    // 网络客户端、数据库与账号仓库由 AppGraph 统一持有（登录页 destination 也要拿到同一实例）
+    val api = graph.api
+    val ucApi = graph.ucApi
+    val xunleiApi = graph.xunleiApi
+    val baiduApi = graph.baiduApi
+    val c139Api = graph.c139Api
+    val pan123Api = graph.pan123Api
+    val pan115Api = graph.pan115Api
+    val guangyaApi = graph.guangyaApi
+    val ilanzouApi = graph.ilanzouApi
+    val lanzouApi = graph.lanzouApi
+    val db = graph.db
 
     // 应用内公告：列表接口有副作用（会更新服务端曝光计数），只在本页启动时检查一次，不轮询
     val announcementReadStore = remember { AnnouncementReadStore(context) }
@@ -363,7 +354,12 @@ fun MainScreen(
     )
     val unreadAnnouncementCount by announcementViewModel.unreadCount.collectAsState()
     val popupAnnouncement by announcementViewModel.popup.collectAsState()
-    LaunchedEffect(Unit) { announcementViewModel.checkStartup() }
+    var startupAnnouncementChecked by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        if (startupAnnouncementChecked) return@LaunchedEffect
+        startupAnnouncementChecked = true
+        announcementViewModel.checkStartup()
+    }
 
     // GitHub API：Token 存储在 GitHubTokenStore；被 GitHub 拒绝（401）时自动清除并回退匿名限额
     val githubApi = remember { GitHubApi(tokenProvider = { GitHubTokenStore.getToken(context) }) }
@@ -377,97 +373,21 @@ fun MainScreen(
             }
         }
     }
-    val repository = remember {
-        QuarkAccountRepository(db.quarkAccountDao(), api)
-    }
-    val ucRepository = remember {
-        UCAccountRepository(db.ucAccountDao(), ucApi)
-    }
-    val xunleiRepository = remember {
-        XunleiAccountRepository(db.xunleiAccountDao(), xunleiApi)
-    }
-    val baiduRepository = remember {
-        BaiduAccountRepository(db.baiduAccountDao(), baiduApi)
-    }
-    val c139Repository = remember {
-        C139AccountRepository(db.c139AccountDao())
-    }
-    val pan123Repository = remember {
-        Pan123AccountRepository(db.pan123AccountDao(), pan123Api)
-    }
-    val pan115Repository = remember {
-        Pan115AccountRepository(db.pan115AccountDao(), pan115Api)
-    }
-    val guangyaRepository = remember {
-        GuangYaAccountRepository(db.guangyaAccountDao(), guangyaApi)
-    }
-    val ilanzouRepository = remember {
-        ILanzouAccountRepository(db.ilanzouAccountDao(), ilanzouApi)
-    }
-    val lanzouRepository = remember {
-        LanzouAccountRepository(db.lanzouAccountDao(), lanzouApi)
-    }
-    // 光鸭云盘设备标识：业务 API 的 did 头要同步取值，故由仓库缓存、API 惰性读取
-    guangyaApi.deviceIdProvider = { guangyaRepository.cachedDeviceId() }
+    val repository = graph.quarkRepository
+    val ucRepository = graph.ucRepository
+    val xunleiRepository = graph.xunleiRepository
+    val baiduRepository = graph.baiduRepository
+    val c139Repository = graph.c139Repository
+    val pan123Repository = graph.pan123Repository
+    val pan115Repository = graph.pan115Repository
+    val guangyaRepository = graph.guangyaRepository
+    val ilanzouRepository = graph.ilanzouRepository
+    val lanzouRepository = graph.lanzouRepository
     // 认证备份：打包/恢复各平台凭证（网盘 + 视频解析平台）
-    val backupManager = remember {
-        AuthBackupManager(
-            db.quarkAccountDao(),
-            db.ucAccountDao(),
-            db.xunleiAccountDao(),
-            db.baiduAccountDao(),
-            db.c139AccountDao(),
-            db.pan123AccountDao(),
-            db.pan115AccountDao(),
-            db.guangyaAccountDao(),
-            db.ilanzouAccountDao(),
-            db.lanzouAccountDao(),
-            db.videoAccountDao()
-        )
-    }
-    // 下载管理器：OkHttp 分片下载器 + Room 任务持久化 + 可配置线程数（设置页动态生效）
-    // 下载客户端由全局 HttpClients 统一管理（大 Dispatcher 保障分片并发，不锁死 CDN host；
-    // 并支持隐藏菜单「忽略 SSL 证书」开关，抓包调试时即时生效，无需重启）
-    val downloadManager = remember {
-        DownloadManager(
-            context = context,
-            dao = db.downloadTaskDao(),
-            downloader = ChunkDownloader({ HttpClients.downloadClient() }),
-            threadProvider = { platform -> settings.downloadThreadsFor(platform) },
-            // 自定义下载保存目录（SAF tree Uri），设置页可选，动态生效
-            saveDirProvider = { settings.downloadDirUri },
-            // 网络与下载策略（设置页可调，动态生效）：并发任务数 / 全局限速 / 失败重试
-            concurrencyProvider = { settings.maxConcurrentDownloads },
-            speedLimitProvider = { settings.downloadSpeedLimit },
-            retryCountProvider = { settings.downloadRetryCount },
-            // 锁屏保持下载 / 通知栏速度开关
-            keepWhenLockedProvider = { settings.keepDownloadWhenLocked },
-            showSpeedProvider = { settings.notificationShowSpeed }
-        )
-    }
-    // Android 9- 写公共 Download 需要 WRITE_EXTERNAL_STORAGE 运行时授权：
-    // 下载完成保存前由 DownloadManager.storagePermissionProvider 触发动态申请，授权后自动继续保存
-    var pendingStoragePermission by remember { mutableStateOf<CompletableDeferred<Boolean>?>(null) }
-    val storagePermissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { granted ->
-        pendingStoragePermission?.complete(granted)
-        pendingStoragePermission = null
-    }
-    downloadManager.storagePermissionProvider = {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            true // Android 10+ MediaStore 无需存储权限
-        } else if (ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
-            true
-        } else {
-            val deferred = CompletableDeferred<Boolean>()
-            pendingStoragePermission = deferred
-            withContext(Dispatchers.Main) {
-                storagePermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-            }
-            deferred.await()
-        }
-    }
+    val backupManager = graph.backupManager
+    // 下载管理器由 AppGraph 持有：覆盖页入栈时主框架离开组合，下载任务不能随之重建
+    val downloadManager = graph.downloadManager
+    // Android 9- 写公共 Download 的运行时授权由 AppNavHost 统一接线（主框架离开组合时仍有效）
     val viewModel: QuarkAccountViewModel = viewModel(
         factory = QuarkAccountViewModel.Factory(repository)
     )
@@ -542,18 +462,7 @@ fun MainScreen(
             loginState = ucLoginState
         )
     )
-    // 迅雷 access_token 过期（401 unauthenticated）自动刷新：refresh_token 换新并持久化（对齐官方 /v1/auth/token 抓包）
-    xunleiApi.refreshTokenProvider = { deviceId ->
-        val acc = xunleiRepository.getAccount()
-        if (acc == null || acc.refreshToken.isBlank()) null
-        else xunleiApi.refreshToken(acc.refreshToken, deviceId)?.also { (at, nrt) ->
-            xunleiRepository.updateTokens(at, nrt)
-        }
-    }
-    // 网页登录的 captcha：本地 9 盐签名现换（快、后台可用），签名被拒才回退网页会话
-    xunleiApi.webCaptchaRefresher = { deviceId, action ->
-        xunleiRepository.refreshWebCaptcha(deviceId, action)
-    }
+    // 迅雷 token 自动刷新与网页 captcha 现换由 AppGraph 初始化时接线（与仓库实例同源）
     // 迅雷云盘浏览：点击已登录的迅雷卡片打开（access_token/设备指纹/captcha 从数据库读取）
     val xunleiCloudViewModel: XunleiCloudViewModel = viewModel(
         factory = XunleiCloudViewModel.Factory(
@@ -820,208 +729,32 @@ fun MainScreen(
     }
 
 
-    // 首次启动引导页已迁出为 NavHost destination（OnboardingRoute），见 AppNavHost
-
-    // 夸克登录页：全屏覆盖
-    if (showQuarkLogin) {
-        QuarkLoginScreen(
-            viewModel = viewModel,
-            onBack = {
-                showQuarkLogin = false
-                viewModel.cancelAddAccount()
-            },
-            onSaved = { showQuarkLogin = false }
-        )
-        return
-    }
-
-    // UC 登录页：全屏覆盖
-    if (showUCLogin) {
-        UCLoginScreen(
-            viewModel = ucViewModel,
-            onBack = {
-                showUCLogin = false
-                ucViewModel.cancelAddAccount()
-            },
-            onSaved = { showUCLogin = false }
-        )
-        return
-    }
-
-    // 迅雷登录页：全屏覆盖（账号+密码，可能触发短信验证）
-    if (showXunleiLogin) {
-        XunleiLoginScreen(
-            viewModel = xunleiViewModel,
-            onBack = {
-                showXunleiLogin = false
-                xunleiViewModel.cancelAddAccount()
-            },
-            onSaved = { showXunleiLogin = false },
-            onVerify = { url, deviceId ->
-                // 应用内验证：登录页让位，切到验证 WebView 全屏承载（不再跳外部浏览器）
-                xunleiVerifyUrl = url
-                xunleiVerifyDeviceId = deviceId
-                showXunleiLogin = false
-                showXunleiVerify = true
+    // 登录页与在线预览页已迁为 NavHost destination（见 AppNavHost）；
+    // 预览请求按序号去重：手势返回弹出预览页后请求仍保留，不能据此重复入栈
+    val previewSeq by PreviewLauncher.seq.collectAsState()
+    var handledPreviewSeq by rememberSaveable { mutableStateOf(0) }
+    LaunchedEffect(previewSeq) {
+        if (previewSeq != 0 && previewSeq != handledPreviewSeq) {
+            handledPreviewSeq = previewSeq
+            if (navController.currentDestination?.hasRoute<PreviewRoute>() != true) {
+                navController.navigate(PreviewRoute)
             }
-        )
-        return
+        }
     }
-
-    // 迅雷验证页（应用内 WebView 承载验证面板）：全屏覆盖（兜底承载，核心验证仍走自有短信流）
-    if (showXunleiVerify) {
-        XunleiVerifyWebViewScreen(
-            verifyUrl = xunleiVerifyUrl,
-            deviceId = xunleiVerifyDeviceId,
-            onResult = { success, _ ->
-                showXunleiVerify = false
-                showXunleiLogin = true // 回到登录页
-                if (success) {
-                    // 设备已验证受信任：自动重试密码登录（应直接成功并自动关闭登录页）
-                    SnackbarController.show(AppStrings.get(R.string.vm_main_verify_done_logging_in))
-                    xunleiViewModel.retryLoginAfterVerify()
-                } else {
-                    SnackbarController.show(AppStrings.get(R.string.vm_main_verify_incomplete))
-                }
-            },
-            onBack = {
-                showXunleiVerify = false
-                showXunleiLogin = true // 返回登录页短信步骤
+    // 收藏页「解析」：收藏页只发请求并回退，解析链路仍在主框架里（与迁移前一致）
+    LaunchedEffect(Unit) {
+        PendingResolve.request.collect { request ->
+            if (request == null) return@collect
+            currentTab = MainTab.Resolve
+            // GitHub 收藏（仓库链接）走 GitHub 解析入口，与主页快捷方式一致
+            val github = GitHubLinkParser.parse(request.link)
+            if (github != null) {
+                resolveViewModel.startGitHubResolve(github)
+            } else {
+                resolveViewModel.startResolve(request.link, request.pwd)
             }
-        )
-        return
-    }
-
-    // 百度登录页：全屏覆盖（WebView 登录提取 Cookie）
-    if (showBaiduLogin) {
-        BaiduLoginScreen(
-            viewModel = baiduViewModel,
-            onBack = { showBaiduLogin = false },
-            onSaved = { showBaiduLogin = false }
-        )
-        return
-    }
-
-    // 139 登录页：全屏覆盖（WebView 登录提取 Cookie）
-    if (showC139Login) {
-        C139LoginScreen(
-            viewModel = c139ViewModel,
-            onBack = {
-                showC139Login = false
-                c139ViewModel.cancelAddAccount()
-            },
-            onSaved = { showC139Login = false }
-        )
-        return
-    }
-
-    // 123 登录页：全屏覆盖（WebView 打开官网登录，提取 localStorage 的 authorToken）
-    if (showPan123Login) {
-        Pan123LoginScreen(
-            viewModel = pan123ViewModel,
-            onBack = {
-                showPan123Login = false
-                pan123ViewModel.cancelAddAccount()
-            },
-            onSaved = { showPan123Login = false }
-        )
-        return
-    }
-
-    // 迅雷网页登录页：全屏覆盖（Cookie 登录，账密登录页的「网页登录」入口进入）
-    if (showXunleiWebLogin) {
-        XunleiWebLoginScreen(
-            viewModel = xunleiViewModel,
-            onBack = {
-                showXunleiWebLogin = false
-                xunleiViewModel.cancelAddAccount()
-            },
-            onSaved = { showXunleiWebLogin = false }
-        )
-        return
-    }
-
-    // 115 登录页：全屏覆盖（WebView 打开官网登录，提取整串登录 Cookie）
-    if (showPan115Login) {
-        Pan115LoginScreen(
-            viewModel = pan115ViewModel,
-            onBack = {
-                showPan115Login = false
-                pan115ViewModel.cancelAddAccount()
-            },
-            onSaved = { showPan115Login = false }
-        )
-        return
-    }
-
-    // 光鸭登录页：全屏覆盖（账号密码登录）
-    if (showGuangYaLogin) {
-        GuangYaLoginScreen(
-            viewModel = guangyaViewModel,
-            onBack = {
-                showGuangYaLogin = false
-                guangyaViewModel.cancelAddAccount()
-            },
-            onSaved = { showGuangYaLogin = false }
-        )
-        return
-    }
-
-    // 蓝奏云优享版登录页：全屏覆盖（账号密码登录）
-    if (showILanzouLogin) {
-        ILanzouLoginScreen(
-            viewModel = ilanzouViewModel,
-            onBack = {
-                showILanzouLogin = false
-                ilanzouViewModel.cancelAddAccount()
-            },
-            onSaved = { showILanzouLogin = false }
-        )
-        return
-    }
-
-    // 蓝奏云登录页：全屏覆盖（WebView 打开官网登录，提取登录 Cookie）
-    if (showLanzouLogin) {
-        LanzouLoginScreen(
-            viewModel = lanzouViewModel,
-            onBack = {
-                showLanzouLogin = false
-                lanzouViewModel.cancelAddAccount()
-            },
-            onSaved = { showLanzouLogin = false }
-        )
-        return
-    }
-
-    // 视频平台登录页：全屏覆盖（抖音/小红书/快手/微博/AcFun/B站/Pixiv 共用一页）
-    val videoLoginTarget = videoLoginPlatform
-    if (videoLoginTarget != null) {
-        VideoLoginScreen(
-            platform = videoLoginTarget,
-            viewModel = videoAccountViewModel,
-            newAccount = videoLoginAsNewAccount,
-            onBack = {
-                videoLoginPlatform = null
-                videoLoginAsNewAccount = false
-            },
-            onSaved = {
-                videoLoginPlatform = null
-                videoLoginAsNewAccount = false
-            }
-        )
-        return
-    }
-
-    // 视频在线预览页：解析结果页/网盘页点「在线预览」时经 PreviewLauncher 请求，
-    // 挂在登录页链最后 = 预览页永远压在最上层（预览前若需登录，登录页已先返回）
-    val previewRequest by PreviewLauncher.request.collectAsState()
-    val previewTarget = previewRequest
-    if (previewTarget != null) {
-        MediaPreviewScreen(
-            request = previewTarget,
-            onClose = { PreviewLauncher.dismiss() }
-        )
-        return
+            PendingResolve.consume()
+        }
     }
     // 折叠标题状态提升到本层：跨页面共享，页面切换时折叠/展开状态保持不变
     val scrollBehavior = MiuixScrollBehavior()
@@ -1057,8 +790,8 @@ fun MainScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     IconButton(onClick = {
-                        announcementDetailId = null
-                        showAnnouncements = true
+                        // 从图标进 = 先看列表（不带详情 id）
+                        navController.navigate(AnnouncementRoute())
                     }) {
                         Icon(
                             imageVector = Icons.Outlined.Campaign,
@@ -1084,7 +817,7 @@ fun MainScreen(
                 if (currentTab == MainTab.Resolve) {
                     TextButton(
                         text = AppStrings.get(R.string.rs_bookmark),
-                        onClick = { showBookmarks = true }
+                        onClick = { navController.navigate(BookmarkRoute) }
                     )
                 }
                 // 账号页标题右上角：网盘列表排序 / 隐藏未登录。
@@ -1132,7 +865,7 @@ fun MainScreen(
                         pan115CloudViewModel,
                         guangyaCloudViewModel,
                         bookmarkViewModel = bookmarkViewModel,
-                        onOpenBookmarks = { showBookmarks = true },
+                        onOpenBookmarks = { navController.navigate(BookmarkRoute) },
                         // 深链接 / 分享进来的链接：解析页填进输入框并自动发起解析
                         incomingLink = incomingLink,
                         onIncomingLinkConsumed = onIncomingLinkConsumed
@@ -1160,7 +893,7 @@ fun MainScreen(
                         ilanzouCloudViewModel = ilanzouCloudViewModel,
                         lanzouCloudViewModel = lanzouCloudViewModel,
                         driveQuotaViewModel = driveQuotaViewModel,
-                        onQuarkLogin = { showQuarkLogin = true },
+                        onQuarkLogin = { navController.navigate(AccountLoginRoute(AccountLoginPlatform.QUARK.name)) },
                         // 「添加账号」：先给对应平台的账号 VM 打上「新增」标记，再打开它的登录页；
                         // 登录成功后这次登录会落成新的一行（见 resolveAccountSlot），
                         // 登录页关闭时会清掉标记，不会影响日后的普通重新登录
@@ -1168,69 +901,34 @@ fun MainScreen(
                             // 先清 WebView 登录态：否则网页登录页会自动检测出旧账号又存一遍
                             // （见 MultiAccountViewModel.prepareAddAccount）
                             multiAccountViewModel.prepareAddAccount()
-                            when (platform) {
-                                DownloadPlatform.QUARK -> {
-                                    viewModel.beginAddAccount()
-                                    showQuarkLogin = true
-                                }
-
-                                DownloadPlatform.UC -> {
-                                    ucViewModel.beginAddAccount()
-                                    showUCLogin = true
-                                }
-
-                                DownloadPlatform.XUNLEI -> {
-                                    xunleiViewModel.beginAddAccount()
-                                    showXunleiLogin = true
-                                }
-
-                                DownloadPlatform.BAIDU -> {
-                                    baiduViewModel.beginAddAccount()
-                                    showBaiduLogin = true
-                                }
-
-                                DownloadPlatform.C139 -> {
-                                    c139ViewModel.beginAddAccount()
-                                    showC139Login = true
-                                }
-
-                                DownloadPlatform.PAN123 -> {
-                                    pan123ViewModel.beginAddAccount()
-                                    showPan123Login = true
-                                }
-
-                                DownloadPlatform.PAN115 -> {
-                                    pan115ViewModel.beginAddAccount()
-                                    showPan115Login = true
-                                }
-
-                                DownloadPlatform.GUANGYA -> {
-                                    guangyaViewModel.beginAddAccount()
-                                    showGuangYaLogin = true
-                                }
-
-                                DownloadPlatform.ILANZOU -> {
-                                    ilanzouViewModel.beginAddAccount()
-                                    showILanzouLogin = true
-                                }
-
-                                DownloadPlatform.LANZOU -> {
-                                    lanzouViewModel.beginAddAccount()
-                                    showLanzouLogin = true
-                                }
+                            val target = when (platform) {
+                                DownloadPlatform.QUARK -> AccountLoginPlatform.QUARK
+                                DownloadPlatform.UC -> AccountLoginPlatform.UC
+                                DownloadPlatform.XUNLEI -> AccountLoginPlatform.XUNLEI
+                                DownloadPlatform.BAIDU -> AccountLoginPlatform.BAIDU
+                                DownloadPlatform.C139 -> AccountLoginPlatform.C139
+                                DownloadPlatform.PAN123 -> AccountLoginPlatform.PAN123
+                                DownloadPlatform.PAN115 -> AccountLoginPlatform.PAN115
+                                DownloadPlatform.GUANGYA -> AccountLoginPlatform.GUANGYA
+                                DownloadPlatform.ILANZOU -> AccountLoginPlatform.ILANZOU
+                                DownloadPlatform.LANZOU -> AccountLoginPlatform.LANZOU
+                                else -> null
+                            }
+                            if (target != null) {
+                                navController.navigate(AccountLoginRoute(target.name, addAccount = true))
                             }
                         },
                         multiAccountViewModel = multiAccountViewModel,
                         onDownloadStarted = { currentTab = MainTab.Download },
-                        onUCLogin = { showUCLogin = true },
-                        onXunleiLogin = { showXunleiLogin = true },
-                        onBaiduLogin = { showBaiduLogin = true },
-                        onC139Login = { showC139Login = true },
-                        onPan123Login = { showPan123Login = true },
-                        onPan115Login = { showPan115Login = true },
-                        onGuangYaLogin = { showGuangYaLogin = true },
-                        onILanzouLogin = { showILanzouLogin = true },
-                        onLanzouLogin = { showLanzouLogin = true },
+                        onUCLogin = { navController.navigate(AccountLoginRoute(AccountLoginPlatform.UC.name)) },
+                        onXunleiLogin = { navController.navigate(AccountLoginRoute(AccountLoginPlatform.XUNLEI.name)) },
+                        onBaiduLogin = { navController.navigate(AccountLoginRoute(AccountLoginPlatform.BAIDU.name)) },
+                        onC139Login = { navController.navigate(AccountLoginRoute(AccountLoginPlatform.C139.name)) },
+                        onPan123Login = { navController.navigate(AccountLoginRoute(AccountLoginPlatform.PAN123.name)) },
+                        onPan115Login = { navController.navigate(AccountLoginRoute(AccountLoginPlatform.PAN115.name)) },
+                        onGuangYaLogin = { navController.navigate(AccountLoginRoute(AccountLoginPlatform.GUANGYA.name)) },
+                        onILanzouLogin = { navController.navigate(AccountLoginRoute(AccountLoginPlatform.ILANZOU.name)) },
+                        onLanzouLogin = { navController.navigate(AccountLoginRoute(AccountLoginPlatform.LANZOU.name)) },
                         githubHasToken = githubHasTokenState,
                         onGitHubTokenClick = { showGitHubTokenDialog = true },
                         // 已配置 Token 点卡片主体：用 GET /user 取 login，经统一解析入口进入该账号仓库列表
@@ -1253,15 +951,13 @@ fun MainScreen(
                         videoAccounts = videoAccounts,
                         onVideoLogin = { platform ->
                             // 普通登录：覆盖当前账号那一行，不新增记录
-                            videoLoginAsNewAccount = false
-                            videoLoginPlatform = platform
+                            navController.navigate(VideoLoginRoute(platform.name, newAccount = false))
                         },
                         onVideoAddAccount = { platform ->
                             // 先清一次 WebView 登录态：否则登录页会自动检测出旧账号，
                             // 「添加账号」加进来的还是同一个账号（与网盘的 prepareAddAccount 同因）
                             multiAccountViewModel.prepareAddAccount()
-                            videoLoginAsNewAccount = true
-                            videoLoginPlatform = platform
+                            navController.navigate(VideoLoginRoute(platform.name, newAccount = true))
                         },
                         onVideoSetPrimary = { platform, id ->
                             videoAccountViewModel.setPrimary(platform, id)
@@ -1366,44 +1062,7 @@ fun MainScreen(
         }
     }
 
-    // 收藏网盘链接：叠加覆盖层（淡入 + 轻微缩放过渡）
-    AnimatedVisibility(
-        visible = showBookmarks,
-        enter = fadeIn(tween(220)) + scaleIn(tween(220), initialScale = 0.96f),
-        exit = fadeOut(tween(160)) + scaleOut(tween(160), targetScale = 0.96f),
-        modifier = Modifier.fillMaxSize()
-    ) {
-        BookmarkScreen(
-            viewModel = bookmarkViewModel,
-            onBack = { showBookmarks = false },
-            onResolve = { link, pwd ->
-                showBookmarks = false
-                currentTab = MainTab.Resolve
-                // GitHub 收藏（仓库链接）走 GitHub 解析入口，与主页快捷方式一致
-                val github = GitHubLinkParser.parse(link)
-                if (github != null) {
-                    resolveViewModel.startGitHubResolve(github)
-                } else {
-                    resolveViewModel.startResolve(link, pwd)
-                }
-            }
-        )
-    }
-    // 应用内公告整页：叠加覆盖层（淡入 + 轻微缩放过渡）
-    AnimatedVisibility(
-        visible = showAnnouncements,
-        enter = fadeIn(tween(220)) + scaleIn(tween(220), initialScale = 0.96f),
-        exit = fadeOut(tween(160)) + scaleOut(tween(160), targetScale = 0.96f),
-        modifier = Modifier.fillMaxSize()
-    ) {
-        AnnouncementScreen(
-            viewModel = announcementViewModel,
-            onBack = { showAnnouncements = false },
-            initialDetailId = announcementDetailId
-        )
-    }
-
-    // 链接打开方式、多账号下载、支持开发、主题、语言已迁为 NavHost destination（见 AppNavHost）
+    // 收藏页与公告页已迁为 NavHost destination（见 AppNavHost）
 
     // 全局提示条宿主已上移到 AppNavHost 根层，任何 destination 都能显示提示
 
@@ -1417,8 +1076,7 @@ fun MainScreen(
         AnnouncementPopupDialog(
             announcement = announcement,
             onDetail = {
-                announcementDetailId = announcement.id
-                showAnnouncements = true
+                navController.navigate(AnnouncementRoute(announcement.id))
                 announcementViewModel.consumePopup()
             },
             onDismiss = { announcementViewModel.consumePopup() }
