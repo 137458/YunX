@@ -104,17 +104,8 @@ fun Pan115LoginScreen(
 
     val webView = remember(webViewEpoch) {
         WebView(context).apply {
-            settings.javaScriptEnabled = true
-            settings.domStorageEnabled = true
-            settings.setSupportZoom(true)
-            settings.builtInZoomControls = true
-            settings.displayZoomControls = false
-            settings.useWideViewPort = true
-            settings.loadWithOverviewMode = true
-            settings.layoutAlgorithm = WebSettings.LayoutAlgorithm.NARROW_COLUMNS
-            setInitialScale(0)
+            LoginWebViewDefaults.apply(this, Pan115Constants.WEB_UA)
             // 桌面 UA：115 网页版是桌面站点，且接口请求头也用同一 UA，避免风控
-            settings.userAgentString = Pan115Constants.WEB_UA
             settings.suppressRequestedWithHeader()
             webViewClient = object : DiagnosticWebViewClient() {
                 override fun shouldOverrideUrlLoading(
@@ -134,14 +125,8 @@ fun Pan115LoginScreen(
                 override fun onPageFinished(view: WebView?, url: String?) {
                     DiagnosticLog.webview("page_finished", url)
                     isLoading = false
-                    // 强制覆盖页面 viewport：适配屏幕宽度 + 允许双指缩放（桌面版页面无 viewport 或限制缩放时生效）
-                    view?.evaluateJavascript(
-                        "(function(){var m=document.querySelector('meta[name=\"viewport\"]');" +
-                            "var c='width=device-width,initial-scale=1.0,maximum-scale=5.0,user-scalable=yes';" +
-                            "if(m){m.setAttribute('content',c);}else{var n=document.createElement('meta');n.name='viewport';n.content=c;document.head.appendChild(n);}" +
-                            "window.dispatchEvent(new Event('resize'));})()",
-                        null
-                    )
+                    // 强制覆盖页面 viewport：适配屏幕宽度 + 允许双指缩放（与 controller 共用同一份脚本）
+                    view?.applyViewportOverride()
                 }
                 override fun onRendererGone() {
                     isLoading = false
@@ -168,7 +153,7 @@ fun Pan115LoginScreen(
         },
         isPlausible = { Pan115Constants.isValidCookie(it) },
         validateAndSave = { viewModel.saveCookie(it) },
-        isPaused = { isSaving || isSavingManual || showCookieDialog },
+        isPaused = { isSaving || isSavingManual || showCookieDialog || rendererGone },
         onInFlightChange = { isSaving = it },
         onAutoSaved = onSaved
     )
@@ -223,7 +208,7 @@ fun Pan115LoginScreen(
                                     }
                                 }
                             },
-                            enabled = !isSaving && !isSavingManual
+                            enabled = !isSaving && !isSavingManual && !rendererGone
                         )
                     }
                 }

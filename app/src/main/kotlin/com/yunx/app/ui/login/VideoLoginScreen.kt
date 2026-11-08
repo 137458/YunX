@@ -76,7 +76,6 @@ import org.json.JSONObject
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Card
-import top.yukonga.miuix.kmp.basic.CircularProgressIndicator
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.Scaffold
@@ -171,23 +170,7 @@ fun VideoLoginScreen(
     // 以 platform 为 key：同一个组合位置换平台时不能沿用上一个平台的 WebView 与已加载页面
     val webView = remember(platform, webViewEpoch) {
         WebView(context).apply {
-            settings.javaScriptEnabled = true
-            settings.domStorageEnabled = true
-
-            settings.setSupportZoom(true)          // 支持缩放
-            settings.builtInZoomControls = true    // 启用内置缩放机制（双指缩放）
-            settings.displayZoomControls = false   // 隐藏屏幕上的缩放按钮（只保留手势）
-
-            settings.useWideViewPort = true        // 支持 viewport 标签
-            settings.loadWithOverviewMode = true
-
-            // ★ 允许第三方 Cookie：登录页里嵌的 reCAPTCHA / SSO 都是第三方 iframe，WebView 默认拦掉它们的
-            //   Cookie 会让验证码流程悄悄失败（拿不到有效 token，提交时只报一句通用的服务器错误）。
-            CookieManager.getInstance().setAcceptThirdPartyCookies(this, true)
-
-            // ★ UA 由平台决定（`VideoPlatform.loginUserAgent`），并把 Chrome 大版本换成内核真实版本：
-            //   默认桌面 Chrome —— 小红书/B站 的桌面登录页才是可用那一版（小红书移动端没有登录入口）。
-            settings.userAgentString = loginUserAgent
+            LoginWebViewDefaults.apply(this, loginUserAgent)
             // ★ 客户端提示必须跟着这条 UA 一起改：只改 UA 不改 Sec-CH-UA，服务端拿到的就是
             //   「UA=Chrome、client hints=Android WebView」这种自相矛盾的指纹，登录页风控直接拒绝。
             settings.alignClientHintsWith(loginUserAgent)
@@ -268,7 +251,7 @@ fun VideoLoginScreen(
         // 基线尚未取到时不做限制（否则会阻塞登录）。
         isPlausible = { it.isNotBlank() && it != guestCookie },
         validateAndSave = { viewModel.save(platform, it, newAccount) != null },
-        isPaused = { isSaving || isSavingManual || showCookieDialog },
+        isPaused = { isSaving || isSavingManual || showCookieDialog || rendererGone },
         onInFlightChange = { isSaving = it },
         onAutoSaved = onSaved
     )
@@ -334,12 +317,7 @@ fun VideoLoginScreen(
                         )
                     }
                     if (isSaving) {
-                        CircularProgressIndicator(
-                            modifier = Modifier
-                                .padding(horizontal = 12.dp)
-                                .size(20.dp),
-                            strokeWidth = 2.dp
-                        )
+                        LoginLoadingIndicator(modifier = Modifier.padding(horizontal = 12.dp))
                     } else {
                         TextButton(
                             text = "保存",
@@ -357,7 +335,7 @@ fun VideoLoginScreen(
                                     }
                                 }
                             },
-                            enabled = !isSavingManual
+                            enabled = !isSavingManual && !rendererGone
                         )
                     }
                 }
