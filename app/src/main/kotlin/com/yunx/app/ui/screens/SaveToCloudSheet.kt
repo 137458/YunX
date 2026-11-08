@@ -48,7 +48,7 @@ fun SaveToCloudSheet(
     // 转存结果提示（由外层 Scaffold 统一托管）
     LaunchedEffect(resolveViewModel.saveMessage) {
         resolveViewModel.saveMessage?.let {
-            SnackbarController.show(it)
+            SnackbarController.show(it.resolve())
             resolveViewModel.consumeSaveMessage()
         }
     }

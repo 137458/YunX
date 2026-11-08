@@ -242,7 +242,7 @@ fun ResolveScreen(
     // 下载错误提示
     LaunchedEffect(downloadError) {
         downloadError?.let {
-            SnackbarController.show(it)
+            SnackbarController.show(it.resolve())
             viewModel.consumeDownloadError()
         }
     }

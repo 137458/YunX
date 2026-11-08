@@ -92,6 +92,7 @@ import com.yunx.app.ui.preview.PreviewLauncher
 import com.yunx.app.ui.preview.PreviewMedia
 import com.yunx.app.ui.preview.PreviewTypes
 import com.yunx.app.util.AppStrings
+import com.yunx.app.util.UiText
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
@@ -189,7 +190,7 @@ class ResolveViewModel(
      */
     private var pendingAltLinks: List<Pair<DownloadLink, String>> = emptyList()
 
-    var downloadError by mutableStateOf<String?>(null)
+    var downloadError by mutableStateOf<UiText?>(null)
     private set
 
     /** 获取下载直链中（UI 显示加载弹窗） */
@@ -205,7 +206,7 @@ class ResolveViewModel(
         private set
 
     /** 转存结果消息（Toast） */
-    var saveMessage by mutableStateOf<String?>(null)
+    var saveMessage by mutableStateOf<UiText?>(null)
         private set
 
     /** 当前分享是否支持转存（夸克 / UC / 迅雷 / 百度 / 139 / 123 / 115 / 光鸭） */
@@ -255,7 +256,7 @@ class ResolveViewModel(
     fun requestSave(file: ShareFile) {
         // 游客模式只开放列目录：转存需要登录，直接给提示，别让用户进到空的目录选择
         if (isGuest) {
-            downloadError = AppStrings.get(R.string.rs_login_required_save, platformName())
+            downloadError = UiText.Res(R.string.rs_login_required_save, listOf(platformName()))
             return
         }
         saveTarget = file
@@ -282,124 +283,124 @@ class ResolveViewModel(
                     SharePlatform.XUNLEI -> {
                         val credential = currentCredential()
                         if (credential.isNullOrBlank()) {
-                            saveMessage = AppStrings.get(R.string.rs_login_first, platformName())
+                            saveMessage = UiText.Res(R.string.rs_login_first, listOf(platformName()))
                             return@launch
                         }
                         xunleiResolveRepository.transferFile(s, file, toDirFid, credential)
                             .onSuccess {
-                                saveMessage = AppStrings.get(R.string.rs_saved_to, platformName())
+                                saveMessage = UiText.Res(R.string.rs_saved_to, listOf(platformName()))
                                 saveTarget = null
                             }
                             .onFailure {
-                                saveMessage = it.message ?: AppStrings.get(R.string.rs_transfer_failed)
+                                saveMessage = it.message?.let(UiText::Raw) ?: UiText.Res(R.string.rs_transfer_failed)
                             }
                     }
                     SharePlatform.BAIDU -> {
                         val credential = currentCredential()
                         if (credential.isNullOrBlank()) {
-                            saveMessage = AppStrings.get(R.string.rs_login_first, platformName())
+                            saveMessage = UiText.Res(R.string.rs_login_first, listOf(platformName()))
                             return@launch
                         }
                         baiduResolveRepository.transferFile(s, file, toDirFid, credential)
                             .onSuccess {
-                                saveMessage = AppStrings.get(R.string.rs_saved_to, platformName())
+                                saveMessage = UiText.Res(R.string.rs_saved_to, listOf(platformName()))
                                 saveTarget = null
                             }
                             .onFailure {
-                                saveMessage = it.message ?: AppStrings.get(R.string.rs_transfer_failed)
+                                saveMessage = it.message?.let(UiText::Raw) ?: UiText.Res(R.string.rs_transfer_failed)
                             }
                     }
                     SharePlatform.C139 -> {
                         val credential = currentCredential()
                         if (credential.isNullOrBlank()) {
-                            saveMessage = AppStrings.get(R.string.rs_login_first, platformName())
+                            saveMessage = UiText.Res(R.string.rs_login_first, listOf(platformName()))
                             return@launch
                         }
                         c139ResolveRepository.transferFile(s, file, toDirFid, credential)
                             .onSuccess {
-                                saveMessage = AppStrings.get(R.string.rs_saved_to, platformName())
+                                saveMessage = UiText.Res(R.string.rs_saved_to, listOf(platformName()))
                                 saveTarget = null
                             }
                             .onFailure {
-                                saveMessage = it.message ?: AppStrings.get(R.string.rs_transfer_failed)
+                                saveMessage = it.message?.let(UiText::Raw) ?: UiText.Res(R.string.rs_transfer_failed)
                             }
                     }
                     SharePlatform.UC -> {
                         val credential = currentCredential()
                         if (credential.isNullOrBlank()) {
-                            saveMessage = AppStrings.get(R.string.rs_login_first, platformName())
+                            saveMessage = UiText.Res(R.string.rs_login_first, listOf(platformName()))
                             return@launch
                         }
                         ucResolveRepository.transferFile(s, file, toDirFid, credential)
                             .onSuccess {
-                                saveMessage = AppStrings.get(R.string.rs_saved_to, platformName())
+                                saveMessage = UiText.Res(R.string.rs_saved_to, listOf(platformName()))
                                 saveTarget = null
                             }
                             .onFailure {
-                                saveMessage = it.message ?: AppStrings.get(R.string.rs_transfer_failed)
+                                saveMessage = it.message?.let(UiText::Raw) ?: UiText.Res(R.string.rs_transfer_failed)
                             }
                     }
                     SharePlatform.PAN123 -> {
                         // 123 保存到个人盘：copy/save（mshare 无需签名）+ 轮询 task
                         val credential = currentCredential()
                         if (credential.isNullOrBlank()) {
-                            saveMessage = AppStrings.get(R.string.rs_login_first, platformName())
+                            saveMessage = UiText.Res(R.string.rs_login_first, listOf(platformName()))
                             return@launch
                         }
                         pan123ResolveRepository.transferFile(s, file, toDirFid, credential)
                             .onSuccess {
-                                saveMessage = AppStrings.get(R.string.rs_saved_to, platformName())
+                                saveMessage = UiText.Res(R.string.rs_saved_to, listOf(platformName()))
                                 saveTarget = null
                             }
                             .onFailure {
-                                saveMessage = it.message ?: AppStrings.get(R.string.rs_transfer_failed)
+                                saveMessage = it.message?.let(UiText::Raw) ?: UiText.Res(R.string.rs_transfer_failed)
                             }
                     }
                     SharePlatform.PAN115 -> {
                         // 115 保存到个人盘：share/receive（不回传新 fid，仓库内部转存后回查）
                         val credential = currentCredential()
                         if (credential.isNullOrBlank()) {
-                            saveMessage = AppStrings.get(R.string.rs_login_first, platformName())
+                            saveMessage = UiText.Res(R.string.rs_login_first, listOf(platformName()))
                             return@launch
                         }
                         pan115ResolveRepository.transferFile(s, file, toDirFid, credential)
                             .onSuccess {
-                                saveMessage = AppStrings.get(R.string.rs_saved_to, platformName())
+                                saveMessage = UiText.Res(R.string.rs_saved_to, listOf(platformName()))
                                 saveTarget = null
                             }
                             .onFailure {
-                                saveMessage = it.message ?: AppStrings.get(R.string.rs_transfer_failed)
+                                saveMessage = it.message?.let(UiText::Raw) ?: UiText.Res(R.string.rs_transfer_failed)
                             }
                     }
                     SharePlatform.GUANGYA -> {
                         // 光鸭保存到个人盘：restore_share（accessToken + fileIds + parentId）
                         val credential = currentCredential()
                         if (credential.isNullOrBlank()) {
-                            saveMessage = AppStrings.get(R.string.rs_login_first, platformName())
+                            saveMessage = UiText.Res(R.string.rs_login_first, listOf(platformName()))
                             return@launch
                         }
                         guangyaResolveRepository.transferFile(s, file, toDirFid, credential)
                             .onSuccess {
-                                saveMessage = AppStrings.get(R.string.rs_saved_to, platformName())
+                                saveMessage = UiText.Res(R.string.rs_saved_to, listOf(platformName()))
                                 saveTarget = null
                             }
                             .onFailure {
-                                saveMessage = it.message ?: AppStrings.get(R.string.rs_transfer_failed)
+                                saveMessage = it.message?.let(UiText::Raw) ?: UiText.Res(R.string.rs_transfer_failed)
                             }
                     }
                     else -> {
                         val credential = currentCredential()
                         if (credential.isNullOrBlank()) {
-                            saveMessage = AppStrings.get(R.string.rs_login_first, platformName())
+                            saveMessage = UiText.Res(R.string.rs_login_first, listOf(platformName()))
                             return@launch
                         }
                         resolveRepository.saveToCloud(s, file, toDirFid, credential)
                             .onSuccess {
-                                saveMessage = AppStrings.get(R.string.rs_saved_to, platformName())
+                                saveMessage = UiText.Res(R.string.rs_saved_to, listOf(platformName()))
                                 saveTarget = null
                             }
                             .onFailure {
-                                saveMessage = it.message ?: AppStrings.get(R.string.rs_transfer_failed)
+                                saveMessage = it.message?.let(UiText::Raw) ?: UiText.Res(R.string.rs_transfer_failed)
                             }
                     }
                 }
@@ -459,7 +460,7 @@ class ResolveViewModel(
                 val credential = currentCredential()
                 if (credential.isNullOrBlank()) {
                     // 游客模式只开放列目录：转存需要登录
-                    downloadError = AppStrings.get(R.string.rs_login_required_save, platformName())
+                    downloadError = UiText.Res(R.string.rs_login_required_save, listOf(platformName()))
                     return@launch
                 }
                 var okCount = 0
@@ -468,7 +469,7 @@ class ResolveViewModel(
                     // 用户点击「中断」：停止剩余项，已转存的不回滚
                     if (batchCancelRequested) {
                         interrupted = true
-                        downloadError = AppStrings.get(R.string.rs_transfer_interrupted)
+                        downloadError = UiText.Res(R.string.rs_transfer_interrupted)
                         break
                     }
                     runCatching {
@@ -512,7 +513,11 @@ class ResolveViewModel(
                     }.onSuccess { okCount++ }
                 }
                 if (!interrupted) {
-                    downloadError = if (okCount > 0) AppStrings.get(R.string.rs_transferred_count, okCount, platformName()) else AppStrings.get(R.string.rs_transfer_failed)
+                    downloadError = if (okCount > 0) {
+                        UiText.Res(R.string.rs_transferred_count, listOf(okCount, platformName()))
+                    } else {
+                        UiText.Res(R.string.rs_transfer_failed)
+                    }
                 }
                 exitMultiSelect()
             } finally {
@@ -548,7 +553,7 @@ class ResolveViewModel(
                 // 游客模式：夸克/UC 的小文件直链不要求登录（走游客取链），其余平台必须登录
                 val credential = currentCredential().orEmpty()
                 if (credential.isBlank() && !supportsGuestDownload()) {
-                    downloadError = AppStrings.get(R.string.rs_login_required_download, platformName())
+                    downloadError = UiText.Res(R.string.rs_login_required_download, listOf(platformName()))
                     return@launch
                 }
                 // 夸克/UC 共用 __puus：取链与下载必须用同一份已刷新 Cookie（直链签名绑定取链时刻的 __puus）
@@ -571,7 +576,7 @@ class ResolveViewModel(
                     }
                 }
                 if (tasks.isEmpty()) {
-                    downloadError = AppStrings.get(R.string.rs_folder_empty)
+                    downloadError = UiText.Res(R.string.rs_folder_empty)
                     exitMultiSelect()
                     return@launch
                 }
@@ -583,7 +588,7 @@ class ResolveViewModel(
                     // 用户点击「中断」：停止剩余项，已入队的任务保留下载
                     if (batchCancelRequested) {
                         interrupted = true
-                        downloadError = AppStrings.get(R.string.rs_download_interrupted)
+                        downloadError = UiText.Res(R.string.rs_download_interrupted)
                         break
                     }
                     val (file, relPath) = task
@@ -615,9 +620,19 @@ class ResolveViewModel(
                 }
                 if (!interrupted) {
                     downloadError = when {
-                        failCount == 0 -> if (okCount > 0) AppStrings.get(R.string.rs_added_downloads, okCount) else AppStrings.get(R.string.rs_download_link_failed)
-                        else -> AppStrings.get(R.string.rs_added_and_failed, okCount, failCount) +
-                            (firstFailReason?.let { AppStrings.get(R.string.rs_failure_reason, it) } ?: "")
+                        failCount == 0 -> if (okCount > 0) {
+                            UiText.Res(R.string.rs_added_downloads, listOf(okCount))
+                        } else {
+                            UiText.Res(R.string.rs_download_link_failed)
+                        }
+                        else -> UiText.Join(
+                            listOfNotNull(
+                                UiText.Res(R.string.rs_added_and_failed, listOf(okCount, failCount)),
+                                firstFailReason?.let {
+                                    UiText.Res(R.string.rs_failure_reason, listOf(it))
+                                }
+                            )
+                        )
                     }
                     // 全部获取完再一次性切到下载页
                     if (okCount > 0) downloadStarted = true
@@ -694,14 +709,14 @@ class ResolveViewModel(
                     }
                 }
                 if (tasks.isEmpty()) {
-                    downloadError = AppStrings.get(R.string.rs_no_downloadable)
+                    downloadError = UiText.Res(R.string.rs_no_downloadable)
                     exitMultiSelect()
                     return@launch
                 }
                 var okCount = 0
                 for ((index, t) in tasks.withIndex()) {
                     if (batchCancelRequested) {
-                        downloadError = AppStrings.get(R.string.rs_download_interrupted)
+                        downloadError = UiText.Res(R.string.rs_download_interrupted)
                         break
                     }
                     batchProgress = "${index + 1}/${tasks.size}"
@@ -718,7 +733,11 @@ class ResolveViewModel(
                     }
                 }
                 if (!batchCancelRequested) {
-                    downloadError = if (okCount > 0) AppStrings.get(R.string.rs_added_downloads, okCount) else AppStrings.get(R.string.rs_download_failed)
+                    downloadError = if (okCount > 0) {
+                        UiText.Res(R.string.rs_added_downloads, listOf(okCount))
+                    } else {
+                        UiText.Res(R.string.rs_download_failed)
+                    }
                     if (okCount > 0) downloadStarted = true
                 }
                 exitMultiSelect()
@@ -1065,7 +1084,7 @@ class ResolveViewModel(
             } catch (e: kotlinx.coroutines.CancellationException) {
                 throw e
             } catch (e: Exception) {
-                downloadError = AppStrings.get(R.string.rs_add_download_failed)
+                downloadError = UiText.Res(R.string.rs_add_download_failed)
             }
         }
     }
@@ -1122,11 +1141,12 @@ class ResolveViewModel(
                 failReason = e.message
             }
             if (okCount > 0) {
-                downloadError = AppStrings.get(R.string.rs_added_downloads, okCount)
+                downloadError = UiText.Res(R.string.rs_added_downloads, listOf(okCount))
                 downloadStarted = true
             } else {
                 // 一个都没入队：把原因写出来，不要静默失败
-                downloadError = failReason?.takeIf { it.isNotBlank() } ?: AppStrings.get(R.string.rs_add_download_failed)
+                downloadError = failReason?.takeIf { it.isNotBlank() }?.let(UiText::Raw)
+                    ?: UiText.Res(R.string.rs_add_download_failed)
             }
         }
     }
@@ -1173,7 +1193,7 @@ class ResolveViewModel(
             } catch (e: kotlinx.coroutines.CancellationException) {
                 throw e
             } catch (e: Exception) {
-                downloadError = AppStrings.get(R.string.rs_add_download_failed)
+                downloadError = UiText.Res(R.string.rs_add_download_failed)
             }
         }
     }
@@ -1357,7 +1377,7 @@ class ResolveViewModel(
 
     private fun fallbackToResolve(link: String, pwd: String?, error: String? = null) {
         updateFallbackToResolve = true
-        if (!error.isNullOrBlank()) downloadError = error
+        if (!error.isNullOrBlank()) downloadError = UiText.Raw(error)
         startResolve(link, pwd)
     }
 
@@ -1944,7 +1964,7 @@ class ResolveViewModel(
                     // 直链文件（DirectFile）在 startGitHubResolve 已设置 downloadLink；这里仅处理列表内文件
                     val url = githubUrlForFid(file.fid)
                     if (url == null) {
-                        downloadError = AppStrings.get(R.string.rs_cannot_get_link)
+                        downloadError = UiText.Res(R.string.rs_cannot_get_link)
                         return@launch
                     }
                     downloadLink = DownloadLink(
@@ -1966,7 +1986,7 @@ class ResolveViewModel(
             try {
                 val s = session
                 if (s == null) {
-                    downloadError = AppStrings.get(R.string.rs_resolve_first)
+                    downloadError = UiText.Res(R.string.rs_resolve_first)
                     return@launch
                 }
                 val credential = currentCredential()
@@ -1974,12 +1994,12 @@ class ResolveViewModel(
                     // 游客模式：夸克/UC 的分享直链本身不要求登录（夸克约 50MB 以内，超出报 23018；
                     // UC 实测 4GB 文件都放行），走各自的游客取链；其余平台必须登录
                     if (!supportsGuestDownload()) {
-                        downloadError = AppStrings.get(R.string.rs_login_required_download, platformName())
+                        downloadError = UiText.Res(R.string.rs_login_required_download, listOf(platformName()))
                         return@launch
                     }
                     currentRepo().getGuestShareDownloadLink(s, file)
                         .onSuccess { downloadLink = it }
-                        .onFailure { downloadError = it.message ?: AppStrings.get(R.string.rs_download_link_failed) }
+                        .onFailure { downloadError = it.message?.let(UiText::Raw) ?: UiText.Res(R.string.rs_download_link_failed) }
                     // 游客链路只有一个身份，不存在多源
                     pendingAltLinks = emptyList()
                     return@launch
@@ -1998,7 +2018,7 @@ class ResolveViewModel(
                         // 下载时由内置分片下载器按分片轮流使用（见 DownloadManager 的「多源分片」）
                         pendingAltLinks = fetchAltLinks(file, quarkCred)
                     }
-                    .onFailure { downloadError = it.message ?: AppStrings.get(R.string.rs_download_link_failed) }
+                    .onFailure { downloadError = it.message?.let(UiText::Raw) ?: UiText.Res(R.string.rs_download_link_failed) }
             } finally {
                 isFetchingDownloadLink = false
             }
@@ -2043,7 +2063,7 @@ class ResolveViewModel(
             try {
                 val s = session
                 if (s == null) {
-                    downloadError = AppStrings.get(R.string.rs_resolve_first)
+                    downloadError = UiText.Res(R.string.rs_resolve_first)
                     return@launch
                 }
                 val credential = currentCredential().orEmpty()
@@ -2052,11 +2072,11 @@ class ResolveViewModel(
                 if (credential.isBlank()) {
                     // 游客态：与 fetchDownloadLink 一致，仅夸克/UC/光鸭/蓝奏支持匿名取链，其余平台必须登录
                     if (!supportsGuestDownload()) {
-                        downloadError = AppStrings.get(R.string.rs_login_required_download, platformName())
+                        downloadError = UiText.Res(R.string.rs_login_required_download, listOf(platformName()))
                         return@launch
                     }
                     link = currentRepo().getGuestShareDownloadLink(s, file).getOrElse {
-                        downloadError = it.message ?: AppStrings.get(R.string.rs_download_link_failed)
+                        downloadError = it.message?.let(UiText::Raw) ?: UiText.Res(R.string.rs_download_link_failed)
                         return@launch
                     }
                     // 游客链路只有一个身份：请求头走「游客态 Cookie」分支（guestCookie 非空）
@@ -2069,7 +2089,7 @@ class ResolveViewModel(
                         else -> credential
                     }
                     link = resolveShareLink(currentRepo(), s, file, quarkCred).getOrElse {
-                        downloadError = it.message ?: AppStrings.get(R.string.rs_download_link_failed)
+                        downloadError = it.message?.let(UiText::Raw) ?: UiText.Res(R.string.rs_download_link_failed)
                         return@launch
                     }
                     effectiveCredential = effectiveDownloadCredential(credential)
@@ -2323,7 +2343,7 @@ class ResolveViewModel(
             // 游客模式：夸克/UC 的小文件直链不要求登录（link 里已带游客 __pugs）
             val credential = currentCredential().orEmpty()
             if (credential.isBlank() && !supportsGuestDownload()) {
-                downloadError = AppStrings.get(R.string.rs_login_required_download, platformName())
+                downloadError = UiText.Res(R.string.rs_login_required_download, listOf(platformName()))
                 return@launch
             }
             // 单文件多源分片（实验性 C2）：把取链时预取的备选源一起交给下载器；用完即弃
