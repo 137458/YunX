@@ -17,6 +17,7 @@
 - WebView 平台级助手（崩溃收尾 `handleRendererProcessGone`、幂等销毁 `destroyWebView`、UA 客户端提示对齐 `alignClientHintsWith`）从 `ui/login` 迁到 `util/webview`：无头解析通道在数据层，原先反向 import UI 包，数据层因此被 UI 编译期绑死
 
 ### 修复
+- 修复主题页自定义色块选中后调色盘图标固定为白色、在白色或浅色自定义主题上看不见的问题：图标与预置色块统一走 `readableSeedForeground` 按实际亮度选择黑/白前景
 - 修复四个直连 WebView 的登录页（迅雷网页登录 / 迅雷安全验证 / 115 / 视频平台）渲染进程崩溃后「重试」没有次数上限的问题：连点会无限重建 WebView 实例、累积内存与渲染进程。重建次数统一封顶 3 次（`RendererRestartBudget`，计数、是否允许重试与文案选择由 `RendererRestartPolicyTest` 钉住），预算为页面级状态，离开页面再回来重新计数；用尽后隐藏重试按钮、禁用刷新入口，并明确提示需退出重进或改用其他登录方式；视频平台页的刷新按钮与覆盖层共用同一份预算，无法绕过上限
 - 修复九个非夸克平台的重命名 / 新建文件夹弹窗不做名称校验的问题：`cloudNameError` 从夸克专用重命名步骤上移到共享 `CloudDriveRenameDialog`，空名、`.`/`..`、含 `/` `\` 或控制字符、超过 255 字符的名称在本地即被拦下（规则由 `CloudNameErrorTest` 钉住）
 - 修复登录页与无头解析 WebView 在渲染进程崩溃时连带杀掉整个应用的问题：不覆写 `onRenderProcessGone` 时系统会直接结束宿主进程（填验证码 / 解析视频途中闪退）。登录页统一由 `DiagnosticWebViewClient` 处理：摘下并销毁崩溃的 WebView、返回 `true`，页面展示「渲染进程已崩溃」并在重试时重建 WebView（旧实例已不可用，`reload()` 无效）；走 `LoginWebViewController` 的 5 个页面同样改为崩溃后重建而非 reload；无头解析通道自行处置并提前收工，不再陪着轮询空等到超时

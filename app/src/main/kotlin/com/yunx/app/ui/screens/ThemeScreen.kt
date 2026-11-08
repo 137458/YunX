@@ -638,7 +638,11 @@ private fun CustomColorButton(
             Icon(
                 imageVector = Icons.Outlined.Palette,
                 contentDescription = null,
-                tint = if (isSelected) Color.White else MiuixTheme.colorScheme.onSurfaceSecondary,
+                tint = if (isSelected) {
+                    readableSeedForeground(Color(customColor.toInt()))
+                } else {
+                    MiuixTheme.colorScheme.onSurfaceSecondary
+                },
                 modifier = Modifier.size(22.dp)
             )
         }
