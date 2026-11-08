@@ -232,4 +232,6 @@
     <string name="vm_video_benefit_xhs">小红书网页端要求登录后才能查看笔记，未登录解析会失败</string>
     <string name="vm_video_benefit_bilibili">登录后可解析更高清晰度；未登录只能拿到很低清的单文件</string>
     <string name="vm_video_benefit_pixiv">未登录只能拿到一部分公开作品；粘贴浏览器里的 Cookie 后可解析全部作品（含 R18 与受限作品）</string>
+    <string name="vm_link_open_features">功能说明</string>
+    <string name="vm_link_open_shortcuts">快捷入口</string>
 </resources>

@@ -233,4 +233,6 @@
     <string name="vm_video_benefit_xhs">La version web de Xiaohongshu exige une connexion pour consulter les publications ; l\'analyse échouera sans connexion.</string>
     <string name="vm_video_benefit_bilibili">La connexion permet une meilleure résolution ; sans connexion, vous n\'obtenez qu\'un fichier unique de très basse qualité.</string>
     <string name="vm_video_benefit_pixiv">Sans connexion, seules certaines œuvres publiques sont disponibles ; collez le cookie de votre navigateur pour analyser toutes les œuvres (y compris R18 et les œuvres restreintes).</string>
+    <string name="vm_link_open_features">Fonctionnement</string>
+    <string name="vm_link_open_shortcuts">Accès rapide</string>
 </resources>

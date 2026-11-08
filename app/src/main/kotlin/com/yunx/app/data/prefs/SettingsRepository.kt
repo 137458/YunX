@@ -254,17 +254,6 @@ class SettingsRepository internal constructor(
         }
 
     /**
-     * 应用语言：空串=跟随系统；否则为 BCP47 标签（zh-Hans / zh-Hant / en / ja / fr）。
-     * ★ 真正生效靠 [com.yunx.app.ui.theme.LocaleController.wrap] 在 Activity.attachBaseContext 里包 Context，
-     *   单改这里不会立刻切换语言，改完需要重建 Activity（见「语言」设置页）。
-     */
-    var appLanguage: String
-        get() = prefs.getString("app_language", "") ?: ""
-        set(value) {
-            prefs.edit().putString("app_language", value).apply()
-        }
-
-    /**
      * 下载调试（设置 → 关于云析 → 长按 → 开发调试）：默认关。
      * 开启后按下载任务记录事件流（主要变更节点 / 错误节点），下载页长按任务可进「调试信息」页查看并导出；
      * **关闭会清空全部日志**（见 `DownloadDebugLog`），所以设置页关开关前有二次确认弹窗。
@@ -318,6 +307,17 @@ class SettingsRepository internal constructor(
         get() = prefs.getInt("dark_mode", 0)
         set(value) {
             write { putInt("dark_mode", value.coerceIn(0, 2)) }
+        }
+
+    /**
+     * 应用语言：空串=跟随系统；否则为 BCP47 标签（zh-Hans / zh-Hant / en / ja / fr）。
+     * ★ 真正生效靠 [com.yunx.app.ui.theme.LocaleController.wrap] 在 Activity.attachBaseContext 里包 Context，
+     *   单改这里不会立刻切换语言，改完需要重建 Activity（见设置页「语言」入口）。
+     */
+    var appLanguage: String
+        get() = prefs.getString("app_language", "") ?: ""
+        set(value) {
+            prefs.edit().putString("app_language", value).apply()
         }
 
     /** 主题色模式：0=动态色彩（Android12+ 壁纸取色，低版本回退默认蓝），1=默认蓝色，2=自定义种子色 */

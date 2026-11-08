@@ -18,6 +18,7 @@
 
 package com.yunx.app.data.repository
 
+import com.yunx.app.R
 import com.yunx.app.data.db.BaiduAccountDao
 import com.yunx.app.data.db.BaiduAccountEntity
 import com.yunx.app.data.db.resolveAccountSlot
@@ -25,6 +26,7 @@ import com.yunx.app.data.download.DownloadPlatform
 import com.yunx.app.data.network.BaiduApi
 import com.yunx.app.data.network.BaiduConstants
 import com.yunx.app.data.network.HttpClients
+import com.yunx.app.util.AppStrings
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -48,7 +50,8 @@ sealed interface SaveResult {
 }
 
 /** 网络失败统一提示文案 */
-internal const val ACCOUNT_NETWORK_ERROR = "网络异常，请重试"
+internal val ACCOUNT_NETWORK_ERROR: String
+    get() = AppStrings.get(R.string.er_account_network_error)
 
 /**
  * 网络失败异常：仓库对外的 Boolean 兼容入口用它把「网络失败」与「凭证无效」区分开。

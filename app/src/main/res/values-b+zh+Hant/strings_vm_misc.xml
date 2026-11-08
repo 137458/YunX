@@ -232,4 +232,6 @@
     <string name="vm_video_benefit_xhs">小紅書網頁端要求登入後才能查看筆記，未登入解析會失敗</string>
     <string name="vm_video_benefit_bilibili">登入後可解析更高清晰度；未登入只能拿到很低清的單檔案</string>
     <string name="vm_video_benefit_pixiv">未登入只能拿到一部分公開作品；貼上瀏覽器裡的 Cookie 後可解析全部作品（含 R18 與受限作品）</string>
+    <string name="vm_link_open_features">功能說明</string>
+    <string name="vm_link_open_shortcuts">快捷入口</string>
 </resources>

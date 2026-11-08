@@ -94,4 +94,6 @@
     <string name="er_quark_default_nickname">夸克用戶</string>
     <string name="er_uc_default_nickname">UC用戶</string>
     <string name="er_xunlei_default_nickname">迅雷用戶</string>
+    <string name="er_account_network_error">網路異常，請重試</string>
+    <string name="er_xunlei_download_url_empty">取得下載連結失敗：迅雷未回傳該檔案的下載位址（大檔案可能需要會員）</string>
 </resources>

@@ -232,4 +232,6 @@
     <string name="vm_video_benefit_xhs">Xiaohongshu requires login on its web version to view posts; parsing will fail without login.</string>
     <string name="vm_video_benefit_bilibili">Logging in allows higher resolution; without login you only get a very low-quality single file.</string>
     <string name="vm_video_benefit_pixiv">Without login only some public works are available; paste the cookie from your browser to resolve all works (including R18 and restricted works).</string>
+    <string name="vm_link_open_features">What it does</string>
+    <string name="vm_link_open_shortcuts">Shortcut</string>
 </resources>

@@ -18,12 +18,14 @@
 
 package com.yunx.app.data.repository
 
+import com.yunx.app.R
 import com.yunx.app.data.db.QuarkAccountDao
 import com.yunx.app.data.db.QuarkAccountEntity
 import com.yunx.app.data.db.resolveAccountSlot
 import com.yunx.app.data.download.DownloadPlatform
 import com.yunx.app.data.network.QuarkApi
 import com.yunx.app.data.network.QuarkConstants
+import com.yunx.app.util.AppStrings
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob

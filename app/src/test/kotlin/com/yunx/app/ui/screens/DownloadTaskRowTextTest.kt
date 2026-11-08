@@ -18,9 +18,13 @@
 
 package com.yunx.app.ui.screens
 
+import com.yunx.app.R
 import com.yunx.app.data.db.DownloadTaskEntity
 import com.yunx.app.data.download.DownloadStats
+import com.yunx.app.util.AppStrings
+import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Before
 import org.junit.Test
 
 /** 任务行副标题的推导规则：两种密度共用一份文案，不在界面里各拼一套 */
@@ -28,6 +32,28 @@ class DownloadTaskRowTextTest {
 
     private val mb = 1_048_576L
     private val total = 100L * mb
+
+    /**
+     * 文案已走资源表，JVM 单测没有 Context：注入一张与模板一致的替身表，
+     * 断言仍然逐字校验状态、速度、剩余、线程的拼接结果。
+     */
+    @Before
+    fun installStringTable() {
+        val table = mapOf(
+            R.string.ed_status_pending to "等待中",
+            R.string.ed_status_downloading to "下载中",
+            R.string.ed_status_paused to "已暂停",
+            R.string.ed_status_completed to "已完成",
+            R.string.ed_status_failed to "失败",
+            R.string.ed_status_unknown to "未知",
+        )
+        AppStrings.installResolverForTest { resId, _ -> table[resId] ?: "" }
+    }
+
+    @After
+    fun resetStringTable() {
+        AppStrings.installResolverForTest(null)
+    }
 
     private fun task(
         status: Int = DownloadTaskEntity.STATUS_DOWNLOADING,

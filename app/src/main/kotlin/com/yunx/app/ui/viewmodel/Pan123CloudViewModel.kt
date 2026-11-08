@@ -20,6 +20,7 @@ package com.yunx.app.ui.viewmodel
 
 import android.content.ContentResolver
 import android.net.Uri
+import com.yunx.app.R
 import com.yunx.app.data.network.HttpClients
 import com.yunx.app.data.upload.UploadProgress
 import com.yunx.app.data.upload.UploadRunner
@@ -38,6 +39,7 @@ import com.yunx.app.data.network.model.ShareExpire
 import com.yunx.app.data.network.model.ShareFile
 import com.yunx.app.data.network.model.ShareInfo
 import com.yunx.app.ui.preview.CloudPreview
+import com.yunx.app.util.AppStrings
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.Flow
@@ -120,7 +122,7 @@ class Pan123CloudViewModel(
     }
 
     private suspend fun token(): String =
-        tokenProvider() ?: throw IllegalStateException("请先登录123云盘")
+        tokenProvider() ?: throw IllegalStateException(AppStrings.get(R.string.vc_login_required_pan123))
 
     // ---------- 目录浏览 ----------
 
@@ -230,7 +232,7 @@ class Pan123CloudViewModel(
                 val files = api.listCloudFiles(dirId, token()).filter { it.isdir }
                 _moveUiState.value = Pan123CloudUiState.Loaded(files, pathNames, dirId)
             } catch (e: Exception) {
-                _moveUiState.value = Pan123CloudUiState.Error(e.message ?: "加载失败")
+                _moveUiState.value = Pan123CloudUiState.Error(e.message ?: AppStrings.get(R.string.vc_load_failed))
             }
         }
     }
@@ -265,14 +267,14 @@ class Pan123CloudViewModel(
         if (!folder.isdir) return
         viewModelScope.launch {
             isOperating = true
-            folderProgress = "正在收集文件…"
+            folderProgress = AppStrings.get(R.string.vc_collecting_files)
             downloadCancelRequested = false
             try {
                 val tk = token()
                 val tasks = mutableListOf<Pair<ShareFile, String>>()
                 collectFolderFiles(folder.fid, folder.fname, tk, tasks, 0)
                 if (tasks.isEmpty()) {
-                    cloudMessage = "文件夹为空"
+                    cloudMessage = AppStrings.get(R.string.vc_folder_empty)
                     actionFile = null
                     return@launch
                 }
@@ -280,7 +282,7 @@ class Pan123CloudViewModel(
                 tasks.forEachIndexed { index, (file, relPath) ->
                     // 用户点击「中断」：跳过剩余项（已入队任务保留下载）
                     if (downloadCancelRequested) return@forEachIndexed
-                    folderProgress = "正在加入下载 ${index + 1}/${tasks.size}"
+                    folderProgress = AppStrings.get(R.string.vc_adding_download_progress, index + 1, tasks.size)
                     runCatching {
                         val link = api.getDownloadLink(file, tk) ?: return@runCatching
                         downloadManager.enqueue(
@@ -294,14 +296,14 @@ class Pan123CloudViewModel(
                     }
                 }
                 if (downloadCancelRequested) {
-                    cloudMessage = "已中断下载"
+                    cloudMessage = AppStrings.get(R.string.vc_download_interrupted)
                     actionFile = null
                     return@launch
                 }
-                cloudMessage = "已加入 $okCount 个下载任务"
+                cloudMessage = AppStrings.get(R.string.vc_download_added, okCount)
                 actionFile = null
             } catch (e: Exception) {
-                cloudMessage = e.message ?: "下载文件夹失败"
+                cloudMessage = e.message ?: AppStrings.get(R.string.vc_download_folder_failed)
             } finally {
                 isOperating = false
                 folderProgress = null
@@ -325,7 +327,7 @@ class Pan123CloudViewModel(
             isOperating = true
             try {
                 val link = api.getDownloadLink(file, token())
-                    ?: throw IllegalStateException("获取下载链接失败")
+                    ?: throw IllegalStateException(AppStrings.get(R.string.vc_get_download_link_failed))
                 pendingDownload = PendingDownload(
                     url = link.downloadUrl,
                     fileName = file.fname.ifBlank { link.filename },
@@ -334,7 +336,7 @@ class Pan123CloudViewModel(
                 )
                 downloadLink = link // 弹下载确认弹窗（长按直链可复制）
             } catch (e: Exception) {
-                cloudMessage = e.message ?: "下载失败"
+                cloudMessage = e.message ?: AppStrings.get(R.string.vc_download_failed)
             } finally {
                 isOperating = false
             }
@@ -352,12 +354,12 @@ class Pan123CloudViewModel(
             isOperating = true
             try {
                 val link = api.getDownloadLink(file, token())
-                    ?: throw IllegalStateException("获取下载链接失败")
+                    ?: throw IllegalStateException(AppStrings.get(R.string.vc_get_download_link_failed))
                 // 先清 actionFile 再开预览：否则关掉预览时文件操作弹窗会重新弹出来
                 actionFile = null
                 CloudPreview.open(file, link.downloadUrl, downloadHeaders(), isHls = link.isHls)
             } catch (e: Exception) {
-                cloudMessage = e.message ?: "预览失败"
+                cloudMessage = e.message ?: AppStrings.get(R.string.vc_preview_failed)
             } finally {
                 isOperating = false
             }
@@ -379,11 +381,11 @@ class Pan123CloudViewModel(
                     platform = DownloadPlatform.PAN123,
                     headers = pd.headers
                 )
-                cloudMessage = "已加入下载：${pd.fileName}"
+                cloudMessage = AppStrings.get(R.string.vc_download_added_named, pd.fileName)
                 actionFile = null
                 downloadTriggered++
             } catch (e: Exception) {
-                cloudMessage = e.message ?: "下载失败"
+                cloudMessage = e.message ?: AppStrings.get(R.string.vc_download_failed)
             } finally {
                 isOperating = false
             }
@@ -403,11 +405,11 @@ class Pan123CloudViewModel(
             isOperating = true
             try {
                 api.renameFile(file.fid, newName, token())
-                cloudMessage = "已重命名"
+                cloudMessage = AppStrings.get(R.string.vc_renamed)
                 actionFile = null
                 reloadCurrent()
             } catch (e: Exception) {
-                cloudMessage = e.message ?: "重命名失败"
+                cloudMessage = e.message ?: AppStrings.get(R.string.vc_rename_failed)
             } finally {
                 isOperating = false
             }
@@ -423,10 +425,10 @@ class Pan123CloudViewModel(
             isOperating = true
             try {
                 api.createDir(parentId, newName, token())
-                cloudMessage = "已创建文件夹「$newName」"
+                cloudMessage = AppStrings.get(R.string.vc_folder_created, newName)
                 reloadCurrent()
             } catch (e: Exception) {
-                cloudMessage = e.message ?: "新建文件夹失败"
+                cloudMessage = e.message ?: AppStrings.get(R.string.vc_create_folder_failed)
             } finally {
                 isOperating = false
             }
@@ -440,11 +442,11 @@ class Pan123CloudViewModel(
             isOperating = true
             try {
                 api.moveFiles(listOf(file.fid), toDirId, token())
-                cloudMessage = "已移动到目标目录"
+                cloudMessage = AppStrings.get(R.string.vc_moved)
                 actionFile = null
                 reloadCurrent()
             } catch (e: Exception) {
-                cloudMessage = e.message ?: "移动失败"
+                cloudMessage = e.message ?: AppStrings.get(R.string.vc_move_failed)
             } finally {
                 isOperating = false
             }
@@ -471,7 +473,7 @@ class Pan123CloudViewModel(
                 )
                 shareResult = info.copy(expiredType = expiredType)
             } catch (e: Exception) {
-                cloudMessage = e.message ?: "分享失败"
+                cloudMessage = e.message ?: AppStrings.get(R.string.vc_share_failed)
             } finally {
                 isOperating = false
             }
@@ -485,11 +487,11 @@ class Pan123CloudViewModel(
             isOperating = true
             try {
                 api.deleteFiles(listOf(file), token())
-                cloudMessage = "已删除「${file.fname}」"
+                cloudMessage = AppStrings.get(R.string.vc_deleted_named, file.fname)
                 actionFile = null
                 reloadCurrent()
             } catch (e: Exception) {
-                cloudMessage = e.message ?: "删除失败"
+                cloudMessage = e.message ?: AppStrings.get(R.string.vc_delete_failed)
             } finally {
                 isOperating = false
             }
@@ -504,7 +506,7 @@ class Pan123CloudViewModel(
         if (files.isEmpty()) return
         viewModelScope.launch {
             isOperating = true
-            folderProgress = "正在收集文件…"
+            folderProgress = AppStrings.get(R.string.vc_collecting_files)
             downloadCancelRequested = false
             try {
                 val tk = token()
@@ -517,7 +519,7 @@ class Pan123CloudViewModel(
                     }
                 }
                 if (tasks.isEmpty()) {
-                    cloudMessage = "所选文件夹为空"
+                    cloudMessage = AppStrings.get(R.string.vc_selected_folder_empty)
                     exitMultiSelect()
                     return@launch
                 }
@@ -525,7 +527,7 @@ class Pan123CloudViewModel(
                 tasks.forEachIndexed { index, (file, relPath) ->
                     // 用户点击「中断」：跳过剩余项（已入队任务保留下载）
                     if (downloadCancelRequested) return@forEachIndexed
-                    folderProgress = "正在加入下载 ${index + 1}/${tasks.size}"
+                    folderProgress = AppStrings.get(R.string.vc_adding_download_progress, index + 1, tasks.size)
                     runCatching {
                         val link = api.getDownloadLink(file, tk) ?: return@runCatching
                         downloadManager.enqueue(
@@ -539,14 +541,14 @@ class Pan123CloudViewModel(
                     }
                 }
                 if (downloadCancelRequested) {
-                    cloudMessage = "已中断批量下载"
+                    cloudMessage = AppStrings.get(R.string.vc_batch_download_interrupted)
                     exitMultiSelect()
                     return@launch
                 }
-                cloudMessage = "已加入 $okCount 个下载任务"
+                cloudMessage = AppStrings.get(R.string.vc_download_added, okCount)
                 exitMultiSelect()
             } catch (e: Exception) {
-                cloudMessage = e.message ?: "批量下载失败"
+                cloudMessage = e.message ?: AppStrings.get(R.string.vc_batch_download_failed)
             } finally {
                 isOperating = false
                 folderProgress = null
@@ -562,7 +564,7 @@ class Pan123CloudViewModel(
         viewModelScope.launch {
             isOperating = true
             try {
-                val title = if (files.size == 1) files[0].fname else "分享 ${files.size} 个文件"
+                val title = if (files.size == 1) files[0].fname else AppStrings.get(R.string.vc_share_n_files, files.size)
                 val info = api.createShare(
                     fileIds = files.map { it.fid },
                     shareName = title,
@@ -573,7 +575,7 @@ class Pan123CloudViewModel(
                 shareResult = info.copy(expiredType = expiredType)
                 exitMultiSelect()
             } catch (e: Exception) {
-                cloudMessage = e.message ?: "分享失败"
+                cloudMessage = e.message ?: AppStrings.get(R.string.vc_share_failed)
             } finally {
                 isOperating = false
             }
@@ -588,11 +590,11 @@ class Pan123CloudViewModel(
             isOperating = true
             try {
                 api.moveFiles(files.map { it.fid }, toDirId, token())
-                cloudMessage = "已移动 ${files.size} 项"
+                cloudMessage = AppStrings.get(R.string.vc_moved_items, files.size)
                 exitMultiSelect()
                 reloadCurrent()
             } catch (e: Exception) {
-                cloudMessage = e.message ?: "移动失败"
+                cloudMessage = e.message ?: AppStrings.get(R.string.vc_move_failed)
             } finally {
                 isOperating = false
             }
@@ -607,11 +609,11 @@ class Pan123CloudViewModel(
             isOperating = true
             try {
                 api.deleteFiles(files, token())
-                cloudMessage = "已删除 ${files.size} 项"
+                cloudMessage = AppStrings.get(R.string.vc_deleted_items, files.size)
                 exitMultiSelect()
                 reloadCurrent()
             } catch (e: Exception) {
-                cloudMessage = e.message ?: "删除失败"
+                cloudMessage = e.message ?: AppStrings.get(R.string.vc_delete_failed)
             } finally {
                 isOperating = false
             }
@@ -633,7 +635,7 @@ class Pan123CloudViewModel(
                 val files = api.listCloudFiles(current.dirId, token())
                 _uiState.value = Pan123CloudUiState.Loaded(files, current.pathNames, current.dirId)
             } catch (e: Exception) {
-                cloudMessage = e.message ?: "刷新失败"
+                cloudMessage = e.message ?: AppStrings.get(R.string.vc_refresh_failed)
             } finally {
                 refreshing = false
             }
@@ -656,7 +658,7 @@ class Pan123CloudViewModel(
                 val files = api.listCloudFiles(dirId, token())
                 _uiState.value = Pan123CloudUiState.Loaded(files, pathNames, dirId)
             } catch (e: Exception) {
-                _uiState.value = Pan123CloudUiState.Error(e.message ?: "加载失败")
+                _uiState.value = Pan123CloudUiState.Error(e.message ?: AppStrings.get(R.string.vc_load_failed))
             }
         }
     }
@@ -684,8 +686,8 @@ class Pan123CloudViewModel(
         if (outcome.uploaded > 0 || outcome.failed > 0) reloadCurrent()
         cloudMessage = when {
             outcome.error != null -> outcome.error
-            outcome.cancelled -> "已取消上传"
-            else -> "已上传 ${outcome.uploaded} 个文件"
+            outcome.cancelled -> AppStrings.get(R.string.vc_upload_cancelled)
+            else -> AppStrings.get(R.string.vc_upload_done, outcome.uploaded)
         }
     }
 
@@ -698,7 +700,7 @@ class Pan123CloudViewModel(
     fun uploadFiles(resolver: ContentResolver, uris: List<Uri>) {
         val dir = (uiState.value as? Pan123CloudUiState.Loaded)?.dirId ?: "0"
         uploadRunner.start(resolver, uris) { io, source ->
-            val token = tokenProvider() ?: throw IllegalStateException("请先登录 123 云盘")
+            val token = tokenProvider() ?: throw IllegalStateException(AppStrings.get(R.string.vc_login_required_pan123_spaced))
             api.upload(io, source, dir, token)
         }
     }

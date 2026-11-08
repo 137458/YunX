@@ -45,14 +45,24 @@ object AppStrings {
     @Volatile
     private var wrappedTag: String? = null
 
+    /** JVM 单测注入的资源表替身；为 null 时走真实资源。 */
+    @Volatile
+    private var testResolver: ((Int, Array<out Any>) -> String)? = null
+
     fun install(context: Context) {
         ctx = context.applicationContext
         wrapped = null
         wrappedTag = null
     }
 
+    /** 仅供 JVM 单测：注入资源表替身，测试结束后传 null 复位。 */
+    fun installResolverForTest(resolver: ((Int, Array<out Any>) -> String)?) {
+        testResolver = resolver
+    }
+
     /** 取多语言字符串；未装配或取不到时返回空串。 */
     fun get(@StringRes resId: Int, vararg args: Any): String {
+        testResolver?.let { return it(resId, args) }
         val base = ctx ?: return ""
         return runCatching {
             val tag = base.getSharedPreferences("yunx_settings", Context.MODE_PRIVATE)
