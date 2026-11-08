@@ -25,7 +25,7 @@
     <string name="e1_rename_failed">名前の変更に失敗しました</string>
     <string name="e1_move_failed">移動に失敗しました</string>
     <string name="e1_delete_failed">削除に失敗しました</string>
-    <string name="e1_copy_save_failed">転存に失敗しました</string>
+    <string name="e1_copy_save_failed">保存に失敗しました</string>
     <string name="e1_create_share_failed">共有の作成に失敗しました</string>
     <string name="e1_no_download_link">ダウンロードリンクが返されませんでした</string>
 
@@ -45,7 +45,7 @@
     <string name="e1_baidu_invalid_block_index">Baidu が返したアップロード分割の番号が無効です</string>
     <string name="e1_baidu_block_response_error">Baidu の分割アップロード応答が異常です。再試行してください</string>
     <string name="e1_baidu_block_verify_failed">Baidu の分割アップロード検証に失敗しました。再試行してください</string>
-    <string name="e1_baidu_transfer_no_file">転存に失敗しました：新しいファイルが返されませんでした</string>
+    <string name="e1_baidu_transfer_no_file">保存に失敗しました：新しいファイルが返されませんでした</string>
     <string name="e1_baidu_get_fast_link_failed">高速ダウンロードリンクの取得に失敗しました</string>
     <string name="e1_baidu_list_failed">Baidu のファイル一覧の読み込みに失敗しました</string>
     <string name="e1_baidu_list_failed_errno">Baidu のファイル一覧の読み込みに失敗しました（errno=%1$d）</string>
@@ -59,7 +59,7 @@
     <string name="e1_123_login_network_error">ネットワークエラー: 123 のログインサービスに接続できません。後でもう一度お試しください</string>
     <string name="e1_123_share_expired">この共有は期限切れです</string>
     <string name="e1_123_share_id_missing">共有 ID を特定できません（S3KeyFlag がありません）</string>
-    <string name="e1_123_copy_save_failed_msg">転存に失敗しました：%1$s</string>
+    <string name="e1_123_copy_save_failed_msg">保存に失敗しました：%1$s</string>
     <string name="e1_123_no_folder_id">123 がフォルダ ID を返しませんでした</string>
     <string name="e1_123_no_upload_task">123 がアップロードタスクを返しませんでした</string>
     <string name="e1_123_no_upload_file_id">123 がアップロードされたファイル ID を返しませんでした</string>

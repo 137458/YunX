@@ -227,11 +227,10 @@ class DownloadService : Service() {
         private fun ensureChannel(context: Context) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-                if (nm.getNotificationChannel(CHANNEL_ID) == null) {
-                    nm.createNotificationChannel(
-                        NotificationChannel(CHANNEL_ID, AppStrings.get(R.string.ed_notif_channel_name), NotificationManager.IMPORTANCE_LOW)
-                    )
-                }
+                // 同 id 重复创建只会更新名称/描述，不会重置用户已调整的重要级别，因此每次 ensure 都写入当前语言
+                nm.createNotificationChannel(
+                    NotificationChannel(CHANNEL_ID, AppStrings.get(R.string.ed_notif_channel_name), NotificationManager.IMPORTANCE_LOW)
+                )
             }
         }
 

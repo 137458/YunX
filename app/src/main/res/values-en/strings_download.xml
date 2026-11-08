@@ -77,7 +77,7 @@
     <string name="dl_state_installed">Imported, not started</string>
     <string name="dl_state_running">Running</string>
     <string name="dl_engine_kernel_size">Kernel: %1$s</string>
-    <string name="dl_engine_kernel_size_version">Kernel: %1$s　·　Core version %2$s</string>
+    <string name="dl_engine_kernel_size_version">Kernel: %1$s · Core version %2$s</string>
     <string name="dl_engine_kernel_missing">Kernel: not imported (requires libgopeed-&lt;abi&gt;.aar)</string>
     <string name="dl_engine_download_dir">Download folder: %1$s</string>
     <string name="dl_engine_storage_no_all_files">Storage permission: \"All files access\" not granted, so downloads can only go to the app\'s private folder (invisible to file managers on Android 11+)</string>
@@ -93,7 +93,7 @@
     <string name="dl_engine_notice_switched_gopeed">Switched to the Gopeed engine</string>
     <string name="dl_engine_notice_switched_builtin">Switched to the built-in chunked downloader</string>
     <string name="dl_engine_notice_kernel_imported">Kernel imported: libgojni.so %1$s</string>
-    <string name="dl_engine_notice_restart_effect">　·　Takes effect after restarting the app</string>
+    <string name="dl_engine_notice_restart_effect"> · Takes effect after restarting the app</string>
     <string name="dl_engine_notice_restarted">Engine restarted</string>
     <string name="dl_engine_notice_kernel_deleted_switch">Kernel deleted, switched back to the built-in chunked downloader</string>
     <string name="dl_engine_notice_kernel_deleted">Kernel deleted</string>
@@ -101,7 +101,7 @@
     <string name="dl_kernel_from_cloud">Download from cloud</string>
     <string name="dl_kernel_import_local_aar">Import local AAR</string>
     <string name="dl_kernel_download_title">Download Gopeed kernel</string>
-    <string name="dl_kernel_version_abi">Version %1$s　·　This device %2$s</string>
+    <string name="dl_kernel_version_abi">Version %1$s · This device %2$s</string>
     <string name="dl_kernel_size_known">Size %1$s</string>
     <string name="dl_kernel_size_unknown">Size unknown</string>
     <string name="dl_kernel_auto_import_hint">Unpacked and imported automatically after download; the temporary package does not land in the Download folder</string>
@@ -118,10 +118,10 @@
     <string name="dl_kernel_phase_merging">Merging chunks…</string>
     <string name="dl_kernel_phase_importing">Unpacking and importing…</string>
     <string name="dl_kernel_done_message">%1$s extracted libgojni.so %2$s</string>
-    <string name="dl_kernel_progress_known">%1$d%%　%2$s / %3$s</string>
+    <string name="dl_kernel_progress_known">%1$d%% %2$s / %3$s</string>
     <string name="dl_kernel_progress_unknown">%1$s</string>
-    <string name="dl_kernel_progress_speed">　·　%1$s/s</string>
-    <string name="dl_kernel_progress_chunks">　·　%1$d chunks</string>
+    <string name="dl_kernel_progress_speed"> · %1$s/s</string>
+    <string name="dl_kernel_progress_chunks"> · %1$d chunks</string>
     <string name="dl_kernel_merging_percent">Merging %1$d%%</string>
     <string name="dl_kernel_done_need_restart">The kernel file has been replaced, but this process has already loaded the old kernel (libraries opened via dlopen cannot be unloaded), so the app must be restarted to use the new one.</string>
     <string name="dl_kernel_done_ready">The kernel file is in place; it will be used the next time the engine starts.</string>
@@ -147,7 +147,7 @@
     <string name="dl_debug_pool_value">Threads %1$d · busy %2$d · queue %3$d</string>
     <string name="dl_debug_heap_label">Heap</string>
     <string name="dl_debug_heap_value">%1$d MB / %2$d MB</string>
-    <string name="dl_debug_chunk_worker">%1$s　worker #%2$d</string>
+    <string name="dl_debug_chunk_worker">%1$s worker #%2$d</string>
     <string name="dl_debug_chunk_range">Range %1$d-%2$d · received %3$s/%4$s (%5$d%%)</string>
     <string name="dl_debug_chunk_stats">%1$s now · running %2$ds%3$s%4$s</string>
     <string name="dl_debug_chunk_stuck"> · possibly stuck</string>
