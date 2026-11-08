@@ -110,7 +110,9 @@
     <string name="csa_click_select_more">タップしてさらにファイルを選択</string>
     <string name="csa_deselect_all">すべて選択解除</string>
     <string name="csa_select_all">すべて選択</string>
-    <string name="csa_total_count">全 %1$d 件</string>
+    <plurals name="csa_total_count">
+        <item quantity="other">全 %1$d 件</item>
+    </plurals>
     <string name="csa_match_count">%1$d / %2$d 件が一致</string>
     <string name="csa_dir_empty">このディレクトリは空です</string>
     <string name="csa_no_match_files">「%1$s」に一致するファイルが見つかりません</string>
@@ -149,7 +151,9 @@
     <string name="csa_upload_desc">端末からファイルを選んで現在のディレクトリにアップロード</string>
     <string name="csa_delete_desc_recycle">ゴミ箱に移動</string>
     <string name="csa_delete_file_message">「%1$s」を削除しますか？ゴミ箱に移動されます。</string>
-    <string name="csa_delete_selected_message">選択した %1$d 件を削除しますか？ゴミ箱に移動されます。</string>
+    <plurals name="csa_delete_selected_message">
+        <item quantity="other">選択した %1$d 件を削除しますか？ゴミ箱に移動されます。</item>
+    </plurals>
     <string name="csa_share_text_platform">%1$s で「%2$s」を共有しました\n</string>
     <string name="csa_share_passcode_line">\n抽出コード：%1$s</string>
     <string name="csa_share_expiry_label">有効期限：</string>

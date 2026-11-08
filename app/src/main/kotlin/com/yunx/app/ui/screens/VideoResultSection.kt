@@ -514,7 +514,7 @@ private fun VideoMetaBlock(result: VideoParseResult, modifier: Modifier = Modifi
         if (result.author.isNotBlank()) add(result.author)
         val date = formatVideoDate(result.timestampSeconds)
         if (date.isNotBlank()) add(date)
-        if (result.medias.isNotEmpty()) add(AppStrings.get(R.string.csa_total_count, result.medias.size))
+        if (result.medias.isNotEmpty()) add(AppStrings.getQuantity(R.plurals.csa_total_count, result.medias.size, result.medias.size))
     }.joinToString("  ·  ")
 
     Column(modifier = modifier.padding(bottom = 12.dp)) {

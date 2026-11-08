@@ -21,6 +21,8 @@ package com.yunx.app.util
 import android.content.Context
 import android.content.res.Configuration
 import android.os.LocaleList
+import android.util.Log
+import androidx.annotation.PluralsRes
 import androidx.annotation.StringRes
 import com.yunx.app.ui.theme.LocaleController
 import java.util.Locale
@@ -39,6 +41,8 @@ import java.util.Locale
  */
 object AppStrings {
 
+    private const val TAG = "AppStrings"
+
     @Volatile
     private var ctx: Context? = null
 
@@ -52,6 +56,10 @@ object AppStrings {
     @Volatile
     private var testResolver: ((Int, Array<out Any>) -> String)? = null
 
+    /** JVM 单测注入的数量型文案替身；为 null 时走真实资源。 */
+    @Volatile
+    private var testPluralResolver: ((Int, Int, Array<out Any>) -> String)? = null
+
     fun install(context: Context) {
         ctx = context.applicationContext
         wrapped = null
@@ -63,23 +71,46 @@ object AppStrings {
         testResolver = resolver
     }
 
+    /** 仅供 JVM 单测：注入数量型文案替身，测试结束后传 null 复位。 */
+    fun installPluralResolverForTest(resolver: ((Int, Int, Array<out Any>) -> String)?) {
+        testPluralResolver = resolver
+    }
+
+    /** 取数量型文案（plurals），由系统按当前语言的复数规则选择 one/other。 */
+    fun getQuantity(@PluralsRes resId: Int, quantity: Int, vararg args: Any): String {
+        testPluralResolver?.let { return it(resId, quantity, args) }
+        val base = ctx ?: return ""
+        return runCatching {
+            targetContext(base).resources.getQuantityString(resId, quantity, *args)
+        }.onFailure {
+            Log.w(TAG, "getQuantity failed: res=0x${Integer.toHexString(resId)}, quantity=$quantity", it)
+        }.getOrDefault("")
+    }
+
     /** 取多语言字符串；未装配或取不到时返回空串。 */
     fun get(@StringRes resId: Int, vararg args: Any): String {
         testResolver?.let { return it(resId, args) }
         val base = ctx ?: return ""
         return runCatching {
-            val tag = base.getSharedPreferences("yunx_settings", Context.MODE_PRIVATE)
-                .getString("app_language", "").orEmpty()
-            val target = if (wrapped == null || wrappedTag != tag) {
-                LocaleController.wrap(base).also {
-                    wrapped = it
-                    wrappedTag = tag
-                }
-            } else {
-                wrapped ?: base
-            }
+            val target = targetContext(base)
             if (args.isEmpty()) target.getString(resId) else target.getString(resId, *args)
+        }.onFailure {
+            Log.w(TAG, "get failed: res=0x${Integer.toHexString(resId)}", it)
         }.getOrDefault("")
+    }
+
+    /** 按已保存的应用内语言包装 Context；语言未变时复用缓存。 */
+    private fun targetContext(base: Context): Context {
+        val tag = base.getSharedPreferences("yunx_settings", Context.MODE_PRIVATE)
+            .getString("app_language", "").orEmpty()
+        return if (wrapped == null || wrappedTag != tag) {
+            LocaleController.wrap(base).also {
+                wrapped = it
+                wrappedTag = tag
+            }
+        } else {
+            wrapped ?: base
+        }
     }
 
     /**

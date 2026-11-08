@@ -289,7 +289,9 @@
     <string name="settings_download_dir_system_default">システム既定の Download（タップして変更）</string>
     <string name="settings_download_dir_reset">保存先を既定に戻す</string>
     <string name="settings_download_dir_reset_desc">タップしてシステム既定のフォルダーに戻す</string>
-    <string name="settings_max_tasks_desc_bg">同時に %1$d 件をダウンロード（バックグラウンド同時数を制限）</string>
+    <plurals name="settings_max_tasks_desc_bg">
+        <item quantity="other">同時に %1$d 件をダウンロード（バックグラウンド同時数を制限）</item>
+    </plurals>
     <string name="settings_value_task_count">%1$d 件</string>
     <string name="settings_auto_retry_value_never">再試行なし</string>
     <string name="settings_auto_retry_value_times">%1$d 回</string>

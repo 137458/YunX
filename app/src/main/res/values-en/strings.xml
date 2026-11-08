@@ -289,7 +289,10 @@
     <string name="settings_download_dir_system_default">System default Download (tap to customize)</string>
     <string name="settings_download_dir_reset">Reset download folder</string>
     <string name="settings_download_dir_reset_desc">Tap to restore the system default folder</string>
-    <string name="settings_max_tasks_desc_bg">Download %1$d tasks at once (limits background concurrency)</string>
+    <plurals name="settings_max_tasks_desc_bg">
+        <item quantity="one">Download %1$d task at once (limits background concurrency)</item>
+        <item quantity="other">Download %1$d tasks at once (limits background concurrency)</item>
+    </plurals>
     <string name="settings_value_task_count">%1$d tasks</string>
     <string name="settings_auto_retry_value_never">No retry</string>
     <string name="settings_auto_retry_value_times">%1$d times</string>

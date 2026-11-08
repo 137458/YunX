@@ -244,7 +244,7 @@ internal fun CloudDriveScaffold(
                                         overflow = TextOverflow.Ellipsis
                                     )
                                     Text(
-                                        text = if (searchQuery.isBlank()) AppStrings.get(R.string.csa_total_count, files.size)
+                                        text = if (searchQuery.isBlank()) AppStrings.getQuantity(R.plurals.csa_total_count, files.size, files.size)
                                         else AppStrings.get(R.string.csa_match_count, displayFiles.size, files.size),
                                         style = MiuixTheme.textStyles.footnote1,
                                         color = MiuixTheme.colorScheme.onSurfaceVariantSummary

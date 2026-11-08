@@ -290,7 +290,10 @@
     <string name="settings_download_dir_system_default">Download par défaut du système (toucher pour personnaliser)</string>
     <string name="settings_download_dir_reset">Rétablir le dossier par défaut</string>
     <string name="settings_download_dir_reset_desc">Toucher pour revenir au dossier par défaut du système</string>
-    <string name="settings_max_tasks_desc_bg">Télécharger %1$d tâches à la fois (limite la concurrence en arrière-plan)</string>
+    <plurals name="settings_max_tasks_desc_bg">
+        <item quantity="one">Télécharger %1$d tâche à la fois (limite la concurrence en arrière-plan)</item>
+        <item quantity="other">Télécharger %1$d tâches à la fois (limite la concurrence en arrière-plan)</item>
+    </plurals>
     <string name="settings_value_task_count">%1$d tâches</string>
     <string name="settings_auto_retry_value_never">Aucun nouvel essai</string>
     <string name="settings_auto_retry_value_times">%1$d fois</string>

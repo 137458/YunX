@@ -325,7 +325,9 @@
     <string name="settings_download_dir_system_default">系统默认 Download（点击自定义）</string>
     <string name="settings_download_dir_reset">恢复默认下载目录</string>
     <string name="settings_download_dir_reset_desc">点击恢复为系统默认目录</string>
-    <string name="settings_max_tasks_desc_bg">同时下载 %1$d 个任务（限制后台并发）</string>
+    <plurals name="settings_max_tasks_desc_bg">
+        <item quantity="other">同时下载 %1$d 个任务（限制后台并发）</item>
+    </plurals>
     <string name="settings_value_task_count">%1$d 个</string>
     <string name="settings_auto_retry_value_never">不重试</string>
     <string name="settings_auto_retry_value_times">%1$d 次</string>

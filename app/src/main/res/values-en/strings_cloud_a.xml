@@ -110,7 +110,10 @@
     <string name="csa_click_select_more">Tap to select more files</string>
     <string name="csa_deselect_all">Deselect all</string>
     <string name="csa_select_all">Select all</string>
-    <string name="csa_total_count">%1$d items</string>
+    <plurals name="csa_total_count">
+        <item quantity="one">%1$d item</item>
+        <item quantity="other">%1$d items</item>
+    </plurals>
     <string name="csa_match_count">%1$d / %2$d matched</string>
     <string name="csa_dir_empty">This folder is empty</string>
     <string name="csa_no_match_files">No files match “%1$s”</string>
@@ -149,7 +152,10 @@
     <string name="csa_upload_desc">Pick files from this device and upload to the current directory</string>
     <string name="csa_delete_desc_recycle">Delete to recycle bin</string>
     <string name="csa_delete_file_message">Delete “%1$s”? It will be moved to the recycle bin.</string>
-    <string name="csa_delete_selected_message">Delete the %1$d selected items? They will be moved to the recycle bin.</string>
+    <plurals name="csa_delete_selected_message">
+        <item quantity="one">Delete the %1$d selected item? It will be moved to the recycle bin.</item>
+        <item quantity="other">Delete the %1$d selected items? They will be moved to the recycle bin.</item>
+    </plurals>
     <string name="csa_share_text_platform">I shared “%2$s” via %1$s\n</string>
     <string name="csa_share_passcode_line">\nPasscode: %1$s</string>
     <string name="csa_share_expiry_label">Valid for: </string>

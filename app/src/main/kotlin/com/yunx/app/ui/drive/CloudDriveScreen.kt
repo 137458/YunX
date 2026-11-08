@@ -423,7 +423,7 @@ fun CloudDriveBrowser(
         show = showDeleteConfirm,
         onDismissRequest = { showDeleteConfirm = false },
         title = AppStrings.get(R.string.csa_delete_file_title),
-        message = AppStrings.get(R.string.csa_delete_selected_message, selected.size),
+        message = AppStrings.getQuantity(R.plurals.csa_delete_selected_message, selected.size, selected.size),
         onConfirm = { actions.deleteSelected() }
     )
 

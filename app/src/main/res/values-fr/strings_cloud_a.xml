@@ -110,7 +110,10 @@
     <string name="csa_click_select_more">Appuyez pour sélectionner d\'autres fichiers</string>
     <string name="csa_deselect_all">Tout désélectionner</string>
     <string name="csa_select_all">Tout sélectionner</string>
-    <string name="csa_total_count">%1$d éléments</string>
+    <plurals name="csa_total_count">
+        <item quantity="one">%1$d élément</item>
+        <item quantity="other">%1$d éléments</item>
+    </plurals>
     <string name="csa_match_count">%1$d / %2$d correspondants</string>
     <string name="csa_dir_empty">Ce dossier est vide</string>
     <string name="csa_no_match_files">Aucun fichier ne correspond à « %1$s »</string>
@@ -149,7 +152,10 @@
     <string name="csa_upload_desc">Choisir des fichiers sur l\'appareil et les envoyer dans le répertoire actuel</string>
     <string name="csa_delete_desc_recycle">Supprimer vers la corbeille</string>
     <string name="csa_delete_file_message">Supprimer « %1$s » ? Il sera déplacé vers la corbeille.</string>
-    <string name="csa_delete_selected_message">Supprimer les %1$d éléments sélectionnés ? Ils seront déplacés vers la corbeille.</string>
+    <plurals name="csa_delete_selected_message">
+        <item quantity="one">Supprimer l\'élément sélectionné (%1$d) ? Il sera déplacé vers la corbeille.</item>
+        <item quantity="other">Supprimer les %1$d éléments sélectionnés ? Ils seront déplacés vers la corbeille.</item>
+    </plurals>
     <string name="csa_share_text_platform">J\'ai partagé « %2$s » via %1$s\n</string>
     <string name="csa_share_passcode_line">\nCode d\'extraction : %1$s</string>
     <string name="csa_share_expiry_label">Validité : </string>

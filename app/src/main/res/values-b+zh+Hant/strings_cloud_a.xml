@@ -108,7 +108,9 @@
     <string name="csa_click_select_more">點選更多檔案</string>
     <string name="csa_deselect_all">取消全選</string>
     <string name="csa_select_all">全選</string>
-    <string name="csa_total_count">共 %1$d 項</string>
+    <plurals name="csa_total_count">
+        <item quantity="other">共 %1$d 項</item>
+    </plurals>
     <string name="csa_match_count">符合 %1$d / %2$d 項</string>
     <string name="csa_dir_empty">此目錄為空</string>
     <string name="csa_no_match_files">找不到符合「%1$s」的檔案</string>
@@ -147,7 +149,9 @@
     <string name="csa_upload_desc">從本機選擇檔案上傳到目前目錄</string>
     <string name="csa_delete_desc_recycle">刪除至回收筒</string>
     <string name="csa_delete_file_message">確定要刪除「%1$s」嗎？刪除後將移入回收筒。</string>
-    <string name="csa_delete_selected_message">確定要刪除已選的 %1$d 項嗎？刪除後將移入回收筒。</string>
+    <plurals name="csa_delete_selected_message">
+        <item quantity="other">確定要刪除已選的 %1$d 項嗎？刪除後將移入回收筒。</item>
+    </plurals>
     <string name="csa_share_text_platform">我用%1$s分享了「%2$s」\n</string>
     <string name="csa_share_passcode_line">\n提取碼：%1$s</string>
     <string name="csa_share_expiry_label">有效期：</string>

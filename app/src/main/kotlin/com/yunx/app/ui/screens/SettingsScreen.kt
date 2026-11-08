@@ -322,7 +322,7 @@ fun SettingsScreen(
                 valueRange = 1f..8f,
                 steps = 6,
                 title = AppStrings.get(R.string.settings_max_tasks),
-                summary = AppStrings.get(R.string.settings_max_tasks_desc_bg, maxConcurrent),
+                summary = AppStrings.getQuantity(R.plurals.settings_max_tasks_desc_bg, maxConcurrent, maxConcurrent),
                 valueText = AppStrings.get(R.string.settings_value_task_count, maxConcurrent)
             )
             SliderPreference(
