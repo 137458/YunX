@@ -59,24 +59,22 @@ class DownloadTaskRowTextTest {
     }
 
     @Test
-    fun stalledDownloadFallsBackToStatusAndProgress() {
-        assertEquals(
-            "下载中 · 50.0 MB / 100.0 MB",
-            taskRowSubtitle(task(), DownloadStats(speed = 0L)),
-        )
+    fun stalledDownloadKeepsOnlyStatusBecauseProgressLineCarriesSizes() {
+        // 大小与百分比由底部 progressText 统一展示，副标题再拼一遍就是重复
+        assertEquals("下载中", taskRowSubtitle(task(), DownloadStats(speed = 0L)))
     }
 
     @Test
-    fun completedUsesAverageSpeedOrPlainSize() {
+    fun completedKeepsOnlyStatusBecauseBottomLineCarriesAverageAndSize() {
         assertEquals(
-            "已完成 · 平均 2.0 MB/s",
+            "已完成",
             taskRowSubtitle(
                 task(status = DownloadTaskEntity.STATUS_COMPLETED, downloaded = total, avgSpeed = 2L * mb),
                 stats = null,
             ),
         )
         assertEquals(
-            "已完成 · 100.0 MB / 100.0 MB",
+            "已完成",
             taskRowSubtitle(task(status = DownloadTaskEntity.STATUS_COMPLETED, downloaded = total), stats = null),
         )
     }

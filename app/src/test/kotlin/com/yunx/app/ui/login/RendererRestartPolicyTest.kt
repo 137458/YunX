@@ -81,7 +81,8 @@ class RendererRestartPolicyTest {
         repeat(RENDERER_RESTART_LIMIT) { budget = budget.consume() }
 
         assertEquals(
-            "页面渲染进程已连续崩溃 3 次，重试无法恢复。请返回后重新进入此页面，或改用其他登录方式。",
+            // 首崩 + 3 次重建后再崩 = 4 次，文案不能再按「重建次数」算
+            "页面渲染进程已连续崩溃 4 次，重试无法恢复。请返回后重新进入此页面，或改用其他登录方式。",
             rendererCrashMessage(budget)
         )
     }

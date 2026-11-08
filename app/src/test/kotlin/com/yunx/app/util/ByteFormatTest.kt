@@ -27,7 +27,9 @@ class ByteFormatTest {
     fun formatsSizeAcrossUnits() {
         assertEquals("0 B", ByteFormat.size(0))
         assertEquals("0 B", ByteFormat.size(-5))
-        assertEquals("512.0 B", ByteFormat.size(512))
+        // 字节级不显示小数：文件大小以 B 计时不应出现「512.0 B」这种无意义精度
+        assertEquals("1 B", ByteFormat.size(1))
+        assertEquals("512 B", ByteFormat.size(512))
         assertEquals("1.0 KB", ByteFormat.size(1024))
         assertEquals("1.5 MB", ByteFormat.size((1.5 * 1024 * 1024).toLong()))
         assertEquals("2.0 GB", ByteFormat.size(2L * 1024 * 1024 * 1024))
@@ -37,6 +39,7 @@ class ByteFormatTest {
     fun formatsSpeedWithPerSecondSuffix() {
         assertEquals("0 B/s", ByteFormat.speed(0))
         assertEquals("0 B/s", ByteFormat.speed(-1))
+        assertEquals("512 B/s", ByteFormat.speed(512))
         assertEquals("1.0 KB/s", ByteFormat.speed(1024))
         assertEquals("2.0 MB/s", ByteFormat.speed(2L * 1024 * 1024))
     }
