@@ -57,6 +57,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.Modifier
+import androidx.annotation.StringRes
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -112,16 +113,16 @@ private val threadOptions = listOf(1, 2, 4, 8, 16, 32, 64, 128, 256, 512)
 private val CardGap = 12.dp
 
 /** 按平台下载线程数设置项 */
-private data class ThreadPlatform(val platform: String, val label: String)
+private data class ThreadPlatform(val platform: String, @StringRes val labelRes: Int)
 
 private val threadPlatforms = listOf(
-    ThreadPlatform(DownloadPlatform.GENERIC, AppStrings.get(R.string.settings_thread_platform_generic)),
-    ThreadPlatform(DownloadPlatform.QUARK, AppStrings.get(R.string.csa_platform_quark)),
-    ThreadPlatform(DownloadPlatform.UC, AppStrings.get(R.string.rs_platform_uc)),
-    ThreadPlatform(DownloadPlatform.XUNLEI, AppStrings.get(R.string.csa_platform_xunlei)),
-    ThreadPlatform(DownloadPlatform.BAIDU, AppStrings.get(R.string.csa_platform_baidu)),
-    ThreadPlatform(DownloadPlatform.C139, AppStrings.get(R.string.rs_platform_139)),
-    ThreadPlatform(DownloadPlatform.PAN123, AppStrings.get(R.string.vm_link_target_pan123)),
+    ThreadPlatform(DownloadPlatform.GENERIC, R.string.settings_thread_platform_generic),
+    ThreadPlatform(DownloadPlatform.QUARK, R.string.csa_platform_quark),
+    ThreadPlatform(DownloadPlatform.UC, R.string.rs_platform_uc),
+    ThreadPlatform(DownloadPlatform.XUNLEI, R.string.csa_platform_xunlei),
+    ThreadPlatform(DownloadPlatform.BAIDU, R.string.csa_platform_baidu),
+    ThreadPlatform(DownloadPlatform.C139, R.string.rs_platform_139),
+    ThreadPlatform(DownloadPlatform.PAN123, R.string.vm_link_target_pan123),
 )
 
 /** 跳转系统「应用通知」设置页（Android 8+ 通用入口；失败时退回应用详情页） */
@@ -854,7 +855,7 @@ fun SettingsScreen(
                 val current = settingsRepo.downloadThreadsFor(item.platform)
                 val isXunlei = item.platform == DownloadPlatform.XUNLEI
                 ArrowPreference(
-                    title = item.label,
+                    title = stringResource(item.labelRes),
                     summary = if (isXunlei) AppStrings.get(R.string.dialog_threads_fixed) else AppStrings.get(R.string.dl_threads, current),
                     enabled = !isXunlei,
                     onClick = {
@@ -876,7 +877,10 @@ fun SettingsScreen(
     // 单个平台线程数选择（二级弹窗）
     OverlayDialog(
         show = showPlatformThreadDialog,
-        title = AppStrings.get(R.string.dialog_platform_threads_title, selectedThreadPlatform.label),
+        title = AppStrings.get(
+            R.string.dialog_platform_threads_title,
+            stringResource(selectedThreadPlatform.labelRes)
+        ),
         onDismissRequest = { showPlatformThreadDialog = false }
     ) {
         val current = settingsRepo.downloadThreadsFor(selectedThreadPlatform.platform)

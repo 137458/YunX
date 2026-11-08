@@ -80,6 +80,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.Role
@@ -118,26 +119,30 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /** 预置主题色（Material 风格种子色） */
 private val presetColors = listOf(
-    AppStrings.get(R.string.color_blue) to 0xFF415F91L,
-    AppStrings.get(R.string.color_indigo) to 0xFF3F51B5L,
-    AppStrings.get(R.string.color_purple) to 0xFF6750A4L,
-    AppStrings.get(R.string.color_rose) to 0xFFC2185BL,
-    AppStrings.get(R.string.color_red) to 0xFFB3261EL,
-    AppStrings.get(R.string.color_orange) to 0xFFF4631CL,
-    AppStrings.get(R.string.color_gold) to 0xFFF9A825L,
-    AppStrings.get(R.string.color_green) to 0xFF38761DL,
-    AppStrings.get(R.string.color_cyan) to 0xFF00897BL,
-    AppStrings.get(R.string.color_sky) to 0xFF0288D1L,
+    R.string.color_blue to 0xFF415F91L,
+    R.string.color_indigo to 0xFF3F51B5L,
+    R.string.color_purple to 0xFF6750A4L,
+    R.string.color_rose to 0xFFC2185BL,
+    R.string.color_red to 0xFFB3261EL,
+    R.string.color_orange to 0xFFF4631CL,
+    R.string.color_gold to 0xFFF9A825L,
+    R.string.color_green to 0xFF38761DL,
+    R.string.color_cyan to 0xFF00897BL,
+    R.string.color_sky to 0xFF0288D1L,
 )
 
 /** 底部导航栏样式选项（顺序与 BottomBarStyle.ordinal 一一对应，不可调序） */
-private val bottomBarStyleOptions = listOf(AppStrings.get(R.string.theme_bottom_bar_liquid), AppStrings.get(R.string.theme_bottom_bar_frosted), AppStrings.get(R.string.theme_bottom_bar_standard))
+private val bottomBarStyleOptions = listOf(
+    R.string.theme_bottom_bar_liquid,
+    R.string.theme_bottom_bar_frosted,
+    R.string.theme_bottom_bar_standard
+)
 
 /** 各档位说明文案（与 bottomBarStyleOptions 同序；模糊与折射均依赖 miuix-blur 的 RuntimeShader） */
 private val bottomBarStyleHints = listOf(
-    AppStrings.get(R.string.theme_bottom_bar_hint_liquid),
-    AppStrings.get(R.string.theme_bottom_bar_hint_frosted),
-    AppStrings.get(R.string.theme_bottom_bar_hint_standard)
+    R.string.theme_bottom_bar_hint_liquid,
+    R.string.theme_bottom_bar_hint_frosted,
+    R.string.theme_bottom_bar_hint_standard
 )
 
 /**
@@ -306,12 +311,12 @@ fun ThemeScreen(
                                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                                 contentPadding = PaddingValues(top = 6.dp, bottom = 6.dp)
                             ) {
-                                itemsIndexed(presetColors) { _, (name, color) ->
+                                itemsIndexed(presetColors) { _, (nameRes, color) ->
                                     val isSelected = (effectiveColorMode == 1 && color == 0xFF415F91L) ||
                                         (effectiveColorMode == 2 && AppThemeManager.seedColor == color)
                                     ColorSelectionItem(
                                         color = color,
-                                        name = name,
+                                        name = stringResource(nameRes),
                                         isSelected = isSelected,
                                         onClick = { AppThemeManager.setSeedColor(context, color) }
                                     )
@@ -351,10 +356,10 @@ fun ThemeScreen(
                         modifier = Modifier.fillMaxWidth().selectableGroup(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        bottomBarStyleOptions.forEachIndexed { index, label ->
+                        bottomBarStyleOptions.forEachIndexed { index, labelRes ->
                             SmoothFilterChip(
                                 selected = AppThemeManager.bottomBarStyle == index,
-                                label = label,
+                                label = stringResource(labelRes),
                                 onClick = { AppThemeManager.setBottomBarStyle(context, index) },
                                 modifier = Modifier.weight(1f)
                             )
@@ -362,7 +367,8 @@ fun ThemeScreen(
                     }
                     Spacer(modifier = Modifier.height(10.dp))
                     Text(
-                        text = bottomBarStyleHints.getOrElse(AppThemeManager.bottomBarStyle) { "" },
+                        text = bottomBarStyleHints.getOrNull(AppThemeManager.bottomBarStyle)
+                            ?.let { stringResource(it) } ?: "",
                         style = MiuixTheme.textStyles.body2,
                         color = MiuixTheme.colorScheme.onSurfaceSecondary
                     )

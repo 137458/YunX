@@ -76,7 +76,9 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.Modifier
+import androidx.annotation.StringRes
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -312,7 +314,16 @@ fun SupportScreen(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 // 说清存的是哪张：翻过卡片后用户需要知道这一下存的是谁的码
-                Text(if (saved) AppStrings.get(R.string.vm_support_saved) else AppStrings.get(R.string.vm_support_save_qr_of, sponsorCards[cardIndex].role))
+                Text(
+                    if (saved) {
+                        AppStrings.get(R.string.vm_support_saved)
+                    } else {
+                        AppStrings.get(
+                            R.string.vm_support_save_qr_of,
+                            stringResource(sponsorCards[cardIndex].roleRes)
+                        )
+                    }
+                )
             }
 
             // 保存成功本地反馈
@@ -338,27 +349,27 @@ fun SupportScreen(
  */
 private data class SponsorCard(
     /** 是谁的码（作者 / 协作者）——两张码必须一眼分得清，存错人就白扫了 */
-    val role: String,
+    @StringRes val roleRes: Int,
     @DrawableRes val drawableRes: Int,
     /** 存到相册时的文件名标记 */
     val fileTag: String,
     /** 扫码提示 */
-    val hint: String
+    @StringRes val hintRes: Int
 )
 
 /** 页面上的全部赞助码：作者在前（第一张就应该是它） */
 private val sponsorCards = listOf(
     SponsorCard(
-        role = AppStrings.get(R.string.vm_support_role_author),
+        roleRes = R.string.vm_support_role_author,
         drawableRes = R.drawable.weixin,
         fileTag = "cyqawa",
-        hint = AppStrings.get(R.string.vm_support_qr_hint)
+        hintRes = R.string.vm_support_qr_hint
     ),
     SponsorCard(
-        role = AppStrings.get(R.string.vm_support_role_collaborator),
+        roleRes = R.string.vm_support_role_collaborator,
         drawableRes = R.drawable.sponsor_tidain_weixin,
         fileTag = "tidain",
-        hint = AppStrings.get(R.string.vm_support_qr_hint)
+        hintRes = R.string.vm_support_qr_hint
     )
 )
 
@@ -705,7 +716,7 @@ private fun SponsorCodeCard(
                 color = MiuixTheme.colorScheme.primaryContainer
             ) {
                 Text(
-                    text = card.role,
+                    text = stringResource(card.roleRes),
                     modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp),
                     style = MiuixTheme.textStyles.footnote1,
                     color = MiuixTheme.colorScheme.onPrimaryContainer
@@ -721,7 +732,11 @@ private fun SponsorCodeCard(
             ) {
                 Image(
                     painter = painterResource(card.drawableRes),
-                    contentDescription = AppStrings.get(R.string.vm_support_qr_content_desc, card.role, contentDescriptionSuffix),
+                    contentDescription = AppStrings.get(
+                        R.string.vm_support_qr_content_desc,
+                        stringResource(card.roleRes),
+                        contentDescriptionSuffix
+                    ),
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(10.dp),
@@ -731,7 +746,7 @@ private fun SponsorCodeCard(
 
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = card.hint,
+                text = stringResource(card.hintRes),
                 style = MiuixTheme.textStyles.body2,
                 color = MiuixTheme.colorScheme.onSurfaceSecondary,
                 textAlign = TextAlign.Center
