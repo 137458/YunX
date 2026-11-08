@@ -186,4 +186,11 @@
 
     <!-- DownloadEngineScreen / DownloadDebugScreen / MultiAccountDownloadScreen -->
     <string name="dl_debug_merging_live">Merging chunks · %1$d%%</string>
+    <string name="dl_in_progress">In progress</string>
+    <string name="dl_remaining">%1$s left</string>
+    <string name="dl_threads">%1$d threads</string>
+    <string name="dl_downloaded_unknown_total">%1$s downloaded (size unknown)</string>
+    <string name="dl_strategy_section">Strategy</string>
+    <string name="dl_link_save_hint">Tap "Start download" to fetch it with multi-threaded chunks into the Download folder</string>
+    <string name="dl_kernel_source_dialog">Choose kernel source</string>
 </resources>

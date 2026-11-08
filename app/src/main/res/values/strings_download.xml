@@ -186,4 +186,11 @@
 
     <!-- DownloadEngineScreen / DownloadDebugScreen / MultiAccountDownloadScreen -->
     <string name="dl_debug_merging_live">正在合并分片 · %1$d%%</string>
+    <string name="dl_in_progress">进行中</string>
+    <string name="dl_remaining">剩余 %1$s</string>
+    <string name="dl_threads">%1$d 线程</string>
+    <string name="dl_downloaded_unknown_total">已下载 %1$s（大小未知）</string>
+    <string name="dl_strategy_section">策略配置</string>
+    <string name="dl_link_save_hint">点击「开始下载」将分片多线程下载并保存到 Download 目录</string>
+    <string name="dl_kernel_source_dialog">选择内核来源</string>
 </resources>

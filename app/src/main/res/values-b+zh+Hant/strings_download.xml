@@ -186,4 +186,11 @@
 
     <!-- DownloadEngineScreen / DownloadDebugScreen / MultiAccountDownloadScreen -->
     <string name="dl_debug_merging_live">正在合併分片 · %1$d%%</string>
+    <string name="dl_in_progress">進行中</string>
+    <string name="dl_remaining">剩餘 %1$s</string>
+    <string name="dl_threads">%1$d 執行緒</string>
+    <string name="dl_downloaded_unknown_total">已下載 %1$s（大小未知）</string>
+    <string name="dl_strategy_section">策略配置</string>
+    <string name="dl_link_save_hint">點擊「開始下載」將以分片多執行緒下載並儲存到 Download 目錄</string>
+    <string name="dl_kernel_source_dialog">選擇核心來源</string>
 </resources>

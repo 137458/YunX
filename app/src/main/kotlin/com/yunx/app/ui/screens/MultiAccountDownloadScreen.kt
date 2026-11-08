@@ -41,6 +41,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.yunx.app.R
+import com.yunx.app.util.AppStrings
 import com.yunx.app.data.prefs.SettingsRepository
 import com.yunx.app.ui.SnackbarController
 import com.yunx.app.ui.components.BlurredBar
@@ -94,12 +96,12 @@ fun MultiAccountDownloadScreen(onBack: () -> Unit, modifier: Modifier = Modifier
                 scrollBehavior = scrollBehavior
             ) {
                 TopAppBar(
-                    title = "多账号下载",
+                    title = AppStrings.get(R.string.dl_ma_title),
                     scrollBehavior = scrollBehavior,
                     color = if (backdrop != null) androidx.compose.ui.graphics.Color.Transparent else MiuixTheme.colorScheme.surface,
                     navigationIcon = {
                         IconButton(onClick = onBack) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = AppStrings.get(R.string.csa_back))
                         }
                     }
                 )
@@ -115,29 +117,29 @@ fun MultiAccountDownloadScreen(onBack: () -> Unit, modifier: Modifier = Modifier
                 .verticalScroll(rememberScrollState())
                 .padding(vertical = 12.dp)
         ) {
-            SmallTitle(text = "功能说明")
+            SmallTitle(text = AppStrings.get(R.string.vm_link_open_features))
             Card(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp)) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        text = "实验性功能：先在网盘页给同一个网盘登录多个账号，下面的开关才有实际效果。",
+                        text = AppStrings.get(R.string.dl_ma_intro),
                         style = MiuixTheme.textStyles.body1,
                         color = MiuixTheme.colorScheme.onSurface
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "多账号下载：批量下载时每个文件轮换用不同账号取链，绕开单账号的并发数 / 限速限制（每个文件仍只用一个账号下载）。",
+                        text = AppStrings.get(R.string.dl_ma_desc1),
                         style = MiuixTheme.textStyles.body2,
                         color = MiuixTheme.colorScheme.onSurfaceSecondary
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "单文件多源分片：同一个文件用多个账号各取一条直链，分片轮流交给不同直链下载，真正提速单个大文件；目前只对夸克 / UC / 迅雷 / 百度生效，其他平台仍按单源下载。",
+                        text = AppStrings.get(R.string.dl_ma_desc2),
                         style = MiuixTheme.textStyles.body2,
                         color = MiuixTheme.colorScheme.onSurfaceSecondary
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "两项都会让同一个网盘短时间内出现多个账号的请求，比平时更容易触发风控；遇到验证码、限流或下载变慢时，把开关关掉即可恢复。",
+                        text = AppStrings.get(R.string.dl_ma_desc3),
                         style = MiuixTheme.textStyles.body2,
                         color = MiuixTheme.colorScheme.onSurfaceSecondary
                     )
@@ -146,11 +148,11 @@ fun MultiAccountDownloadScreen(onBack: () -> Unit, modifier: Modifier = Modifier
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            SmallTitle(text = "策略配置")
+            SmallTitle(text = AppStrings.get(R.string.dl_strategy_section))
             Card(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp)) {
                 SwitchPreference(
-                    title = "多账号下载",
-                    summary = "同一网盘多个账号轮流取链（实验性）",
+                    title = AppStrings.get(R.string.dl_ma_title),
+                    summary = AppStrings.get(R.string.dl_ma_subtitle),
                     checked = multiAccount,
                     onCheckedChange = { on ->
                         if (on) {
@@ -166,9 +168,9 @@ fun MultiAccountDownloadScreen(onBack: () -> Unit, modifier: Modifier = Modifier
                             multiSource = false
                             SnackbarController.show(
                                 if (multiSourceWasOn) {
-                                    "已关闭多账号下载，单文件多源分片同步关闭"
+                                    AppStrings.get(R.string.dl_ma_off_both)
                                 } else {
-                                    "已关闭多账号下载"
+                                    AppStrings.get(R.string.dl_ma_off)
                                 }
                             )
                         }
@@ -176,12 +178,12 @@ fun MultiAccountDownloadScreen(onBack: () -> Unit, modifier: Modifier = Modifier
                 )
 
                 SwitchPreference(
-                    title = "单文件多源分片",
+                    title = AppStrings.get(R.string.dl_ms_title),
                     summary = if (multiAccount) {
-                        "同一文件多账号各取直链、分片轮换（实验性）"
+                        AppStrings.get(R.string.dl_ms_subtitle)
                     } else {
                         // C2 依赖 C1：C1 关闭时这一项不可操作，副标题直接说明原因
-                        "需先开启「多账号下载」"
+                        AppStrings.get(R.string.dl_ms_needs_ma)
                     },
                     checked = multiSource,
                     enabled = multiAccount,
@@ -191,7 +193,7 @@ fun MultiAccountDownloadScreen(onBack: () -> Unit, modifier: Modifier = Modifier
                         } else {
                             multiSource = false
                             settingsRepo.multiSourceDownload = false
-                            SnackbarController.show("已关闭单文件多源分片")
+                            SnackbarController.show(AppStrings.get(R.string.dl_ms_off))
                         }
                     }
                 )
@@ -221,7 +223,7 @@ fun MultiAccountDownloadScreen(onBack: () -> Unit, modifier: Modifier = Modifier
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End
                 ) {
-                    TextButton(text = "取消", onClick = { pendingRisk = null })
+                    TextButton(text = AppStrings.get(R.string.csa_cancel), onClick = { pendingRisk = null })
                     Spacer(modifier = Modifier.width(8.dp))
                     Button(
                         onClick = {
@@ -229,12 +231,12 @@ fun MultiAccountDownloadScreen(onBack: () -> Unit, modifier: Modifier = Modifier
                                 SwitchRisk.MULTI_ACCOUNT -> {
                                     multiAccount = true
                                     settingsRepo.multiAccountDownload = true
-                                    SnackbarController.show("已开启多账号下载")
+                                    SnackbarController.show(AppStrings.get(R.string.dl_ma_on))
                                 }
                                 SwitchRisk.MULTI_SOURCE -> {
                                     multiSource = true
                                     settingsRepo.multiSourceDownload = true
-                                    SnackbarController.show("已开启单文件多源分片")
+                                    SnackbarController.show(AppStrings.get(R.string.dl_ms_on))
                                 }
                             }
                             pendingRisk = null
@@ -244,7 +246,7 @@ fun MultiAccountDownloadScreen(onBack: () -> Unit, modifier: Modifier = Modifier
                             contentColor = MiuixTheme.colorScheme.onError
                         )
                     ) {
-                        Text("确认开启", style = MiuixTheme.textStyles.button)
+                        Text(AppStrings.get(R.string.dl_confirm_enable), style = MiuixTheme.textStyles.button)
                     }
                 }
             }
@@ -260,15 +262,11 @@ fun MultiAccountDownloadScreen(onBack: () -> Unit, modifier: Modifier = Modifier
 private enum class SwitchRisk(val title: String, val message: String) {
     // 参数顺序 = (title, message)
     MULTI_ACCOUNT(
-        "开启「多账号下载」？",
-        "请只登录你自己的账号。同一网络下频繁切换多个账号取链，部分网盘（尤其百度、夸克）" +
-            "可能触发风控：出现验证码、临时限流，甚至短期限制账号下载。功能仍在实验阶段，" +
-            "遇到异常可随时关闭。"
+        AppStrings.get(R.string.dl_ma_confirm_title),
+        AppStrings.get(R.string.dl_ma_confirm_message)
     ),
     MULTI_SOURCE(
-        "开启「单文件多源分片」？",
-        "同一个文件会被多个账号同时拉取，比多账号下载更容易触发风控；可能出现分片失败率上升、" +
-            "下载变慢或账号被临时限制。目前只支持夸克 / UC / 迅雷 / 百度。功能仍在实验阶段，" +
-            "请自行评估风险。"
+        AppStrings.get(R.string.dl_ms_confirm_title),
+        AppStrings.get(R.string.dl_ms_confirm_message)
     )
 }

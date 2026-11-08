@@ -90,6 +90,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import com.yunx.app.R
+import com.yunx.app.util.AppStrings
 import com.yunx.app.data.db.DownloadTaskEntity
 import com.yunx.app.data.download.DownloadStats
 import com.yunx.app.data.download.MagnetLink
@@ -174,7 +176,7 @@ fun DownloadScreen(
         ActivityResultContracts.RequestPermission()
     ) { granted ->
         if (granted) showAddDialog = true
-        else SnackbarController.show("需要存储权限才能保存到下载目录")
+        else SnackbarController.show(AppStrings.get(R.string.dl_snack_need_storage_permission))
     }
     val hasPermission = remember {
         if (needLegacyPermission) {
@@ -203,8 +205,8 @@ fun DownloadScreen(
         if (tasks.isEmpty()) {
             EmptyState(
                 icon = Icons.Outlined.Download,
-                title = "暂无下载任务",
-                hint = "解析分享后点击文件即可加入下载队列\n也可点击右下角按钮手动添加",
+                title = AppStrings.get(R.string.dl_empty_title),
+                hint = AppStrings.get(R.string.dl_empty_hint),
                 modifier = Modifier.align(Alignment.Center)
             )
         } else {
@@ -292,7 +294,7 @@ fun DownloadScreen(
         ) {
             Icon(
                 imageVector = Icons.Filled.Add,
-                contentDescription = "添加任务",
+                contentDescription = AppStrings.get(R.string.dl_add_task),
                 tint = MiuixTheme.colorScheme.onPrimary,
                 modifier = Modifier.size(24.dp)
             )
@@ -335,7 +337,7 @@ fun DownloadScreen(
         WindowDialog(
             show = showDeleteAllConfirm,
             onDismissRequest = { showDeleteAllConfirm = false },
-            title = "删除全部任务"
+            title = AppStrings.get(R.string.dl_delete_all_title)
         ) {
             Column(
                 modifier = Modifier
@@ -345,7 +347,7 @@ fun DownloadScreen(
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 Text(
-                    text = "确定删除所有下载任务吗？删除后任务记录将被清除，且不可恢复。",
+                    text = AppStrings.get(R.string.dl_delete_all_message),
                     style = MiuixTheme.textStyles.body1
                 )
                 if (hasCompletedFile) {
@@ -361,12 +363,12 @@ fun DownloadScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "同时删除本地文件",
+                            text = AppStrings.get(R.string.dl_delete_local_file),
                             style = MiuixTheme.textStyles.body1
                         )
                     }
                     Text(
-                        text = "勾选后将一并删除所有已下载到 Download 目录的文件，且不可恢复。",
+                        text = AppStrings.get(R.string.dl_delete_all_local_hint),
                         style = MiuixTheme.textStyles.footnote1,
                         color = MiuixTheme.colorScheme.onSurfaceSecondary
                     )
@@ -377,7 +379,7 @@ fun DownloadScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     TextButton(
-                        text = "取消",
+                        text = AppStrings.get(R.string.csa_cancel),
                         onClick = { showDeleteAllConfirm = false },
                         modifier = Modifier.weight(1f)
                     )
@@ -392,7 +394,7 @@ fun DownloadScreen(
                             contentColor = MiuixTheme.colorScheme.onError
                         )
                     ) {
-                        Text("全部删除", style = MiuixTheme.textStyles.button)
+                        Text(AppStrings.get(R.string.dl_delete_all_confirm), style = MiuixTheme.textStyles.button)
                     }
                 }
             }
@@ -417,19 +419,19 @@ private fun DownloadBatchBar(
         verticalAlignment = Alignment.CenterVertically
     ) {
         TextButton(
-            text = "全部暂停",
+            text = AppStrings.get(R.string.dl_pause_all),
             onClick = onPauseAll,
             enabled = hasActive
         )
         Spacer(modifier = Modifier.width(8.dp))
         TextButton(
-            text = "全部开始",
+            text = AppStrings.get(R.string.dl_resume_all),
             onClick = onResumeAll,
             enabled = hasResumable
         )
         Spacer(modifier = Modifier.weight(1f))
         TextButton(
-            text = "删除全部",
+            text = AppStrings.get(R.string.dl_delete_all),
             onClick = onDeleteAll,
             colors = ButtonDefaults.textButtonColors(
                 textColor = MiuixTheme.colorScheme.error
@@ -450,7 +452,7 @@ private fun DeleteConfirmDialog(
     WindowDialog(
         show = true,
         onDismissRequest = onDismiss,
-        title = "删除下载任务"
+        title = AppStrings.get(R.string.dl_delete_task_title)
     ) {
         Column(
             modifier = Modifier
@@ -460,7 +462,7 @@ private fun DeleteConfirmDialog(
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Text(
-                text = "确定删除「${task.fileName}」吗？",
+                text = AppStrings.get(R.string.dl_delete_task_message, task.fileName),
                 style = MiuixTheme.textStyles.body1
             )
             if (hasLocalFile) {
@@ -476,18 +478,18 @@ private fun DeleteConfirmDialog(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "同时删除本地文件",
+                        text = AppStrings.get(R.string.dl_delete_local_file),
                         style = MiuixTheme.textStyles.body1
                     )
                 }
             }
             Text(
                 text = if (hasLocalFile) {
-                    "勾选后将一并删除已下载到 Download 目录的文件，且不可恢复。"
+                    AppStrings.get(R.string.dl_delete_local_hint)
                 } else if (task.status == DownloadTaskEntity.STATUS_COMPLETED) {
-                    "该任务没有已完成的本地文件。"
+                    AppStrings.get(R.string.dl_delete_no_local_file)
                 } else {
-                    "该任务尚未完成，删除后将同时清除已下载的临时文件，且不可恢复。"
+                    AppStrings.get(R.string.dl_delete_unfinished_hint)
                 },
                 style = MiuixTheme.textStyles.footnote1,
                 color = MiuixTheme.colorScheme.onSurfaceSecondary
@@ -498,7 +500,7 @@ private fun DeleteConfirmDialog(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 TextButton(
-                    text = "取消",
+                    text = AppStrings.get(R.string.csa_cancel),
                     onClick = onDismiss,
                     modifier = Modifier.weight(1f)
                 )
@@ -510,7 +512,7 @@ private fun DeleteConfirmDialog(
                         contentColor = MiuixTheme.colorScheme.onError
                     )
                 ) {
-                    Text("删除", style = MiuixTheme.textStyles.button)
+                    Text(AppStrings.get(R.string.dl_delete), style = MiuixTheme.textStyles.button)
                 }
             }
         }
@@ -586,7 +588,13 @@ private fun FolderDownloadGroup(
                     )
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
-                        text = "${completed}/${tasks.size} 个文件 · ${formatSize(downloaded)} / ${formatSize(totalSize)}",
+                        text = AppStrings.get(
+                            R.string.dl_folder_count,
+                            completed,
+                            tasks.size,
+                            formatSize(downloaded),
+                            formatSize(totalSize)
+                        ),
                         style = MiuixTheme.textStyles.footnote1,
                         color = MiuixTheme.colorScheme.onSurfaceSecondary
                     )
@@ -602,9 +610,9 @@ private fun FolderDownloadGroup(
                 ) {
                     Text(
                         text = when {
-                            done -> "已完成"
+                            done -> AppStrings.get(R.string.dl_status_done)
                             // 分组内存在大小未知的任务时不报假的 0%
-                            totalSize <= 0 -> "进行中"
+                            totalSize <= 0 -> AppStrings.get(R.string.dl_in_progress)
                             else -> "${(fraction * 100).toInt()}%"
                         },
                         style = MiuixTheme.textStyles.footnote1,
@@ -620,7 +628,7 @@ private fun FolderDownloadGroup(
                 Spacer(modifier = Modifier.width(2.dp))
                 Icon(
                     imageVector = if (expanded) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore,
-                    contentDescription = if (expanded) "收起" else "展开",
+                    contentDescription = if (expanded) AppStrings.get(R.string.dl_collapse) else AppStrings.get(R.string.dl_expand),
                     tint = MiuixTheme.colorScheme.onSurfaceSecondary
                 )
             }
@@ -809,7 +817,7 @@ private fun DownloadTaskRow(
                         modifier = Modifier.size(48.dp)
                     ) {
                         Icon(
-                            Icons.Outlined.Pause, contentDescription = "暂停",
+                            Icons.Outlined.Pause, contentDescription = AppStrings.get(R.string.dl_pause),
                             tint = MiuixTheme.colorScheme.primary,
                             modifier = Modifier.size(density.actionGlyphSize)
                         )
@@ -819,7 +827,7 @@ private fun DownloadTaskRow(
                         modifier = Modifier.size(48.dp)
                     ) {
                         Icon(
-                            Icons.Outlined.PlayArrow, contentDescription = "继续",
+                            Icons.Outlined.PlayArrow, contentDescription = AppStrings.get(R.string.dl_resume),
                             tint = MiuixTheme.colorScheme.primary,
                             modifier = Modifier.size(density.actionGlyphSize)
                         )
@@ -829,7 +837,7 @@ private fun DownloadTaskRow(
                         modifier = Modifier.size(48.dp)
                     ) {
                         Icon(
-                            Icons.Outlined.Refresh, contentDescription = "重试",
+                            Icons.Outlined.Refresh, contentDescription = AppStrings.get(R.string.dl_retry),
                             tint = MiuixTheme.colorScheme.error,
                             modifier = Modifier.size(density.actionGlyphSize)
                         )
@@ -843,7 +851,7 @@ private fun DownloadTaskRow(
                             ) {
                                 Icon(
                                     imageVector = Icons.Outlined.SystemUpdate,
-                                    contentDescription = "安装",
+                                    contentDescription = AppStrings.get(R.string.dl_install),
                                     tint = MiuixTheme.colorScheme.primary,
                                     modifier = Modifier.size(density.actionGlyphSize)
                                 )
@@ -854,7 +862,7 @@ private fun DownloadTaskRow(
                             modifier = Modifier.size(48.dp)
                         ) {
                             Icon(
-                                Icons.AutoMirrored.Outlined.OpenInNew, contentDescription = "打开",
+                                Icons.AutoMirrored.Outlined.OpenInNew, contentDescription = AppStrings.get(R.string.dl_open),
                                 tint = MiuixTheme.colorScheme.primary,
                                 modifier = Modifier.size(density.actionGlyphSize)
                             )
@@ -868,7 +876,7 @@ private fun DownloadTaskRow(
             // 失败原因（红色小字展示具体错误）
             if (task.status == DownloadTaskEntity.STATUS_FAILED && task.errorMsg.isNotBlank()) {
                 Text(
-                    text = "失败原因：${task.errorMsg}",
+                    text = AppStrings.get(R.string.dl_fail_reason, task.errorMsg),
                     style = MiuixTheme.textStyles.footnote2,
                     color = MiuixTheme.colorScheme.error,
                     maxLines = 2,
@@ -907,7 +915,11 @@ private fun DownloadTaskRow(
                 Text(
                     text = if (task.status == DownloadTaskEntity.STATUS_COMPLETED) {
                         if (task.avgSpeed > 0) {
-                            "平均 ${formatSpeed(task.avgSpeed)} · ${formatSize(task.totalSize)}"
+                            AppStrings.get(
+                                R.string.dl_avg_speed_size,
+                                formatSpeed(task.avgSpeed),
+                                formatSize(task.totalSize)
+                            )
                         } else {
                             formatSize(task.totalSize)
                         }
@@ -919,7 +931,7 @@ private fun DownloadTaskRow(
                     modifier = Modifier.weight(1f)
                 )
                 TextButton(
-                    text = "删除",
+                    text = AppStrings.get(R.string.dl_delete),
                     onClick = onRemove,
                     colors = ButtonDefaults.textButtonColors(
                         textColor = MiuixTheme.colorScheme.error
@@ -965,16 +977,16 @@ private fun TaskRowActionMenu(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             TextButton(
-                text = "复制直链",
+                text = AppStrings.get(R.string.dl_copy_url),
                 onClick = {
                     onDismiss()
                     copyToClipboard(context, task.url)
-                    SnackbarController.show("直链已复制")
+                    SnackbarController.show(AppStrings.get(R.string.dl_url_copied))
                 },
                 modifier = Modifier.fillMaxWidth()
             )
             TextButton(
-                text = "重新下载",
+                text = AppStrings.get(R.string.dl_redownload),
                 onClick = {
                     onDismiss()
                     onRedownload()
@@ -982,7 +994,7 @@ private fun TaskRowActionMenu(
                 modifier = Modifier.fillMaxWidth()
             )
             TextButton(
-                text = "删除任务",
+                text = AppStrings.get(R.string.dl_delete_task),
                 onClick = {
                     onDismiss()
                     onRemove()
@@ -994,7 +1006,7 @@ private fun TaskRowActionMenu(
             )
             if (downloadDebug) {
                 TextButton(
-                    text = "调试信息",
+                    text = AppStrings.get(R.string.dl_debug_info),
                     onClick = {
                         onDismiss()
                         onOpenDebug(task.id)
@@ -1004,7 +1016,7 @@ private fun TaskRowActionMenu(
             }
             Spacer(modifier = Modifier.height(4.dp))
             TextButton(
-                text = "取消",
+                text = AppStrings.get(R.string.csa_cancel),
                 onClick = onDismiss,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -1041,8 +1053,12 @@ internal fun taskRowSubtitle(task: DownloadTaskEntity, stats: DownloadStats?): S
         task.status == DownloadTaskEntity.STATUS_PENDING
     if (isDownloading && stats != null && stats.speed > 0L) {
         val parts = mutableListOf(status, formatSpeed(stats.speed))
-        if (stats.remainMillis >= 0L) parts += "剩余 ${formatRemain(stats.remainMillis)}"
-        if (stats.chunkCount > 0) parts += "${stats.chunkCount} 线程"
+        if (stats.remainMillis >= 0L) {
+            parts += AppStrings.get(R.string.dl_remaining, formatRemain(stats.remainMillis))
+        }
+        if (stats.chunkCount > 0) {
+            parts += AppStrings.get(R.string.dl_threads, stats.chunkCount)
+        }
         return parts.joinToString(" · ")
     }
     // 大小/百分比由底部 progressText 统一展示，完成态的平均速度与总大小也在底部行 —
@@ -1054,12 +1070,21 @@ internal fun progressText(task: DownloadTaskEntity): String {
     // 服务器未返回 Content-Length 时 totalSize 为 0：进度条没有意义，
     // 但必须给出"大小未知"文案，否则底部只剩一个删除按钮，用户以为卡死。
     if (task.totalSize <= 0) {
-        return if (task.downloadedSize > 0) "已下载 " + formatSize(task.downloadedSize) + "（大小未知）" else "大小未知"
+        return if (task.downloadedSize > 0) {
+            AppStrings.get(R.string.dl_downloaded_unknown_total, formatSize(task.downloadedSize))
+        } else {
+            AppStrings.get(R.string.dl_kernel_size_unknown)
+        }
     }
     // 显示值钳制到 total（防恢复竞态残留导致显示超总大小）
     val shown = minOf(task.downloadedSize, task.totalSize)
     val percent = (shown * 100 / task.totalSize).toInt().coerceIn(0, 100)
-    return "已下载 ${formatSize(shown)} / ${formatSize(task.totalSize)} · $percent%"
+    return AppStrings.get(
+        R.string.dl_progress_text,
+        formatSize(shown),
+        formatSize(task.totalSize),
+        percent
+    )
 }
 
 internal fun formatSize(bytes: Long): String = ByteFormat.size(bytes)
@@ -1067,12 +1092,12 @@ internal fun formatSize(bytes: Long): String = ByteFormat.size(bytes)
 internal fun formatSpeed(bytesPerSec: Long): String = ByteFormat.speed(bytesPerSec)
 
 internal fun formatRemain(millis: Long): String {
-    if (millis < 0) return "计算中"
+    if (millis < 0) return AppStrings.get(R.string.dl_calculating)
     val sec = millis / 1000
     return when {
-        sec < 60 -> "${sec}秒"
-        sec < 3600 -> "${sec / 60}分${sec % 60}秒"
-        else -> "${sec / 3600}时${(sec % 3600) / 60}分"
+        sec < 60 -> AppStrings.get(R.string.dl_dur_seconds, sec)
+        sec < 3600 -> AppStrings.get(R.string.dl_dur_min_sec, sec / 60, sec % 60)
+        else -> AppStrings.get(R.string.dl_dur_hour_min, sec / 3600, (sec % 3600) / 60)
     }
 }
 
@@ -1098,7 +1123,7 @@ private fun AddDownloadDialog(
     WindowDialog(
         show = true,
         onDismissRequest = onDismiss,
-        title = "添加下载任务"
+        title = AppStrings.get(R.string.dl_add_task)
     ) {
         Column(
             modifier = Modifier
@@ -1108,7 +1133,7 @@ private fun AddDownloadDialog(
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Text(
-                text = "下载文件将保存到 ${Environment.DIRECTORY_DOWNLOADS} 目录",
+                text = AppStrings.get(R.string.dl_save_to_dir, Environment.DIRECTORY_DOWNLOADS),
                 style = MiuixTheme.textStyles.body2,
                 color = MiuixTheme.colorScheme.onSurfaceSecondary
             )
@@ -1119,7 +1144,7 @@ private fun AddDownloadDialog(
                     if (name.isBlank()) name = it.substringAfterLast('/').take(80)
                 },
                 modifier = Modifier.fillMaxWidth(),
-                label = "文件直链 URL",
+                label = AppStrings.get(R.string.dl_url_placeholder),
                 useLabelAsPlaceholder = true,
                 singleLine = true
             )
@@ -1127,7 +1152,7 @@ private fun AddDownloadDialog(
                 value = name,
                 onValueChange = { name = it },
                 modifier = Modifier.fillMaxWidth(),
-                label = "保存文件名",
+                label = AppStrings.get(R.string.dl_name_placeholder),
                 useLabelAsPlaceholder = true,
                 singleLine = true
             )
@@ -1137,7 +1162,7 @@ private fun AddDownloadDialog(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 TextButton(
-                    text = "取消",
+                    text = AppStrings.get(R.string.csa_cancel),
                     onClick = onDismiss,
                     modifier = Modifier.weight(1f)
                 )
@@ -1146,7 +1171,7 @@ private fun AddDownloadDialog(
                     enabled = url.isNotBlank() && name.isNotBlank(),
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text("开始下载", style = MiuixTheme.textStyles.button)
+                    Text(AppStrings.get(R.string.dl_start_download), style = MiuixTheme.textStyles.button)
                 }
             }
         }

@@ -186,4 +186,11 @@
 
     <!-- DownloadEngineScreen / DownloadDebugScreen / MultiAccountDownloadScreen -->
     <string name="dl_debug_merging_live">結合中 · %1$d%%</string>
+    <string name="dl_in_progress">進行中</string>
+    <string name="dl_remaining">残り %1$s</string>
+    <string name="dl_threads">%1$d スレッド</string>
+    <string name="dl_downloaded_unknown_total">%1$s ダウンロード済み（サイズ不明）</string>
+    <string name="dl_strategy_section">戦略設定</string>
+    <string name="dl_link_save_hint">「ダウンロード開始」を押すと、分割・マルチスレッドで Download ディレクトリに保存します</string>
+    <string name="dl_kernel_source_dialog">カーネルの取得元を選択</string>
 </resources>

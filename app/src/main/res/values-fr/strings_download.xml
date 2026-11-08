@@ -186,4 +186,11 @@
 
     <!-- DownloadEngineScreen / DownloadDebugScreen / MultiAccountDownloadScreen -->
     <string name="dl_debug_merging_live">Fusion des segments · %1$d%%</string>
+    <string name="dl_in_progress">En cours</string>
+    <string name="dl_remaining">%1$s restant</string>
+    <string name="dl_threads">%1$d threads</string>
+    <string name="dl_downloaded_unknown_total">%1$s téléchargés (taille inconnue)</string>
+    <string name="dl_strategy_section">Stratégie</string>
+    <string name="dl_link_save_hint">Appuyez sur « Démarrer le téléchargement » pour télécharger en plusieurs fragments vers le dossier Download</string>
+    <string name="dl_kernel_source_dialog">Choisir la source du noyau</string>
 </resources>

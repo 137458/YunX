@@ -45,6 +45,8 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.yunx.app.R
+import com.yunx.app.util.AppStrings
 import com.yunx.app.data.network.model.DownloadLink
 import com.yunx.app.ui.SnackbarController
 import top.yukonga.miuix.kmp.basic.Button
@@ -84,7 +86,7 @@ fun DownloadLinkDialog(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text(
-                text = "下载直链已生成（有效期约 15-30 分钟）",
+                text = AppStrings.get(R.string.sh_direct_link_generated),
                 style = MiuixTheme.textStyles.body2,
                 color = MiuixTheme.colorScheme.onSurfaceVariantSummary
             )
@@ -100,10 +102,10 @@ fun DownloadLinkDialog(
                             // 长按复制保留为快捷方式，但不再是唯一入口
                             .combinedClickable(
                                 onClick = {},
-                                onLongClickLabel = "复制下载链接",
+                                onLongClickLabel = AppStrings.get(R.string.sh_copy_download_link),
                                 onLongClick = {
                                     copyToClipboard(context, link.downloadUrl)
-                                    SnackbarController.show("下载链接已复制")
+                                    SnackbarController.show(AppStrings.get(R.string.sh_download_link_copied))
                                 }
                             ),
                         style = MiuixTheme.textStyles.body2.copy(
@@ -119,20 +121,20 @@ fun DownloadLinkDialog(
                     IconButton(
                         onClick = {
                             copyToClipboard(context, link.downloadUrl)
-                            SnackbarController.show("下载链接已复制")
+                            SnackbarController.show(AppStrings.get(R.string.sh_download_link_copied))
                         },
                         modifier = Modifier.size(48.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Outlined.ContentCopy,
-                            contentDescription = "复制下载链接",
+                            contentDescription = AppStrings.get(R.string.sh_copy_download_link),
                             tint = MiuixTheme.colorScheme.primary
                         )
                     }
                 }
             }
             Text(
-                text = "点击「开始下载」将分片多线程下载并保存到 Download 目录",
+                text = AppStrings.get(R.string.dl_link_save_hint),
                 style = MiuixTheme.textStyles.body2,
                 color = MiuixTheme.colorScheme.onSurfaceVariantSummary
             )
@@ -143,7 +145,7 @@ fun DownloadLinkDialog(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 TextButton(
-                    text = "关闭",
+                    text = AppStrings.get(R.string.em_log_disabled),
                     onClick = onDismiss,
                     modifier = Modifier.weight(1f)
                 )
@@ -159,7 +161,7 @@ fun DownloadLinkDialog(
                         tint = MiuixTheme.colorScheme.onPrimary
                     )
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text("开始下载", style = MiuixTheme.textStyles.button)
+                    Text(AppStrings.get(R.string.dl_start_download), style = MiuixTheme.textStyles.button)
                 }
             }
         }

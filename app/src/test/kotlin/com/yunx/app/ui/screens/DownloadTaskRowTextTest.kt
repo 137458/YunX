@@ -47,7 +47,14 @@ class DownloadTaskRowTextTest {
             R.string.ed_status_failed to "失败",
             R.string.ed_status_unknown to "未知",
         )
-        AppStrings.installResolverForTest { resId, _ -> table[resId] ?: "" }
+        AppStrings.installResolverForTest { resId, args ->
+            when (resId) {
+                R.string.dl_remaining -> "剩余 ${args[0]}"
+                R.string.dl_threads -> "${args[0]} 线程"
+                R.string.dl_dur_seconds -> "${args[0]}秒"
+                else -> table[resId] ?: ""
+            }
+        }
     }
 
     @After
