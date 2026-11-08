@@ -212,30 +212,30 @@ fun CloudDriveBrowser(
                 )
 
                 is CloudDriveUiState.Loaded -> {
-                    val multiSelectActions = remember(selected.size) {
-                        listOf(
-                            MultiSelectAction(
-                                label = "下载",
-                                icon = Icons.Outlined.Download,
-                                onClick = { requestDownload(selected) { actions.downloadSelected() } }
-                            ),
-                            MultiSelectAction(
-                                label = "分享",
-                                icon = Icons.Outlined.Share,
-                                onClick = { step = DriveStep.SHARE }
-                            ),
-                            MultiSelectAction(
-                                label = "移动",
-                                icon = Icons.AutoMirrored.Outlined.DriveFileMove,
-                                onClick = { actions.openMoveRoot(); step = DriveStep.MOVE }
-                            ),
-                            MultiSelectAction(
-                                label = "删除",
-                                icon = Icons.Outlined.Delete,
-                                onClick = { showDeleteConfirm = true }
-                            )
+                    // 不用 remember 缓存：按 selected.size 记忆会让「取消 A、勾选 B」这类
+                    // 数量不变的选择变化拿到旧闭包，下载/分享会读到过期的选择集。
+                    val multiSelectActions = listOf(
+                        MultiSelectAction(
+                            label = "下载",
+                            icon = Icons.Outlined.Download,
+                            onClick = { requestDownload(selected) { actions.downloadSelected() } }
+                        ),
+                        MultiSelectAction(
+                            label = "分享",
+                            icon = Icons.Outlined.Share,
+                            onClick = { step = DriveStep.SHARE }
+                        ),
+                        MultiSelectAction(
+                            label = "移动",
+                            icon = Icons.AutoMirrored.Outlined.DriveFileMove,
+                            onClick = { actions.openMoveRoot(); step = DriveStep.MOVE }
+                        ),
+                        MultiSelectAction(
+                            label = "删除",
+                            icon = Icons.Outlined.Delete,
+                            onClick = { showDeleteConfirm = true }
                         )
-                    }
+                    )
 
                     CloudDriveScaffold(
                         driveTitle = spec.title,
