@@ -129,12 +129,12 @@ fun AnnouncementScreen(
     // 进入详情页才请求详情（详情接口会让浏览量 +1，ViewModel 里按 id 缓存，同一会话只请求一次）
     LaunchedEffect(detailId) { detailId?.let { viewModel.openDetail(it) } }
 
-    // 返回键：全屏看图 → 详情页 → 列表页 → 关闭公告页（交回主界面），从里到外一层层退
-    BackHandler {
+    // 返回键：全屏看图 → 详情页 → 列表页，从里到外一层层退；
+    // 已在列表页时不再拦截，交回 NavHost 关闭公告页（保留系统预测性返回动画）
+    BackHandler(enabled = viewerIndex >= 0 || detailId != null) {
         when {
             viewerIndex >= 0 -> viewerIndex = -1
-            detailId != null -> detailId = null
-            else -> onBack()
+            else -> detailId = null
         }
     }
 

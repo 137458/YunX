@@ -21,7 +21,6 @@ package com.yunx.app.ui.screens
 import android.content.ClipboardManager
 import android.content.ClipData
 import android.content.Context
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
@@ -134,7 +133,7 @@ fun BookmarkScreen(
     val scrollBehavior = MiuixScrollBehavior()
     val backdrop = rememberBlurBackdrop()
 
-    BackHandler { onBack() }
+    // 返回由 NavHost 处理（本页已是 destination），系统预测性返回动画得以保留
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
